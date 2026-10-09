@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 export function Icon({ name, size = 20 }) {
   const props = {
     width: size,
@@ -125,9 +127,20 @@ export function Icon({ name, size = 20 }) {
 }
 
 export function GameTile({ game, className = "" }) {
+  const [broken, setBroken] = useState(false);
   return (
     <div className={`game-tile ${className}`} style={{ "--h": game.hue }} aria-hidden>
-      <span>{game.mark}</span>
+      {game.image && !broken ? (
+        <img
+          src={game.image}
+          alt=""
+          loading="lazy"
+          style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }}
+          onError={() => setBroken(true)}
+        />
+      ) : (
+        <span className="tile-mark">{game.mark}</span>
+      )}
     </div>
   );
 }

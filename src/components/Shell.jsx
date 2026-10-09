@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { games } from "../data/catalog";
+import { useCatalog } from "../lib/catalog";
 import { t } from "../lib/i18n";
 import { GameTile, Icon } from "./Icons";
 
 export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
+  const { games } = useCatalog();
   const location = useLocation();
   const navigate = useNavigate();
   const [menu, setMenu] = useState(false);
@@ -41,7 +42,7 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
             g.nameKm.toLowerCase().includes(s)),
       )
       .slice(0, 10);
-  }, [q]);
+  }, [games, q]);
 
   return (
     <div className="shell">
@@ -153,7 +154,6 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
             <Icon name="store" /> {t(lang, "reseller")}
           </Link>
         </nav>
-        <p className="drawer-note">{t(lang, "demoPay")}</p>
       </aside>
 
       <div className={`search-modal${search ? " open" : ""}`} onClick={(e) => e.target === e.currentTarget && setSearch(false)}>
