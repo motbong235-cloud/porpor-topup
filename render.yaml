@@ -14,7 +14,7 @@ services:
       - key: ADMIN_PASSWORD
         generateValue: true
       - key: DATA_DIR
-        value: /opt/render/project/src/data
+        value: /var/data
       - key: ABA_API_KEY
         sync: false
       - key: ABA_MERCHANT_ID
@@ -22,3 +22,8 @@ services:
       - key: KHMER_TOPUP_API_KEY
         sync: false
     healthCheckPath: /api/health
+    # Persistent disk: keeps selected services, orders and uploaded images across deploys/restarts
+    disk:
+      name: porpor-data
+      mountPath: /var/data
+      sizeGB: 1
