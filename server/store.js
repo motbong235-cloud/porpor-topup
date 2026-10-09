@@ -6,6 +6,7 @@ import crypto from "crypto";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "..", "data");
 const DB_FILE = path.join(DATA_DIR, "db.json");
+export const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
 
 const DEFAULT_SETTINGS = {
   siteName: "Porpor TOPUP",
@@ -30,6 +31,7 @@ const LEGACY_KEYS = ["defaultWallet", "closedGames", "packageMap", "allowDemoPay
 
 function ensure() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
   if (!fs.existsSync(DB_FILE)) {
     const seed = {
       settings: { ...DEFAULT_SETTINGS },
@@ -42,12 +44,27 @@ function ensure() {
 
 function read() {
   ensure();
-  return JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
+  try {
+    return JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
+  } catch {
+    // db.json damaged (e.g. crash mid-write) — fall back to the last good backup
+    try {
+      return JSON.parse(fs.readFileSync(DB_FILE + ".bak", "utf8"));
+    } catch {
+      return { settings: { ...DEFAULT_SETTINGS }, orders: [], sessions: {} };
+    }
+  }
 }
 
+/** Atomic write (tmp file + rename) with a rolling backup, so saved services never get lost half-written. */
 function write(db) {
   ensure();
-  fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
+  const tmp = DB_FILE + ".tmp";
+  fs.writeFileSync(tmp, JSON.stringify(db, null, 2));
+  try {
+    if (fs.existsSync(DB_FILE)) fs.copyFileSync(DB_FILE, DB_FILE + ".bak");
+  } catch {}
+  fs.renameSync(tmp, DB_FILE);
 }
 
 export function getSettings() {
@@ -129,15 +146,39 @@ export function destroySession(token) {
 
 export function stats() {
   const orders = listOrders();
-  const delivered = orders.filter((o) => o.status === "delivered" || !o.status);
-  const revenue = delivered.reduce((s, o) => s + (Number(o.total) || 0), 0);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayOrders = orders.filter((o) => o.createdAt >= today.getTime());
+  const st = (o) => o.status || "delivered";
+  const delivered = orders.filter((o) => st(o) === "delivered");
+  const sum = (arr, f) => arr.reduce((n, o) => n + (Number(f(o)) || 0), 0);
+  const revenue = sum(delivered, (o) => o.total);
+  const profit = sum(delivered, (o) => (Number(o.total) || 0) - (Number(o.cost) || 0));
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  const today = startOfDay.getTime();
+
+  const byStatus = {};
+  for (const o of orders) byStatus[st(o)] = (byStatus[st(o)] || 0) + 1;
+
+  // last 7 days (oldest → newest)
+  const daily = [];
+  for (let i = 6; i >= 0; i--) {
+    const from = today - i * 86400000;
+    const to = from + 86400000;
+    const day = orders.filter((o) => o.createdAt >= from && o.createdAt < to);
+    const done = day.filter((o) => st(o) === "delivered");
+    daily.push({
+      date: from,
+      orders: day.length,
+      revenue: Math.round(sum(done, (o) => o.total) * 100) / 100,
+    });
+  }
+
   return {
     totalOrders: orders.length,
-    todayOrders: todayOrders.length,
+    todayOrders: orders.filter((o) => o.createdAt >= today).length,
     revenue: Math.round(revenue * 100) / 100,
-    pending: orders.filter((o) => o.status === "pending").length,
+    profit: Math.round(profit * 100) / 100,
+    pending: byStatus.pending || 0,
+    byStatus,
+    daily,
   };
 }

@@ -41,6 +41,7 @@ export function normalizeGame(g) {
         cost: Number(pick(p, ["price", "cost", "amount", "unit_price"])),
         category: String(pick(p, ["category", "type", "group"]) ?? "Packages"),
         bonus: pick(p, ["bonus"]) ? String(pick(p, ["bonus"])) : "",
+        image: String(pick(p, ["image", "image_url", "icon", "icon_url", "thumbnail"]) ?? ""),
         inStock: active === undefined ? true : !!active,
       };
     })
@@ -118,6 +119,8 @@ export async function storefront() {
         cost: p.cost,
         category: p.category,
         bonus: p.bonus,
+        // priority: image uploaded for this package → game's default package image → supplier image
+        image: s.packImages?.[p.id] || s.packIcon || p.image || "",
       }));
     if (!packs.length) continue;
 
@@ -125,7 +128,7 @@ export async function storefront() {
       id: g.slug,
       name: g.name,
       nameKm: g.name,
-      image: g.image,
+      image: s.image || g.image,
       mark: markOf(g.name),
       hue: hueOf(g.slug),
       famous: !!s.featured,
@@ -160,6 +163,15 @@ export async function findGame(gameId) {
   return (await storefront()).find((g) => g.id === String(gameId)) || null;
 }
 
+/** Only allow our own uploads or https URLs as image sources. */
+function cleanImg(u) {
+  const s = String(u || "").trim();
+  if (!s) return "";
+  if (/^\/uploads\/[\w.-]{1,100}$/.test(s)) return s;
+  if (/^https:\/\/[^\s"'<>]{1,490}$/.test(s)) return s;
+  return "";
+}
+
 export function sanitizeSelection(input) {
   const out = { markupPercent: 0, games: {} };
   const m = Number(input?.markupPercent);
@@ -168,11 +180,19 @@ export function sanitizeSelection(input) {
     if (typeof slug !== "string" || !slug || slug.length > 120) continue;
     const mk = v?.markup;
     const mkNum = mk === "" || mk === null || mk === undefined ? null : Number(mk);
+    const packImages = {};
+    for (const [pid, url] of Object.entries(v?.packImages || {}).slice(0, 2000)) {
+      const clean = cleanImg(url);
+      if (clean && String(pid).length <= 60) packImages[String(pid)] = clean;
+    }
     out.games[slug] = {
       enabled: !!v?.enabled,
       featured: !!v?.featured,
       markup: mkNum !== null && Number.isFinite(mkNum) ? Math.min(500, Math.max(0, mkNum)) : null,
       packages: Array.isArray(v?.packages) ? v.packages.map(String).slice(0, 2000) : null,
+      image: cleanImg(v?.image),
+      packIcon: cleanImg(v?.packIcon),
+      packImages,
     };
   }
   return out;

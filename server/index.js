@@ -3,7 +3,9 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
+import crypto from "crypto";
 import {
+  UPLOAD_DIR,
   createOrder,
   createSession,
   deleteOrder,
@@ -464,6 +466,36 @@ app.put("/api/admin/kt-selection", adminAuth, (req, res) => {
   res.json({ selection });
 });
 
+/* ---------- Image uploads (game + package images) ---------- */
+fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+app.use(
+  "/uploads",
+  express.static(UPLOAD_DIR, {
+    index: false,
+    maxAge: "30d",
+    immutable: true,
+    setHeaders: (res) => res.setHeader("X-Content-Type-Options", "nosniff"),
+  }),
+);
+
+/** Identify the image from its real bytes (never trust the filename / content-type). SVG is rejected on purpose. */
+function sniffImage(b) {
+  if (!Buffer.isBuffer(b) || b.length < 12) return null;
+  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return "png";
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "jpg";
+  if (b.toString("ascii", 0, 4) === "GIF8") return "gif";
+  if (b.toString("ascii", 0, 4) === "RIFF" && b.toString("ascii", 8, 12) === "WEBP") return "webp";
+  return null;
+}
+
+app.post("/api/admin/upload", adminAuth, express.raw({ type: () => true, limit: "4mb" }), (req, res) => {
+  const ext = sniffImage(req.body);
+  if (!ext) return res.status(400).json({ error: "bad_image" });
+  const name = `${Date.now().toString(36)}-${crypto.randomBytes(6).toString("hex")}.${ext}`;
+  fs.writeFileSync(path.join(UPLOAD_DIR, name), req.body);
+  res.json({ url: `/uploads/${name}` });
+});
+
 if (fs.existsSync(DIST)) {
   app.use(express.static(DIST));
   app.get("*", (req, res, next) => {
@@ -477,6 +509,13 @@ if (fs.existsSync(DIST)) {
     );
   });
 }
+
+app.use((err, _req, res, next) => {
+  if (err?.type === "entity.too.large") return res.status(413).json({ error: "too_large" });
+  if (res.headersSent) return next(err);
+  console.error(err);
+  res.status(500).json({ error: "server_error" });
+});
 
 app.listen(PORT, () => {
   console.log(`Porpor TOPUP on :${PORT}`);
