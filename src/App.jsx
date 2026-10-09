@@ -13,6 +13,7 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import OrdersAdmin from "./pages/admin/OrdersAdmin";
 import SettingsAdmin from "./pages/admin/SettingsAdmin";
+import ServicesAdmin from "./pages/admin/ServicesAdmin";
 
 export default function App() {
   const location = useLocation();
@@ -20,7 +21,6 @@ export default function App() {
   const initial = getPrefs();
   const [lang, setLangState] = useState(initial.lang);
   const [theme, setThemeState] = useState(initial.theme);
-  const [wallet, setWalletState] = useState(initial.wallet);
   const [orders, setOrders] = useState(initial.orders);
   const [remoteSettings, setRemoteSettings] = useState(null);
 
@@ -43,21 +43,12 @@ export default function App() {
     setThemeState(v);
     savePrefs({ theme: v });
   }
-  function setWallet(v) {
-    setWalletState(v);
-    savePrefs({ wallet: v });
-  }
   function addOrder(order) {
     setOrders((prev) => {
       const next = [order, ...prev].slice(0, 40);
       savePrefs({ orders: next });
       return next;
     });
-    fetch("/api/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(order),
-    }).catch(() => {});
   }
 
   if (isAdmin) {
@@ -66,6 +57,7 @@ export default function App() {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="orders" element={<OrdersAdmin />} />
+          <Route path="services" element={<ServicesAdmin />} />
           <Route path="settings" element={<SettingsAdmin />} />
         </Route>
         <Route path="*" element={<Navigate to="/admin" replace />} />
@@ -80,17 +72,11 @@ export default function App() {
         <Route
           path="/game/:id"
           element={
-            <Game
-              lang={lang}
-              wallet={wallet}
-              setWallet={setWallet}
-              addOrder={addOrder}
-              settings={remoteSettings}
-            />
+            <Game lang={lang} addOrder={addOrder} settings={remoteSettings} />
           }
         />
         <Route path="/orders" element={<Orders lang={lang} orders={orders} />} />
-        <Route path="/track" element={<Track lang={lang} orders={orders} />} />
+        <Route path="/track" element={<Track lang={lang} />} />
         <Route path="/support" element={<Support lang={lang} settings={remoteSettings} />} />
         <Route path="/reseller" element={<Reseller lang={lang} settings={remoteSettings} />} />
         <Route path="/legal/:slug" element={<Legal lang={lang} />} />

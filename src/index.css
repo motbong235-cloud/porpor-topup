@@ -568,7 +568,7 @@ img {
 /* Events */
 .events {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   max-width: 760px;
 }
@@ -641,20 +641,20 @@ img {
 /* Game grid */
 .game-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
 @media (min-width: 640px) {
   .game-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 12px;
   }
 }
 
 @media (min-width: 1024px) {
   .game-grid {
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 }
 
@@ -711,7 +711,7 @@ img {
     linear-gradient(155deg, hsl(var(--h) 74% 46%), hsl(var(--h) 62% 22%));
 }
 
-.game-tile span {
+.game-tile .tile-mark {
   position: absolute;
   inset: 0;
   display: grid;
@@ -1966,6 +1966,10 @@ label.field select:focus {
   font-weight: 800;
 }
 
+.badge-ok.pending {
+  color: var(--primary);
+}
+
 .detail dl {
   margin-top: 16px;
 }
@@ -2123,4 +2127,87 @@ a.bg-brand {
 .icon-svg {
   display: inline-flex;
   line-height: 0;
+}
+
+
+/* ---- Mobile polish ---- */
+html,
+body {
+  overflow-x: hidden;
+}
+
+.logo-text {
+  overflow: hidden;
+}
+
+.logo-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.game-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.game-card .game-cta {
+  margin-top: auto;
+}
+
+.game-card .game-name {
+  margin-bottom: 8px;
+}
+
+.game-tile img {
+  display: block;
+}
+
+.event-art {
+  border-radius: 12px;
+}
+
+.event-meta {
+  background: linear-gradient(to top, rgba(8, 32, 68, 0.78), rgba(8, 32, 68, 0));
+  padding-top: 18px;
+}
+
+@media (max-width: 420px) {
+  .header-inner {
+    padding: 0 10px;
+    gap: 6px;
+  }
+  .logo {
+    gap: 8px;
+  }
+  .logo-mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+  }
+  .logo-name {
+    font-size: 15px;
+  }
+  .logo-tag {
+    display: none;
+  }
+  .icon-btn,
+  .lang-btn {
+    height: 36px;
+  }
+  .icon-btn {
+    width: 36px;
+  }
+  .icon-btn.ghost {
+    width: 38px;
+    height: 38px;
+  }
+  .lang-btn {
+    padding: 0 8px;
+  }
+  .container {
+    padding-inline: 12px;
+  }
+  .game-card {
+    padding: 8px;
+  }
 }
