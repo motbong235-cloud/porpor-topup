@@ -107,6 +107,7 @@ export default function AdminLayout() {
             Dashboard
           </NavLink>
           <NavLink to="/admin/orders">Orders</NavLink>
+          <NavLink to="/admin/services">Services</NavLink>
           <NavLink to="/admin/settings">Settings</NavLink>
         </nav>
         <div className="spacer" />

@@ -21,7 +21,7 @@ export default function Dashboard() {
         Dashboard
       </h1>
       <p className="page-lead" style={{ marginBottom: 20 }}>
-        Overview of Porpor TOPUP orders and revenue (demo).
+        Overview of Porpor TOPUP orders and revenue.
       </p>
       <div className="stat-grid">
         <div className="stat-card">

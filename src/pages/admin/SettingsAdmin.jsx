@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { games } from "../../data/catalog";
 import { api } from "./AdminLayout";
 
 const emptyCoupon = { code: "", type: "percent", value: 10, min: 0 };
@@ -14,7 +13,6 @@ export default function SettingsAdmin() {
       setForm({
         ...s,
         coupons: Array.isArray(s.coupons) ? s.coupons : [],
-        closedGames: Array.isArray(s.closedGames) ? s.closedGames : [],
       }),
     );
   }, []);
@@ -32,7 +30,6 @@ export default function SettingsAdmin() {
         method: "PUT",
         body: JSON.stringify({
           ...form,
-          defaultWallet: Number(form.defaultWallet) || 0,
           coupons: (form.coupons || [])
             .filter((c) => c.code?.trim())
             .map((c) => ({
@@ -41,9 +38,7 @@ export default function SettingsAdmin() {
               value: Number(c.value) || 0,
               min: Number(c.min) || 0,
             })),
-          packageMap: typeof form.packageMap === "string" ? JSON.parse(form.packageMap || "{}") : (form.packageMap || {}),
           autoTopup: !!form.autoTopup,
-          allowDemoPay: form.allowDemoPay !== false,
         }),
       });
       setForm(saved);
@@ -60,7 +55,7 @@ export default function SettingsAdmin() {
   return (
     <div>
       <h1 className="page-title">Settings</h1>
-      <p className="page-lead">Full site configuration — name, Telegram, coupons, closed games, maintenance.</p>
+      <p className="page-lead">Site configuration — name, Telegram, coupons, maintenance. Choose which games to sell in Services.</p>
       <form className="settings-form" onSubmit={save}>
         <div className="row2">
           <div className="field">
@@ -97,15 +92,6 @@ export default function SettingsAdmin() {
           </div>
         </div>
         <div className="row2">
-          <div className="field">
-            <label>Default wallet balance ($)</label>
-            <input
-              type="number"
-              step="0.1"
-              value={form.defaultWallet ?? 8.5}
-              onChange={(e) => set("defaultWallet", e.target.value)}
-            />
-          </div>
           <div className="field" style={{ justifyContent: "center" }}>
             <label className="check-row">
               <input
@@ -192,58 +178,6 @@ export default function SettingsAdmin() {
               />
               Auto top-up via Khmer TopUp
             </label>
-          </div>
-          <div className="field" style={{ justifyContent: "center" }}>
-            <label className="check-row">
-              <input
-                type="checkbox"
-                checked={form.allowDemoPay !== false}
-                onChange={(e) => set("allowDemoPay", e.target.checked)}
-              />
-              Allow demo pay (when ABA keys missing)
-            </label>
-          </div>
-        </div>
-
-        <div className="field">
-          <label>Package map (local pack id → Khmer TopUp package_id)</label>
-          <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
-            {"JSON object, e.g. {\"ml-86\": 268, \"ff-100\": 301}. Get IDs from GET /api/admin/kt-games"}
-          </p>
-          <textarea
-            value={typeof form.packageMap === "string" ? form.packageMap : JSON.stringify(form.packageMap || {}, null, 2)}
-            onChange={(e) => {
-              try {
-                set("packageMap", JSON.parse(e.target.value || "{}"));
-              } catch {
-                set("packageMap", e.target.value);
-              }
-            }}
-            style={{ fontFamily: "ui-monospace, monospace", minHeight: 120 }}
-          />
-        </div>
-
-        <div className="field">
-          <label>Closed games (ផ្អាក)</label>
-          <div className="games-checks">
-            {games.map((g) => {
-              const closed = (form.closedGames || []).includes(g.id);
-              return (
-                <label key={g.id}>
-                  <input
-                    type="checkbox"
-                    checked={closed}
-                    onChange={(e) => {
-                      const setIds = new Set(form.closedGames || []);
-                      if (e.target.checked) setIds.add(g.id);
-                      else setIds.delete(g.id);
-                      set("closedGames", Array.from(setIds));
-                    }}
-                  />
-                  {g.name}
-                </label>
-              );
-            })}
           </div>
         </div>
 
