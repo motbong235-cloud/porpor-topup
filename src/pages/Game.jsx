@@ -42,6 +42,15 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
   const sub = pack ? Math.round(pack.price * qty * 100) / 100 : 0;
   const total = Math.max(0, Math.round((sub - applied) * 100) / 100);
 
+  const qrCells = useMemo(() => {
+    const seed = `${userId}-${total}`;
+    return Array.from({ length: 121 }, (_, i) => {
+      let h = i * 17;
+      for (const c of seed) h = (h * 33 + c.charCodeAt(0) + i) >>> 0;
+      return h % 3 !== 0;
+    });
+  }, [userId, total, qrOpen]);
+
   if (!game) {
     return (
       <div className="container" style={{ textAlign: "center", padding: "96px 16px" }}>
@@ -105,7 +114,6 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
           setNick("");
           setCheckedFor("");
         } else {
-          // unknown / local fallback already returns nickname
           const n = data.nickname || lookupNickname(userId);
           setNick(n);
           setCheckedFor(`${userId.trim()}|${zoneId.trim()}|${server}`);
@@ -137,11 +145,16 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
     if (userId.trim().length < 3) return t(lang, "needId");
     if (game.hasZone && !zoneId.trim()) return t(lang, "needZone");
     if (game.servers.length && !server) return t(lang, "needServer");
-    if (!nick || checkedFor !== `${userId.trim()}|${zoneId.trim()}|  async function place(payMethod) {
-    const p = currentPack();
+    if (!nick || checkedFor !== `${userId.trim()}|${zoneId.trim()}|${server}`) return t(lang, "needVerify");
+    if (method === "wallet" && wallet + 0.001 < total) return t(lang, "lowBalance");
+    return "";
+  }
+
+  async function place(payMethod) {
+    const p = pack;
     if (!p) return;
-    const { total } = totals();
     setPayErr("");
+    setPaying(true);
     try {
       const res = await fetch("/api/checkout/create", {
         method: "POST",
@@ -176,19 +189,19 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
         return;
       }
 
-      // KHQR
       if (data.payment?.mode === "live" && data.payment.qrImage) {
         setLiveQr(data.payment.qrImage);
         setCheckoutId(order.id);
         setQrOpen(true);
         return;
       }
-      // simulation
       setLiveQr(null);
       setCheckoutId(order.id);
       setQrOpen(true);
     } catch (e) {
       setPayErr(e.message || "Network error");
+    } finally {
+      setPaying(false);
     }
   }
 
@@ -199,22 +212,35 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
     place(method);
   }
 
- {
-    const msg = validate();
-    setPayErr(msg);
-    if (msg) return;
-    if (method === "khqr") setQrOpen(true);
-    else place("wallet");
+  async function confirmQr() {
+    if (!checkoutId) return;
+    setPaying(true);
+    setPayErr("");
+    try {
+      if (liveQr) {
+        const r = await fetch(`/api/checkout/${checkoutId}/status`);
+        const d = await r.json();
+        if (d.order && d.order.status !== "pending") {
+          setQrOpen(false);
+          navigate(`/track?code=${encodeURIComponent(checkoutId)}`);
+          return;
+        }
+        setPayErr(lang === "km" ? "មិនទាន់ទទួលការបង់" : "Payment not received yet");
+      } else {
+        await fetch(`/api/checkout/${checkoutId}/demo-confirm`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: "{}",
+        });
+        setQrOpen(false);
+        navigate(`/track?code=${encodeURIComponent(checkoutId)}`);
+      }
+    } catch (e) {
+      setPayErr(e.message);
+    } finally {
+      setPaying(false);
+    }
   }
-
-  const qrCells = useMemo(() => {
-    const seed = `${userId}-${total}`;
-    return Array.from({ length: 121 }, (_, i) => {
-      let h = i * 17;
-      for (const c of seed) h = (h * 33 + c.charCodeAt(0) + i) >>> 0;
-      return h % 3 !== 0;
-    });
-  }, [userId, total, qrOpen]);
 
   const statusText = checking
     ? t(lang, "checking")
@@ -223,6 +249,13 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
       : userId.trim().length > 0 && userId.trim().length < 3
         ? t(lang, "shortId")
         : t(lang, "notChecked");
+
+  const qrSrc =
+    liveQr && (liveQr.startsWith("data:") || liveQr.startsWith("http"))
+      ? liveQr
+      : liveQr
+        ? `data:image/png;base64,${liveQr}`
+        : null;
 
   return (
     <div className="container">
@@ -394,7 +427,11 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
               {t(lang, "topupBal")}
             </button>
             <div className="coupon-row">
-              <input value={coupon} onChange={(e) => setCoupon(e.target.value)} placeholder={`${t(lang, "coupon")} · PORPOR10 / BLUE`} />
+              <input
+                value={coupon}
+                onChange={(e) => setCoupon(e.target.value)}
+                placeholder={`${t(lang, "coupon")} · PORPOR10 / BLUE`}
+              />
               <button type="button" onClick={onCoupon}>
                 {t(lang, "apply")}
               </button>
@@ -433,78 +470,64 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
             </div>
           </dl>
           {payErr ? <p className="msg err">{payErr}</p> : null}
-          <button type="button" className="btn bg-brand pay-desktop" onClick={pay}>
-            {t(lang, "pay")} · {money(total)}
+          <button type="button" className="btn bg-brand pay-desktop" onClick={pay} disabled={paying}>
+            {paying ? "…" : `${t(lang, "pay")} · ${money(total)}`}
           </button>
         </aside>
       </div>
 
       <div className="pay-mobile">
-        {payErr ? <p className="msg err" style={{ margin: "0 0 8px" }}>{payErr}</p> : null}
-        <button type="button" className="btn bg-brand" style={{ width: "100%", height: 48, borderRadius: 999, border: "none", fontWeight: 800 }} onClick={pay}>
-          {t(lang, "pay")} · {money(total)}
+        {payErr ? (
+          <p className="msg err" style={{ margin: "0 0 8px" }}>
+            {payErr}
+          </p>
+        ) : null}
+        <button
+          type="button"
+          className="btn bg-brand"
+          style={{ width: "100%", height: 48, borderRadius: 999, border: "none", fontWeight: 800 }}
+          onClick={pay}
+          disabled={paying}
+        >
+          {paying ? "…" : `${t(lang, "pay")} · ${money(total)}`}
         </button>
       </div>
       <div className="spacer-mobile" />
 
-      <div className={`modal-backdrop${qrOpen ? " open" : ""}`} onClick={(e) => e.target === e.currentTarget && setQrOpen(false)}>
+      <div
+        className={`modal-backdrop${qrOpen ? " open" : ""}`}
+        onClick={(e) => e.target === e.currentTarget && setQrOpen(false)}
+      >
         <div className="modal">
           <h3>{t(lang, "qrTitle")}</h3>
           <p>{t(lang, "qrBody")}</p>
-          {liveQr ? (
+          {qrSrc ? (
             <div style={{ margin: "16px auto 0", width: 200, textAlign: "center" }}>
-              <img src={liveQr.startsWith("data:") || liveQr.startsWith("http") ? liveQr : `data:image/png;base64,${liveQr}`} alt="KHQR" style={{ width: "100%", borderRadius: 12 }} />
+              <img src={qrSrc} alt="KHQR" style={{ width: "100%", borderRadius: 12 }} />
             </div>
           ) : (
-          <div className="qr-grid">
-            {qrCells.map((on, i) => (
-              <span key={i} className={`qr-cell${on ? " on" : ""}`} />
-            ))}
-          </div>
+            <div className="qr-grid">
+              {qrCells.map((on, i) => (
+                <span key={i} className={`qr-cell${on ? " on" : ""}`} />
+              ))}
+            </div>
           )}
           <div className="modal-amount">{money(total)}</div>
           <div className="modal-actions">
             <button type="button" className="cancel" onClick={() => setQrOpen(false)}>
               {t(lang, "cancel")}
             </button>
-            <button
-              type="button"
-              className="bg-brand"
-              disabled={paying}
-              onClick={async () => {
-                if (!checkoutId) return;
-                setPaying(true);
-                try {
-                  if (liveQr) {
-                    // live: poll status once
-                    const r = await fetch(`/api/checkout/${checkoutId}/status`);
-                    const d = await r.json();
-                    if (d.order && d.order.status !== "pending") {
-                      setQrOpen(false);
-                      navigate(`/track?code=${encodeURIComponent(checkoutId)}`);
-                      return;
-                    }
-                    setPayErr(lang === "km" ? "មិនទាន់ទទួលការបង់" : "Payment not received yet");
-                  } else {
-                    const r = await fetch(`/api/checkout/${checkoutId}/demo-confirm`, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
-                    const d = await r.json();
-                    setQrOpen(false);
-                    navigate(`/track?code=${encodeURIComponent(checkoutId)}`);
-                  }
-                } catch (e) {
-                  setPayErr(e.message);
-                } finally {
-                  setPaying(false);
-                }
-              }}
-            >
+            <button type="button" className="bg-brand" disabled={paying} onClick={confirmQr}>
               {paying ? "…" : t(lang, "confirmPay")}
             </button>
           </div>
         </div>
       </div>
 
-      <div className={`modal-backdrop${walletOpen ? " open" : ""}`} onClick={(e) => e.target === e.currentTarget && setWalletOpen(false)}>
+      <div
+        className={`modal-backdrop${walletOpen ? " open" : ""}`}
+        onClick={(e) => e.target === e.currentTarget && setWalletOpen(false)}
+      >
         <div className="modal">
           <h3>{t(lang, "topupBal")}</h3>
           <p>
