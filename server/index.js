@@ -18,6 +18,7 @@ import {
 } from "./store.js";
 import * as khmerSystem from "./khmerSystem.js";
 import * as khmerTopup from "./khmerTopup.js";
+import * as catalog from "./catalog.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");
@@ -42,6 +43,51 @@ function newCode() {
   return `PP-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
 }
 
+function uniqueCode() {
+  let id = newCode();
+  while (getOrder(id)) id = newCode();
+  return id;
+}
+
+const round2 = (n) => Math.round(n * 100) / 100;
+
+function calcCoupon(settings, code, subtotal) {
+  const c = String(code || "").trim().toUpperCase();
+  if (!c) return { ok: true, discount: 0, code: "" };
+  const found = (settings.coupons || []).find((x) => String(x.code).toUpperCase() === c);
+  if (!found) return { ok: false, error: "coupon_invalid" };
+  if (subtotal < (Number(found.min) || 0)) return { ok: false, error: "coupon_min" };
+  const raw = found.type === "fixed" ? Number(found.value) || 0 : (subtotal * (Number(found.value) || 0)) / 100;
+  return { ok: true, discount: Math.min(subtotal, round2(raw)), code: c };
+}
+
+function publicOrder(o) {
+  if (!o) return o;
+  return {
+    id: o.id,
+    gameId: o.gameId,
+    gameName: o.gameName,
+    packName: o.packName,
+    qty: o.qty,
+    total: o.total,
+    discount: o.discount,
+    userId: o.userId,
+    zoneId: o.zoneId,
+    server: o.server,
+    nickname: o.nickname,
+    method: o.method,
+    status: o.status,
+    createdAt: o.createdAt,
+  };
+}
+
+function summarizeKt(codes, statuses) {
+  const vals = codes.map((c) => String(statuses[c] || "").toLowerCase());
+  if (vals.length && vals.every((v) => v === "completed")) return { status: "delivered" };
+  if (vals.some((v) => v === "refunded")) return { status: "failed", note: "Supplier refunded" };
+  return { status: "processing" };
+}
+
 async function fulfillTopup(order) {
   const settings = getSettings();
   if (!settings.autoTopup) {
@@ -53,53 +99,57 @@ async function fulfillTopup(order) {
       note: "KHMER_TOPUP_API_KEY missing — paid but not auto-delivered",
     });
   }
-
-  const packageId =
-    order.ktPackageId ||
-    (settings.packageMap && settings.packageMap[order.packId]) ||
-    null;
-
-  if (!packageId) {
+  if (!order.ktPackageId) {
     return updateOrder(order.id, {
       status: "paid",
-      note: "No packageMap for this pack — set in Admin → Settings",
+      note: "Missing Khmer TopUp package id on this order — fulfill manually",
     });
   }
 
+  const codes = [...(order.ktOrderCodes || (order.ktOrderCode ? [order.ktOrderCode] : []))];
+  const statuses = { ...(order.ktStatuses || {}) };
+  updateOrder(order.id, { status: "processing" });
+
   try {
-    updateOrder(order.id, { status: "processing" });
-    const result = await khmerTopup.placeOrder({
-      packageId,
-      playerId: order.userId,
-      serverId: order.zoneId || order.server || undefined,
-      reference: order.id,
-    });
-    return updateOrder(order.id, {
-      status: result.status === "completed" ? "delivered" : "processing",
-      ktOrderCode: result.order_code,
-      ktStatus: result.status,
-      note: `Khmer TopUp ${result.order_code}`,
-    });
+    // one Khmer TopUp order per unit, so qty > 1 delivers everything the customer paid for
+    for (let i = codes.length; i < (order.qty || 1); i++) {
+      const result = await khmerTopup.placeOrder({
+        packageId: order.ktPackageId,
+        playerId: order.userId,
+        serverId: order.zoneId || order.server || undefined,
+        reference: order.qty > 1 ? `${order.id}-${i + 1}` : order.id,
+      });
+      codes.push(result.order_code);
+      statuses[result.order_code] = result.status;
+      updateOrder(order.id, { ktOrderCodes: codes, ktOrderCode: codes[0], ktStatuses: statuses });
+    }
   } catch (e) {
     return updateOrder(order.id, {
       status: "failed",
-      note: `TopUp error: ${e.message}`,
+      ktOrderCodes: codes,
+      ktOrderCode: codes[0],
+      ktStatuses: statuses,
+      note: `TopUp error after ${codes.length}/${order.qty || 1} placed: ${e.message}`,
     });
   }
+
+  return updateOrder(order.id, {
+    ...summarizeKt(codes, statuses),
+    note: `Khmer TopUp ${codes.join(", ")}`,
+  });
 }
 
 async function pollKtStatus(order) {
-  if (!order.ktOrderCode || !khmerTopup.isTopupReady()) return order;
+  const codes = order.ktOrderCodes || (order.ktOrderCode ? [order.ktOrderCode] : []);
+  if (!codes.length || !khmerTopup.isTopupReady()) return order;
+  const statuses = { ...(order.ktStatuses || {}) };
   try {
-    const remote = await khmerTopup.getOrder(order.ktOrderCode);
-    const st = String(remote.status || "").toLowerCase();
-    if (st === "completed") {
-      return updateOrder(order.id, { status: "delivered", ktStatus: st });
+    for (const code of codes) {
+      if (String(statuses[code] || "").toLowerCase() === "completed") continue;
+      const remote = await khmerTopup.getOrder(code);
+      statuses[code] = String(remote.status || "").toLowerCase();
     }
-    if (st === "refunded") {
-      return updateOrder(order.id, { status: "failed", ktStatus: st, note: "Supplier refunded" });
-    }
-    return updateOrder(order.id, { ktStatus: st });
+    return updateOrder(order.id, { ktStatuses: statuses, ...summarizeKt(codes, statuses) });
   } catch {
     return order;
   }
@@ -120,8 +170,6 @@ app.get("/api/integrations/status", (_req, res) => {
     paymentReady: khmerSystem.isPaymentReady(),
     topupReady: khmerTopup.isTopupReady(),
     autoTopup: !!s.autoTopup,
-    allowDemoPay: s.allowDemoPay !== false,
-    simulation: !khmerSystem.isPaymentReady(),
   });
 });
 
@@ -135,7 +183,6 @@ app.get("/api/settings", (_req, res) => {
     announcementKm: s.announcementKm,
     announcementEn: s.announcementEn,
     maintenance: s.maintenance,
-    closedGames: s.closedGames || [],
     coupons: (s.coupons || []).map((c) => ({
       code: c.code,
       type: c.type,
@@ -145,27 +192,32 @@ app.get("/api/settings", (_req, res) => {
   });
 });
 
+/** Games + packages the admin selected from Khmer TopUp (prices include markup). */
+app.get("/api/catalog", async (_req, res) => {
+  if (!khmerTopup.isTopupReady()) {
+    return res.json({ games: [], error: "topup_not_configured" });
+  }
+  try {
+    res.json({ games: await catalog.publicCatalog() });
+  } catch (e) {
+    res.status(502).json({ games: [], error: "catalog_unavailable", message: e.message });
+  }
+});
+
 app.post("/api/verify", async (req, res) => {
   const { slug, playerId, serverId } = req.body || {};
-  if (!playerId) return res.status(400).json({ result: "incomplete", message: "playerId required" });
-
-  if (khmerTopup.isTopupReady() && slug) {
-    try {
-      const data = await khmerTopup.verifyAccount(slug, playerId, serverId);
-      return res.json(data);
-    } catch (e) {
-      return res.json({ result: "unknown", error: e.message });
-    }
+  if (!slug || !playerId) return res.status(400).json({ result: "incomplete", message: "slug and playerId required" });
+  if (!khmerTopup.isTopupReady()) {
+    return res.status(503).json({ result: "unknown", error: "topup_not_configured" });
   }
-
-  const NICKS = ["Porpor", "Neary", "DaraKH", "Sokha", "BlueFox", "Vimean", "NightOwl", "LinaPP"];
-  let h = 0;
-  for (const c of String(playerId)) h = (h * 33 + c.charCodeAt(0)) >>> 0;
-  res.json({
-    result: "valid",
-    nickname: `${NICKS[h % NICKS.length]}${(h % 80) + 11}`,
-    local: true,
-  });
+  try {
+    const game = await catalog.findGame(slug);
+    if (!game) return res.status(404).json({ result: "unknown", error: "game_unavailable" });
+    const data = await khmerTopup.verifyAccount(slug, playerId, serverId);
+    return res.json(data);
+  } catch (e) {
+    return res.json({ result: "unknown", error: e.message });
+  }
 });
 
 app.post("/api/checkout/create", async (req, res) => {
@@ -174,78 +226,75 @@ app.post("/api/checkout/create", async (req, res) => {
   if (settings.maintenance) {
     return res.status(503).json({ error: "maintenance" });
   }
-  if (!body.gameId || !body.userId || !body.packName || !(Number(body.total) > 0)) {
+  if (!khmerTopup.isTopupReady() || !khmerSystem.isPaymentReady()) {
+    return res.status(503).json({ error: "not_configured" });
+  }
+
+  const userId = String(body.userId || "").trim();
+  if (!body.gameId || !body.packId || userId.length < 3) {
     return res.status(400).json({ error: "invalid" });
   }
 
-  const id = body.id || newCode();
-  const packId = String(body.packId || "");
-  const ktPackageId =
-    body.ktPackageId ||
-    (settings.packageMap && settings.packageMap[packId]) ||
-    null;
+  // Price comes from the server catalog — never trust the client total.
+  let found;
+  try {
+    found = await catalog.findPack(body.gameId, body.packId);
+  } catch (e) {
+    return res.status(502).json({ error: "catalog_unavailable" });
+  }
+  if (!found) return res.status(400).json({ error: "pack_unavailable" });
+
+  const zoneId = String(body.zoneId || "").trim();
+  const server = String(body.server || "").trim();
+  if (found.game.hasZone && !zoneId) return res.status(400).json({ error: "need_zone" });
+  if (found.game.servers.length && !found.game.servers.some((s) => s.value === server)) {
+    return res.status(400).json({ error: "need_server" });
+  }
+
+  const qty = Math.min(10, Math.max(1, Math.floor(Number(body.qty)) || 1));
+  const subtotal = round2(found.pack.price * qty);
+  const cp = calcCoupon(settings, body.coupon, subtotal);
+  if (!cp.ok) return res.status(400).json({ error: cp.error });
+  const total = round2(subtotal - cp.discount);
+  if (!(total > 0)) return res.status(400).json({ error: "invalid" });
 
   const order = createOrder({
-    id,
-    gameId: String(body.gameId),
-    gameName: String(body.gameName || body.gameId),
-    packId,
-    packName: String(body.packName),
-    qty: Math.min(10, Math.max(1, Number(body.qty) || 1)),
-    total: Math.max(0, Number(body.total) || 0),
-    discount: Math.max(0, Number(body.discount) || 0),
-    userId: String(body.userId),
-    zoneId: String(body.zoneId || ""),
-    server: String(body.server || ""),
+    id: uniqueCode(),
+    gameId: found.game.id,
+    gameName: found.game.name,
+    packId: found.pack.id,
+    packName: found.pack.name,
+    qty,
+    total,
+    discount: cp.discount,
+    cost: round2(found.pack.cost * qty),
+    userId,
+    zoneId,
+    server,
     nickname: String(body.nickname || ""),
-    method: body.method === "wallet" ? "wallet" : "khqr",
-    coupon: String(body.coupon || ""),
-    ktPackageId: ktPackageId ? Number(ktPackageId) : null,
+    method: "khqr",
+    coupon: cp.code,
+    ktPackageId: Number(found.pack.id),
     status: "pending",
     createdAt: Date.now(),
   });
 
-  if (order.method === "wallet") {
-    const paid = updateOrder(order.id, { status: "paid", paidAt: Date.now() });
-    const done = await fulfillTopup(paid);
-    return res.json({ order: done, payment: { mode: "wallet" } });
+  const qr = await khmerSystem.createQr(order.total, order.id, `${order.gameName} ${order.packName}`);
+  if (!qr.success) {
+    updateOrder(order.id, { status: "failed", note: qr.error });
+    return res.status(502).json({ error: qr.error || "qr_failed" });
   }
-
-  if (khmerSystem.isPaymentReady()) {
-    const qr = await khmerSystem.createQr(order.total, order.id, `${order.gameName} ${order.packName}`);
-    if (!qr.success) {
-      updateOrder(order.id, { status: "failed", note: qr.error });
-      return res.status(502).json({ error: qr.error || "qr_failed", order });
-    }
-    const updated = updateOrder(order.id, {
+  const updated = updateOrder(order.id, {
+    transactionId: qr.transaction_id,
+    qrImage: qr.qr_image,
+    qrString: qr.qr_string,
+  });
+  return res.json({
+    order: publicOrder(updated),
+    payment: {
       transactionId: qr.transaction_id,
       qrImage: qr.qr_image,
       qrString: qr.qr_string,
-    });
-    return res.json({
-      order: updated,
-      payment: {
-        mode: "live",
-        transactionId: qr.transaction_id,
-        qrImage: qr.qr_image,
-        qrString: qr.qr_string,
-      },
-    });
-  }
-
-  if (settings.allowDemoPay === false) {
-    updateOrder(order.id, { status: "failed", note: "Payment not configured" });
-    return res.status(503).json({ error: "payment_not_configured", order });
-  }
-
-  const simTx = `SIM-${order.id}`;
-  const updated = updateOrder(order.id, { transactionId: simTx, simulation: true });
-  return res.json({
-    order: updated,
-    payment: {
-      mode: "simulation",
-      transactionId: simTx,
-      message: "Demo QR — confirm to simulate payment (set ABA_API_KEY for live)",
     },
   });
 });
@@ -254,16 +303,17 @@ app.get("/api/checkout/:id/status", async (req, res) => {
   let order = getOrder(req.params.id);
   if (!order) return res.status(404).json({ error: "not_found" });
 
-  if (
-    order.status === "pending" &&
-    order.transactionId &&
-    !order.simulation &&
-    khmerSystem.isPaymentReady()
-  ) {
+  if (order.status === "pending" && order.transactionId && khmerSystem.isPaymentReady()) {
     const pay = await khmerSystem.checkPayment(order.transactionId);
     if (pay.paid) {
-      order = updateOrder(order.id, { status: "paid", paidAt: Date.now() });
-      order = await fulfillTopup(order);
+      // claim atomically (sync read+write) so concurrent polls can't fulfill twice
+      const fresh = getOrder(order.id);
+      if (fresh && fresh.status === "pending") {
+        order = updateOrder(order.id, { status: "paid", paidAt: Date.now() });
+        order = await fulfillTopup(order);
+      } else if (fresh) {
+        order = fresh;
+      }
     }
   }
 
@@ -271,63 +321,16 @@ app.get("/api/checkout/:id/status", async (req, res) => {
     order = await pollKtStatus(order);
   }
 
-  res.json({ order });
+  res.json({ order: publicOrder(order) });
 });
 
-app.post("/api/checkout/:id/demo-confirm", async (req, res) => {
-  const settings = getSettings();
-  let order = getOrder(req.params.id);
-  if (!order) return res.status(404).json({ error: "not_found" });
-  if (order.status !== "pending") return res.json({ order });
-
-  if (!order.simulation && khmerSystem.isPaymentReady()) {
-    return res.status(400).json({ error: "use_live_poll" });
-  }
-  if (settings.allowDemoPay === false) {
-    return res.status(403).json({ error: "demo_disabled" });
-  }
-
-  order = updateOrder(order.id, { status: "paid", paidAt: Date.now(), note: "demo payment" });
-  order = await fulfillTopup(order);
-  res.json({ order });
-});
-
-app.get("/api/orders/track", (req, res) => {
+app.get("/api/orders/track", async (req, res) => {
   const q = String(req.query.q || "").trim().toLowerCase();
   if (!q) return res.json([]);
-  const hits = listOrders().filter(
-    (o) =>
-      o.id.toLowerCase() === q ||
-      o.id.toLowerCase().includes(q) ||
-      String(o.userId).toLowerCase() === q,
-  );
-  res.json(hits.slice(0, 20));
-});
-
-app.post("/api/orders", (req, res) => {
-  const body = req.body || {};
-  if (!body.gameId || !body.userId || !body.packName) {
-    return res.status(400).json({ error: "invalid" });
-  }
-  const order = {
-    id: body.id || newCode(),
-    gameId: String(body.gameId),
-    gameName: String(body.gameName || body.gameId),
-    packName: String(body.packName),
-    qty: Math.min(10, Math.max(1, Number(body.qty) || 1)),
-    total: Math.max(0, Number(body.total) || 0),
-    discount: Math.max(0, Number(body.discount) || 0),
-    userId: String(body.userId),
-    zoneId: String(body.zoneId || ""),
-    server: String(body.server || ""),
-    nickname: String(body.nickname || ""),
-    method: body.method === "wallet" ? "wallet" : "khqr",
-    coupon: String(body.coupon || ""),
-    status: body.status || "delivered",
-    createdAt: Date.now(),
-  };
-  createOrder(order);
-  res.json(order);
+  let order = listOrders().find((o) => o.id.toLowerCase() === q);
+  if (!order) return res.json([]);
+  if (order.status === "processing" && order.ktOrderCode) order = await pollKtStatus(order);
+  res.json([publicOrder(order)]);
 });
 
 app.post("/api/admin/login", (req, res) => {
@@ -386,10 +389,10 @@ app.get("/api/admin/orders/:id", adminAuth, (req, res) => {
 });
 
 app.patch("/api/admin/orders/:id", adminAuth, async (req, res) => {
-  let o = updateOrder(req.params.id, {
-    status: req.body?.status,
-    note: req.body?.note,
-  });
+  const patch = {};
+  if (req.body?.status !== undefined) patch.status = req.body.status;
+  if (req.body?.note !== undefined) patch.note = req.body.note;
+  let o = updateOrder(req.params.id, patch);
   if (!o) return res.status(404).json({ error: "not_found" });
   if (req.body?.fulfill) {
     o = await fulfillTopup(o);
@@ -410,8 +413,7 @@ app.put("/api/admin/settings", adminAuth, (req, res) => {
   const body = req.body || {};
   const allowed = [
     "siteName", "taglineKm", "taglineEn", "telegram", "announcementKm", "announcementEn",
-    "supportEmail", "defaultWallet", "maintenance", "coupons", "closedGames",
-    "packageMap", "autoTopup", "allowDemoPay",
+    "supportEmail", "maintenance", "coupons", "autoTopup",
   ];
   const patch = {};
   for (const k of allowed) {
@@ -442,15 +444,24 @@ app.get("/api/admin/integrations", adminAuth, async (_req, res) => {
   res.json(out);
 });
 
-app.get("/api/admin/kt-games", adminAuth, async (_req, res) => {
+app.get("/api/admin/kt-games", adminAuth, async (req, res) => {
   if (!khmerTopup.isTopupReady()) {
     return res.status(503).json({ error: "KHMER_TOPUP_API_KEY not set" });
   }
   try {
-    res.json(await khmerTopup.listGames());
+    const games = await catalog.fetchSupplierGames(true);
+    const out = { games, selection: getSettings().ktSelection };
+    if (req.query.raw) out.raw = catalog.rawSupplierGames();
+    res.json(out);
   } catch (e) {
     res.status(502).json({ error: e.message });
   }
+});
+
+app.put("/api/admin/kt-selection", adminAuth, (req, res) => {
+  const selection = catalog.sanitizeSelection(req.body);
+  updateSettings({ ktSelection: selection });
+  res.json({ selection });
 });
 
 if (fs.existsSync(DIST)) {
@@ -469,6 +480,6 @@ if (fs.existsSync(DIST)) {
 
 app.listen(PORT, () => {
   console.log(`Porpor TOPUP on :${PORT}`);
-  console.log(`  Khmer System payment: ${khmerSystem.isPaymentReady() ? "READY" : "off (demo)"}`);
-  console.log(`  Khmer TopUp auto:     ${khmerTopup.isTopupReady() ? "READY" : "off"}`);
+  console.log(`  Khmer System payment: ${khmerSystem.isPaymentReady() ? "READY" : "NOT CONFIGURED"}`);
+  console.log(`  Khmer TopUp auto:     ${khmerTopup.isTopupReady() ? "READY" : "NOT CONFIGURED"}`);
 });

@@ -15,20 +15,18 @@ const DEFAULT_SETTINGS = {
   announcementKm: "",
   announcementEn: "",
   supportEmail: "support@porportopup.com",
-  defaultWallet: 8.5,
   maintenance: false,
   coupons: [
     { code: "PORPOR10", type: "percent", value: 10, min: 0 },
     { code: "BLUE", type: "fixed", value: 0.5, min: 2 },
   ],
-  closedGames: ["undawn"],
-  /** Map local pack id -> Khmer TopUp package_id */
-  packageMap: {},
   /** When true and keys set, auto-order on Khmer TopUp after payment */
   autoTopup: true,
-  /** Demo: confirm pay without real bank when ABA keys missing */
-  allowDemoPay: true,
+  /** Which Khmer TopUp games/packages to sell (Admin → Services) */
+  ktSelection: { markupPercent: 0, games: {} },
 };
+
+const LEGACY_KEYS = ["defaultWallet", "closedGames", "packageMap", "allowDemoPay"];
 
 function ensure() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -54,12 +52,15 @@ function write(db) {
 
 export function getSettings() {
   const db = read();
-  return { ...DEFAULT_SETTINGS, ...db.settings };
+  const merged = { ...DEFAULT_SETTINGS, ...db.settings };
+  for (const k of LEGACY_KEYS) delete merged[k];
+  return merged;
 }
 
 export function updateSettings(patch) {
   const db = read();
   db.settings = { ...DEFAULT_SETTINGS, ...db.settings, ...patch };
+  for (const k of LEGACY_KEYS) delete db.settings[k];
   write(db);
   return db.settings;
 }
