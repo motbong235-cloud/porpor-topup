@@ -379,7 +379,7 @@ export default function Game({ lang, addOrder, settings }) {
                   <button
                     key={p.id}
                     type="button"
-                    className={`pack${packId === p.id ? " active" : ""}`}
+                    className={`pack${p.image ? " has-img" : ""}${packId === p.id ? " active" : ""}`}
                     onClick={() => {
                       setPackId(p.id);
                       const nextSub = Math.round(p.price * qty * 100) / 100;
@@ -392,10 +392,23 @@ export default function Game({ lang, addOrder, settings }) {
                       }
                     }}
                   >
-                    <div className="cat-label">{p.category}</div>
-                    <div className="name">{lang === "km" ? p.nameKm : p.name}</div>
-                    {p.bonus ? <div className="bonus">{p.bonus}</div> : null}
-                    <div className="price">{money(p.price)}</div>
+                    {p.image ? (
+                      <img
+                        className="pack-img"
+                        src={p.image}
+                        alt=""
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    ) : null}
+                    <div className="pack-body">
+                      <div className="cat-label">{p.category}</div>
+                      <div className="name">{lang === "km" ? p.nameKm : p.name}</div>
+                      {p.bonus ? <div className="bonus">{p.bonus}</div> : null}
+                      <div className="price">{money(p.price)}</div>
+                    </div>
                   </button>
                 ))}
             </div>

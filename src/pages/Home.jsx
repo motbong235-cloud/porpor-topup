@@ -121,6 +121,9 @@ export default function Home({ lang }) {
               return (
                 <Link key={g.id} className="event-card" to={`/game/${g.id}`}>
                   <div className="event-art game-tile" style={{ "--h": g.hue }}>
+                    {g.image ? (
+                      <img className="event-img" src={g.image} alt="" loading="lazy" onError={(e) => e.currentTarget.remove()} />
+                    ) : null}
                     <span className="event-tag">{t(lang, "hot")}</span>
                     <div className="event-meta">
                       <strong>{g.name}</strong>
