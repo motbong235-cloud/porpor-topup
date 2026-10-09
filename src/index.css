@@ -2211,3 +2211,32 @@ body {
     padding: 8px;
   }
 }
+
+
+/* ---- uploaded images (Admin → Services) ---- */
+.event-art .event-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pack.has-img {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pack-img {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  object-fit: cover;
+  background: var(--ice);
+}
+
+.pack-body {
+  min-width: 0;
+}
