@@ -1,16 +1,15 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { games } from "../data/catalog";
+import { useCatalog } from "../lib/catalog";
 import { t } from "../lib/i18n";
-import { applyCoupon, lookupNickname, money } from "../lib/store";
+import { applyCoupon, money } from "../lib/store";
 import { GameTile, Icon } from "../components/Icons";
 
-export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
+export default function Game({ lang, addOrder, settings }) {
   const { id } = useParams();
   const navigate = useNavigate();
-  const base = games.find((g) => g.id === id);
-  const closed = settings?.closedGames?.includes(id);
-  const game = base ? { ...base, open: base.open && !closed } : null;
+  const { games, loading } = useCatalog();
+  const game = games.find((g) => g.id === id) || null;
 
   const [userId, setUserId] = useState("");
   const [zoneId, setZoneId] = useState("");
@@ -21,17 +20,17 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
   const [packId, setPackId] = useState(null);
   const [qty, setQty] = useState(1);
   const [cat, setCat] = useState("all");
-  const [method, setMethod] = useState("khqr");
   const [coupon, setCoupon] = useState("");
   const [applied, setApplied] = useState(0);
   const [appliedCode, setAppliedCode] = useState("");
   const [couponMsg, setCouponMsg] = useState({ type: "", text: "" });
   const [payErr, setPayErr] = useState("");
   const [qrOpen, setQrOpen] = useState(false);
-  const [walletOpen, setWalletOpen] = useState(false);
   const [liveQr, setLiveQr] = useState(null);
   const [checkoutId, setCheckoutId] = useState(null);
   const [paying, setPaying] = useState(false);
+  const [orderTotal, setOrderTotal] = useState(0);
+  const [unverified, setUnverified] = useState(false);
 
   const cats = useMemo(() => {
     if (!game) return ["all"];
@@ -42,14 +41,29 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
   const sub = pack ? Math.round(pack.price * qty * 100) / 100 : 0;
   const total = Math.max(0, Math.round((sub - applied) * 100) / 100);
 
-  const qrCells = useMemo(() => {
-    const seed = `${userId}-${total}`;
-    return Array.from({ length: 121 }, (_, i) => {
-      let h = i * 17;
-      for (const c of seed) h = (h * 33 + c.charCodeAt(0) + i) >>> 0;
-      return h % 3 !== 0;
-    });
-  }, [userId, total, qrOpen]);
+  // auto-check payment while the QR is open
+  useEffect(() => {
+    if (!qrOpen || !checkoutId) return undefined;
+    const timer = setInterval(async () => {
+      try {
+        const r = await fetch(`/api/checkout/${checkoutId}/status`);
+        const d = await r.json();
+        if (d.order && d.order.status !== "pending") {
+          setQrOpen(false);
+          navigate(`/track?code=${encodeURIComponent(checkoutId)}`);
+        }
+      } catch {}
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [qrOpen, checkoutId, navigate]);
+
+  if (loading && !game) {
+    return (
+      <div className="container" style={{ textAlign: "center", padding: "96px 16px" }}>
+        <p className="page-lead">{t(lang, "catalogLoading")}</p>
+      </div>
+    );
+  }
 
   if (!game) {
     return (
@@ -72,9 +86,11 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
         <div className="hero-game">
           <GameTile game={game} />
           <div>
-            <div className="region">{game.region}</div>
+            {game.region ? <div className="region">{game.region}</div> : null}
             <h1>{game.name}</h1>
+            {(lang === "km" ? game.blurbKm : game.blurbEn) ? (
             <p className="blurb">{lang === "km" ? game.blurbKm : game.blurbEn}</p>
+          ) : null}
           </div>
         </div>
         <div className="card" style={{ marginTop: 24, textAlign: "center" }}>
@@ -95,7 +111,9 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
     }
     if (game.hasZone && !zoneId.trim()) return;
     if (game.servers.length && !server) return;
+    const key = `${userId.trim()}|${zoneId.trim()}|${server}`;
     setChecking(true);
+    setUnverified(false);
     fetch("/api/verify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -107,28 +125,30 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
     })
       .then((r) => r.json())
       .then((data) => {
-        if (data.result === "valid" && data.nickname) {
-          setNick(data.nickname);
-          setCheckedFor(`${userId.trim()}|${zoneId.trim()}|${server}`);
+        if (data.result === "valid") {
+          setNick(data.nickname || "✓");
+          setCheckedFor(key);
         } else if (data.result === "invalid") {
           setNick("");
           setCheckedFor("");
+          setPayErr(t(lang, "idInvalid"));
         } else {
-          const n = data.nickname || lookupNickname(userId);
-          setNick(n);
-          setCheckedFor(`${userId.trim()}|${zoneId.trim()}|${server}`);
+          // supplier could not check this game — let the customer continue, flagged as unverified
+          setNick("");
+          setUnverified(true);
+          setCheckedFor(key);
         }
       })
       .catch(() => {
-        const n = lookupNickname(userId);
-        setNick(n);
-        setCheckedFor(`${userId.trim()}|${zoneId.trim()}|${server}`);
+        setNick("");
+        setUnverified(true);
+        setCheckedFor(key);
       })
       .finally(() => setChecking(false));
   }
 
   function onCoupon() {
-    const res = applyCoupon(coupon, sub || 1);
+    const res = applyCoupon(coupon, sub || 1, settings?.coupons);
     if (!res.ok) {
       setApplied(0);
       setAppliedCode("");
@@ -145,12 +165,20 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
     if (userId.trim().length < 3) return t(lang, "needId");
     if (game.hasZone && !zoneId.trim()) return t(lang, "needZone");
     if (game.servers.length && !server) return t(lang, "needServer");
-    if (!nick || checkedFor !== `${userId.trim()}|${zoneId.trim()}|${server}`) return t(lang, "needVerify");
-    if (method === "wallet" && wallet + 0.001 < total) return t(lang, "lowBalance");
+    if (checkedFor !== `${userId.trim()}|${zoneId.trim()}|${server}`) return t(lang, "needVerify");
     return "";
   }
 
-  async function place(payMethod) {
+  const ERRORS = {
+    maintenance: { km: "ហាងកំពុងថែទាំ សូមព្យាយាមម្តងទៀតពេលក្រោយ", en: "The shop is under maintenance. Try again later." },
+    not_configured: { km: "ការទូទាត់មិនទាន់រួចរាល់ សូមទាក់ទងអ្នកគ្រប់គ្រង", en: "Payments are not set up yet. Please contact support." },
+    pack_unavailable: { km: "កញ្ចប់នេះមិនមានលក់ទៀតទេ សូមជ្រើសកញ្ចប់ផ្សេង", en: "This package is no longer available." },
+    coupon_invalid: { km: "កូដបញ្ចុះតម្លៃមិនត្រឹមត្រូវ", en: "Invalid coupon code." },
+    coupon_min: { km: "ចំនួនទិញមិនដល់កម្រិតអប្បបរមានៃកូដនេះ", en: "Order is below this coupon's minimum." },
+    catalog_unavailable: { km: "មិនអាចទាញតម្លៃបានទេ សូមព្យាយាមម្តងទៀត", en: "Could not load prices. Try again." },
+  };
+
+  async function place() {
     const p = pack;
     if (!p) return;
     setPayErr("");
@@ -161,42 +189,29 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           gameId: game.id,
-          gameName: game.name,
           packId: p.id,
-          packName: lang === "km" ? p.nameKm : p.name,
           qty,
-          total,
-          discount: applied,
           userId: userId.trim(),
           zoneId: zoneId.trim(),
           server,
           nickname: nick,
-          method: payMethod,
           coupon: appliedCode,
         }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setPayErr(data.error || "Checkout failed");
+        const known = ERRORS[data.error];
+        setPayErr(known ? known[lang] : data.error || "Checkout failed");
         return;
       }
-      const order = data.order;
-      addOrder(order);
-
-      if (payMethod === "wallet") {
-        setWallet(Math.max(0, Math.round((wallet - total) * 100) / 100));
-        navigate(`/track?code=${encodeURIComponent(order.id)}`);
+      if (!data.payment?.qrImage) {
+        setPayErr(ERRORS.not_configured[lang]);
         return;
       }
-
-      if (data.payment?.mode === "live" && data.payment.qrImage) {
-        setLiveQr(data.payment.qrImage);
-        setCheckoutId(order.id);
-        setQrOpen(true);
-        return;
-      }
-      setLiveQr(null);
-      setCheckoutId(order.id);
+      addOrder(data.order);
+      setOrderTotal(data.order.total);
+      setLiveQr(data.payment.qrImage);
+      setCheckoutId(data.order.id);
       setQrOpen(true);
     } catch (e) {
       setPayErr(e.message || "Network error");
@@ -209,7 +224,7 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
     const msg = validate();
     setPayErr(msg);
     if (msg) return;
-    place(method);
+    place();
   }
 
   async function confirmQr() {
@@ -217,24 +232,14 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
     setPaying(true);
     setPayErr("");
     try {
-      if (liveQr) {
-        const r = await fetch(`/api/checkout/${checkoutId}/status`);
-        const d = await r.json();
-        if (d.order && d.order.status !== "pending") {
-          setQrOpen(false);
-          navigate(`/track?code=${encodeURIComponent(checkoutId)}`);
-          return;
-        }
-        setPayErr(lang === "km" ? "មិនទាន់ទទួលការបង់" : "Payment not received yet");
-      } else {
-        await fetch(`/api/checkout/${checkoutId}/demo-confirm`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: "{}",
-        });
+      const r = await fetch(`/api/checkout/${checkoutId}/status`);
+      const d = await r.json();
+      if (d.order && d.order.status !== "pending") {
         setQrOpen(false);
         navigate(`/track?code=${encodeURIComponent(checkoutId)}`);
+        return;
       }
+      setPayErr(lang === "km" ? "មិនទាន់ទទួលការបង់" : "Payment not received yet");
     } catch (e) {
       setPayErr(e.message);
     } finally {
@@ -244,7 +249,9 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
 
   const statusText = checking
     ? t(lang, "checking")
-    : nick
+    : unverified && checkedFor
+      ? t(lang, "unverified")
+      : nick
       ? `${t(lang, "verified")}: ${nick}`
       : userId.trim().length > 0 && userId.trim().length < 3
         ? t(lang, "shortId")
@@ -265,9 +272,11 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
       <div className="hero-game">
         <GameTile game={game} />
         <div>
-          <div className="region">{game.region}</div>
+          {game.region ? <div className="region">{game.region}</div> : null}
           <h1>{game.name}</h1>
-          <p className="blurb">{lang === "km" ? game.blurbKm : game.blurbEn}</p>
+          {(lang === "km" ? game.blurbKm : game.blurbEn) ? (
+            <p className="blurb">{lang === "km" ? game.blurbKm : game.blurbEn}</p>
+          ) : null}
           <div className="chips">
             <span className="chip">{t(lang, "statSpeed")}</span>
             <span className="chip">KHQR</span>
@@ -279,7 +288,9 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
         <div style={{ display: "grid", gap: 24 }}>
           <section className="card">
             <h2>{t(lang, "account")}</h2>
-            <p className="hint">{lang === "km" ? game.idHintKm : game.idHintEn}</p>
+            {(lang === "km" ? game.idHintKm : game.idHintEn) ? (
+              <p className="hint">{lang === "km" ? game.idHintKm : game.idHintEn}</p>
+            ) : null}
             <div className="form-grid">
               <label className="field">
                 {t(lang, "playerId")}
@@ -322,8 +333,8 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
                   >
                     <option value="">{t(lang, "selectServer")}</option>
                     {game.servers.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
+                      <option key={s.value} value={s.value}>
+                        {s.label}
                       </option>
                     ))}
                   </select>
@@ -372,7 +383,7 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
                     onClick={() => {
                       setPackId(p.id);
                       const nextSub = Math.round(p.price * qty * 100) / 100;
-                      const res = applyCoupon(coupon || appliedCode, nextSub || 1);
+                      const res = applyCoupon(coupon || appliedCode, nextSub || 1, settings?.coupons);
                       if (res.ok && res.code) {
                         setApplied(nextSub ? res.discount : 0);
                         setAppliedCode(res.code);
@@ -392,28 +403,8 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
 
           <section className="card">
             <h2>{t(lang, "payment")}</h2>
-            <p className="hint">{t(lang, "payHint")}</p>
             <div className="pay-choices">
-              <button
-                type="button"
-                className={`pay-choice${method === "wallet" ? " active" : ""}`}
-                onClick={() => setMethod("wallet")}
-              >
-                <span style={{ color: "var(--primary)" }}>
-                  <Icon name="package" />
-                </span>
-                <span>
-                  <strong>{t(lang, "wallet")}</strong>
-                  <span>
-                    {t(lang, "walletHint")} · {money(wallet)}
-                  </span>
-                </span>
-              </button>
-              <button
-                type="button"
-                className={`pay-choice${method === "khqr" ? " active" : ""}`}
-                onClick={() => setMethod("khqr")}
-              >
+              <div className="pay-choice active">
                 <span style={{ color: "var(--primary)" }}>
                   <Icon name="badge" />
                 </span>
@@ -421,23 +412,15 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
                   <strong>{t(lang, "khqr")}</strong>
                   <span>{t(lang, "khqrHint")}</span>
                 </span>
-              </button>
+              </div>
             </div>
-            <button type="button" className="btn-soft" style={{ marginTop: 12 }} onClick={() => setWalletOpen(true)}>
-              {t(lang, "topupBal")}
-            </button>
             <div className="coupon-row">
-              <input
-                value={coupon}
-                onChange={(e) => setCoupon(e.target.value)}
-                placeholder={`${t(lang, "coupon")} · PORPOR10 / BLUE`}
-              />
+              <input value={coupon} onChange={(e) => setCoupon(e.target.value)} placeholder={t(lang, "coupon")} />
               <button type="button" onClick={onCoupon}>
                 {t(lang, "apply")}
               </button>
             </div>
             {couponMsg.text ? <p className={`msg ${couponMsg.type}`}>{couponMsg.text}</p> : null}
-            <p className="msg muted">{t(lang, "demoPay")}</p>
           </section>
         </div>
 
@@ -505,14 +488,8 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
             <div style={{ margin: "16px auto 0", width: 200, textAlign: "center" }}>
               <img src={qrSrc} alt="KHQR" style={{ width: "100%", borderRadius: 12 }} />
             </div>
-          ) : (
-            <div className="qr-grid">
-              {qrCells.map((on, i) => (
-                <span key={i} className={`qr-cell${on ? " on" : ""}`} />
-              ))}
-            </div>
-          )}
-          <div className="modal-amount">{money(total)}</div>
+          ) : null}
+          <div className="modal-amount">{money(orderTotal || total)}</div>
           <div className="modal-actions">
             <button type="button" className="cancel" onClick={() => setQrOpen(false)}>
               {t(lang, "cancel")}
@@ -521,35 +498,6 @@ export default function Game({ lang, wallet, setWallet, addOrder, settings }) {
               {paying ? "…" : t(lang, "confirmPay")}
             </button>
           </div>
-        </div>
-      </div>
-
-      <div
-        className={`modal-backdrop${walletOpen ? " open" : ""}`}
-        onClick={(e) => e.target === e.currentTarget && setWalletOpen(false)}
-      >
-        <div className="modal">
-          <h3>{t(lang, "topupBal")}</h3>
-          <p>
-            {t(lang, "balance")}: <strong>{money(wallet)}</strong>
-          </p>
-          <div className="wallet-grid">
-            {[5, 10, 20, 50].map((n) => (
-              <button
-                key={n}
-                type="button"
-                onClick={() => {
-                  setWallet(Math.round((wallet + n) * 100) / 100);
-                  setWalletOpen(false);
-                }}
-              >
-                +{money(n)}
-              </button>
-            ))}
-          </div>
-          <p className="msg muted" style={{ marginTop: 12 }}>
-            {t(lang, "demoPay")}
-          </p>
         </div>
       </div>
     </div>

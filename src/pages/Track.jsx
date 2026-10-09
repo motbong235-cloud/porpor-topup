@@ -1,24 +1,35 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { t } from "../lib/i18n";
 import { money } from "../lib/store";
 
-export default function Track({ lang, orders }) {
+export default function Track({ lang }) {
   const [params, setParams] = useSearchParams();
   const initial = params.get("code") || "";
   const [q, setQ] = useState(initial);
   const [query, setQuery] = useState(initial);
 
-  const hits = useMemo(() => {
-    const s = query.trim().toLowerCase();
-    if (!s) return [];
-    return orders.filter(
-      (o) =>
-        o.id.toLowerCase() === s ||
-        o.id.toLowerCase().includes(s) ||
-        String(o.userId).toLowerCase() === s,
-    );
-  }, [orders, query]);
+  const [hits, setHits] = useState([]);
+
+  useEffect(() => {
+    const code = query.trim();
+    if (!code) {
+      setHits([]);
+      return undefined;
+    }
+    let alive = true;
+    const load = () =>
+      fetch(`/api/orders/track?q=${encodeURIComponent(code)}`)
+        .then((r) => (r.ok ? r.json() : []))
+        .then((list) => alive && setHits(Array.isArray(list) ? list : []))
+        .catch(() => {});
+    load();
+    const timer = setInterval(load, 8000); // keep status fresh while the order is being delivered
+    return () => {
+      alive = false;
+      clearInterval(timer);
+    };
+  }, [query]);
 
   return (
     <div className="container">
@@ -56,7 +67,7 @@ export default function Track({ lang, orders }) {
                 {t(lang, "copy")}
               </button>
             </div>
-            <div className="badge-ok">{t(lang, "delivered")}</div>
+            <div className={o.status === "delivered" ? "badge-ok" : "badge-ok pending"}>{t(lang, `st_${o.status || "pending"}`)}</div>
             <dl>
               <div className="row">
                 <dt>{t(lang, "items")}</dt>
@@ -80,7 +91,7 @@ export default function Track({ lang, orders }) {
               ) : null}
               <div className="row">
                 <dt>{t(lang, "method")}</dt>
-                <dd>{o.method === "khqr" ? "ABA KHQR" : t(lang, "wallet")}</dd>
+                <dd>ABA KHQR</dd>
               </div>
               <div className="row">
                 <dt>{t(lang, "discount")}</dt>

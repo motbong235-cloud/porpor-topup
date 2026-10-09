@@ -34,7 +34,7 @@ export default function Orders({ lang, orders }) {
               </div>
               <div>
                 <div className="price">{money(o.total)}</div>
-                <div className="status">{t(lang, "delivered")}</div>
+                <div className="status">{t(lang, `st_${o.status || "pending"}`)}</div>
               </div>
             </div>
           </Link>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { events, games } from "../data/catalog";
+import { useCatalog } from "../lib/catalog";
+import { money } from "../lib/store";
 import { t } from "../lib/i18n";
 import { GameTile, Icon } from "../components/Icons";
 
@@ -39,9 +40,12 @@ function GameCard({ game, lang, famous }) {
 }
 
 export default function Home({ lang }) {
+  const { games, loading, error } = useCatalog();
   const [slide, setSlide] = useState(0);
   const [filter, setFilter] = useState("");
-  const famous = useMemo(() => games.filter((g) => g.famous), []);
+  const famous = useMemo(() => games.filter((g) => g.famous), [games]);
+  const spotlight = useMemo(() => (famous.length ? famous : games).slice(0, 3), [famous, games]);
+  const firstTo = games[0] ? `/game/${games[0].id}` : "/";
   const filtered = useMemo(() => {
     const q = filter.trim().toLowerCase();
     if (!q) return games;
@@ -51,7 +55,7 @@ export default function Home({ lang }) {
         g.mark.toLowerCase().includes(q) ||
         g.nameKm.toLowerCase().includes(q),
     );
-  }, [filter]);
+  }, [games, filter]);
 
   useEffect(() => {
     const id = setInterval(() => setSlide((s) => (s + 1) % 3), 5600);
@@ -59,8 +63,8 @@ export default function Home({ lang }) {
   }, []);
 
   const slides = [
-    { tone: "banner-deep", kicker: "kicker1", title: "title1", sub: "sub1", to: "/game/mobile-legends", badge: "PP", ghost: true },
-    { tone: "banner-ice", kicker: "kicker2", title: "title2", sub: "sub2", to: "/game/mobile-legends", badge: "ML", ghost: false },
+    { tone: "banner-deep", kicker: "kicker1", title: "title1", sub: "sub1", to: firstTo, badge: "PP", ghost: true },
+    { tone: "banner-ice", kicker: "kicker2", title: "title2", sub: "sub2", to: firstTo, badge: games[0]?.mark || "TOP", ghost: false },
     { tone: "banner-night", kicker: "kicker3", title: "title3", sub: "sub3", to: "/support", badge: "QR", ghost: false },
   ];
 
@@ -103,28 +107,34 @@ export default function Home({ lang }) {
         </div>
       </section>
 
-      <section className="section">
-        <div className="section-head">
-          <span className="star">
-            <Icon name="star" size={16} />
-          </span>
-          <h2>{t(lang, "special")}</h2>
-        </div>
-        <div className="events">
-          {events.map((ev) => (
-            <Link key={ev.id} className="event-card" to={`/game/${ev.gameId}`}>
-              <div className="event-art game-tile" style={{ "--h": ev.hue }}>
-                <span className="event-tag">{lang === "km" ? ev.tagKm : ev.tagEn}</span>
-                <div className="event-meta">
-                  <strong>{ev.title}</strong>
-                  <span>{lang === "km" ? ev.subKm : ev.subEn}</span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
+      {spotlight.length > 0 && (
+        <section className="section">
+          <div className="section-head">
+            <span className="star">
+              <Icon name="star" size={16} />
+            </span>
+            <h2>{t(lang, "special")}</h2>
+          </div>
+          <div className="events">
+            {spotlight.map((g) => {
+              const min = Math.min(...g.packs.map((p) => p.price));
+              return (
+                <Link key={g.id} className="event-card" to={`/game/${g.id}`}>
+                  <div className="event-art game-tile" style={{ "--h": g.hue }}>
+                    <span className="event-tag">{t(lang, "hot")}</span>
+                    <div className="event-meta">
+                      <strong>{g.name}</strong>
+                      <span>{lang === "km" ? `ចាប់ពី ${money(min)}` : `From ${money(min)}`}</span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
+      {famous.length > 0 && (
       <section className="section">
         <div className="section-head">
           <span className="star">
@@ -139,6 +149,7 @@ export default function Home({ lang }) {
           ))}
         </div>
       </section>
+      )}
 
       <section className="section" id="games">
         <div className="toolbar">
@@ -160,7 +171,19 @@ export default function Home({ lang }) {
           {filtered.length} {t(lang, "countGames")}
         </p>
         <div className="game-grid">
-          {filtered.length === 0 ? (
+          {loading ? (
+            <div className="empty" style={{ gridColumn: "1 / -1" }}>
+              {t(lang, "catalogLoading")}
+            </div>
+          ) : error ? (
+            <div className="empty" style={{ gridColumn: "1 / -1" }}>
+              {t(lang, "catalogError")}
+            </div>
+          ) : games.length === 0 ? (
+            <div className="empty" style={{ gridColumn: "1 / -1" }}>
+              {t(lang, "catalogEmpty")}
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="empty" style={{ gridColumn: "1 / -1" }}>
               {t(lang, "searchEmpty")}
             </div>
