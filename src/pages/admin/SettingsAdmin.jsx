@@ -208,7 +208,7 @@ export default function SettingsAdmin() {
         <div className="field">
           <label>Package map (local pack id → Khmer TopUp package_id)</label>
           <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
-            JSON object, e.g. {"ml-86": 268, "ff-100": 301}. Get IDs from GET /api/admin/kt-games
+            {"JSON object, e.g. {\"ml-86\": 268, \"ff-100\": 301}. Get IDs from GET /api/admin/kt-games"}
           </p>
           <textarea
             value={typeof form.packageMap === "string" ? form.packageMap : JSON.stringify(form.packageMap || {}, null, 2)}
