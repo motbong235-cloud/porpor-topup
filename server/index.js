@@ -185,6 +185,8 @@ app.get("/api/settings", (_req, res) => {
     announcementKm: s.announcementKm,
     announcementEn: s.announcementEn,
     maintenance: s.maintenance,
+    logoUrl: s.logoUrl || "",
+    bannerUrls: Array.isArray(s.bannerUrls) ? s.bannerUrls : [],
     coupons: (s.coupons || []).map((c) => ({
       code: c.code,
       type: c.type,
@@ -407,6 +409,14 @@ app.delete("/api/admin/orders/:id", adminAuth, (req, res) => {
   res.json({ ok: true });
 });
 
+/** Only allow our own uploads or https image URLs (blocks javascript:/data: URLs). */
+function cleanImageUrl(v) {
+  const s = String(v || "").trim();
+  if (/^\/uploads\/[\w.-]{1,100}$/.test(s)) return s;
+  if (/^https:\/\/[^\s"'<>]{1,500}$/.test(s)) return s;
+  return "";
+}
+
 app.get("/api/admin/settings", adminAuth, (_req, res) => {
   res.json(getSettings());
 });
@@ -415,11 +425,18 @@ app.put("/api/admin/settings", adminAuth, (req, res) => {
   const body = req.body || {};
   const allowed = [
     "siteName", "taglineKm", "taglineEn", "telegram", "announcementKm", "announcementEn",
-    "supportEmail", "maintenance", "coupons", "autoTopup",
+    "supportEmail", "maintenance", "coupons", "autoTopup", "logoUrl", "bannerUrls",
   ];
   const patch = {};
   for (const k of allowed) {
     if (body[k] !== undefined) patch[k] = body[k];
+  }
+  if (patch.logoUrl !== undefined) patch.logoUrl = cleanImageUrl(patch.logoUrl);
+  if (patch.bannerUrls !== undefined) {
+    patch.bannerUrls = (Array.isArray(patch.bannerUrls) ? patch.bannerUrls : [])
+      .map(cleanImageUrl)
+      .filter(Boolean)
+      .slice(0, 5);
   }
   res.json(updateSettings(patch));
 });

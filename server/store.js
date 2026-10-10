@@ -17,6 +17,10 @@ const DEFAULT_SETTINGS = {
   announcementEn: "",
   supportEmail: "support@porportopup.com",
   maintenance: false,
+  /** Site logo (uploaded via Admin → Settings) — "" = use the default "PP" mark */
+  logoUrl: "",
+  /** Homepage banner images (max 5) — empty = use the built-in gradient slides */
+  bannerUrls: [],
   coupons: [
     { code: "PORPOR10", type: "percent", value: 10, min: 0 },
     { code: "BLUE", type: "fixed", value: 0.5, min: 2 },
