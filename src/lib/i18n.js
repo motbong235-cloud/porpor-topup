@@ -30,7 +30,7 @@ export const dict = {
     famous: "ហ្គេមល្បី",
     famousSub: "ការបញ្ចូលពេញនិយមឥឡូវនេះ",
     all: "ហ្គេមទាំងអស់",
-    promise: "ការសន្យា Porpor",
+    promise: "ការសន្យា POR POR",
     promiseA: "ហ្គេមជាច្រើន ",
     promiseB: "បញ្ចូលងាយតែមួយ",
     promiseBody:
@@ -102,7 +102,7 @@ export const dict = {
     method: "វិធីបង់",
     nickname: "ឈ្មោះក្នុងហ្គេម",
     items: "ទំនិញ",
-    supportLead: "សំណួរញឹកញាប់អំពីការបញ្ចូលហ្គេមនៅ Porpor Topup។",
+    supportLead: "សំណួរញឹកញាប់អំពីការបញ្ចូលហ្គេមនៅ POR POR TOPUP។",
     chat: "ជជែកតាម Telegram",
     resLead:
       "លក់បន្តជាមួយតម្លៃភ្នាក់ងារ។ សូមទាក់ទងយើងតាម Telegram ដើម្បីសុំតម្លៃ។",
@@ -119,7 +119,7 @@ export const dict = {
     title2: "ពេជ្រ Mobile Legends",
     sub2: "Weekly Pass ចាប់ពី $0.81",
     kicker3: "ទូទាត់ងាយ",
-    title3: "KHQR និងកាបូប Porpor",
+    title3: "KHQR និងកាបូប POR POR",
     sub3: "ពិនិត្យឈ្មោះក្នុងហ្គេមមុនពេលបង់",
     faq1q: "រកលេខគណនីនៅឯណា?",
     faq1a:
@@ -133,14 +133,14 @@ export const dict = {
     faq4q: "តាមដានការបញ្ជាទិញយ៉ាងដូចម្តេច?",
     faq4a: "រាល់ការបញ្ជាទិញមានលេខកូដ PP-…។ ដាក់លេខកូដនោះនៅទំព័រតាមដាន។",
     legalPrivacy: [
-      "Porpor Topup រក្សាទុកលេខបញ្ជាទិញ និងលេខគណនីហ្គេម ដើម្បីដឹកជញ្ជូន និងតាមដានការបញ្ជាទិញ។",
+      "POR POR TOPUP រក្សាទុកលេខបញ្ជាទិញ និងលេខគណនីហ្គេម ដើម្បីដឹកជញ្ជូន និងតាមដានការបញ្ជាទិញ។",
       "យើងមិនសុំលេខសម្ងាត់ហ្គេម ឬព័ត៌មានកាតធនាគារទេ។",
       "ប្រវត្តិនៅលើឧបករណ៍អាចលុបបានដោយសម្អាតទិន្នន័យគេហទំព័រនៅក្នុងកម្មវិធីរុករក។",
     ],
     legalTerms: [
       "តម្លៃដែលបង្ហាញជាតម្លៃបច្ចុប្បន្ន ហើយអាចប្តូរបានតាមតម្លៃទីផ្សារ។ ការដឹកជញ្ជូនចូលដោយស្វ័យប្រវត្តិក្រោយទូទាត់។",
       "ពិនិត្យ User ID ឲ្យបានត្រឹមត្រូវមុនពេលបង់។ ការបញ្ចូលទៅ ID ខុស អាចមិនអាចកែវិញបានទេ។",
-      "ឈ្មោះហ្គេមជារបស់ម្ចាស់កម្មសិទ្ធិរៀងៗខ្លួន ហើយ Porpor Topup មិនមែនជាហាងផ្លូវការរបស់ពួកគេទេ។",
+      "ឈ្មោះហ្គេមជារបស់ម្ចាស់កម្មសិទ្ធិរៀងៗខ្លួន ហើយ POR POR TOPUP មិនមែនជាហាងផ្លូវការរបស់ពួកគេទេ។",
     ],
     legalCookies: [
       "យើងប្រើទិន្នន័យក្នុងកម្មវិធីរុករក ដើម្បីចងចាំភាសា ពណ៌ងងឹត/ភ្លឺ សមតុល្យ និងប្រវត្តិបញ្ជាទិញ។",
@@ -178,7 +178,7 @@ export const dict = {
     famous: "Famous Games",
     famousSub: "Most popular top-ups right now",
     all: "All Games",
-    promise: "The Porpor Promise",
+    promise: "The POR POR Promise",
     promiseA: "Every game, ",
     promiseB: "one easy top-up",
     promiseBody:
@@ -250,7 +250,7 @@ export const dict = {
     method: "Method",
     nickname: "In-game name",
     items: "Items",
-    supportLead: "Common questions about topping up on Porpor Topup.",
+    supportLead: "Common questions about topping up on POR POR TOPUP.",
     chat: "Chat on Telegram",
     resLead:
       "Resell with agent pricing. Contact us on Telegram for rates.",
@@ -267,7 +267,7 @@ export const dict = {
     title2: "Mobile Legends diamonds",
     sub2: "Weekly Pass from $0.81",
     kicker3: "Easy pay",
-    title3: "KHQR and Porpor Wallet",
+    title3: "KHQR and POR POR Wallet",
     sub3: "We check the in-game name before you pay",
     faq1q: "Where do I find my ID?",
     faq1a:
@@ -282,14 +282,14 @@ export const dict = {
     faq4a:
       "Every order has a PP- code. Enter that code on the track page.",
     legalPrivacy: [
-      "Porpor Topup stores order codes and game IDs to deliver and track your order.",
+      "POR POR TOPUP stores order codes and game IDs to deliver and track your order.",
       "We never ask for a game password or card details.",
       "Clear this site's data in your browser to remove what was saved.",
     ],
     legalTerms: [
       "Prices shown are current and may change with the market. Delivery is automatic after payment.",
       "Double-check the user ID before you pay. A top-up sent to a wrong ID may not be recoverable.",
-      "Game names belong to their owners. Porpor Topup is not their official store.",
+      "Game names belong to their owners. POR POR TOPUP is not their official store.",
     ],
     legalCookies: [
       "We use browser storage to remember language, light or dark theme, wallet balance, and order history.",
