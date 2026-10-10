@@ -39,7 +39,7 @@ function GameCard({ game, lang, famous }) {
   );
 }
 
-export default function Home({ lang }) {
+export default function Home({ lang, settings }) {
   const { games, loading, error } = useCatalog();
   const [slide, setSlide] = useState(0);
   const [filter, setFilter] = useState("");
@@ -57,10 +57,18 @@ export default function Home({ lang }) {
     );
   }, [games, filter]);
 
+  const custom = (settings && Array.isArray(settings.bannerUrls) ? settings.bannerUrls : []).filter(Boolean);
+  const hasCustom = custom.length > 0;
+  const count = hasCustom ? custom.length : 3;
+
   useEffect(() => {
-    const id = setInterval(() => setSlide((s) => (s + 1) % 3), 5600);
+    setSlide(0);
+  }, [count]);
+
+  useEffect(() => {
+    const id = setInterval(() => setSlide((s) => (s + 1) % count), 5600);
     return () => clearInterval(id);
-  }, []);
+  }, [count]);
 
   const slides = [
     { tone: "banner-deep", kicker: "kicker1", title: "title1", sub: "sub1", to: firstTo, badge: "PP", ghost: true },
@@ -71,7 +79,13 @@ export default function Home({ lang }) {
   return (
     <div className="container">
       <section className="banner">
-        {slides.map((s, i) => (
+        {hasCustom
+          ? custom.map((url, i) => (
+              <div key={url + i} className={`banner-slide banner-photo${i === slide ? " active" : ""}`}>
+                <img src={url} alt="" loading={i === 0 ? "eager" : "lazy"} />
+              </div>
+            ))
+          : slides.map((s, i) => (
           <div key={s.kicker} className={`banner-slide ${s.tone}${i === slide ? " active" : ""}`}>
             <div className="banner-copy">
               <div className="kicker">
@@ -94,17 +108,19 @@ export default function Home({ lang }) {
             <div className="banner-badge">{s.badge}</div>
           </div>
         ))}
-        <button type="button" className="banner-nav prev" aria-label="prev" onClick={() => setSlide((s) => (s + 2) % 3)}>
+        {count > 1 && (<>
+        <button type="button" className="banner-nav prev" aria-label="prev" onClick={() => setSlide((s) => (s + count - 1) % count)}>
           <Icon name="chevL" size={18} />
         </button>
-        <button type="button" className="banner-nav next" aria-label="next" onClick={() => setSlide((s) => (s + 1) % 3)}>
+        <button type="button" className="banner-nav next" aria-label="next" onClick={() => setSlide((s) => (s + 1) % count)}>
           <Icon name="chevR" size={18} />
         </button>
         <div className="banner-dots">
-          {[0, 1, 2].map((i) => (
+          {Array.from({ length: count }, (_, i) => i).map((i) => (
             <button key={i} type="button" className={`dot${i === slide ? " active" : ""}`} onClick={() => setSlide(i)} />
           ))}
         </div>
+        </>)}
       </section>
 
       {spotlight.length > 0 && (
