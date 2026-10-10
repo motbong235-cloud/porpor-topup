@@ -1,7 +1,8 @@
-const ADMIN_PATH = (typeof window !== "undefined" && window.__ADMIN_PATH__) || "pp-console";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AIcon, PageHead, StatusBadge, STATUS, api, timeAgo, usd } from "./ui";
+
+const ADMIN_PATH = (typeof window !== "undefined" && window.__ADMIN_PATH__) || "pp-console";
 
 const DAY_KM = ["អា", "ច", "អ", "ព", "ព្រ", "សុ", "ស"];
 
