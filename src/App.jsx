@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import Game from "./pages/Game";
 import Orders from "./pages/Orders";
 import Track from "./pages/Track";
+import Success from "./pages/Success";
 import Support from "./pages/Support";
 import Reseller from "./pages/Reseller";
 import Legal from "./pages/Legal";
@@ -76,7 +77,8 @@ export default function App() {
           }
         />
         <Route path="/orders" element={<Orders lang={lang} orders={orders} />} />
-        <Route path="/track" element={<Track lang={lang} />} />
+        <Route path="/track" element={<Track lang={lang} settings={remoteSettings} />} />
+        <Route path="/success" element={<Success lang={lang} settings={remoteSettings} />} />
         <Route path="/support" element={<Support lang={lang} settings={remoteSettings} />} />
         <Route path="/reseller" element={<Reseller lang={lang} settings={remoteSettings} />} />
         <Route path="/legal/:slug" element={<Legal lang={lang} />} />

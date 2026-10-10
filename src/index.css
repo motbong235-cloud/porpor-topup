@@ -2264,3 +2264,94 @@ body {
   object-fit: cover;
   display: block;
 }
+
+
+/* —— Payment Successful (Live Chat) —— */
+.success-page {
+  max-width: 480px;
+  margin: 0 auto;
+  padding-bottom: 48px;
+}
+.success-card {
+  text-align: center;
+  padding: 28px 20px 24px;
+}
+.success-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #fff;
+  font-size: 32px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+}
+.success-title {
+  font-size: 1.35rem;
+  margin: 0 0 6px;
+  font-weight: 700;
+}
+.success-sub {
+  color: var(--muted, #64748b);
+  margin: 0 0 20px;
+  font-size: 0.95rem;
+}
+.success-table {
+  text-align: left;
+  background: var(--card-soft, #f1f5f9);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+.success-table .row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  font-size: 0.92rem;
+}
+.success-table .row:last-child { border-bottom: 0; }
+.success-table .row span { color: var(--muted, #64748b); }
+.success-table .row strong { text-align: right; word-break: break-all; }
+.success-chat-box {
+  background: #fef9c3;
+  border: 1px solid #fde047;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+.success-chat-box p {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+  color: #713f12;
+  line-height: 1.45;
+}
+.success-livechat {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  background: #0f172a !important;
+  color: #fff !important;
+  border-radius: 999px;
+  padding: 12px 16px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.success-livechat:hover { opacity: 0.92; }
+.success-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.success-actions .btn {
+  width: 100%;
+  justify-content: center;
+  text-decoration: none;
+}
