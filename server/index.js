@@ -283,7 +283,7 @@ app.post("/api/checkout/create", async (req, res) => {
     createdAt: Date.now(),
   });
 
-  const qr = await khmerSystem.createQr(order.total, order.id, `${order.gameName} ${order.packName}`);
+  const qr = await khmerSystem.createQr(order.total, order.id, `Porpor TOPUP ${order.id}`);
   if (!qr.success) {
     console.error("[checkout] Khmer System QR failed:", qr.error, JSON.stringify(qr.raw || {}));
     updateOrder(order.id, { status: "failed", note: `QR error: ${qr.error}` });
