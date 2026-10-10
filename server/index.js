@@ -523,15 +523,20 @@ app.put("/api/admin/local-products", adminAuth, (req, res) => {
     .map((g) => {
       if (!g || !g.id) return null;
       const packs = (Array.isArray(g.packs) ? g.packs : [])
-        .map((p) => ({
-          id: String(p.id || "").trim(),
-          name: String(p.name || p.id || "").trim(),
-          nameKm: String(p.nameKm || p.name || p.id || "").trim(),
-          price: Number(p.price),
-          cost: Number(p.cost != null ? p.cost : p.price),
-          category: String(p.category || "Gift Card"),
-          bonus: p.bonus ? String(p.bonus) : "",
-        }))
+        .map((p) => {
+          let img = String(p.image || "").trim();
+          if (!(/^\/uploads\/[\w.-]{1,100}$/.test(img) || /^https:\/\/[^\s"'<>]{1,490}$/.test(img))) img = "";
+          return {
+            id: String(p.id || "").trim(),
+            name: String(p.name || p.id || "").trim(),
+            nameKm: String(p.nameKm || p.name || p.id || "").trim(),
+            price: Number(p.price),
+            cost: Number(p.cost != null ? p.cost : p.price),
+            category: String(p.category || "Gift Card"),
+            bonus: p.bonus ? String(p.bonus) : "",
+            image: img,
+          };
+        })
         .filter((p) => p.id && Number.isFinite(p.price) && p.price > 0);
       return {
         id: String(g.id).trim().toLowerCase().replace(/[^a-z0-9-]/g, "-"),
@@ -545,7 +550,11 @@ app.put("/api/admin/local-products", adminAuth, (req, res) => {
         open: g.open !== false,
         hue: Number(g.hue) || 210,
         mark: String(g.mark || "GC").slice(0, 4),
-        image: String(g.image || ""),
+        image: (function () {
+          let u = String(g.image || "").trim();
+          if (/^\/uploads\/[\w.-]{1,100}$/.test(u) || /^https:\/\/[^\s"'<>]{1,490}$/.test(u)) return u;
+          return "";
+        })(),
         deliveryType: g.deliveryType === "topup" ? "topup" : "gift_code",
         hasZone: false,
         servers: [],
