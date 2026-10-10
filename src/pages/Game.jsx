@@ -172,6 +172,7 @@ export default function Game({ lang, addOrder, settings }) {
   const ERRORS = {
     maintenance: { km: "ហាងកំពុងថែទាំ សូមព្យាយាមម្តងទៀតពេលក្រោយ", en: "The shop is under maintenance. Try again later." },
     not_configured: { km: "ការទូទាត់មិនទាន់រួចរាល់ សូមទាក់ទងអ្នកគ្រប់គ្រង", en: "Payments are not set up yet. Please contact support." },
+    qr_failed: { km: "មិនអាចបង្កើត QR បង់ប្រាក់បានទេ សូមទាក់ទងអ្នកគ្រប់គ្រងហាង", en: "Could not create the payment QR. Please contact the shop." },
     pack_unavailable: { km: "កញ្ចប់នេះមិនមានលក់ទៀតទេ សូមជ្រើសកញ្ចប់ផ្សេង", en: "This package is no longer available." },
     coupon_invalid: { km: "កូដបញ្ចុះតម្លៃមិនត្រឹមត្រូវ", en: "Invalid coupon code." },
     coupon_min: { km: "ចំនួនទិញមិនដល់កម្រិតអប្បបរមានៃកូដនេះ", en: "Order is below this coupon's minimum." },
