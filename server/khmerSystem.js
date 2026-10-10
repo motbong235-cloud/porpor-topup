@@ -5,9 +5,11 @@
  * Env (pick one secret):
  *   KHMER_SYSTEM_SECRET_KEY  preferred  (sk_live_...)
  *   ABA_API_KEY              fallback   (same secret_key)
- * Optional:
- *   KHMER_SYSTEM_TG_USER_ID  telegram user id used for all website checkouts (default "0")
+ * Optional / multi-merchant:
+ *   KHMER_SYSTEM_MERCHANT_ID or ABA_MERCHANT_ID  (required if account has multiple merchants)
+ *   KHMER_SYSTEM_TG_USER_ID  telegram user id for website checkouts (default "0")
  *   KHMER_SYSTEM_PAY_URL     default https://pay.khmer-system.com
+ *   KHMER_SYSTEM_MERCHANT_NAME, KHMER_SYSTEM_BAKONG_ACCOUNT
  *
  * Note: the old /aba-api/generate-qr (api_key + merchant_id) is deprecated for
  * accounts that only have the v1 secret_key — it returns "invalid username".
@@ -63,6 +65,9 @@ export async function createQr(amount, billNumber, description = "Porpor TOPUP")
     verify_key,
     telegram_user_id,
   };
+  // Required when account has MULTIPLE merchants (error INVALID_PROFILE_KEY)
+  const mid = clean(process.env.KHMER_SYSTEM_MERCHANT_ID || process.env.ABA_MERCHANT_ID);
+  if (mid) payload.merchant_id = mid;
   // optional overrides if set
   const bakong = clean(process.env.KHMER_SYSTEM_BAKONG_ACCOUNT);
   const mname = clean(process.env.KHMER_SYSTEM_MERCHANT_NAME);
@@ -172,11 +177,13 @@ export async function confirmCredit(verify_key, telegram_user_id) {
 
 /** Admin diagnose — hit generate with $0.01 test. */
 export async function diagnose() {
+  const mid = clean(process.env.KHMER_SYSTEM_MERCHANT_ID || process.env.ABA_MERCHANT_ID);
   const info = {
     endpoint: GENERATE_URL,
     secretSet: !!secretKey(),
     secretLength: secretKey().length,
     secretPrefix: secretKey() ? secretKey().slice(0, 6) + "…" : "",
+    merchant_id: mid || "(not set — required if multi-merchant account)",
     telegram_user_id: tgUserId(),
     usesLegacyAbaApi: false,
   };
