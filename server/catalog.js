@@ -4,6 +4,7 @@
  */
 import { getSettings } from "./store.js";
 import * as khmerTopup from "./khmerTopup.js";
+import { localCatalog, findLocalPack } from "./localProducts.js";
 
 const TTL = 60_000;
 let cache = { at: 0, games: null, raw: null };
@@ -149,10 +150,17 @@ export async function storefront() {
 
 export async function publicCatalog() {
   const games = await storefront();
-  return games.map((g) => ({ ...g, packs: g.packs.map(({ cost, ...p }) => p) }));
+  const local = localCatalog().map((g) => ({
+    ...g,
+    packs: g.packs.map(({ cost, ...p }) => p),
+  }));
+  // local gift cards first (featured)
+  return [...local, ...games.map((g) => ({ ...g, packs: g.packs.map(({ cost, ...p }) => p) }))];
 }
 
 export async function findPack(gameId, packId) {
+  const local = findLocalPack(gameId, packId);
+  if (local) return local;
   const game = (await storefront()).find((g) => g.id === String(gameId));
   if (!game) return null;
   const pack = game.packs.find((p) => p.id === String(packId));
@@ -160,6 +168,8 @@ export async function findPack(gameId, packId) {
 }
 
 export async function findGame(gameId) {
+  const local = localCatalog().find((g) => g.id === String(gameId));
+  if (local) return local;
   return (await storefront()).find((g) => g.id === String(gameId)) || null;
 }
 

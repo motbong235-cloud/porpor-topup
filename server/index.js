@@ -21,6 +21,7 @@ import {
 import * as khmerSystem from "./khmerSystem.js";
 import * as khmerTopup from "./khmerTopup.js";
 import * as catalog from "./catalog.js";
+import { isGiftCodeProduct, localCatalog, DEFAULT_LOCAL_PRODUCTS } from "./localProducts.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");
@@ -80,6 +81,9 @@ function publicOrder(o) {
     method: o.method,
     status: o.status,
     createdAt: o.createdAt,
+    deliveryType: o.deliveryType || "topup",
+    giftCode: o.giftCode || null,
+    note: o.note || "",
   };
 }
 
@@ -91,6 +95,13 @@ function summarizeKt(codes, statuses) {
 }
 
 async function fulfillTopup(order) {
+  // Roblox / gift cards: wait for admin to send code via Live Chat
+  if (order.deliveryType === "gift_code") {
+    return updateOrder(order.id, {
+      status: "paid",
+      note: "Gift card — contact Live Chat / Telegram for code",
+    });
+  }
   const settings = getSettings();
   if (!settings.autoTopup) {
     return updateOrder(order.id, { status: "paid", note: "autoTopup disabled — fulfill manually" });
@@ -230,12 +241,11 @@ app.post("/api/checkout/create", async (req, res) => {
   if (settings.maintenance) {
     return res.status(503).json({ error: "maintenance" });
   }
-  if (!khmerTopup.isTopupReady() || !khmerSystem.isPaymentReady()) {
+  if (!khmerSystem.isPaymentReady()) {
     return res.status(503).json({ error: "not_configured" });
   }
 
-  const userId = String(body.userId || "").trim();
-  if (!body.gameId || !body.packId || userId.length < 3) {
+  if (!body.gameId || !body.packId) {
     return res.status(400).json({ error: "invalid" });
   }
 
@@ -248,10 +258,21 @@ app.post("/api/checkout/create", async (req, res) => {
   }
   if (!found) return res.status(400).json({ error: "pack_unavailable" });
 
+  const giftCode = isGiftCodeProduct(found.game);
+  // Gift cards / local products do not need Khmer TopUp
+  if (!giftCode && !khmerTopup.isTopupReady()) {
+    return res.status(503).json({ error: "not_configured" });
+  }
+
+  const userId = String(body.userId || "").trim();
+  if (!giftCode && userId.length < 3) {
+    return res.status(400).json({ error: "invalid" });
+  }
+
   const zoneId = String(body.zoneId || "").trim();
   const server = String(body.server || "").trim();
-  if (found.game.hasZone && !zoneId) return res.status(400).json({ error: "need_zone" });
-  if (found.game.servers.length && !found.game.servers.some((s) => s.value === server)) {
+  if (!giftCode && found.game.hasZone && !zoneId) return res.status(400).json({ error: "need_zone" });
+  if (!giftCode && found.game.servers?.length && !found.game.servers.some((s) => s.value === server)) {
     return res.status(400).json({ error: "need_server" });
   }
 
@@ -271,14 +292,16 @@ app.post("/api/checkout/create", async (req, res) => {
     qty,
     total,
     discount: cp.discount,
-    cost: round2(found.pack.cost * qty),
-    userId,
+    cost: round2((found.pack.cost || found.pack.price) * qty),
+    userId: giftCode ? (userId || "gift") : userId,
     zoneId,
     server,
     nickname: String(body.nickname || ""),
     method: "khqr",
     coupon: cp.code,
-    ktPackageId: Number(found.pack.id),
+    ktPackageId: giftCode ? null : Number(found.pack.id),
+    deliveryType: giftCode ? "gift_code" : "topup",
+    giftCode: null,
     status: "pending",
     createdAt: Date.now(),
   });
@@ -366,6 +389,21 @@ app.get("/api/admin/me", (req, res) => {
   res.json({ ok: true });
 });
 
+
+app.post("/api/admin/orders/:id/gift-code", adminAuth, (req, res) => {
+  const o = getOrder(req.params.id);
+  if (!o) return res.status(404).json({ error: "not_found" });
+  const code = String(req.body?.giftCode || req.body?.code || "").trim();
+  if (!code) return res.status(400).json({ error: "empty_code" });
+  const updated = updateOrder(o.id, {
+    giftCode: code,
+    status: "delivered",
+    note: o.note || "Gift code delivered",
+    deliveredAt: Date.now(),
+  });
+  res.json(updated);
+});
+
 app.get("/api/admin/stats", adminAuth, (_req, res) => {
   res.json(stats());
 });
@@ -426,7 +464,7 @@ app.put("/api/admin/settings", adminAuth, (req, res) => {
   const body = req.body || {};
   const allowed = [
     "siteName", "taglineKm", "taglineEn", "telegram", "announcementKm", "announcementEn",
-    "supportEmail", "maintenance", "coupons", "autoTopup", "logoUrl", "bannerUrls",
+    "supportEmail", "maintenance", "coupons", "autoTopup", "logoUrl", "bannerUrls", "localProducts",
   ];
   const patch = {};
   for (const k of allowed) {
@@ -466,6 +504,59 @@ app.get("/api/admin/integrations", adminAuth, async (_req, res) => {
     }
   }
   res.json(out);
+});
+
+
+app.get("/api/admin/local-products", adminAuth, (_req, res) => {
+  const s = getSettings();
+  const products = Array.isArray(s.localProducts) && s.localProducts.length
+    ? s.localProducts
+    : DEFAULT_LOCAL_PRODUCTS;
+  res.json({ products, usingDefaults: !(Array.isArray(s.localProducts) && s.localProducts.length) });
+});
+
+app.put("/api/admin/local-products", adminAuth, (req, res) => {
+  const body = req.body || {};
+  let list = Array.isArray(body.products) ? body.products : [];
+  // sanitize
+  list = list
+    .map((g) => {
+      if (!g || !g.id) return null;
+      const packs = (Array.isArray(g.packs) ? g.packs : [])
+        .map((p) => ({
+          id: String(p.id || "").trim(),
+          name: String(p.name || p.id || "").trim(),
+          nameKm: String(p.nameKm || p.name || p.id || "").trim(),
+          price: Number(p.price),
+          cost: Number(p.cost != null ? p.cost : p.price),
+          category: String(p.category || "Gift Card"),
+          bonus: p.bonus ? String(p.bonus) : "",
+        }))
+        .filter((p) => p.id && Number.isFinite(p.price) && p.price > 0);
+      return {
+        id: String(g.id).trim().toLowerCase().replace(/[^a-z0-9-]/g, "-"),
+        name: String(g.name || g.id).trim(),
+        nameKm: String(g.nameKm || g.name || g.id).trim(),
+        region: String(g.region || ""),
+        blurbKm: String(g.blurbKm || ""),
+        blurbEn: String(g.blurbEn || ""),
+        famous: !!g.famous,
+        hot: !!g.hot,
+        open: g.open !== false,
+        hue: Number(g.hue) || 210,
+        mark: String(g.mark || "GC").slice(0, 4),
+        image: String(g.image || ""),
+        deliveryType: g.deliveryType === "topup" ? "topup" : "gift_code",
+        hasZone: false,
+        servers: [],
+        idHintKm: String(g.idHintKm || ""),
+        idHintEn: String(g.idHintEn || ""),
+        packs,
+      };
+    })
+    .filter(Boolean);
+  const updated = updateSettings({ localProducts: list });
+  res.json({ products: updated.localProducts || list });
 });
 
 app.get("/api/admin/kt-games", adminAuth, async (req, res) => {

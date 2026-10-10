@@ -29,6 +29,8 @@ const DEFAULT_SETTINGS = {
   autoTopup: true,
   /** Which Khmer TopUp games/packages to sell (Admin → Services) */
   ktSelection: { markupPercent: 0, games: {} },
+  /** Local services (gift cards etc.) managed in Admin → Services */
+  localProducts: [],
 };
 
 const LEGACY_KEYS = ["defaultWallet", "closedGames", "packageMap", "allowDemoPay"];
