@@ -165,6 +165,244 @@ function GameCard({ g, s, defaultMarkup, isOpen, onToggleOpen, patch }) {
 /* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
+
+/* ─── Local services (Gift cards / manual delivery) ─── */
+function blankLocal() {
+  return {
+    id: "",
+    name: "",
+    nameKm: "",
+    region: "Cambodia / Global",
+    blurbKm: "បង់រួចទទួលកូដតាម Live Chat",
+    blurbEn: "Pay then get code via Live Chat",
+    famous: true,
+    hot: true,
+    open: true,
+    hue: 210,
+    mark: "GC",
+    deliveryType: "gift_code",
+    packs: [{ id: "", name: "", price: 0, cost: 0, category: "Gift Card" }],
+  };
+}
+
+function LocalServicesPanel() {
+  const [products, setProducts] = useState([]);
+  const [usingDefaults, setUsingDefaults] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [editIdx, setEditIdx] = useState(-1);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const d = await api("/api/admin/local-products");
+      setProducts(Array.isArray(d.products) ? d.products : []);
+      setUsingDefaults(!!d.usingDefaults);
+    } catch {
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  async function save(list) {
+    setSaving(true);
+    try {
+      const d = await api("/api/admin/local-products", {
+        method: "PUT",
+        body: JSON.stringify({ products: list }),
+      });
+      setProducts(d.products || list);
+      setUsingDefaults(false);
+      toast("បានរក្សាទុក Local services");
+    } catch {
+      toast("រក្សាទុកមិនបាន", "bad");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function addProduct() {
+    const p = blankLocal();
+    p.id = `service-${Date.now().toString(36)}`;
+    p.name = "New Service";
+    p.nameKm = "សេវាថ្មី";
+    p.packs = [{ id: `${p.id}-1`, name: "Pack 1", price: 1, cost: 1, category: "Gift Card" }];
+    setProducts((x) => [...x, p]);
+    setEditIdx(products.length);
+  }
+
+  function updateAt(i, patch) {
+    setProducts((list) => list.map((p, idx) => (idx === i ? { ...p, ...patch } : p)));
+  }
+
+  function updatePack(pi, pk, patch) {
+    setProducts((list) =>
+      list.map((p, idx) => {
+        if (idx !== pi) return p;
+        const packs = (p.packs || []).map((x, j) => (j === pk ? { ...x, ...patch } : x));
+        return { ...p, packs };
+      }),
+    );
+  }
+
+  function addPack(pi) {
+    setProducts((list) =>
+      list.map((p, idx) => {
+        if (idx !== pi) return p;
+        const n = (p.packs || []).length + 1;
+        return {
+          ...p,
+          packs: [...(p.packs || []), { id: `${p.id}-${n}`, name: `Pack ${n}`, price: 1, cost: 1, category: "Gift Card" }],
+        };
+      }),
+    );
+  }
+
+  function removePack(pi, pk) {
+    setProducts((list) =>
+      list.map((p, idx) => {
+        if (idx !== pi) return p;
+        return { ...p, packs: (p.packs || []).filter((_, j) => j !== pk) };
+      }),
+    );
+  }
+
+  function removeProduct(i) {
+    if (!confirm("លុប service នេះ?")) return;
+    const next = products.filter((_, idx) => idx !== i);
+    setProducts(next);
+    setEditIdx(-1);
+  }
+
+  return (
+    <section className="card" style={{ marginBottom: 24, borderColor: "var(--primary, #2563eb)" }}>
+      <PageHead km="Local Services (Gift Card / Live Chat)" en="Admin adds services — code delivered via Live Chat">
+        <button type="button" className="ad-btn soft" onClick={load} disabled={loading}>
+          <AIcon name="refresh" size={16} /> ផ្ទុក
+        </button>
+        <button type="button" className="ad-btn primary" onClick={addProduct}>
+          + បន្ថែម Service
+        </button>
+        <button type="button" className="ad-btn primary" disabled={saving} onClick={() => save(products)}>
+          {saving ? "…" : "💾 រក្សាទុក"}
+        </button>
+      </PageHead>
+      <p style={{ margin: "0 0 12px", color: "var(--muted)", fontSize: 14 }}>
+        សេវាដែល Admin បន្ថែមខ្លួនឯង (ឧ. Roblox Gift Card)។ បន្ទាប់ពីអតិថិជនបង់ → Live Chat → Admin ផ្តល់កូដ។
+        {usingDefaults ? " · កំពុងប្រើ default (រក្សាទុកដើម្បី lock)" : ""}
+      </p>
+
+      {loading ? (
+        <div className="ad-loading">
+          <span className="ad-spin" /> កំពុងផ្ទុក…
+        </div>
+      ) : products.length === 0 ? (
+        <p className="ad-empty">មិនទាន់មាន service — ចុច «+ បន្ថែម Service»</p>
+      ) : (
+        products.map((p, i) => {
+          const open = editIdx === i;
+          return (
+            <article key={p.id || i} className={`ad-game${p.open !== false ? " on" : ""}`} style={{ marginBottom: 10 }}>
+              <div className="ad-game-top" style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+                <strong>{p.name || p.id}</strong>
+                <span className="ad-tag">{p.deliveryType === "gift_code" ? "🎁 Gift / Live Chat" : "Top-up"}</span>
+                <span className="ad-tag">{(p.packs || []).length} packs</span>
+                <label style={{ display: "flex", gap: 6, alignItems: "center", marginLeft: "auto" }}>
+                  <input
+                    type="checkbox"
+                    checked={p.open !== false}
+                    onChange={(e) => updateAt(i, { open: e.target.checked })}
+                  />
+                  បង្ហាញលើហាង
+                </label>
+                <button type="button" className="ad-btn soft" onClick={() => setEditIdx(open ? -1 : i)}>
+                  {open ? "បិទ" : "កែ"}
+                </button>
+                <button type="button" className="ad-btn danger" onClick={() => removeProduct(i)}>
+                  លុប
+                </button>
+              </div>
+              {open ? (
+                <div className="ad-order-detail" style={{ marginTop: 12 }}>
+                  <div className="ad-form-grid" style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 1fr" }}>
+                    <label>
+                      ID (slug)
+                      <input value={p.id} onChange={(e) => updateAt(i, { id: e.target.value })} placeholder="roblox-gift-cards" />
+                    </label>
+                    <label>
+                      Mark
+                      <input value={p.mark || ""} onChange={(e) => updateAt(i, { mark: e.target.value })} placeholder="RBX" />
+                    </label>
+                    <label>
+                      Name (EN)
+                      <input value={p.name || ""} onChange={(e) => updateAt(i, { name: e.target.value })} />
+                    </label>
+                    <label>
+                      Name (KM)
+                      <input value={p.nameKm || ""} onChange={(e) => updateAt(i, { nameKm: e.target.value })} />
+                    </label>
+                    <label style={{ gridColumn: "1 / -1" }}>
+                      Blurb KM
+                      <input value={p.blurbKm || ""} onChange={(e) => updateAt(i, { blurbKm: e.target.value })} />
+                    </label>
+                    <label style={{ gridColumn: "1 / -1" }}>
+                      Blurb EN
+                      <input value={p.blurbEn || ""} onChange={(e) => updateAt(i, { blurbEn: e.target.value })} />
+                    </label>
+                    <label>
+                      Delivery
+                      <select
+                        value={p.deliveryType || "gift_code"}
+                        onChange={(e) => updateAt(i, { deliveryType: e.target.value })}
+                      >
+                        <option value="gift_code">Gift code / Live Chat</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  <h4 style={{ margin: "16px 0 8px" }}>Packs / តម្លៃ</h4>
+                  {(p.packs || []).map((pk, j) => (
+                    <div key={j} style={{ display: "grid", gridTemplateColumns: "1fr 2fr 1fr 1fr auto", gap: 6, marginBottom: 6 }}>
+                      <input placeholder="id" value={pk.id} onChange={(e) => updatePack(i, j, { id: e.target.value })} />
+                      <input placeholder="name" value={pk.name} onChange={(e) => updatePack(i, j, { name: e.target.value, nameKm: e.target.value })} />
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="price"
+                        value={pk.price}
+                        onChange={(e) => updatePack(i, j, { price: Number(e.target.value) })}
+                      />
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="cost"
+                        value={pk.cost}
+                        onChange={(e) => updatePack(i, j, { cost: Number(e.target.value) })}
+                      />
+                      <button type="button" className="ad-btn danger" onClick={() => removePack(i, j)}>
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  <button type="button" className="ad-btn soft" onClick={() => addPack(i)}>
+                    + Pack
+                  </button>
+                </div>
+              ) : null}
+            </article>
+          );
+        })
+      )}
+    </section>
+  );
+}
+
+
 export default function ServicesAdmin() {
   const [games, setGames] = useState(null);
   const [sel, setSel] = useState({ markupPercent: 0, games: {} });
@@ -284,6 +522,7 @@ export default function ServicesAdmin() {
 
   return (
     <div>
+      <LocalServicesPanel />
       <PageHead km="សេវាហ្គេម" en="Choose which Khmer TopUp games to sell · upload images">
         {stateLabel}
       </PageHead>

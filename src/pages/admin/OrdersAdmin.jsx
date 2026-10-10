@@ -65,6 +65,24 @@ export default function OrdersAdmin() {
     }
   }
 
+  async function setGiftCode(id) {
+    const code = prompt("បញ្ចូល Roblox Gift Card code:");
+    if (!code || !code.trim()) return;
+    setBusy(id);
+    try {
+      await api(`/api/admin/orders/${id}/gift-code`, {
+        method: "POST",
+        body: JSON.stringify({ giftCode: code.trim() }),
+      });
+      toast("បានរក្សាទុកកូដ និងកំណត់ជាជោគជ័យ");
+      await load();
+    } catch {
+      toast("រក្សាទុកកូដមិនបាន", "bad");
+    } finally {
+      setBusy("");
+    }
+  }
+
   return (
     <div>
       <PageHead km="ការបញ្ជាទិញ" en="Search, review and fix orders">
@@ -134,8 +152,18 @@ export default function OrdersAdmin() {
                       <div><dt>បានបង់នៅ</dt><dd>{o.paidAt ? new Date(o.paidAt).toLocaleString() : "មិនទាន់បង់"}</dd></div>
                     </dl>
                     {o.note ? <p className="ad-note">{o.note}</p> : null}
+                    {o.deliveryType === "gift_code" || o.gameId === "roblox-gift-cards" ? (
+                      <p className="ad-note">
+                        🎁 Gift Card — {o.giftCode ? <>កូដ: <code>{o.giftCode}</code></> : "មិនទាន់ដាក់កូដ (ផ្ញើតាម Live Chat រួចដាក់កូដខាងក្រោម)"}
+                      </p>
+                    ) : null}
                     <div className="ad-actions">
-                      {canRetry ? (
+                      {o.deliveryType === "gift_code" || o.gameId === "roblox-gift-cards" ? (
+                        <button type="button" className="ad-btn primary" disabled={busy === o.id} onClick={() => setGiftCode(o.id)}>
+                          <AIcon name="check" size={15} /> ដាក់ Gift Code
+                        </button>
+                      ) : null}
+                      {canRetry && o.deliveryType !== "gift_code" ? (
                         <button type="button" className="ad-btn primary" disabled={busy === o.id} onClick={() => patch(o.id, { fulfill: true }, "បានបញ្ជូនទៅ Khmer TopUp ម្តងទៀត")}>
                           <AIcon name="bolt" size={15} /> បញ្ចូលហ្គេមម្តងទៀត
                         </button>
