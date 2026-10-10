@@ -309,6 +309,11 @@ function LocalServicesPanel() {
           return (
             <article key={p.id || i} className={`ad-game${p.open !== false ? " on" : ""}`} style={{ marginBottom: 10 }}>
               <div className="ad-game-top" style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+                {p.image ? (
+                  <img src={p.image} alt="" style={{ width: 36, height: 36, borderRadius: 8, objectFit: "cover" }} />
+                ) : (
+                  <span className="ad-tag" style={{ width: 36, height: 36, display: "grid", placeItems: "center" }}>{(p.mark || "GC").slice(0, 2)}</span>
+                )}
                 <strong>{p.name || p.id}</strong>
                 <span className="ad-tag">{p.deliveryType === "gift_code" ? "🎁 Gift / Live Chat" : "Top-up"}</span>
                 <span className="ad-tag">{(p.packs || []).length} packs</span>
@@ -329,58 +334,90 @@ function LocalServicesPanel() {
               </div>
               {open ? (
                 <div className="ad-order-detail" style={{ marginTop: 12 }}>
-                  <div className="ad-form-grid" style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 1fr" }}>
-                    <label>
-                      ID (slug)
-                      <input value={p.id} onChange={(e) => updateAt(i, { id: e.target.value })} placeholder="roblox-gift-cards" />
-                    </label>
-                    <label>
-                      Mark
-                      <input value={p.mark || ""} onChange={(e) => updateAt(i, { mark: e.target.value })} placeholder="RBX" />
-                    </label>
-                    <label>
-                      Name (EN)
-                      <input value={p.name || ""} onChange={(e) => updateAt(i, { name: e.target.value })} />
-                    </label>
-                    <label>
-                      Name (KM)
-                      <input value={p.nameKm || ""} onChange={(e) => updateAt(i, { nameKm: e.target.value })} />
-                    </label>
-                    <label style={{ gridColumn: "1 / -1" }}>
-                      Blurb KM
-                      <input value={p.blurbKm || ""} onChange={(e) => updateAt(i, { blurbKm: e.target.value })} />
-                    </label>
-                    <label style={{ gridColumn: "1 / -1" }}>
-                      Blurb EN
-                      <input value={p.blurbEn || ""} onChange={(e) => updateAt(i, { blurbEn: e.target.value })} />
-                    </label>
-                    <label>
-                      Delivery
-                      <select
-                        value={p.deliveryType || "gift_code"}
-                        onChange={(e) => updateAt(i, { deliveryType: e.target.value })}
-                      >
-                        <option value="gift_code">Gift code / Live Chat</option>
-                      </select>
-                    </label>
+                  <div style={{ display: "flex", gap: 16, alignItems: "flex-start", marginBottom: 14, flexWrap: "wrap" }}>
+                    <div>
+                      <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 6 }}>រូប Service</div>
+                      <ImageSlot
+                        src={p.image || ""}
+                        fallback={(p.mark || "GC").slice(0, 2)}
+                        size={72}
+                        custom={!!p.image}
+                        label="Upload service image"
+                        onUrl={(url) => updateAt(i, { image: url })}
+                        onClear={() => updateAt(i, { image: "" })}
+                      />
+                    </div>
+                    <div className="ad-form-grid" style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 1fr", flex: 1, minWidth: 240 }}>
+                      <label>
+                        ID (slug)
+                        <input value={p.id} onChange={(e) => updateAt(i, { id: e.target.value })} placeholder="roblox-gift-cards" />
+                      </label>
+                      <label>
+                        Mark
+                        <input value={p.mark || ""} onChange={(e) => updateAt(i, { mark: e.target.value })} placeholder="RBX" />
+                      </label>
+                      <label>
+                        Name (EN)
+                        <input value={p.name || ""} onChange={(e) => updateAt(i, { name: e.target.value })} />
+                      </label>
+                      <label>
+                        Name (KM)
+                        <input value={p.nameKm || ""} onChange={(e) => updateAt(i, { nameKm: e.target.value })} />
+                      </label>
+                      <label style={{ gridColumn: "1 / -1" }}>
+                        Blurb KM
+                        <input value={p.blurbKm || ""} onChange={(e) => updateAt(i, { blurbKm: e.target.value })} />
+                      </label>
+                      <label style={{ gridColumn: "1 / -1" }}>
+                        Blurb EN
+                        <input value={p.blurbEn || ""} onChange={(e) => updateAt(i, { blurbEn: e.target.value })} />
+                      </label>
+                      <label>
+                        Delivery
+                        <select
+                          value={p.deliveryType || "gift_code"}
+                          onChange={(e) => updateAt(i, { deliveryType: e.target.value })}
+                        >
+                          <option value="gift_code">Gift code / Live Chat</option>
+                        </select>
+                      </label>
+                    </div>
                   </div>
 
-                  <h4 style={{ margin: "16px 0 8px" }}>Packs / តម្លៃ</h4>
+                  <h4 style={{ margin: "8px 0 10px" }}>Packs / តម្លៃ + រូបកញ្ចប់</h4>
                   {(p.packs || []).map((pk, j) => (
-                    <div key={j} style={{ display: "grid", gridTemplateColumns: "1fr 2fr 1fr 1fr auto", gap: 6, marginBottom: 6 }}>
+                    <div
+                      key={j}
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "56px 1fr 1.5fr 0.8fr 0.8fr auto",
+                        gap: 8,
+                        marginBottom: 10,
+                        alignItems: "center",
+                      }}
+                    >
+                      <ImageSlot
+                        src={pk.image || ""}
+                        fallback={(pk.name || "?").slice(0, 1)}
+                        size={48}
+                        custom={!!pk.image}
+                        label="Pack image"
+                        onUrl={(url) => updatePack(i, j, { image: url })}
+                        onClear={() => updatePack(i, j, { image: "" })}
+                      />
                       <input placeholder="id" value={pk.id} onChange={(e) => updatePack(i, j, { id: e.target.value })} />
                       <input placeholder="name" value={pk.name} onChange={(e) => updatePack(i, j, { name: e.target.value, nameKm: e.target.value })} />
                       <input
                         type="number"
                         step="0.01"
-                        placeholder="price"
+                        placeholder="price $"
                         value={pk.price}
                         onChange={(e) => updatePack(i, j, { price: Number(e.target.value) })}
                       />
                       <input
                         type="number"
                         step="0.01"
-                        placeholder="cost"
+                        placeholder="cost $"
                         value={pk.cost}
                         onChange={(e) => updatePack(i, j, { cost: Number(e.target.value) })}
                       />
