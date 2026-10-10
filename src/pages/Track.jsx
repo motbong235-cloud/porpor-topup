@@ -3,13 +3,14 @@ import { useSearchParams } from "react-router-dom";
 import { t } from "../lib/i18n";
 import { money } from "../lib/store";
 
-export default function Track({ lang }) {
+export default function Track({ lang, settings }) {
   const [params, setParams] = useSearchParams();
   const initial = params.get("code") || "";
   const [q, setQ] = useState(initial);
   const [query, setQuery] = useState(initial);
-
   const [hits, setHits] = useState([]);
+
+  const telegram = settings?.telegram || "https://t.me/porportopup";
 
   useEffect(() => {
     const code = query.trim();
@@ -24,12 +25,28 @@ export default function Track({ lang }) {
         .then((list) => alive && setHits(Array.isArray(list) ? list : []))
         .catch(() => {});
     load();
-    const timer = setInterval(load, 8000); // keep status fresh while the order is being delivered
+    const timer = setInterval(load, 8000);
     return () => {
       alive = false;
       clearInterval(timer);
     };
   }, [query]);
+
+  function chatUrl(orderId) {
+    const base = String(telegram || "").trim();
+    const msg = encodeURIComponent(
+      lang === "km"
+        ? `សួស្តី បង! បង់ Roblox Gift Card រួចហើយ លេខកម្មង់: ${orderId} សុំកូដផង`
+        : `Hi! I paid for Roblox Gift Card. Order: ${orderId}. Please send my code.`,
+    );
+    if (base.includes("t.me") || base.includes("telegram")) {
+      const sep = base.includes("?") ? "&" : "?";
+      // t.me/xxx?text= works for some clients; also support t.me/share
+      if (base.includes("/share")) return `${base}${sep}url=&text=${msg}`;
+      return base.startsWith("http") ? base : `https://t.me/${base.replace("@", "")}`;
+    }
+    return base || "/support";
+  }
 
   return (
     <div className="container">
@@ -51,63 +68,106 @@ export default function Track({ lang }) {
       {!query.trim() ? null : hits.length === 0 ? (
         <p className="empty">{t(lang, "noOrder")}</p>
       ) : (
-        hits.map((o) => (
-          <div key={o.id} className="detail">
-            <div className="code-row">
-              <div className="code">{o.id}</div>
-              <button
-                type="button"
-                className="btn-soft"
-                onClick={async () => {
-                  try {
-                    await navigator.clipboard.writeText(o.id);
-                  } catch {}
-                }}
-              >
-                {t(lang, "copy")}
-              </button>
-            </div>
-            <div className={o.status === "delivered" ? "badge-ok" : "badge-ok pending"}>{t(lang, `st_${o.status || "pending"}`)}</div>
-            <dl>
-              <div className="row">
-                <dt>{t(lang, "items")}</dt>
-                <dd>
-                  {o.gameName} · {o.packName} × {o.qty}
-                </dd>
+        hits.map((o) => {
+          const isGift = o.deliveryType === "gift_code";
+          return (
+            <div key={o.id} className="detail">
+              <div className="code-row">
+                <div className="code">{o.id}</div>
+                <button
+                  type="button"
+                  className="btn-soft"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(o.id);
+                    } catch {}
+                  }}
+                >
+                  {t(lang, "copy")}
+                </button>
               </div>
-              <div className="row">
-                <dt>{t(lang, "nickname")}</dt>
-                <dd>{o.nickname}</dd>
+              <div className={o.status === "delivered" ? "badge-ok" : "badge-ok pending"}>
+                {t(lang, `st_${o.status || "pending"}`)}
               </div>
-              <div className="row">
-                <dt>{t(lang, "playerId")}</dt>
-                <dd>{o.zoneId ? `${o.userId} (${o.zoneId})` : o.userId}</dd>
-              </div>
-              {o.server ? (
+              <dl>
                 <div className="row">
-                  <dt>{t(lang, "server")}</dt>
-                  <dd>{o.server}</dd>
+                  <dt>{t(lang, "items")}</dt>
+                  <dd>
+                    {o.gameName} · {o.packName} × {o.qty}
+                  </dd>
+                </div>
+                {!isGift ? (
+                  <>
+                    <div className="row">
+                      <dt>{t(lang, "nickname")}</dt>
+                      <dd>{o.nickname || "—"}</dd>
+                    </div>
+                    <div className="row">
+                      <dt>{t(lang, "playerId")}</dt>
+                      <dd>{o.zoneId ? `${o.userId} (${o.zoneId})` : o.userId}</dd>
+                    </div>
+                  </>
+                ) : null}
+                <div className="row">
+                  <dt>{t(lang, "total")}</dt>
+                  <dd>{money(o.total)}</dd>
+                </div>
+                <div className="row">
+                  <dt>{t(lang, "when")}</dt>
+                  <dd>{new Date(o.createdAt).toLocaleString(lang === "km" ? "km-KH" : "en-GB")}</dd>
+                </div>
+              </dl>
+
+              {isGift ? (
+                <div className="card" style={{ marginTop: 16, borderColor: "var(--primary)" }}>
+                  <h3 style={{ margin: "0 0 8px" }}>
+                    {lang === "km" ? "🎁 Roblox Gift Card" : "🎁 Roblox Gift Card"}
+                  </h3>
+                  {o.giftCode ? (
+                    <div>
+                      <p style={{ margin: "0 0 8px", color: "var(--muted)" }}>
+                        {lang === "km" ? "កូដរបស់អ្នក:" : "Your code:"}
+                      </p>
+                      <div className="code-row">
+                        <div className="code" style={{ fontSize: 18 }}>
+                          {o.giftCode}
+                        </div>
+                        <button
+                          type="button"
+                          className="btn-soft"
+                          onClick={async () => {
+                            try {
+                              await navigator.clipboard.writeText(o.giftCode);
+                            } catch {}
+                          }}
+                        >
+                          {t(lang, "copy")}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <p style={{ margin: "0 0 12px" }}>
+                        {lang === "km"
+                          ? "បង់រួចហើយ! សូមចូល Live Chat / Telegram ដើម្បីទទួលកូដ។ ផ្ញើលេខកម្មង់របស់អ្នក។"
+                          : "Payment received! Open Live Chat / Telegram to get your code. Send your order number."}
+                      </p>
+                      <a
+                        className="btn bg-brand"
+                        href={chatUrl(o.id)}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ display: "inline-flex", textDecoration: "none" }}
+                      >
+                        {lang === "km" ? "💬 បើក Live Chat" : "💬 Open Live Chat"}
+                      </a>
+                    </div>
+                  )}
                 </div>
               ) : null}
-              <div className="row">
-                <dt>{t(lang, "method")}</dt>
-                <dd>ABA KHQR</dd>
-              </div>
-              <div className="row">
-                <dt>{t(lang, "discount")}</dt>
-                <dd>{money(o.discount)}</dd>
-              </div>
-              <div className="row">
-                <dt>{t(lang, "total")}</dt>
-                <dd>{money(o.total)}</dd>
-              </div>
-              <div className="row">
-                <dt>{t(lang, "when")}</dt>
-                <dd>{new Date(o.createdAt).toLocaleString(lang === "km" ? "km-KH" : "en-GB")}</dd>
-              </div>
-            </dl>
-          </div>
-        ))
+            </div>
+          );
+        })
       )}
     </div>
   );

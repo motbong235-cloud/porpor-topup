@@ -10,6 +10,7 @@ export default function Game({ lang, addOrder, settings }) {
   const navigate = useNavigate();
   const { games, loading } = useCatalog();
   const game = games.find((g) => g.id === id) || null;
+  const isGift = !!(game && (game.deliveryType === "gift_code" || game.id === "roblox-gift-cards"));
 
   const [userId, setUserId] = useState("");
   const [zoneId, setZoneId] = useState("");
@@ -50,7 +51,7 @@ export default function Game({ lang, addOrder, settings }) {
         const d = await r.json();
         if (d.order && d.order.status !== "pending") {
           setQrOpen(false);
-          navigate(`/track?code=${encodeURIComponent(checkoutId)}`);
+          navigate(`/success?code=${encodeURIComponent(checkoutId)}`);
         }
       } catch {}
     }, 4000);
@@ -162,9 +163,10 @@ export default function Game({ lang, addOrder, settings }) {
 
   function validate() {
     if (!packId) return t(lang, "needPack");
+    if (isGift) return "";
     if (userId.trim().length < 3) return t(lang, "needId");
     if (game.hasZone && !zoneId.trim()) return t(lang, "needZone");
-    if (game.servers.length && !server) return t(lang, "needServer");
+    if (game.servers?.length && !server) return t(lang, "needServer");
     if (checkedFor !== `${userId.trim()}|${zoneId.trim()}|${server}`) return t(lang, "needVerify");
     return "";
   }
@@ -192,7 +194,7 @@ export default function Game({ lang, addOrder, settings }) {
           gameId: game.id,
           packId: p.id,
           qty,
-          userId: userId.trim(),
+          userId: isGift ? "gift" : userId.trim(),
           zoneId: zoneId.trim(),
           server,
           nickname: nick,
@@ -237,7 +239,7 @@ export default function Game({ lang, addOrder, settings }) {
       const d = await r.json();
       if (d.order && d.order.status !== "pending") {
         setQrOpen(false);
-        navigate(`/track?code=${encodeURIComponent(checkoutId)}`);
+        navigate(`/success?code=${encodeURIComponent(checkoutId)}`);
         return;
       }
       setPayErr(lang === "km" ? "មិនទាន់ទទួលការបង់" : "Payment not received yet");
@@ -287,6 +289,7 @@ export default function Game({ lang, addOrder, settings }) {
 
       <div className="layout-2">
         <div style={{ display: "grid", gap: 24 }}>
+          {!isGift && (
           <section className="card">
             <h2>{t(lang, "account")}</h2>
             {(lang === "km" ? game.idHintKm : game.idHintEn) ? (
@@ -351,6 +354,7 @@ export default function Game({ lang, addOrder, settings }) {
               </span>
             </div>
           </section>
+          )}
 
           <section className="card">
             <div className="pack-head">
@@ -415,7 +419,19 @@ export default function Game({ lang, addOrder, settings }) {
             </div>
           </section>
 
-          <section className="card">
+          
+          {isGift ? (
+            <section className="card" style={{ borderColor: "var(--primary)" }}>
+              <h2>{lang === "km" ? "🎁 ទទួលកូដតាម Live Chat" : "🎁 Get code via Live Chat"}</h2>
+              <p className="hint">
+                {lang === "km"
+                  ? "បង់ប្រាក់រួច សូមចូល Live Chat / Telegram ដើម្បីទទួល Roblox Gift Card code។ កូដនឹងត្រូវបានរក្សាទុកក្នុងលំដាប់របស់អ្នកផងដែរ។"
+                  : "After payment, open Live Chat / Telegram to receive your Roblox Gift Card code. The code will also appear on your order tracking page."}
+              </p>
+            </section>
+          ) : null}
+
+<section className="card">
             <h2>{t(lang, "payment")}</h2>
             <div className="pay-choices">
               <div className="pay-choice active">
