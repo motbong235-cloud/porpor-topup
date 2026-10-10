@@ -4,6 +4,22 @@ import { useCatalog } from "../lib/catalog";
 import { t } from "../lib/i18n";
 import { GameTile, Icon } from "./Icons";
 
+function LogoMark({ url, style }) {
+  const [broken, setBroken] = useState("");
+  if (url && broken !== url) {
+    return (
+      <div className="logo-mark has-img" style={style}>
+        <img src={url} alt="logo" onError={() => setBroken(url)} />
+      </div>
+    );
+  }
+  return (
+    <div className="logo-mark" style={style}>
+      PP
+    </div>
+  );
+}
+
 export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
   const { games } = useCatalog();
   const location = useLocation();
@@ -49,7 +65,7 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
       <header className="header">
         <div className="header-inner">
           <Link to="/" className="logo">
-            <div className="logo-mark">PP</div>
+            <LogoMark url={settings && settings.logoUrl} />
             <div className="logo-text">
               <div className="logo-name">
                 <span>Porpor</span> <span className="text-brand">TOPUP</span>
@@ -122,9 +138,7 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
       <div className={`overlay${menu ? " open" : ""}`} onClick={() => setMenu(false)} />
       <aside className={`drawer${menu ? " open" : ""}`}>
         <div className="drawer-head">
-          <div className="logo-mark" style={{ width: 44, height: 44, fontSize: 13 }}>
-            PP
-          </div>
+          <LogoMark url={settings && settings.logoUrl} style={{ width: 44, height: 44, fontSize: 13 }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 800 }}>
               Porpor <span className="text-brand">TOPUP</span>
