@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-
-const ADMIN_PATH = (typeof window !== "undefined" && window.__ADMIN_PATH__) || "pp-console";
 import { Shell } from "./components/Shell";
 import { getPrefs, savePrefs } from "./lib/store";
 import Home from "./pages/Home";
@@ -18,6 +16,18 @@ import OrdersAdmin from "./pages/admin/OrdersAdmin";
 import SettingsAdmin from "./pages/admin/SettingsAdmin";
 import ServicesAdmin from "./pages/admin/ServicesAdmin";
 
+/** Private admin path — override with window.__ADMIN_PATH__ (injected by server) or env. */
+const ADMIN_PATH =
+  (typeof window !== "undefined" && window.__ADMIN_PATH__) || "pp-console";
+
+/** Map /admin/orders → /{ADMIN_PATH}/orders so old links never dump users on the shop. */
+function AdminLegacyRedirect({ adminPath }) {
+  const location = useLocation();
+  const rest = location.pathname.replace(/^\/admin\/?/, "");
+  const to = rest ? `/${adminPath}/${rest}` : `/${adminPath}`;
+  return <Navigate to={to} replace />;
+}
+
 export default function App() {
   const location = useLocation();
   const path = location.pathname;
@@ -26,6 +36,7 @@ export default function App() {
     path.startsWith(`/${ADMIN_PATH}/`) ||
     path === "/admin" ||
     path.startsWith("/admin/");
+
   const initial = getPrefs();
   const [lang, setLangState] = useState(initial.lang);
   const [theme, setThemeState] = useState(initial.theme);
@@ -69,7 +80,6 @@ export default function App() {
           <Route path="settings" element={<SettingsAdmin />} />
           <Route path="*" element={<Navigate to={`/${ADMIN_PATH}`} replace />} />
         </Route>
-        {/* Legacy /admin → private path (keep sub-route) */}
         <Route path="/admin/*" element={<AdminLegacyRedirect adminPath={ADMIN_PATH} />} />
         <Route path="/admin" element={<Navigate to={`/${ADMIN_PATH}`} replace />} />
         <Route path="*" element={<Navigate to={`/${ADMIN_PATH}`} replace />} />
@@ -83,9 +93,7 @@ export default function App() {
         <Route path="/" element={<Home lang={lang} settings={remoteSettings} />} />
         <Route
           path="/game/:id"
-          element={
-            <Game lang={lang} addOrder={addOrder} settings={remoteSettings} />
-          }
+          element={<Game lang={lang} addOrder={addOrder} settings={remoteSettings} />}
         />
         <Route path="/orders" element={<Orders lang={lang} orders={orders} />} />
         <Route path="/track" element={<Track lang={lang} settings={remoteSettings} />} />
