@@ -283,18 +283,16 @@ app.post("/api/checkout/create", async (req, res) => {
     createdAt: Date.now(),
   });
 
-  const qr = await khmerSystem.createQr(order.total, order.id, `Porpor TOPUP ${order.id}`);
+  const qr = await khmerSystem.createQr(order.total, order.id, `p${order.id}`);
   if (!qr.success) {
     console.error("[checkout] Khmer System QR failed:", qr.error, JSON.stringify(qr.raw || {}));
     updateOrder(order.id, { status: "failed", note: `QR error: ${qr.error}` });
-    return res.status(502).json({ error: "qr_failed", detail: qr.error, code: qr.code });
+    return res.status(502).json({ error: "qr_failed", detail: qr.error });
   }
   const updated = updateOrder(order.id, {
     transactionId: qr.transaction_id,
     qrImage: qr.qr_image,
     qrString: qr.qr_string,
-    verifyKey: qr.verify_key,
-    telegramUserId: qr.telegram_user_id,
   });
   return res.json({
     order: publicOrder(updated),
@@ -311,11 +309,7 @@ app.get("/api/checkout/:id/status", async (req, res) => {
   if (!order) return res.status(404).json({ error: "not_found" });
 
   if (order.status === "pending" && order.transactionId && khmerSystem.isPaymentReady()) {
-    const pay = await khmerSystem.checkPayment({
-      verify_key: order.verifyKey,
-      telegram_user_id: order.telegramUserId,
-      transaction_id: order.transactionId,
-    });
+    const pay = await khmerSystem.checkPayment(order.transactionId);
     if (pay.paid) {
       // claim atomically (sync read+write) so concurrent polls can't fulfill twice
       const fresh = getOrder(order.id);

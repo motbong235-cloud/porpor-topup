@@ -1,204 +1,164 @@
 /**
- * Khmer System Payment API (official docs)
- * https://khmer-system.com/api-docs
- *
- * Env (pick one secret):
- *   KHMER_SYSTEM_SECRET_KEY  preferred  (sk_live_...)
- *   ABA_API_KEY              fallback   (same secret_key)
- * Optional / multi-merchant:
- *   KHMER_SYSTEM_MERCHANT_ID or ABA_MERCHANT_ID  (required if account has multiple merchants)
- *   KHMER_SYSTEM_TG_USER_ID  telegram user id for website checkouts (default "0")
- *   KHMER_SYSTEM_PAY_URL     default https://pay.khmer-system.com
- *   KHMER_SYSTEM_MERCHANT_NAME, KHMER_SYSTEM_BAKONG_ACCOUNT
- *
- * Note: the old /aba-api/generate-qr (api_key + merchant_id) is deprecated for
- * accounts that only have the v1 secret_key — it returns "invalid username".
+ * Khmer-System ABA PayWay (Node port of khmer_system.py)
+ * Env: ABA_API_KEY, ABA_MERCHANT_ID
  */
+const BASE_URL = process.env.KHMER_SYSTEM_URL || "https://khmer-system.com";
+const CREATE_URL = `${BASE_URL}/aba-api/generate-qr`;
+const CHECK_URL = `${BASE_URL}/aba-api/check-payment`;
 
-const PAY_BASE = (process.env.KHMER_SYSTEM_PAY_URL || "https://pay.khmer-system.com").replace(/\/$/, "");
-const GENERATE_URL = `${PAY_BASE}/api/v1/payment/generate`;
-const CHECK_URL = `${PAY_BASE}/api/v1/payment/check`;
-const CONFIRM_URL = `${PAY_BASE}/api/v1/payment/confirm`;
-
+/** Env values pasted into Render often carry quotes / spaces / newlines — strip them. */
 function clean(v) {
   return String(v || "")
     .replace(/[\s\u200b\ufeff]+/g, "")
     .replace(/^["'`]+|["'`]+$/g, "");
 }
-
-function secretKey() {
-  return clean(process.env.KHMER_SYSTEM_SECRET_KEY || process.env.ABA_API_KEY);
+function apiKey() {
+  return clean(process.env.ABA_API_KEY);
+}
+function merchantId() {
+  return clean(process.env.ABA_MERCHANT_ID);
 }
 
-function tgUserId() {
-  const v = clean(process.env.KHMER_SYSTEM_TG_USER_ID);
-  return v || "0";
-}
-
-/** Exactly 10 alphanumeric chars (required by Khmer System). */
-function makeVerifyKey(seed) {
-  const raw = String(seed || "") + Date.now().toString(36) + Math.random().toString(36).slice(2);
-  const alnum = raw.replace(/[^a-zA-Z0-9]/g, "");
-  let out = (alnum + "ABCDEFGHJKMNPQRSTUVWXYZ23456789").slice(0, 10);
-  if (out.length < 10) out = (out + "XXXXXXXXXX").slice(0, 10);
-  return out.slice(0, 10);
+/** Admin-only: call generate-qr with the current env values and report exactly what Khmer System answers. */
+export async function diagnose() {
+  const rawKey = String(process.env.ABA_API_KEY || "");
+  const rawMid = String(process.env.ABA_MERCHANT_ID || "");
+  const info = {
+    apiKey: { set: !!apiKey(), length: apiKey().length, hadSpacesOrQuotes: rawKey !== apiKey() },
+    merchantId: { set: !!merchantId(), value: merchantId(), hadSpacesOrQuotes: rawMid !== merchantId() },
+    sameValue: !!apiKey() && apiKey() === merchantId(),
+    endpoint: CREATE_URL,
+  };
+  if (!isPaymentReady()) return { ...info, result: "ABA_API_KEY or ABA_MERCHANT_ID not set" };
+  try {
+    const r = await fetch(CREATE_URL, {
+      method: "POST",
+      headers: HEADERS,
+      body: JSON.stringify({
+        api_key: apiKey(),
+        merchant_id: merchantId(),
+        username: "porpor_test",
+        amount: 0.01,
+      }),
+      signal: AbortSignal.timeout(20000),
+    });
+    const text = await r.text();
+    let body;
+    try {
+      body = JSON.parse(text);
+    } catch {
+      body = text.slice(0, 300);
+    }
+    // never echo the (large) QR image back
+    if (body && typeof body === "object") {
+      for (const k of ["qr_image", "card_image", "qr"]) if (body[k]) body[k] = `[${String(body[k]).length} chars]`;
+    }
+    return { ...info, httpStatus: r.status, response: body };
+  } catch (e) {
+    return { ...info, result: `network error: ${e.message}` };
+  }
 }
 
 export function isPaymentReady() {
-  return Boolean(secretKey());
+  return Boolean(apiKey() && merchantId());
 }
 
+/** Khmer System wants a short "username" label for the payer (the bot sends the Telegram username). */
+function makeUsername(raw) {
+  const u = String(raw || "").replace(/^@/, "").replace(/[^A-Za-z0-9_]/g, "").slice(0, 32);
+  return u || "customer";
+}
+
+/** Browser-like headers — some Khmer System hosts sit behind a WAF that blocks bare clients. */
+const HEADERS = {
+  "Content-Type": "application/json",
+  Accept: "application/json",
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+};
+
 /**
- * Create KHQR via official API.
- * Returns { success, qr_image, qr_string, transaction_id, verify_key, telegram_user_id, ... }
+ * Create a KHQR payment.
+ * Current Khmer System API (same as the working Telegram bot):
+ *   POST /aba-api/generate-qr  { api_key, merchant_id, username, amount }
+ *   → { ok: true, payment_id, qr_image, card_image, pay_url, expires_at }
  */
-export async function createQr(amount, billNumber, description = "Porpor TOPUP") {
+export async function createQr(amount, billNumber, username) {
   if (!isPaymentReady()) {
-    return { success: false, error: "KHMER_SYSTEM_SECRET_KEY / ABA_API_KEY not set" };
+    return {
+      success: false,
+      error: "ABA_API_KEY or ABA_MERCHANT_ID not set",
+      simulation: true,
+    };
   }
 
-  const verify_key = makeVerifyKey(billNumber);
-  const telegram_user_id = tgUserId();
   const payload = {
-    secret_key: secretKey(),
-    amount: Number(amount),
-    verify_key,
-    telegram_user_id,
+    api_key: apiKey(),
+    merchant_id: merchantId(),
+    username: makeUsername(username || `p${billNumber}`),
+    amount: Math.round(Number(amount) * 100) / 100,
   };
-  // Required when account has MULTIPLE merchants (error INVALID_PROFILE_KEY)
-  const mid = clean(process.env.KHMER_SYSTEM_MERCHANT_ID || process.env.ABA_MERCHANT_ID);
-  if (mid) payload.merchant_id = mid;
-  // optional overrides if set
-  const bakong = clean(process.env.KHMER_SYSTEM_BAKONG_ACCOUNT);
-  const mname = clean(process.env.KHMER_SYSTEM_MERCHANT_NAME);
-  if (bakong) payload.bakong_account_id = bakong;
-  if (mname) payload.merchant_name = mname;
 
   try {
-    const r = await fetch(GENERATE_URL, {
+    const r = await fetch(CREATE_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      headers: HEADERS,
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(20000),
     });
-    const data = await r.json().catch(() => ({}));
-
-    if (data.success && (data.qr_image_url || data.qr_string || data.transaction_id)) {
-      return {
-        success: true,
-        qr_image: data.qr_image_url || data.qr_image || data.qr || "",
-        qr_string: data.qr_string || data.qr_data || "",
-        transaction_id: data.transaction_id || billNumber,
-        verify_key,
-        telegram_user_id,
-        expired_at: data.expired_at,
-        raw: data,
-      };
+    const text = await r.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      return { success: false, error: `HTTP ${r.status} (non-JSON): ${text.slice(0, 200)}` };
     }
 
+    if (data.ok && data.payment_id) {
+      return {
+        success: true,
+        qr_image: data.card_image || data.qr_image || "",
+        qr_string: data.qr_string || data.qr_data || "",
+        transaction_id: String(data.payment_id),
+        pay_url: data.pay_url || "",
+        expires_at: data.expires_at || "",
+        raw: { ...data, card_image: undefined, qr_image: undefined },
+      };
+    }
     return {
       success: false,
-      error: data.error || data.message || `HTTP ${r.status}`,
-      code: data.code,
+      error: data.message || data.error || "Failed to create QR",
       raw: data,
-      verify_key,
-      telegram_user_id,
     };
   } catch (e) {
-    return { success: false, error: e.message || String(e), verify_key, telegram_user_id };
+    return { success: false, error: e.message || String(e) };
   }
 }
 
-/**
- * Poll payment status.
- * Prefer passing { verify_key, telegram_user_id } stored on the order.
- * Falls back to env telegram id.
- */
-export async function checkPayment(transactionIdOrMeta, maybeMeta) {
+/** POST /aba-api/check-payment { api_key, merchant_id, payment_id } → { ok, status: "PAID" | ... } */
+export async function checkPayment(paymentId) {
   if (!isPaymentReady()) {
-    return { paid: false, error: "secret key not set" };
+    return { paid: false, error: "Keys not set", simulation: true };
   }
 
-  let verify_key;
-  let telegram_user_id;
-  if (transactionIdOrMeta && typeof transactionIdOrMeta === "object") {
-    verify_key = transactionIdOrMeta.verify_key;
-    telegram_user_id = transactionIdOrMeta.telegram_user_id;
-  } else if (maybeMeta && typeof maybeMeta === "object") {
-    verify_key = maybeMeta.verify_key;
-    telegram_user_id = maybeMeta.telegram_user_id;
-  }
-
-  if (!verify_key) {
-    return { paid: false, error: "missing verify_key on order — recreate QR" };
-  }
-  telegram_user_id = String(telegram_user_id || tgUserId());
-
-  const qs = new URLSearchParams({
-    secret_key: secretKey(),
-    verify_key: String(verify_key),
-    telegram_user_id,
-  });
+  const payload = {
+    api_key: apiKey(),
+    merchant_id: merchantId(),
+    payment_id: String(paymentId),
+  };
 
   try {
-    const r = await fetch(`${CHECK_URL}?${qs}`, {
-      method: "GET",
-      headers: { Accept: "application/json" },
+    const r = await fetch(CHECK_URL, {
+      method: "POST",
+      headers: HEADERS,
+      body: JSON.stringify(payload),
       signal: AbortSignal.timeout(15000),
     });
-    const data = await r.json().catch(() => ({}));
-    const status = String(data.status || "").toLowerCase();
-    const paid = status === "completed" || status === "credit_confirmed" || status === "paid" || status === "success";
-    return { paid, status, amount: data.amount, raw: data, credit_confirmed: !!data.credit_confirmed };
+    const data = await r.json();
+    const status = String(data.status || "").toUpperCase();
+    const paid = !!data.ok && status === "PAID";
+    return { paid, status: status.toLowerCase(), amount: data.amount, raw: data };
   } catch (e) {
     return { paid: false, error: e.message || String(e) };
   }
-}
-
-/** After delivery, mark credit confirmed (optional but recommended). */
-export async function confirmCredit(verify_key, telegram_user_id) {
-  if (!isPaymentReady() || !verify_key) return { ok: false };
-  try {
-    const r = await fetch(CONFIRM_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({
-        secret_key: secretKey(),
-        verify_key: String(verify_key),
-        telegram_user_id: String(telegram_user_id || tgUserId()),
-      }),
-      signal: AbortSignal.timeout(15000),
-    });
-    return await r.json().catch(() => ({ ok: false }));
-  } catch (e) {
-    return { ok: false, error: e.message };
-  }
-}
-
-/** Admin diagnose — hit generate with $0.01 test. */
-export async function diagnose() {
-  const mid = clean(process.env.KHMER_SYSTEM_MERCHANT_ID || process.env.ABA_MERCHANT_ID);
-  const info = {
-    endpoint: GENERATE_URL,
-    secretSet: !!secretKey(),
-    secretLength: secretKey().length,
-    secretPrefix: secretKey() ? secretKey().slice(0, 6) + "…" : "",
-    merchant_id: mid || "(not set — required if multi-merchant account)",
-    telegram_user_id: tgUserId(),
-    usesLegacyAbaApi: false,
-  };
-  if (!isPaymentReady()) return { ...info, result: "secret key not set (KHMER_SYSTEM_SECRET_KEY or ABA_API_KEY)" };
-
-  const test = await createQr(0.01, `TEST-${Date.now().toString(36)}`, "Porpor connection test");
-  if (test.success) {
-    return {
-      ...info,
-      result: "OK",
-      http: "success",
-      transaction_id: test.transaction_id,
-      verify_key: test.verify_key,
-      hasQr: !!(test.qr_image || test.qr_string),
-    };
-  }
-  return { ...info, result: "FAILED", error: test.error, code: test.code, response: test.raw };
 }
