@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+
+const ADMIN_PATH = (typeof window !== "undefined" && window.__ADMIN_PATH__) || "pp-console";
 import { Shell } from "./components/Shell";
 import { getPrefs, savePrefs } from "./lib/store";
 import Home from "./pages/Home";
@@ -18,7 +20,7 @@ import ServicesAdmin from "./pages/admin/ServicesAdmin";
 
 export default function App() {
   const location = useLocation();
-  const isAdmin = location.pathname.startsWith("/admin");
+  const isAdmin = location.pathname === `/${ADMIN_PATH}` || location.pathname.startsWith(`/${ADMIN_PATH}/`);
   const initial = getPrefs();
   const [lang, setLangState] = useState(initial.lang);
   const [theme, setThemeState] = useState(initial.theme);
@@ -55,13 +57,15 @@ export default function App() {
   if (isAdmin) {
     return (
       <Routes>
-        <Route path="/admin" element={<AdminLayout />}>
+        <Route path={`/${ADMIN_PATH}`} element={<AdminLayout adminPath={ADMIN_PATH} />}>
           <Route index element={<Dashboard />} />
           <Route path="orders" element={<OrdersAdmin />} />
           <Route path="services" element={<ServicesAdmin />} />
           <Route path="settings" element={<SettingsAdmin />} />
         </Route>
-        <Route path="*" element={<Navigate to="/admin" replace />} />
+        <Route path="/admin" element={<Navigate to={`/${ADMIN_PATH}`} replace />} />
+        <Route path="/admin/*" element={<Navigate to={`/${ADMIN_PATH}`} replace />} />
+        <Route path="*" element={<Navigate to={`/${ADMIN_PATH}`} replace />} />
       </Routes>
     );
   }
