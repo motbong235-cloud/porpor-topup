@@ -2240,3 +2240,27 @@ body {
 .pack-body {
   min-width: 0;
 }
+
+
+/* ---- custom logo + banner (Admin → Settings) ---- */
+.logo-mark.has-img {
+  background: transparent;
+  box-shadow: none;
+  overflow: hidden;
+}
+.logo-mark.has-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.banner-photo {
+  padding: 0;
+  background: var(--navy);
+}
+.banner-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
