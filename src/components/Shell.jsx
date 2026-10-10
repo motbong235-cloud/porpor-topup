@@ -68,7 +68,7 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
             <LogoMark url={settings && settings.logoUrl} />
             <div className="logo-text">
               <div className="logo-name">
-                <span>Porpor</span> <span className="text-brand">TOPUP</span>
+                <span>POR POR</span> <span className="text-brand">TOPUP</span>
               </div>
               <div className="logo-tag">{t(lang, "tagline")}</div>
             </div>
@@ -101,7 +101,7 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
         <div className="footer-inner">
           <div>
             <div className="footer-brand">
-              Porpor <span className="text-brand">TOPUP</span>
+              POR POR <span className="text-brand">TOPUP</span>
             </div>
             <div className="footer-tag">{t(lang, "tagline")}</div>
             <p className="footer-desc">{t(lang, "trusted")}</p>
@@ -121,7 +121,7 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
           </div>
         </div>
         <div className="footer-copy">
-          © {new Date().getFullYear()} Porpor TOPUP · {t(lang, "rights")}
+          © {new Date().getFullYear()} POR POR TOPUP · {t(lang, "rights")}
         </div>
       </footer>
 
@@ -141,7 +141,7 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
           <LogoMark url={settings && settings.logoUrl} style={{ width: 44, height: 44, fontSize: 13 }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 800 }}>
-              Porpor <span className="text-brand">TOPUP</span>
+              POR POR <span className="text-brand">TOPUP</span>
             </div>
             <div className="logo-tag" style={{ marginTop: 2 }}>
               {t(lang, "tagline")}
