@@ -17,6 +17,20 @@ export default function SettingsAdmin() {
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testOut, setTestOut] = useState("");
+
+  async function testPayment() {
+    setTesting(true);
+    setTestOut("");
+    try {
+      setTestOut(JSON.stringify(await api("/api/admin/payment-test"), null, 2));
+    } catch {
+      setTestOut("ហៅមិនបាន");
+    } finally {
+      setTesting(false);
+    }
+  }
 
   useEffect(() => {
     api("/api/admin/settings")
@@ -147,6 +161,15 @@ export default function SettingsAdmin() {
             <textarea value={form.announcementEn || ""} onChange={(e) => set("announcementEn", e.target.value)} />
           </Field>
         </div>
+      </section>
+
+      <section className="ad-card">
+        <h2>ពិនិត្យការតភ្ជាប់ការទូទាត់ (Khmer System)</h2>
+        <p className="ad-hint">សាកល្បងបង្កើត QR $0.01 ដោយប្រើ ABA_API_KEY / ABA_MERCHANT_ID ក្នុង Render ហើយបង្ហាញចម្លើយពិតរបស់ API</p>
+        <button type="button" className="ad-btn soft" onClick={testPayment} disabled={testing}>
+          {testing ? "កំពុងសាកល្បង…" : "សាកល្បងឥឡូវ"}
+        </button>
+        {testOut ? <pre style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "var(--bg)", border: "1px solid var(--line)", fontSize: 12, whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{testOut}</pre> : null}
       </section>
 
       <section className="ad-card">
