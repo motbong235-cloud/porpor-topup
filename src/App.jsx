@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 
 const ADMIN_PATH = (typeof window !== "undefined" && window.__ADMIN_PATH__) || "pp-console";
 import { Shell } from "./components/Shell";
@@ -18,9 +18,22 @@ import OrdersAdmin from "./pages/admin/OrdersAdmin";
 import SettingsAdmin from "./pages/admin/SettingsAdmin";
 import ServicesAdmin from "./pages/admin/ServicesAdmin";
 
+/** True for the private admin path AND the old /admin/* URLs (so they get redirected instead of falling into the shop). */
+function isAdminPath(pathname) {
+  const p = String(pathname || "").toLowerCase();
+  return [ADMIN_PATH.toLowerCase(), "admin"].some((base) => p === `/${base}` || p.startsWith(`/${base}/`));
+}
+
+/** /admin/orders → /<ADMIN_PATH>/orders (keeps the sub-page instead of dumping to dashboard) */
+function LegacyAdminRedirect() {
+  const { "*": rest } = useParams();
+  const loc = useLocation();
+  return <Navigate to={`/${ADMIN_PATH}${rest ? `/${rest}` : ""}${loc.search}`} replace />;
+}
+
 export default function App() {
   const location = useLocation();
-  const isAdmin = location.pathname === `/${ADMIN_PATH}` || location.pathname.startsWith(`/${ADMIN_PATH}/`);
+  const isAdmin = isAdminPath(location.pathname);
   const initial = getPrefs();
   const [lang, setLangState] = useState(initial.lang);
   const [theme, setThemeState] = useState(initial.theme);
@@ -63,8 +76,8 @@ export default function App() {
           <Route path="services" element={<ServicesAdmin />} />
           <Route path="settings" element={<SettingsAdmin />} />
         </Route>
-        <Route path="/admin" element={<Navigate to={`/${ADMIN_PATH}`} replace />} />
-        <Route path="/admin/*" element={<Navigate to={`/${ADMIN_PATH}`} replace />} />
+        <Route path="/admin" element={<LegacyAdminRedirect />} />
+        <Route path="/admin/*" element={<LegacyAdminRedirect />} />
         <Route path="*" element={<Navigate to={`/${ADMIN_PATH}`} replace />} />
       </Routes>
     );
