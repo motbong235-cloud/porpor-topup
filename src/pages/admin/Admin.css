@@ -1390,3 +1390,85 @@ html.dark .ad-stat-ico.violet {
     margin-left: 0;
   }
 }
+
+
+/* ---- logo + banner upload (Settings) ---- */
+.ad-wide-slot {
+  width: 100%;
+}
+.ad-wide-empty {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  text-align: center;
+  color: var(--primary);
+}
+.ad-wide-empty b {
+  font-size: 13px;
+}
+.ad-wide-empty small {
+  color: var(--muted);
+  font-size: 11px;
+}
+.ad-banners {
+  display: grid;
+  gap: 14px;
+}
+@media (min-width: 700px) {
+  .ad-banners {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ---- fix: Services cards overflowing the screen on phones ---- */
+.ad-content,
+.ad-main {
+  min-width: 0;
+  max-width: 100%;
+}
+.ad-games {
+  grid-template-columns: minmax(0, 1fr);
+}
+.ad-game,
+.ad-packs {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.ad-game-main > .ad-slot {
+  flex-shrink: 0;
+}
+.ad-game-name {
+  overflow-wrap: anywhere;
+}
+.ad-game-controls {
+  min-width: 0;
+}
+.ad-game-controls .ad-inline {
+  min-width: 0;
+}
+.ad-game-controls .ad-inline input {
+  width: 84px;
+  min-width: 0;
+}
+.ad-pk-head,
+.ad-pk {
+  grid-template-columns: 24px 44px minmax(0, 1fr) 62px 62px;
+}
+@media (max-width: 520px) {
+  .ad-pk-head,
+  .ad-pk {
+    grid-template-columns: 22px 44px minmax(0, 1fr) 50px 50px;
+  }
+  .ad-game {
+    padding: 12px;
+  }
+  .ad-game-main .ad-slot {
+    width: 64px !important;
+    height: 64px !important;
+  }
+}

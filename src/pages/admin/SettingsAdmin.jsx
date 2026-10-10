@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AIcon, PageHead, Switch, api, toast } from "./ui";
+import { AIcon, PageHead, Switch, WideImageSlot, api, toast } from "./ui";
 
 const emptyCoupon = { code: "", type: "percent", value: 10, min: 0 };
 
@@ -20,7 +20,7 @@ export default function SettingsAdmin() {
 
   useEffect(() => {
     api("/api/admin/settings")
-      .then((s) => setForm({ ...s, coupons: Array.isArray(s.coupons) ? s.coupons : [] }))
+      .then((s) => setForm({ ...s, coupons: Array.isArray(s.coupons) ? s.coupons : [], bannerUrls: Array.isArray(s.bannerUrls) ? s.bannerUrls : [] }))
       .catch(() => toast("មិនអាចទាញការកំណត់បានទេ", "bad"));
   }, []);
 
@@ -50,9 +50,11 @@ export default function SettingsAdmin() {
               min: Number(c.min) || 0,
             })),
           autoTopup: !!form.autoTopup,
+          logoUrl: form.logoUrl || "",
+          bannerUrls: (form.bannerUrls || []).filter(Boolean).slice(0, 5),
         }),
       });
-      setForm({ ...saved, coupons: Array.isArray(saved.coupons) ? saved.coupons : [] });
+      setForm({ ...saved, coupons: Array.isArray(saved.coupons) ? saved.coupons : [], bannerUrls: Array.isArray(saved.bannerUrls) ? saved.bannerUrls : [] });
       setDirty(false);
       toast("បានរក្សាទុកការកំណត់");
     } catch {
@@ -87,6 +89,51 @@ export default function SettingsAdmin() {
         <Field label="តំណ Telegram">
           <input value={form.telegram || ""} onChange={(e) => set("telegram", e.target.value)} placeholder="https://t.me/…" />
         </Field>
+      </section>
+
+      <section className="ad-card">
+        <h2>Logo គេហទំព័រ</h2>
+        <p className="ad-hint">បង្ហាញនៅ Header ។ ណែនាំរូបការ៉េ (PNG ផ្ទៃថ្លា) ទំហំ 512×512 ។ ទុកទទេ = ប្រើ "PP" ដើម</p>
+        <WideImageSlot
+          src={form.logoUrl}
+          ratio="1 / 1"
+          width={140}
+          maxWidth={512}
+          contain
+          label="ដាក់ Logo"
+          onUrl={(url) => set("logoUrl", url)}
+          onClear={() => set("logoUrl", "")}
+        />
+      </section>
+
+      <section className="ad-card">
+        <h2>Banner គេហទំព័រ</h2>
+        <p className="ad-hint">
+          បង្ហាញនៅទំព័រដើម (ស្លាយអូតូ) ។ ណែនាំទំហំ 1600×500 (សមាមាត្រ 16:5) អតិបរមា 5 រូប ។ ទុកទទេ = ប្រើ Banner ដើម
+        </p>
+        <div className="ad-banners">
+          {form.bannerUrls.map((url, i) => (
+            <WideImageSlot
+              key={i}
+              src={url}
+              ratio="16 / 5"
+              maxWidth={1600}
+              label="ប្តូរ Banner"
+              onUrl={(u) => set("bannerUrls", form.bannerUrls.map((x, j) => (j === i ? u : x)))}
+              onClear={() => set("bannerUrls", form.bannerUrls.filter((_, j) => j !== i))}
+            />
+          ))}
+          {form.bannerUrls.length < 5 ? (
+            <WideImageSlot
+              key={`new-${form.bannerUrls.length}`}
+              ratio="16 / 5"
+              maxWidth={1600}
+              label="+ បន្ថែម Banner"
+              hint="1600×500"
+              onUrl={(u) => set("bannerUrls", [...form.bannerUrls, u])}
+            />
+          ) : null}
+        </div>
       </section>
 
       <section className="ad-card">

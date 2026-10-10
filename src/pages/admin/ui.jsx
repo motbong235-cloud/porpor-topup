@@ -101,16 +101,27 @@ export function StatusBadge({ status }) {
 
 /* ---------- Image upload ---------- */
 
-/** Center-crop to a square and shrink, so uploads stay small and tiles look uniform. */
-async function prepareImage(file, size) {
+/**
+ * Shrink an image before upload.
+ * mode "square" → center-crop to a square (game / package tiles)
+ * mode "fit"    → keep the original shape, only limit the width (logo / banner)
+ */
+async function prepareImage(file, size, mode = "square") {
   const bmp = await createImageBitmap(file);
-  const side = Math.min(bmp.width, bmp.height);
-  const out = Math.min(size, side);
   const canvas = document.createElement("canvas");
-  canvas.width = out;
-  canvas.height = out;
   const ctx = canvas.getContext("2d");
-  ctx.drawImage(bmp, (bmp.width - side) / 2, (bmp.height - side) / 2, side, side, 0, 0, out, out);
+  if (mode === "fit") {
+    const k = Math.min(1, size / bmp.width);
+    canvas.width = Math.max(1, Math.round(bmp.width * k));
+    canvas.height = Math.max(1, Math.round(bmp.height * k));
+    ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+  } else {
+    const side = Math.min(bmp.width, bmp.height);
+    const out = Math.min(size, side);
+    canvas.width = out;
+    canvas.height = out;
+    ctx.drawImage(bmp, (bmp.width - side) / 2, (bmp.height - side) / 2, side, side, 0, 0, out, out);
+  }
   bmp.close?.();
   let blob = await new Promise((r) => canvas.toBlob(r, "image/webp", 0.9));
   if (!blob || blob.type !== "image/webp") blob = await new Promise((r) => canvas.toBlob(r, "image/png"));
@@ -118,10 +129,10 @@ async function prepareImage(file, size) {
 }
 
 /** Upload one image file → returns its public URL (e.g. /uploads/abc.webp). */
-export async function uploadImage(file, size = 512) {
+export async function uploadImage(file, size = 512, mode = "square") {
   if (!file.type.startsWith("image/")) throw new Error("not_image");
   if (file.size > 15 * 1024 * 1024) throw new Error("too_large");
-  const blob = await prepareImage(file, size);
+  const blob = await prepareImage(file, size, mode);
   const data = await api("/api/admin/upload", {
     method: "POST",
     headers: { "Content-Type": blob.type },
@@ -191,6 +202,64 @@ export function ImageSlot({ src, fallback = "?", size = 64, custom, onUrl, onCle
         </button>
       ) : null}
       <input ref={input} type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden onChange={pick} />
+    </div>
+  );
+}
+
+/**
+ * Click-to-upload slot that keeps the image's own shape (logo / banner).
+ * ratio    → CSS aspect-ratio of the preview box, e.g. "1 / 1" or "16 / 5"
+ * maxWidth → longest width (px) the image is shrunk to before upload
+ */
+export function WideImageSlot({ src, ratio = "16 / 5", maxWidth = 1600, width = "100%", contain = false, onUrl, onClear, label = "Upload image", hint }) {
+  const input = useRef(null);
+  const [busy, setBusy] = useState(false);
+  const [broken, setBroken] = useState("");
+
+  async function pick(e) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setBusy(true);
+    try {
+      onUrl(await uploadImage(file, maxWidth, "fit"));
+    } catch (err) {
+      const msg =
+        err.message === "not_image"
+          ? "សូមជ្រើសរើសឯកសាររូបភាព"
+          : err.message === "too_large" || err.status === 413
+            ? "រូបធំពេក (អតិបរមា 15MB)"
+            : "Upload មិនបានទេ សូមព្យាយាមម្តងទៀត";
+      toast(msg, "bad");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const showImg = src && broken !== src;
+
+  return (
+    <div className="ad-wide" style={{ width, maxWidth: "100%" }}>
+      <div className="ad-slot ad-wide-slot" style={{ aspectRatio: ratio, borderRadius: 14 }}>
+        <button type="button" className="ad-slot-btn" onClick={() => input.current?.click()} title={label} aria-label={label} disabled={busy} style={{ borderRadius: 14 }}>
+          {showImg ? (
+            <img src={src} alt="" style={contain ? { objectFit: "contain" } : undefined} onError={() => setBroken(src)} />
+          ) : (
+            <span className="ad-wide-empty">
+              <AIcon name="upload" size={22} />
+              <b>{label}</b>
+              {hint ? <small>{hint}</small> : null}
+            </span>
+          )}
+          <span className={`ad-slot-over${busy ? " busy" : ""}`}>{busy ? <span className="ad-spin" /> : <AIcon name="camera" size={22} />}</span>
+        </button>
+        {showImg && onClear ? (
+          <button type="button" className="ad-slot-x" onClick={onClear} title="លុបរូបនេះ" aria-label="Remove image">
+            <AIcon name="x" size={11} />
+          </button>
+        ) : null}
+        <input ref={input} type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden onChange={pick} />
+      </div>
     </div>
   );
 }
