@@ -160,7 +160,7 @@ async function pollKtStatus(order) {
 app.get("/api/health", (_req, res) => {
   res.json({
     ok: true,
-    name: "Porpor TOPUP",
+    name: "POR POR TOPUP",
     payment: khmerSystem.isPaymentReady(),
     topup: khmerTopup.isTopupReady(),
   });

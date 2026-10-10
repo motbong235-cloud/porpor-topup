@@ -9,7 +9,7 @@ const DB_FILE = path.join(DATA_DIR, "db.json");
 export const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
 
 const DEFAULT_SETTINGS = {
-  siteName: "Porpor TOPUP",
+  siteName: "POR POR TOPUP",
   taglineKm: "ហាងហ្គេមព្រីមៀម",
   taglineEn: "PREMIUM GAME STORE",
   telegram: "https://t.me/porportopup",
