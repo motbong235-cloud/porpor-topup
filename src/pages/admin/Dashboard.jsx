@@ -1,3 +1,4 @@
+const ADMIN_PATH = (typeof window !== "undefined" && window.__ADMIN_PATH__) || "pp-console";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AIcon, PageHead, StatusBadge, STATUS, api, timeAgo, usd } from "./ui";
@@ -109,7 +110,7 @@ export default function Dashboard() {
             </ul>
           )}
           {integ?.error && integ.topupReady ? <p className="ad-hint bad">{String(integ.error)}</p> : null}
-          <Link to="/admin/services" className="ad-btn soft block">
+          <Link to={`/${ADMIN_PATH}/services`} className="ad-btn soft block">
             <AIcon name="services" size={16} /> គ្រប់គ្រងសេវាហ្គេម
           </Link>
         </section>
@@ -118,7 +119,7 @@ export default function Dashboard() {
       <section className="ad-card">
         <div className="ad-card-head">
           <h2>ការបញ្ជាទិញថ្មីៗ</h2>
-          <Link to="/admin/orders" className="ad-link-sm">មើលទាំងអស់ →</Link>
+          <Link to={`/${ADMIN_PATH}/orders`} className="ad-link-sm">មើលទាំងអស់ →</Link>
         </div>
         {recent.length === 0 ? (
           <p className="ad-empty">មិនទាន់មានការបញ្ជាទិញនៅឡើយទេ</p>
