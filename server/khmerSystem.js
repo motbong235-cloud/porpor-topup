@@ -6,11 +6,58 @@ const BASE_URL = process.env.KHMER_SYSTEM_URL || "https://khmer-system.com";
 const CREATE_URL = `${BASE_URL}/aba-api/generate-qr`;
 const CHECK_URL = `${BASE_URL}/aba-api/check-payment`;
 
+/** Env values pasted into Render often carry quotes / spaces / newlines — strip them. */
+function clean(v) {
+  return String(v || "")
+    .replace(/[\s\u200b\ufeff]+/g, "")
+    .replace(/^["'`]+|["'`]+$/g, "");
+}
 function apiKey() {
-  return (process.env.ABA_API_KEY || "").trim();
+  return clean(process.env.ABA_API_KEY);
 }
 function merchantId() {
-  return (process.env.ABA_MERCHANT_ID || "").trim();
+  return clean(process.env.ABA_MERCHANT_ID);
+}
+
+/** Admin-only: call generate-qr with the current env values and report exactly what Khmer System answers. */
+export async function diagnose() {
+  const rawKey = String(process.env.ABA_API_KEY || "");
+  const rawMid = String(process.env.ABA_MERCHANT_ID || "");
+  const info = {
+    apiKey: { set: !!apiKey(), length: apiKey().length, hadSpacesOrQuotes: rawKey !== apiKey() },
+    merchantId: { set: !!merchantId(), value: merchantId(), hadSpacesOrQuotes: rawMid !== merchantId() },
+    sameValue: !!apiKey() && apiKey() === merchantId(),
+    endpoint: CREATE_URL,
+  };
+  if (!isPaymentReady()) return { ...info, result: "ABA_API_KEY or ABA_MERCHANT_ID not set" };
+  try {
+    const r = await fetch(CREATE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({
+        api_key: apiKey(),
+        merchant_id: merchantId(),
+        amount: "0.01",
+        bill_number: `TEST-${Date.now().toString(36)}`,
+        description: "Porpor connection test",
+      }),
+      signal: AbortSignal.timeout(20000),
+    });
+    const text = await r.text();
+    let body;
+    try {
+      body = JSON.parse(text);
+    } catch {
+      body = text.slice(0, 300);
+    }
+    // never echo the (large) QR image back
+    if (body && typeof body === "object") {
+      for (const k of ["qr_image", "qr"]) if (body[k]) body[k] = `[${String(body[k]).length} chars]`;
+    }
+    return { ...info, httpStatus: r.status, response: body };
+  } catch (e) {
+    return { ...info, result: `network error: ${e.message}` };
+  }
 }
 
 export function isPaymentReady() {

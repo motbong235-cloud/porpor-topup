@@ -442,6 +442,10 @@ app.put("/api/admin/settings", adminAuth, (req, res) => {
   res.json(updateSettings(patch));
 });
 
+app.get("/api/admin/payment-test", adminAuth, async (_req, res) => {
+  res.json(await khmerSystem.diagnose());
+});
+
 app.get("/api/admin/integrations", adminAuth, async (_req, res) => {
   const out = {
     paymentReady: khmerSystem.isPaymentReady(),
