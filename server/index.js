@@ -48,6 +48,14 @@ const ROOT = path.join(__dirname, "..");
 const DIST = path.join(ROOT, "dist");
 const PORT = Number(process.env.PORT) || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "porpor-admin-2026";
+
+function isWeakAdminPassword(pw) {
+  const p = String(pw || "");
+  if (p.length < 12) return true;
+  if (!/[A-Za-z]/.test(p) || !/\d/.test(p)) return true;
+  if (/^porpor-admin-2026$/i.test(p)) return true;
+  return false;
+}
 /** Private admin SPA path (no leading slash). Default: pp-console — set ADMIN_PATH on Render to hide it. */
 const ADMIN_PATH = String(process.env.ADMIN_PATH || "pp-console").replace(/^\/+|\/+$/g, "") || "pp-console";
 const isProd = process.env.NODE_ENV === "production";
