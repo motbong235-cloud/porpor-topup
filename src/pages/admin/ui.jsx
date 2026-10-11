@@ -1,11 +1,23 @@
 import { useRef, useState } from "react";
 
 /* ---------- API helper ---------- */
+function readCsrf() {
+  if (typeof document === "undefined") return "";
+  const m = document.cookie.match(/(?:^|; )porpor_csrf=([^;]*)/);
+  return m ? decodeURIComponent(m[1]) : "";
+}
+
 export async function api(path, opts = {}) {
+  const method = (opts.method || "GET").toUpperCase();
+  const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
+  if (method !== "GET" && method !== "HEAD") {
+    const csrf = readCsrf();
+    if (csrf) headers["X-CSRF-Token"] = csrf;
+  }
   const res = await fetch(path, {
     credentials: "include",
     ...opts,
-    headers: { "Content-Type": "application/json", ...(opts.headers || {}) },
+    headers,
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {

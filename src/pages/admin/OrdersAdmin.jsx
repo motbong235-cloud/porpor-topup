@@ -10,11 +10,18 @@ export default function OrdersAdmin() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState("");
   const [busy, setBusy] = useState("");
+  const [ipStats, setIpStats] = useState([]);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       setList(await api("/api/admin/orders"));
+      try {
+        const d = await api("/api/admin/ips");
+        setIpStats(Array.isArray(d.ips) ? d.ips.slice(0, 20) : []);
+      } catch {
+        setIpStats([]);
+      }
     } catch {
       setList([]);
     } finally {
@@ -37,7 +44,7 @@ export default function OrdersAdmin() {
     return list.filter((o) => {
       if (status && (o.status || "delivered") !== status) return false;
       if (!s) return true;
-      return [o.id, o.userId, o.gameName, o.nickname, o.packName].some((v) => String(v || "").toLowerCase().includes(s));
+      return [o.id, o.userId, o.gameName, o.nickname, o.packName, o.clientIp, o.paidIp].some((v) => String(v || "").toLowerCase().includes(s));
     });
   }, [list, q, status]);
 
@@ -91,10 +98,40 @@ export default function OrdersAdmin() {
         </button>
       </PageHead>
 
-      <div className="ad-search">
-        <AIcon name="search" size={16} />
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ស្វែងរក កូដ / Player ID / ហ្គេម / ឈ្មោះ…" />
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
+        <div className="ad-search" style={{ flex: 1, marginBottom: 0 }}>
+          <AIcon name="search" size={16} />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ស្វែងរក កូដ / Player ID / IP / ហ្គេម / ឈ្មោះ…" />
+        </div>
+        <a className="ad-btn soft" href="/api/admin/backup" download>
+          Backup ទិន្នន័យ
+        </a>
       </div>
+
+      {ipStats.length > 0 ? (
+        <div className="card" style={{ marginBottom: 16, padding: 12 }}>
+          <strong style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+            <AIcon name="search" size={16} /> IP អ្នកប្រើ (ថ្មីៗ)
+          </strong>
+          <div style={{ display: "grid", gap: 6, maxHeight: 180, overflow: "auto", fontSize: 13 }}>
+            {ipStats.map((row) => (
+              <button
+                key={row.ip}
+                type="button"
+                className="ad-btn soft"
+                style={{ justifyContent: "space-between", width: "100%" }}
+                onClick={() => setQ(row.ip)}
+                title="ចុចដើម្បី filter orders"
+              >
+                <span className="mono">{row.ip}</span>
+                <span>
+                  {row.orders} orders · paid {row.paid} · {usd(row.total)}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <div className="ad-chips">
         {FILTERS.map(([k, label]) => (
@@ -131,6 +168,7 @@ export default function OrdersAdmin() {
                     <small>
                       {o.userId}
                       {o.zoneId ? ` (${o.zoneId})` : ""}
+                      {o.clientIp ? ` · ${o.clientIp}` : ""}
                     </small>
                   </span>
                   <b>{usd(o.total)}</b>
@@ -144,6 +182,7 @@ export default function OrdersAdmin() {
                 {isOpen ? (
                   <div className="ad-order-detail">
                     <dl>
+                      <div><dt>IP</dt><dd className="mono">{o.clientIp || "—"}{o.paidIp && o.paidIp !== o.clientIp ? ` → paid ${o.paidIp}` : ""}</dd></div>
                       <div><dt>ចំណូល</dt><dd>{usd(o.total)}{o.discount ? ` (បញ្ចុះ ${usd(o.discount)})` : ""}</dd></div>
                       <div><dt>តម្លៃដើម</dt><dd>{o.cost != null ? usd(o.cost) : "—"}</dd></div>
                       <div><dt>ចំណេញ</dt><dd className={profit >= 0 ? "pos" : "neg"}>{o.cost != null ? usd(profit) : "—"}</dd></div>

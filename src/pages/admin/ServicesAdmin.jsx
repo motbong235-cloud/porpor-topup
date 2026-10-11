@@ -284,6 +284,7 @@ function LocalServicesPanel() {
       mark: isChat ? "LC" : "ST",
       image: "",
       deliveryType: isChat ? "live_chat" : "stock",
+      requireUsername: isChat ? true : false,
       packs: [{ id: `${id}-1`, name: "Pack 1", nameKm: "Pack 1", price: 1, cost: 1, category: "Gift Card", image: "" }],
     };
     setProducts((x) => [...x, p]);
@@ -435,6 +436,10 @@ function LocalServicesPanel() {
               let dt = p.deliveryType || "stock";
               if (dt === "gift_code") dt = "stock";
               const isStock = dt === "stock";
+              const needUser =
+                typeof p.requireUsername === "boolean"
+                  ? p.requireUsername
+                  : dt === "live_chat";
               const totalStock = (p.packs || []).reduce((s, pk) => s + (stockCounts[pk.id] || 0), 0);
               return (
                 <article key={p.id || i} className={`ad-game${p.open !== false ? " on" : ""}`} style={{ marginBottom: 10, borderRadius: 12 }}>
@@ -450,10 +455,24 @@ function LocalServicesPanel() {
                       <strong style={{ display: "block" }}>{p.name || p.id}</strong>
                       <small style={{ color: "var(--muted)" }}>
                         {(p.packs || []).length} packs
-                        {isStock ? ` · ស្តុក ${totalStock}` : " · Live Chat"}
+                        {isStock ? ` · ស្តុក ${totalStock}` : " · Live Chat"}{needUser ? " · Username" : ""}
                       </small>
                     </div>
                     <span className={`ad-tag${isStock ? " ok" : ""}`}>{isStock ? "ស្តុក" : "Live Chat"}</span>
+                    <button
+                      type="button"
+                      className={`ad-btn${needUser ? " primary" : " soft"}`}
+                      title="បើក/បិទ Username"
+                      onClick={async () => {
+                        const next = products.map((x, idx) =>
+                          idx === i ? { ...x, requireUsername: !needUser } : x,
+                        );
+                        setProducts(next);
+                        await save(next);
+                      }}
+                    >
+                      {needUser ? "Username ✓" : "Username ✕"}
+                    </button>
                     <label style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 13 }}>
                       <input type="checkbox" checked={p.open !== false} onChange={(e) => updateAt(i, { open: e.target.checked })} />
                       បង្ហាញ
@@ -482,16 +501,37 @@ function LocalServicesPanel() {
                             ID
                             <input value={p.id} onChange={(e) => updateAt(i, { id: e.target.value })} />
                           </label>
-                          <label>
-                            ប្រភេទ
-                            <select
-                              value={dt}
-                              onChange={(e) => updateAt(i, { deliveryType: e.target.value, mark: e.target.value === "live_chat" ? "LC" : "ST" })}
-                            >
-                              <option value="stock">ស្តុក (auto កូដ)</option>
-                              <option value="live_chat">Live Chat (ឆាត Admin)</option>
-                            </select>
-                          </label>
+                          <div style={{ gridColumn: "1 / -1" }}>
+                            <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 6 }}>របៀបដំណើរការ (ចុចជ្រើស)</div>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                              {[
+                                { dt: "stock", user: false, label: "ស្តុក", sub: "កូដ auto · គ្មាន username" },
+                                { dt: "stock", user: true, label: "ស្តុក + Username", sub: "កូដ auto · មាន form login" },
+                                { dt: "live_chat", user: false, label: "Live Chat", sub: "ឆាត Admin · គ្មាន username" },
+                                { dt: "live_chat", user: true, label: "Live Chat + Username", sub: "ឆាត Admin · មាន form login" },
+                              ].map((m) => {
+                                const on = dt === m.dt && !!needUser === m.user;
+                                return (
+                                  <button
+                                    key={m.dt + String(m.user)}
+                                    type="button"
+                                    className={`ad-btn${on ? " primary" : " soft"}`}
+                                    style={{ flexDirection: "column", alignItems: "flex-start", gap: 2, padding: "10px 12px", textAlign: "left", height: "auto" }}
+                                    onClick={() =>
+                                      updateAt(i, {
+                                        deliveryType: m.dt,
+                                        requireUsername: m.user,
+                                        mark: m.dt === "live_chat" ? "LC" : "ST",
+                                      })
+                                    }
+                                  >
+                                    <strong style={{ fontSize: 13 }}>{m.label}</strong>
+                                    <span style={{ fontSize: 11, opacity: 0.85 }}>{m.sub}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
                           <label>
                             Name EN
                             <input value={p.name || ""} onChange={(e) => updateAt(i, { name: e.target.value })} />

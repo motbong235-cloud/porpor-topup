@@ -40,6 +40,7 @@ export default function AdminLayout() {
   const [ready, setReady] = useState(false);
   const [authed, setAuthed] = useState(false);
   const [password, setPassword] = useState("");
+  const [totp, setTotp] = useState("");
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -61,11 +62,18 @@ export default function AdminLayout() {
     setErr("");
     setLoading(true);
     try {
-      await api("/api/admin/login", { method: "POST", body: JSON.stringify({ password }) });
+      await api("/api/admin/login", {
+        method: "POST",
+        body: JSON.stringify({ password, totp: totp || undefined }),
+      });
       setAuthed(true);
       setPassword("");
-    } catch {
-      setErr("ពាក្យសម្ងាត់មិនត្រឹមត្រូវ");
+      setTotp("");
+    } catch (err) {
+      const code = err?.data?.error || err?.message;
+      if (code === "need_2fa") setErr("បញ្ចូលកូដ 2FA ពី Authenticator");
+      else if (code === "bad_2fa") setErr("កូដ 2FA មិនត្រឹមត្រូវ");
+      else setErr("ពាក្យសម្ងាត់មិនត្រឹមត្រូវ");
     } finally {
       setLoading(false);
     }
@@ -105,6 +113,18 @@ export default function AdminLayout() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
+            />
+          </label>
+          <label>
+            2FA code (បើបានបើក)
+            <input
+              type="text"
+              name="totp"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              value={totp}
+              onChange={(e) => setTotp(e.target.value)}
+              placeholder="000000"
             />
           </label>
           {err ? <div className="ad-login-err">{err}</div> : null}
