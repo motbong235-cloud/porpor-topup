@@ -513,6 +513,7 @@ app.post("/api/admin/login", limit("login", { limit: 20, windowMs: 60_000 }), (r
     expires,
     csrf,
     weakPassword: isWeakAdminPassword(ADMIN_PASSWORD),
+    totpEnabled: false,
   });
 });
 
@@ -522,6 +523,8 @@ app.post("/api/admin/logout", (req, res) => {
   res.json({ ok: true });
 });
 
+
+/** Full data backup (admin only) — download regularly */
 
 app.get("/api/admin/audit-log", adminAuth, (req, res) => {
   const n = Math.min(500, Math.max(20, Number(req.query.limit) || 100));
