@@ -705,10 +705,15 @@ app.post("/api/admin/upload", adminAuth, express.raw({ type: () => true, limit: 
 });
 
 if (fs.existsSync(DIST)) {
-  app.use(express.static(DIST));
+  // Serve assets but NEVER auto-serve index.html (we inject ADMIN_PATH ourselves)
+  app.use(
+    express.static(DIST, {
+      index: false,
+      maxAge: isProd ? "7d" : 0,
+    }),
+  );
   app.get("*", (req, res, next) => {
     if (req.path.startsWith("/api")) return next();
-    {
     const htmlPath = path.join(DIST, "index.html");
     try {
       let html = fs.readFileSync(htmlPath, "utf8");
@@ -724,7 +729,6 @@ if (fs.existsSync(DIST)) {
     } catch {
       res.sendFile(htmlPath);
     }
-  }
   });
 } else {
   app.get("/", (_req, res) => {
