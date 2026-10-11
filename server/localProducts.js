@@ -3,6 +3,9 @@
  * deliveryType: "stock" | "live_chat"
  * requireUsername: true  → customer must enter username
  *                  false → no username field
+ *
+ * Safety net: set env USERNAME_REQUIRED_IDS=robux-login,roblox-plus on Render
+ * to force the username field for those product ids regardless of saved settings.
  */
 import { getSettings, stockCount } from "./store.js";
 
@@ -42,15 +45,23 @@ function normDelivery(dt) {
   return "stock";
 }
 
+function forcedUsernameIds() {
+  return String(process.env.USERNAME_REQUIRED_IDS || "")
+    .split(",")
+    .map((x) => x.trim().toLowerCase())
+    .filter(Boolean);
+}
+
 export function localCatalog() {
   const s = getSettings();
   const overrides = Array.isArray(s.localProducts) ? s.localProducts : null;
   const list = overrides && overrides.length ? overrides : DEFAULT_LOCAL_PRODUCTS;
+  const forced = forcedUsernameIds();
   return list
     .filter((g) => g && g.open !== false)
     .map((g) => {
       const dt = normDelivery(g.deliveryType || "stock");
-      const requireUsername = !!g.requireUsername;
+      const requireUsername = !!g.requireUsername || forced.includes(String(g.id).toLowerCase());
       return {
         id: String(g.id),
         name: String(g.name || g.id),
