@@ -5,6 +5,23 @@ import { t } from "../lib/i18n";
 import { applyCoupon, money } from "../lib/store";
 import { GameTile, Icon } from "../components/Icons";
 
+
+function readCsrfCookie() {
+  const m = document.cookie.match(/(?:^|; )porpor_csrf=([^;]*)/);
+  return m ? decodeURIComponent(m[1]) : "";
+}
+async function ensureCsrf() {
+  let t = readCsrfCookie();
+  if (t) return t;
+  try {
+    const r = await fetch("/api/csrf", { credentials: "include" });
+    const d = await r.json();
+    return d.csrf || readCsrfCookie();
+  } catch {
+    return readCsrfCookie();
+  }
+}
+
 export default function Game({ lang, addOrder, settings }) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -12,6 +29,12 @@ export default function Game({ lang, addOrder, settings }) {
   const game = games.find((g) => g.id === id) || null;
   const isGift = !!(game && ["stock", "live_chat", "gift_code"].includes(game.deliveryType));
   const isStock = !!(game && (game.deliveryType === "stock" || game.deliveryType === "gift_code"));
+  // live_chat defaults to requiring username (like auto topup); stock defaults off unless admin sets it
+  const needUsername = isGift
+    ? typeof game?.requireUsername === "boolean"
+      ? game.requireUsername
+      : game?.deliveryType === "live_chat" || game?.deliveryType === "gift_code"
+    : true;
 
   const [userId, setUserId] = useState("");
   const [zoneId, setZoneId] = useState("");
@@ -164,7 +187,12 @@ export default function Game({ lang, addOrder, settings }) {
 
   function validate() {
     if (!packId) return t(lang, "needPack");
-    if (isGift) return "";
+    if (isGift) {
+      if (needUsername && userId.trim().length < 3) {
+        return lang === "km" ? "សូមបញ្ចូល Username" : "Please enter username";
+      }
+      return "";
+    }
     if (userId.trim().length < 3) return t(lang, "needId");
     if (game.hasZone && !zoneId.trim()) return t(lang, "needZone");
     if (game.servers?.length && !server) return t(lang, "needServer");
@@ -189,14 +217,16 @@ export default function Game({ lang, addOrder, settings }) {
     setPayErr("");
     setPaying(true);
     try {
+      const csrf = await ensureCsrf();
       const res = await fetch("/api/checkout/create", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf },
         body: JSON.stringify({
           gameId: game.id,
           packId: p.id,
           qty,
-          userId: isGift ? "gift" : userId.trim(),
+          userId: isGift ? (needUsername ? userId.trim() : "gift") : userId.trim(),
           zoneId: zoneId.trim(),
           server,
           nickname: nick,
@@ -291,6 +321,7 @@ export default function Game({ lang, addOrder, settings }) {
 
       <div className="layout-2">
         <div style={{ display: "grid", gap: 24 }}>
+          {/* Full account form for Khmer TopUp games */}
           {!isGift && (
           <section className="card">
             <h2>{t(lang, "account")}</h2>
@@ -357,6 +388,30 @@ export default function Game({ lang, addOrder, settings }) {
             </div>
           </section>
           )}
+
+          {/* Local stock / live chat — same account card style as auto topup */}
+          {isGift && needUsername ? (
+            <section className="card">
+              <h2>{t(lang, "account")}</h2>
+              <p className="hint">
+                {lang === "km"
+                  ? game.idHintKm || "បញ្ចូល Username ដូចពេល login ហ្គេម"
+                  : game.idHintEn || "Enter the same username you use to log in"}
+              </p>
+              <div className="form-grid">
+                <label className="field">
+                  {lang === "km" ? "Username" : "Username"}
+                  <input
+                    value={userId}
+                    inputMode="text"
+                    placeholder={lang === "km" ? "ឧ. PlayerName" : "e.g. PlayerName"}
+                    autoComplete="username"
+                    onChange={(e) => setUserId(e.target.value)}
+                  />
+                </label>
+              </div>
+            </section>
+          ) : null}
 
           <section className="card">
             <div className="pack-head">
