@@ -36,6 +36,33 @@ export const DEFAULT_LOCAL_PRODUCTS = [
       { id: "rbx-25", name: "Roblox $25", nameKm: "Roblox $25", price: 25.5, cost: 25, category: "Gift Card", bonus: "" },
     ],
   },
+  {
+    id: "mlbb-box-event",
+    name: "Box MLBB Event Ticket",
+    nameKm: "Box MLBB — សំបុត្រព្រឹត្តិការណ៍",
+    region: "Cambodia / SEA",
+    blurbKm: "កក់សំបុត្រ / Box ព្រឹត្តិការណ៍ Mobile Legends (Event · Carnival · Match). បង់រួច Admin ទាក់ទងតាម Live Chat ដើម្បីបញ្ជាក់ការកក់។",
+    blurbEn: "Book MLBB event / carnival / match tickets (Box). After payment, admin confirms via Live Chat.",
+    famous: true,
+    hot: true,
+    open: true,
+    hue: 45,
+    mark: "ML",
+    image: "",
+    deliveryType: "live_chat",
+    requireUsername: true,
+    hasZone: false,
+    servers: [],
+    numericId: false,
+    idHintKm: "បញ្ចូលឈ្មោះ + លេខទូរស័ព្ទ (ឬ Telegram) សម្រាប់ទំនាក់ទំនងកក់សំបុត្រ",
+    idHintEn: "Enter name + phone (or Telegram) for ticket booking contact",
+    packs: [
+      { id: "mlbb-box-std", name: "Standard Box / Ticket", nameKm: "សំបុត្រធម្មតា (Standard)", price: 5, cost: 4, category: "Event Ticket", bonus: "1 seat" },
+      { id: "mlbb-box-vip", name: "VIP Box / Ticket", nameKm: "សំបុត្រ VIP", price: 12, cost: 10, category: "Event Ticket", bonus: "VIP seat" },
+      { id: "mlbb-box-premium", name: "Premium Box", nameKm: "Premium Box", price: 25, cost: 20, category: "Event Ticket", bonus: "Premium + merch" },
+      { id: "mlbb-box-group", name: "Group Box (4 pax)", nameKm: "Group Box (៤ នាក់)", price: 40, cost: 32, category: "Event Ticket", bonus: "4 seats" },
+    ],
+  },
 ];
 
 function normDelivery(dt) {
