@@ -257,3 +257,42 @@ export function popPackStock(packId) {
   write(db);
   return code;
 }
+
+
+/** Automatic rotating backups under data/backups/ */
+export function runAutoBackup() {
+  ensure();
+  const dir = path.join(DATA_DIR, "backups");
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  if (!fs.existsSync(DB_FILE)) return null;
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const dest = path.join(dir, `db-${stamp}.json`);
+  fs.copyFileSync(DB_FILE, dest);
+  // keep last 14 backups
+  const files = fs
+    .readdirSync(dir)
+    .filter((f) => f.startsWith("db-") && f.endsWith(".json"))
+    .sort();
+  while (files.length > 14) {
+    const old = files.shift();
+    try {
+      fs.unlinkSync(path.join(dir, old));
+    } catch {}
+  }
+  return dest;
+}
+
+export function listBackups() {
+  const dir = path.join(DATA_DIR, "backups");
+  if (!fs.existsSync(dir)) return [];
+  return fs
+    .readdirSync(dir)
+    .filter((f) => f.startsWith("db-") && f.endsWith(".json"))
+    .sort()
+    .reverse()
+    .map((f) => ({
+      name: f,
+      size: fs.statSync(path.join(dir, f)).size,
+      mtime: fs.statSync(path.join(dir, f)).mtimeMs,
+    }));
+}

@@ -1,38 +1,46 @@
 /**
- * Local products (not from Khmer TopUp) — e.g. Roblox Gift Cards.
- * Delivery: gift_code → after payment customer contacts Live Chat / Telegram for the code.
- * Admin pastes the code on the order (Admin → Orders).
+ * Local products (not Khmer TopUp).
+ * deliveryType: "stock" | "live_chat"
+ * requireUsername: true  → customer must enter username
+ *                  false → no username field
  */
 import { getSettings, stockCount } from "./store.js";
 
-/** Default Roblox Gift Card packs (USD face value). Admin can override prices in settings.localProducts */
 export const DEFAULT_LOCAL_PRODUCTS = [
   {
     id: "roblox-gift-cards",
     name: "Roblox Gift Cards",
     nameKm: "Roblox Gift Cards",
     region: "Cambodia / Global",
-    blurbKm: "កាតអំណោយ Roblox — បង់រួចទទួលកូដតាម Live Chat / Telegram",
-    blurbEn: "Roblox gift cards — pay then receive your code via Live Chat / Telegram",
+    blurbKm: "កាតអំណោយ Roblox — បង់រួចទទួលកូដស្វ័យប្រវត្តិ",
+    blurbEn: "Roblox gift cards — instant code after payment",
     famous: true,
     hot: true,
     open: true,
     hue: 210,
     mark: "RBX",
     image: "",
-    deliveryType: "gift_code", // no player ID; code via chat
+    deliveryType: "stock",
+    requireUsername: false,
     hasZone: false,
     servers: [],
     numericId: false,
-    idHintKm: "មិនចាំបាច់ ID ហ្គេម — បង់រួចទាក់ទង Live Chat ដើម្បីទទួលកូដ",
-    idHintEn: "No game ID needed — after payment contact Live Chat for your code",
+    idHintKm: "មិនចាំបាច់ username",
+    idHintEn: "No username required",
     packs: [
-      { id: "rbx-5", name: "Roblox $5 Gift Card", nameKm: "Roblox $5 Gift Card", price: 5.5, cost: 5, category: "Gift Card", bonus: "" },
-      { id: "rbx-10", name: "Roblox $10 Gift Card", nameKm: "Roblox $10 Gift Card", price: 10.5, cost: 10, category: "Gift Card", bonus: "" },
-      { id: "rbx-25", name: "Roblox $25 Gift Card", nameKm: "Roblox $25 Gift Card", price: 25.5, cost: 25, category: "Gift Card", bonus: "" },
+      { id: "rbx-5", name: "Roblox $5", nameKm: "Roblox $5", price: 5.5, cost: 5, category: "Gift Card", bonus: "" },
+      { id: "rbx-10", name: "Roblox $10", nameKm: "Roblox $10", price: 10.5, cost: 10, category: "Gift Card", bonus: "" },
+      { id: "rbx-25", name: "Roblox $25", nameKm: "Roblox $25", price: 25.5, cost: 25, category: "Gift Card", bonus: "" },
     ],
   },
 ];
+
+function normDelivery(dt) {
+  if (dt === "live_chat") return "live_chat";
+  if (dt === "topup") return "topup";
+  // gift_code legacy → stock
+  return "stock";
+}
 
 export function localCatalog() {
   const s = getSettings();
@@ -40,42 +48,55 @@ export function localCatalog() {
   const list = overrides && overrides.length ? overrides : DEFAULT_LOCAL_PRODUCTS;
   return list
     .filter((g) => g && g.open !== false)
-    .map((g) => ({
-      id: String(g.id),
-      name: String(g.name || g.id),
-      nameKm: String(g.nameKm || g.name || g.id),
-      region: String(g.region || ""),
-      blurbKm: String(g.blurbKm || ""),
-      blurbEn: String(g.blurbEn || ""),
-      famous: !!g.famous,
-      hot: !!g.hot,
-      open: g.open !== false,
-      hue: Number(g.hue) || 210,
-      mark: String(g.mark || "GC"),
-      image: String(g.image || ""),
-      deliveryType: g.deliveryType || "gift_code",
-      hasZone: false,
-      servers: [],
-      numericId: false,
-      idHintKm: String(g.idHintKm || ""),
-      idHintEn: String(g.idHintEn || ""),
-      packs: (Array.isArray(g.packs) ? g.packs : []).map((p) => {
-        const id = String(p.id);
-        const left = stockCount(id);
-        return {
-          id,
-          name: String(p.name || p.id),
-          nameKm: String(p.nameKm || p.name || p.id),
-          price: Number(p.price),
-          cost: Number(p.cost ?? p.price),
-          category: String(p.category || "Gift Card"),
-          bonus: p.bonus ? String(p.bonus) : "",
-          image: String(p.image || ""),
-          stock: left,
-          inStock: left > 0,
-        };
-      }).filter((p) => p.id && Number.isFinite(p.price) && p.price > 0),
-    }))
+    .map((g) => {
+      const dt = normDelivery(g.deliveryType || "stock");
+      const requireUsername = !!g.requireUsername;
+      return {
+        id: String(g.id),
+        name: String(g.name || g.id),
+        nameKm: String(g.nameKm || g.name || g.id),
+        region: String(g.region || ""),
+        blurbKm: String(g.blurbKm || ""),
+        blurbEn: String(g.blurbEn || ""),
+        famous: !!g.famous,
+        hot: !!g.hot,
+        open: g.open !== false,
+        hue: Number(g.hue) || 210,
+        mark: String(g.mark || "GC"),
+        image: String(g.image || ""),
+        deliveryType: dt,
+        requireUsername,
+        hasZone: false,
+        servers: [],
+        numericId: false,
+        idHintKm: String(
+          g.idHintKm ||
+            (requireUsername ? "បញ្ចូល Username របស់អ្នក" : "មិនចាំបាច់ username"),
+        ),
+        idHintEn: String(
+          g.idHintEn ||
+            (requireUsername ? "Enter your username" : "No username required"),
+        ),
+        packs: (Array.isArray(g.packs) ? g.packs : [])
+          .map((p) => {
+            const id = String(p.id);
+            const left = dt === "stock" ? stockCount(id) : 999;
+            return {
+              id,
+              name: String(p.name || p.id),
+              nameKm: String(p.nameKm || p.name || p.id),
+              price: Number(p.price),
+              cost: Number(p.cost ?? p.price),
+              category: String(p.category || "Gift Card"),
+              bonus: p.bonus ? String(p.bonus) : "",
+              image: String(p.image || ""),
+              stock: dt === "stock" ? left : null,
+              inStock: dt === "live_chat" ? true : left > 0,
+            };
+          })
+          .filter((p) => p.id && Number.isFinite(p.price) && p.price > 0),
+      };
+    })
     .filter((g) => g.packs.length);
 }
 
@@ -87,5 +108,7 @@ export function findLocalPack(gameId, packId) {
 }
 
 export function isGiftCodeProduct(game) {
-  return game && (game.deliveryType === "gift_code" || String(game.id || "").startsWith("roblox"));
+  if (!game) return false;
+  const dt = game.deliveryType;
+  return dt === "stock" || dt === "live_chat" || dt === "gift_code" || String(game.id || "").startsWith("roblox");
 }

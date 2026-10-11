@@ -23,11 +23,26 @@ import {
   addPackStock,
   popPackStock,
   stockCount,
+  runAutoBackup,
+  listBackups,
 } from "./store.js";
 import * as khmerSystem from "./khmerSystem.js";
 import * as khmerTopup from "./khmerTopup.js";
 import * as catalog from "./catalog.js";
 import { isGiftCodeProduct, localCatalog, DEFAULT_LOCAL_PRODUCTS } from "./localProducts.js";
+import {
+  clientIp,
+  clientUa,
+  limit,
+  checkLoginAllowed,
+  recordLoginFail,
+  clearLoginFails,
+  assertPaymentProviderPaid,
+  auditLog,
+  readAuditLog,
+} from "./security.js";
+import { generateSecret, verifyTotp, otpauthUrl } from "./totp.js";
+import { issueCsrf, csrfGuard } from "./csrf.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");
@@ -39,8 +54,29 @@ const ADMIN_PATH = String(process.env.ADMIN_PATH || "pp-console").replace(/^\/+|
 const isProd = process.env.NODE_ENV === "production";
 
 const app = express();
+app.set("trust proxy", 1); // Render / reverse proxy — real client IP
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
+app.use(csrfGuard);
+// Basic abuse shield (per-IP)
+app.use("/api/", limit("api", { limit: 180, windowMs: 60_000 }));
+
+/* Security headers — HTTPS (Render/Cloudflare) + browser hardening */
+app.use((_req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  if (isProd) {
+    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+  }
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; img-src 'self' data: https: blob:; font-src 'self' https://fonts.gstatic.com data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self'; connect-src 'self'; form-action 'self'",
+  );
+  next();
+});
+
 
 function adminAuth(req, res, next) {
   const token = req.cookies?.porpor_admin || req.headers["x-admin-token"];
@@ -213,6 +249,11 @@ async function pollKtStatus(order) {
 }
 
 
+app.get("/api/csrf", (req, res) => {
+  const csrf = issueCsrf(res, isProd);
+  res.json({ csrf });
+});
+
 app.get("/api/public-config", (_req, res) => {
   res.json({ adminPath: ADMIN_PATH });
 });
@@ -268,7 +309,7 @@ app.get("/api/catalog", async (_req, res) => {
   }
 });
 
-app.post("/api/verify", async (req, res) => {
+app.post("/api/verify", limit("verify", { limit: 30, windowMs: 60_000 }), async (req, res) => {
   const { slug, playerId, serverId } = req.body || {};
   if (!slug || !playerId) return res.status(400).json({ result: "incomplete", message: "slug and playerId required" });
   if (!khmerTopup.isTopupReady()) {
@@ -284,7 +325,7 @@ app.post("/api/verify", async (req, res) => {
   }
 });
 
-app.post("/api/checkout/create", async (req, res) => {
+app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000 }), async (req, res) => {
   const body = req.body || {};
   const settings = getSettings();
   if (settings.maintenance) {
@@ -325,8 +366,13 @@ app.post("/api/checkout/create", async (req, res) => {
   }
 
   const userId = String(body.userId || "").trim();
-  if (!giftCode && userId.length < 3) {
-    return res.status(400).json({ error: "invalid" });
+  const needUser = giftCode
+    ? (typeof found.game.requireUsername === "boolean"
+        ? found.game.requireUsername
+        : found.game.deliveryType === "live_chat" || found.game.deliveryType === "gift_code")
+    : true;
+  if (needUser && userId.length < 3) {
+    return res.status(400).json({ error: "invalid", detail: "need_username" });
   }
 
   const zoneId = String(body.zoneId || "").trim();
@@ -353,7 +399,7 @@ app.post("/api/checkout/create", async (req, res) => {
     total,
     discount: cp.discount,
     cost: round2((found.pack.cost || found.pack.price) * qty),
-    userId: giftCode ? (userId || "gift") : userId,
+    userId: giftCode ? (needUser ? userId : userId || "gift") : userId,
     zoneId,
     server,
     nickname: String(body.nickname || ""),
@@ -363,6 +409,8 @@ app.post("/api/checkout/create", async (req, res) => {
     deliveryType: giftCode ? (found.game.deliveryType === "live_chat" ? "live_chat" : "stock") : "topup",
     giftCode: null,
     status: "pending",
+    clientIp: clientIp(req),
+    userAgent: clientUa(req),
     createdAt: Date.now(),
   });
 
@@ -377,6 +425,7 @@ app.post("/api/checkout/create", async (req, res) => {
     qrImage: qr.qr_image,
     qrString: qr.qr_string,
   });
+  auditLog("checkout_create", { orderId: updated.id, total: updated.total, ip: clientIp(req) });
   return res.json({
     order: publicOrder(updated),
     payment: {
@@ -387,20 +436,35 @@ app.post("/api/checkout/create", async (req, res) => {
   });
 });
 
-app.get("/api/checkout/:id/status", async (req, res) => {
+app.get("/api/checkout/:id/status", limit("paystatus", { limit: 40, windowMs: 60_000 }), async (req, res) => {
   let order = getOrder(req.params.id);
   if (!order) return res.status(404).json({ error: "not_found" });
 
+  // Payment bypass guard: ONLY provider confirmation can mark paid (never trust client body).
   if (order.status === "pending" && order.transactionId && khmerSystem.isPaymentReady()) {
     const pay = await khmerSystem.checkPayment(order.transactionId);
-    if (pay.paid) {
-      // claim atomically (sync read+write) so concurrent polls can't fulfill twice
-      const fresh = getOrder(order.id);
-      if (fresh && fresh.status === "pending") {
-        order = updateOrder(order.id, { status: "paid", paidAt: Date.now() });
-        order = await fulfillTopup(order);
-      } else if (fresh) {
-        order = fresh;
+    if (assertPaymentProviderPaid(pay)) {
+      // Optional amount check when provider returns amount
+      const paidAmt = Number(pay.amount ?? pay.total ?? pay.paid_amount);
+      if (Number.isFinite(paidAmt) && paidAmt > 0 && Math.abs(paidAmt - Number(order.total)) > 0.02) {
+        console.warn("[pay] amount mismatch", order.id, paidAmt, order.total);
+        order = updateOrder(order.id, {
+          note: `Amount mismatch provider=${paidAmt} order=${order.total}`,
+        });
+      } else {
+        const fresh = getOrder(order.id);
+        if (fresh && fresh.status === "pending") {
+          order = updateOrder(order.id, {
+            status: "paid",
+            paidAt: Date.now(),
+            paidIp: clientIp(req),
+            providerPaid: true,
+          });
+          auditLog("payment_ok", { orderId: order.id, total: order.total, ip: clientIp(req) });
+          order = await fulfillTopup(order);
+        } else if (fresh) {
+          order = fresh;
+        }
       }
     }
   }
@@ -421,20 +485,50 @@ app.get("/api/orders/track", async (req, res) => {
   res.json([publicOrder(order)]);
 });
 
-app.post("/api/admin/login", (req, res) => {
+app.post("/api/admin/login", limit("login", { limit: 20, windowMs: 60_000 }), (req, res) => {
+  const ip = clientIp(req);
+  const allowed = checkLoginAllowed(ip);
+  if (!allowed.ok) {
+    res.setHeader("Retry-After", String(allowed.retryAfter));
+    return res.status(429).json({ error: "locked", retryAfter: allowed.retryAfter });
+  }
   const password = String(req.body?.password || "");
   if (password !== ADMIN_PASSWORD) {
+    recordLoginFail(ip);
+    auditLog("login_fail", { ip, reason: "bad_password" });
     return res.status(401).json({ error: "bad_password" });
   }
+  const settings = getSettings();
+  if (settings.totpEnabled && settings.totpSecret) {
+    const code = String(req.body?.totp || req.body?.code || "").trim();
+    if (!code) {
+      auditLog("login_need_2fa", { ip });
+      return res.status(401).json({ error: "need_2fa" });
+    }
+    if (!verifyTotp(settings.totpSecret, code)) {
+      recordLoginFail(ip);
+      auditLog("login_fail", { ip, reason: "bad_2fa" });
+      return res.status(401).json({ error: "bad_2fa" });
+    }
+  }
+  clearLoginFails(ip);
   const { token, expires } = createSession();
   res.cookie("porpor_admin", token, {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: isProd ? "strict" : "lax",
     secure: isProd,
     maxAge: expires - Date.now(),
     path: "/",
   });
-  res.json({ ok: true, expires });
+  const csrf = issueCsrf(res, isProd);
+  auditLog("login_ok", { ip });
+  res.json({
+    ok: true,
+    expires,
+    csrf,
+    weakPassword: isWeakAdminPassword(ADMIN_PASSWORD),
+    totpEnabled: !!settings.totpEnabled,
+  });
 });
 
 app.post("/api/admin/logout", (req, res) => {
@@ -443,10 +537,74 @@ app.post("/api/admin/logout", (req, res) => {
   res.json({ ok: true });
 });
 
+
+/** Full data backup (admin only) — download regularly */
+
+/* ---------- Admin 2FA (TOTP) ---------- */
+app.get("/api/admin/2fa/setup", adminAuth, (_req, res) => {
+  const secret = generateSecret();
+  const url = otpauthUrl({ secret, account: "porpor-admin", issuer: "PORPOR TOPUP" });
+  // pending secret stored only in response — client confirms with code
+  res.json({ secret, otpauthUrl: url });
+});
+
+app.post("/api/admin/2fa/enable", adminAuth, (req, res) => {
+  const secret = String(req.body?.secret || "").trim();
+  const code = String(req.body?.code || "").trim();
+  if (!secret || !verifyTotp(secret, code)) {
+    return res.status(400).json({ error: "bad_2fa" });
+  }
+  updateSettings({ totpSecret: secret, totpEnabled: true });
+  auditLog("2fa_enabled", { ip: clientIp(req) });
+  res.json({ ok: true, totpEnabled: true });
+});
+
+app.post("/api/admin/2fa/disable", adminAuth, (req, res) => {
+  const code = String(req.body?.code || "").trim();
+  const s = getSettings();
+  if (s.totpEnabled && s.totpSecret && !verifyTotp(s.totpSecret, code)) {
+    return res.status(400).json({ error: "bad_2fa" });
+  }
+  updateSettings({ totpEnabled: false, totpSecret: "" });
+  auditLog("2fa_disabled", { ip: clientIp(req) });
+  res.json({ ok: true, totpEnabled: false });
+});
+
+app.get("/api/admin/audit-log", adminAuth, (req, res) => {
+  const n = Math.min(500, Math.max(20, Number(req.query.limit) || 100));
+  res.json({ events: readAuditLog(n) });
+});
+
+app.get("/api/admin/backups", adminAuth, (_req, res) => {
+  res.json({ backups: listBackups() });
+});
+
+app.post("/api/admin/backups/run", adminAuth, (req, res) => {
+  const dest = runAutoBackup();
+  auditLog("backup_manual", { ip: clientIp(req), dest });
+  res.json({ ok: true, dest, backups: listBackups() });
+});
+
+app.get("/api/admin/backup", adminAuth, (_req, res) => {
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    settings: getSettings(),
+    orders: listOrders(),
+    giftStock: getGiftStock(),
+  };
+  const name = `porpor-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  res.setHeader("Content-Disposition", `attachment; filename="${name}"`);
+  res.json(payload);
+});
+
 app.get("/api/admin/me", (req, res) => {
   const token = req.cookies?.porpor_admin || req.headers["x-admin-token"];
   if (!validSession(token)) return res.status(401).json({ ok: false });
-  res.json({ ok: true });
+  res.json({
+    ok: true,
+    weakPassword: isWeakAdminPassword(ADMIN_PASSWORD),
+    https: isProd,
+  });
 });
 
 
@@ -468,6 +626,25 @@ app.get("/api/admin/stats", adminAuth, (_req, res) => {
   res.json(stats());
 });
 
+
+app.get("/api/admin/ips", adminAuth, (_req, res) => {
+  const map = new Map();
+  for (const o of listOrders()) {
+    const ip = o.clientIp || o.paidIp || "unknown";
+    const row = map.get(ip) || { ip, orders: 0, paid: 0, total: 0, lastAt: 0, samples: [] };
+    row.orders += 1;
+    if (o.status && o.status !== "pending" && o.status !== "failed") {
+      row.paid += 1;
+      row.total += Number(o.total) || 0;
+    }
+    row.lastAt = Math.max(row.lastAt, o.createdAt || 0);
+    if (row.samples.length < 5) row.samples.push(o.id);
+    map.set(ip, row);
+  }
+  const list = [...map.values()].sort((a, b) => b.lastAt - a.lastAt);
+  res.json({ ips: list });
+});
+
 app.get("/api/admin/orders", adminAuth, (req, res) => {
   let list = listOrders();
   const q = String(req.query.q || "").trim().toLowerCase();
@@ -478,7 +655,9 @@ app.get("/api/admin/orders", adminAuth, (req, res) => {
         o.id.toLowerCase().includes(q) ||
         String(o.userId).toLowerCase().includes(q) ||
         String(o.gameName).toLowerCase().includes(q) ||
-        String(o.nickname).toLowerCase().includes(q),
+        String(o.nickname).toLowerCase().includes(q) ||
+        String(o.clientIp || "").toLowerCase().includes(q) ||
+        String(o.paidIp || "").toLowerCase().includes(q),
     );
   }
   if (status) list = list.filter((o) => (o.status || "delivered") === status);
@@ -642,6 +821,7 @@ app.put("/api/admin/local-products", adminAuth, (req, res) => {
         deliveryType: ["stock", "live_chat", "gift_code", "topup"].includes(g.deliveryType)
           ? (g.deliveryType === "gift_code" ? "stock" : g.deliveryType)
           : "stock",
+        requireUsername: !!g.requireUsername,
         hasZone: false,
         servers: [],
         idHintKm: String(g.idHintKm || ""),
@@ -745,8 +925,27 @@ app.use((err, _req, res, next) => {
   res.status(500).json({ error: "server_error" });
 });
 
+// Auto backup every 6 hours
+setInterval(() => {
+  try {
+    const dest = runAutoBackup();
+    if (dest) auditLog("backup_auto", { dest });
+  } catch (e) {
+    console.error("[backup]", e.message);
+  }
+}, 6 * 60 * 60 * 1000).unref?.();
+try {
+  runAutoBackup();
+} catch {}
+
 app.listen(PORT, () => {
   console.log(`Porpor TOPUP on :${PORT}`);
+  if (isWeakAdminPassword(ADMIN_PASSWORD)) {
+    console.warn("[security] ADMIN_PASSWORD is weak or default — set a strong password in Render env (12+ chars, letters+numbers)");
+  }
+  if (isProd) {
+    console.log("[security] HSTS + CSP headers enabled; use Cloudflare WAF in front of the domain");
+  }
   console.log(`  Khmer System payment: ${khmerSystem.isPaymentReady() ? "READY" : "NOT CONFIGURED"}`);
   console.log(`  Khmer TopUp auto:     ${khmerTopup.isTopupReady() ? "READY" : "NOT CONFIGURED"}`);
 });
