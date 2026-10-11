@@ -304,6 +304,15 @@ app.get("/api/settings", (_req, res) => {
   });
 });
 
+/** Which server build is live (to confirm a deploy actually took effect). */
+app.get("/api/version", (_req, res) => {
+  res.set("Cache-Control", "no-store");
+  res.json({
+    build: "server-2026-10-11-b",
+    usernameRequiredIds: String(process.env.USERNAME_REQUIRED_IDS || ""),
+  });
+});
+
 /** Games + packages the admin selected from Khmer TopUp (prices include markup). */
 app.get("/api/catalog", async (_req, res) => {
   if (!khmerTopup.isTopupReady()) {
