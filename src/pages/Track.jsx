@@ -121,7 +121,7 @@ export default function Track({ lang, settings }) {
               {isGift ? (
                 <div className="card" style={{ marginTop: 16, borderColor: "var(--primary)" }}>
                   <h3 style={{ margin: "0 0 8px" }}>
-                    {lang === "km" ? "🎁 Roblox Gift Card" : "🎁 Roblox Gift Card"}
+                    {lang === "km" ? "Roblox Gift Card" : "Roblox Gift Card"}
                   </h3>
                   {o.giftCode ? (
                     <div>
@@ -159,7 +159,7 @@ export default function Track({ lang, settings }) {
                         rel="noreferrer"
                         style={{ display: "inline-flex", textDecoration: "none" }}
                       >
-                        {lang === "km" ? "💬 បើក Live Chat" : "💬 Open Live Chat"}
+                        {lang === "km" ? "បើក Live Chat" : "Open Live Chat"}
                       </a>
                     </div>
                   )}

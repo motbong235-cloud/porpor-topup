@@ -108,7 +108,9 @@ export default function Success({ lang, settings }) {
     <div className="container success-page">
       <div className="success-card card">
         <div className="success-icon" aria-hidden>
-          ✓
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 12l5 5L20 7" />
+          </svg>
         </div>
         <h1 className="success-title">
           {paid
@@ -178,17 +180,29 @@ export default function Success({ lang, settings }) {
           ) : null}
         </div>
 
-        {/* Live Chat CTA — no extra form for the customer */}
-        <div className="success-chat-box">
-          <p>
-            {lang === "km"
-              ? "សូមចូល Live Chat ជាមួយ Admin ដើម្បីទទួលការបញ្ចូល / កូដ។ Order ID នឹងភ្ជាប់ស្វ័យប្រវត្តិ។"
-              : "Open Live Chat with Admin to receive delivery / code. Your Order ID is attached automatically."}
-          </p>
-          <a className="btn success-livechat" href={liveChatUrl(order)} target="_blank" rel="noreferrer">
-            💬 Live Chat
-          </a>
-        </div>
+        {order.giftCode ? (
+          <div className="success-chat-box" style={{ background: "#dcfce7", borderColor: "#86efac" }}>
+            <p style={{ color: "#14532d" }}>
+              {lang === "km"
+                ? "កូដរបស់អ្នកត្រូវបានផ្តល់ស្វ័យប្រវត្តិ (copy ខាងលើ)។ បើមានបញ្ហា ចូល Live Chat។"
+                : "Your code was delivered automatically (copy above). Contact Live Chat if needed."}
+            </p>
+            <a className="btn success-livechat" href={liveChatUrl(order)} target="_blank" rel="noreferrer">
+              Live Chat
+            </a>
+          </div>
+        ) : (
+          <div className="success-chat-box">
+            <p>
+              {lang === "km"
+                ? "សូមចូល Live Chat ជាមួយ Admin ដើម្បីទទួលកូដ។ Order ID នឹងភ្ជាប់ស្វ័យប្រវត្តិ។"
+                : "Open Live Chat with Admin to receive your code. Order ID is attached automatically."}
+            </p>
+            <a className="btn success-livechat" href={liveChatUrl(order)} target="_blank" rel="noreferrer">
+              Live Chat
+            </a>
+          </div>
+        )}
 
         <div className="success-actions">
           <Link to="/" className="btn btn-soft">

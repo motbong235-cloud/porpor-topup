@@ -127,7 +127,7 @@ export default function Game({ lang, addOrder, settings }) {
       .then((r) => r.json())
       .then((data) => {
         if (data.result === "valid") {
-          setNick(data.nickname || "✓");
+          setNick(data.nickname || "OK");
           setCheckedFor(key);
         } else if (data.result === "invalid") {
           setNick("");
@@ -435,7 +435,7 @@ export default function Game({ lang, addOrder, settings }) {
           
           {isGift ? (
             <section className="card" style={{ borderColor: "var(--primary)" }}>
-              <h2>{lang === "km" ? "🎁 ទទួលកូដស្វ័យប្រវត្តិ" : "🎁 Instant code delivery"}</h2>
+              <h2>{lang === "km" ? "ទទួលកូដស្វ័យប្រវត្តិ" : "Instant code delivery"}</h2>
               <p className="hint">
                 {lang === "km"
                   ? "បង់ប្រាក់រួច កូដនឹងបង្ហាញភ្លាមៗលើទំព័រ Payment Successful (ពីស្តុក Admin)។ បើអស់ស្តុក នឹងមាន Live Chat។"
