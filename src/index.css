@@ -2355,3 +2355,9 @@ body {
   justify-content: center;
   text-decoration: none;
 }
+
+.pack.sold-out {
+  opacity: 0.45;
+  pointer-events: none;
+  filter: grayscale(0.4);
+}
