@@ -103,8 +103,19 @@ function summarizeKt(codes, statuses) {
 }
 
 async function fulfillTopup(order) {
-  // Gift cards: auto-assign code from stock if available
-  if (order.deliveryType === "gift_code") {
+  const dt = order.deliveryType || "topup";
+
+  // Live Chat only — no stock codes
+  if (dt === "live_chat") {
+    return updateOrder(order.id, {
+      status: "paid",
+      note: "Live Chat delivery — customer will contact admin",
+      paidAt: order.paidAt || Date.now(),
+    });
+  }
+
+  // Stock / gift_code — auto-assign code from inventory
+  if (dt === "gift_code" || dt === "stock") {
     const codes = [];
     const qty = Math.max(1, Math.min(10, Number(order.qty) || 1));
     for (let i = 0; i < qty; i++) {
@@ -121,7 +132,6 @@ async function fulfillTopup(order) {
         paidAt: order.paidAt || Date.now(),
       });
     }
-    // partial or empty stock → paid, customer uses Live Chat
     if (codes.length) {
       return updateOrder(order.id, {
         status: "paid",
@@ -299,10 +309,13 @@ app.post("/api/checkout/create", async (req, res) => {
 
   const giftCode = isGiftCodeProduct(found.game);
   if (giftCode) {
-    const need = Math.min(10, Math.max(1, Math.floor(Number(body.qty)) || 1));
-    const left = stockCount(found.pack.id);
-    if (left < need) {
-      return res.status(400).json({ error: "out_of_stock", stock: left });
+    const dt = found.game.deliveryType || "stock";
+    if (dt === "stock" || dt === "gift_code") {
+      const need = Math.min(10, Math.max(1, Math.floor(Number(body.qty)) || 1));
+      const left = stockCount(found.pack.id);
+      if (left < need) {
+        return res.status(400).json({ error: "out_of_stock", stock: left });
+      }
     }
   }
 
@@ -347,7 +360,7 @@ app.post("/api/checkout/create", async (req, res) => {
     method: "khqr",
     coupon: cp.code,
     ktPackageId: giftCode ? null : Number(found.pack.id),
-    deliveryType: giftCode ? "gift_code" : "topup",
+    deliveryType: giftCode ? (found.game.deliveryType === "live_chat" ? "live_chat" : "stock") : "topup",
     giftCode: null,
     status: "pending",
     createdAt: Date.now(),
@@ -579,7 +592,11 @@ app.get("/api/admin/local-products", adminAuth, (_req, res) => {
   const products = Array.isArray(s.localProducts) && s.localProducts.length
     ? s.localProducts
     : DEFAULT_LOCAL_PRODUCTS;
-  res.json({ products, usingDefaults: !(Array.isArray(s.localProducts) && s.localProducts.length) });
+  res.json({
+    products,
+    usingDefaults: !(Array.isArray(s.localProducts) && s.localProducts.length),
+    stockCounts: stockSummary(),
+  });
 });
 
 app.put("/api/admin/local-products", adminAuth, (req, res) => {
@@ -622,7 +639,9 @@ app.put("/api/admin/local-products", adminAuth, (req, res) => {
           if (/^\/uploads\/[\w.-]{1,100}$/.test(u) || /^https:\/\/[^\s"'<>]{1,490}$/.test(u)) return u;
           return "";
         })(),
-        deliveryType: g.deliveryType === "topup" ? "topup" : "gift_code",
+        deliveryType: ["stock", "live_chat", "gift_code", "topup"].includes(g.deliveryType)
+          ? (g.deliveryType === "gift_code" ? "stock" : g.deliveryType)
+          : "stock",
         hasZone: false,
         servers: [],
         idHintKm: String(g.idHintKm || ""),

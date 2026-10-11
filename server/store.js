@@ -43,6 +43,7 @@ function ensure() {
       settings: { ...DEFAULT_SETTINGS },
       orders: [],
       sessions: {},
+      giftStock: {},
     };
     fs.writeFileSync(DB_FILE, JSON.stringify(seed, null, 2));
   }
@@ -57,7 +58,7 @@ function read() {
     try {
       return JSON.parse(fs.readFileSync(DB_FILE + ".bak", "utf8"));
     } catch {
-      return { settings: { ...DEFAULT_SETTINGS }, orders: [], sessions: {} };
+      return { settings: { ...DEFAULT_SETTINGS }, orders: [], sessions: {}, giftStock: {} };
     }
   }
 }
@@ -187,4 +188,72 @@ export function stats() {
     byStatus,
     daily,
   };
+}
+
+
+/** giftStock: { [packId]: string[] } — codes available for auto-delivery */
+export function getGiftStock() {
+  const db = read();
+  return db.giftStock && typeof db.giftStock === "object" ? db.giftStock : {};
+}
+
+export function stockCount(packId) {
+  const list = getGiftStock()[String(packId)] || [];
+  return list.length;
+}
+
+export function stockSummary() {
+  const s = getGiftStock();
+  const out = {};
+  for (const [k, v] of Object.entries(s)) out[k] = Array.isArray(v) ? v.length : 0;
+  return out;
+}
+
+/** Replace stock for a pack with a list of codes (deduped, trimmed). */
+export function setPackStock(packId, codes) {
+  const db = read();
+  if (!db.giftStock) db.giftStock = {};
+  const id = String(packId);
+  const clean = [];
+  const seen = new Set();
+  for (const c of codes || []) {
+    const t = String(c).trim();
+    if (!t || seen.has(t)) continue;
+    seen.add(t);
+    clean.push(t);
+  }
+  db.giftStock[id] = clean;
+  write(db);
+  return clean.length;
+}
+
+/** Append codes to pack stock. */
+export function addPackStock(packId, codes) {
+  const db = read();
+  if (!db.giftStock) db.giftStock = {};
+  const id = String(packId);
+  const cur = Array.isArray(db.giftStock[id]) ? db.giftStock[id] : [];
+  const seen = new Set(cur);
+  for (const c of codes || []) {
+    const t = String(c).trim();
+    if (!t || seen.has(t)) continue;
+    seen.add(t);
+    cur.push(t);
+  }
+  db.giftStock[id] = cur;
+  write(db);
+  return cur.length;
+}
+
+/** Pop one code from stock (FIFO). Returns code or null. */
+export function popPackStock(packId) {
+  const db = read();
+  if (!db.giftStock) db.giftStock = {};
+  const id = String(packId);
+  const cur = Array.isArray(db.giftStock[id]) ? db.giftStock[id] : [];
+  if (!cur.length) return null;
+  const code = cur.shift();
+  db.giftStock[id] = cur;
+  write(db);
+  return code;
 }
