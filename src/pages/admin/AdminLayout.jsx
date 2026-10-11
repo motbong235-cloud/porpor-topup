@@ -5,38 +5,19 @@ import "./Admin.css";
 
 export { api };
 
-const NAV = [
-  { to: "/admin", end: true, icon: "dashboard", km: "ផ្ទាំងគ្រប់គ្រង", en: "Dashboard" },
-  { to: "/admin/orders", icon: "orders", km: "ការបញ្ជាទិញ", en: "Orders" },
-  { to: "/admin/services", icon: "services", km: "សេវាហ្គេម", en: "Services" },
-  { to: "/admin/settings", icon: "settings", km: "ការកំណត់", en: "Settings" },
-];
+/** Build id — if you see this text on login, new frontend is live (no 2FA). */
+const BUILD_TAG = "no2fa-2026-10-11";
 
-function Toasts() {
-  const [list, setList] = useState([]);
-  useEffect(() => {
-    function on(e) {
-      const id = Math.random().toString(36).slice(2);
-      setList((l) => [...l, { id, ...e.detail }].slice(-3));
-      setTimeout(() => setList((l) => l.filter((t) => t.id !== id)), 3600);
-    }
-    window.addEventListener("admin-toast", on);
-    return () => window.removeEventListener("admin-toast", on);
-  }, []);
-  return (
-    <div className="ad-toasts" aria-live="polite">
-      {list.map((t) => (
-        <div key={t.id} className={`ad-toast ${t.tone}`}>
-          <AIcon name={t.tone === "bad" ? "alert" : "check"} size={16} />
-          {t.message}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-export default function AdminLayout() {
+export default function AdminLayout({ adminPath = "pp-console" }) {
   const navigate = useNavigate();
+  const base = `/${String(adminPath || "pp-console").replace(/^\/+|\/+$/g, "")}`;
+  const NAV = [
+    { to: base, end: true, icon: "dashboard", km: "ផ្ទាំងគ្រប់គ្រង", en: "Dashboard" },
+    { to: `${base}/orders`, icon: "orders", km: "ការបញ្ជាទិញ", en: "Orders" },
+    { to: `${base}/services`, icon: "services", km: "សេវាហ្គេម", en: "Services" },
+    { to: `${base}/settings`, icon: "settings", km: "ការកំណត់", en: "Settings" },
+  ];
+
   const [ready, setReady] = useState(false);
   const [authed, setAuthed] = useState(false);
   const [password, setPassword] = useState("");
@@ -79,7 +60,7 @@ export default function AdminLayout() {
       await api("/api/admin/logout", { method: "POST", body: "{}" });
     } catch {}
     setAuthed(false);
-    navigate("/admin");
+    navigate(base);
   }
 
   if (!ready) {
@@ -99,6 +80,7 @@ export default function AdminLayout() {
             Porpor <span>Admin</span>
           </h1>
           <p>តំបន់គ្រប់គ្រងឯកជន · Private admin panel</p>
+          <p style={{ fontSize: 11, opacity: 0.55, marginTop: -6 }}>build {BUILD_TAG}</p>
           <label>
             ពាក្យសម្ងាត់ / Password
             <input
@@ -122,7 +104,7 @@ export default function AdminLayout() {
   return (
     <div className="ad">
       <aside className="ad-side">
-        <Link to="/admin" className="ad-brand">
+        <Link to={base} className="ad-brand">
           <span className="ad-logo sm">PP</span>
           <span>
             Porpor <b>Admin</b>
@@ -157,7 +139,7 @@ export default function AdminLayout() {
 
       <div className="ad-main">
         <header className="ad-mbar">
-          <Link to="/admin" className="ad-brand">
+          <Link to={base} className="ad-brand">
             <span className="ad-logo sm">PP</span>
             <span>
               Porpor <b>Admin</b>
@@ -186,6 +168,29 @@ export default function AdminLayout() {
         ))}
       </nav>
       <Toasts />
+    </div>
+  );
+}
+
+function Toasts() {
+  const [list, setList] = useState([]);
+  useEffect(() => {
+    function on(e) {
+      const id = Math.random().toString(36).slice(2);
+      setList((l) => [...l, { id, ...e.detail }].slice(-3));
+      setTimeout(() => setList((l) => l.filter((t) => t.id !== id)), 3600);
+    }
+    window.addEventListener("admin-toast", on);
+    return () => window.removeEventListener("admin-toast", on);
+  }, []);
+  return (
+    <div className="ad-toasts" aria-live="polite">
+      {list.map((t) => (
+        <div key={t.id} className={`ad-toast ${t.tone}`}>
+          <AIcon name={t.tone === "bad" ? "alert" : "check"} size={16} />
+          {t.message}
+        </div>
+      ))}
     </div>
   );
 }
