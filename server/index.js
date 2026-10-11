@@ -41,7 +41,6 @@ import {
   auditLog,
   readAuditLog,
 } from "./security.js";
-import { generateSecret, verifyTotp, otpauthUrl } from "./totp.js";
 import { issueCsrf, csrfGuard } from "./csrf.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -498,19 +497,6 @@ app.post("/api/admin/login", limit("login", { limit: 20, windowMs: 60_000 }), (r
     auditLog("login_fail", { ip, reason: "bad_password" });
     return res.status(401).json({ error: "bad_password" });
   }
-  const settings = getSettings();
-  if (settings.totpEnabled && settings.totpSecret) {
-    const code = String(req.body?.totp || req.body?.code || "").trim();
-    if (!code) {
-      auditLog("login_need_2fa", { ip });
-      return res.status(401).json({ error: "need_2fa" });
-    }
-    if (!verifyTotp(settings.totpSecret, code)) {
-      recordLoginFail(ip);
-      auditLog("login_fail", { ip, reason: "bad_2fa" });
-      return res.status(401).json({ error: "bad_2fa" });
-    }
-  }
   clearLoginFails(ip);
   const { token, expires } = createSession();
   res.cookie("porpor_admin", token, {
@@ -527,7 +513,6 @@ app.post("/api/admin/login", limit("login", { limit: 20, windowMs: 60_000 }), (r
     expires,
     csrf,
     weakPassword: isWeakAdminPassword(ADMIN_PASSWORD),
-    totpEnabled: !!settings.totpEnabled,
   });
 });
 
@@ -537,38 +522,6 @@ app.post("/api/admin/logout", (req, res) => {
   res.json({ ok: true });
 });
 
-
-/** Full data backup (admin only) — download regularly */
-
-/* ---------- Admin 2FA (TOTP) ---------- */
-app.get("/api/admin/2fa/setup", adminAuth, (_req, res) => {
-  const secret = generateSecret();
-  const url = otpauthUrl({ secret, account: "porpor-admin", issuer: "PORPOR TOPUP" });
-  // pending secret stored only in response — client confirms with code
-  res.json({ secret, otpauthUrl: url });
-});
-
-app.post("/api/admin/2fa/enable", adminAuth, (req, res) => {
-  const secret = String(req.body?.secret || "").trim();
-  const code = String(req.body?.code || "").trim();
-  if (!secret || !verifyTotp(secret, code)) {
-    return res.status(400).json({ error: "bad_2fa" });
-  }
-  updateSettings({ totpSecret: secret, totpEnabled: true });
-  auditLog("2fa_enabled", { ip: clientIp(req) });
-  res.json({ ok: true, totpEnabled: true });
-});
-
-app.post("/api/admin/2fa/disable", adminAuth, (req, res) => {
-  const code = String(req.body?.code || "").trim();
-  const s = getSettings();
-  if (s.totpEnabled && s.totpSecret && !verifyTotp(s.totpSecret, code)) {
-    return res.status(400).json({ error: "bad_2fa" });
-  }
-  updateSettings({ totpEnabled: false, totpSecret: "" });
-  auditLog("2fa_disabled", { ip: clientIp(req) });
-  res.json({ ok: true, totpEnabled: false });
-});
 
 app.get("/api/admin/audit-log", adminAuth, (req, res) => {
   const n = Math.min(500, Math.max(20, Number(req.query.limit) || 100));
