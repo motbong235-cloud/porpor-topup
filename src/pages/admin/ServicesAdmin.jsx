@@ -187,34 +187,35 @@ function blankLocal() {
 
 
 
+
 function LocalServicesPanel() {
   const [products, setProducts] = useState([]);
   const [usingDefaults, setUsingDefaults] = useState(true);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [editIdx, setEditIdx] = useState(0); // open first by default
+  const [editIdx, setEditIdx] = useState(0);
   const [stockCounts, setStockCounts] = useState({});
   const [stockDraft, setStockDraft] = useState({});
   const [stockBusy, setStockBusy] = useState("");
-  const [apiErr, setApiErr] = useState("");
+  const [stockOk, setStockOk] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
-    setApiErr("");
     try {
-      const [d, st] = await Promise.all([
-        api("/api/admin/local-products"),
-        api("/api/admin/gift-stock").catch((e) => {
-          setApiErr("gift-stock API មិនទាន់ deploy — ត្រូវ push server/index.js + store.js");
-          return { counts: {} };
-        }),
-      ]);
+      const d = await api("/api/admin/local-products");
       setProducts(Array.isArray(d.products) ? d.products : []);
       setUsingDefaults(!!d.usingDefaults);
-      setStockCounts(st.counts || d.stockCounts || {});
-    } catch (e) {
+      let counts = d.stockCounts || {};
+      try {
+        const st = await api("/api/admin/gift-stock");
+        counts = st.counts || counts;
+        setStockOk(true);
+      } catch {
+        setStockOk(false);
+      }
+      setStockCounts(counts);
+    } catch {
       setProducts([]);
-      setApiErr(e.message || "មិនអាចទាញ services");
     } finally {
       setLoading(false);
     }
@@ -234,6 +235,7 @@ function LocalServicesPanel() {
       setProducts(d.products || list);
       setUsingDefaults(false);
       toast("បានរក្សាទុក services");
+      await load();
     } catch {
       toast("រក្សាទុកមិនបាន", "bad");
     } finally {
@@ -254,31 +256,34 @@ function LocalServicesPanel() {
         body: JSON.stringify({ codes: text, mode: mode || "replace" }),
       });
       setStockCounts((c) => ({ ...c, [packId]: d.count }));
+      setStockOk(true);
       toast(mode === "append" ? `បន្ថែមស្តុក · សរុប ${d.count}` : `ស្តុកថ្មី · ${d.count} កូដ`);
       if (mode !== "append") setStockDraft((s) => ({ ...s, [packId]: "" }));
     } catch {
-      toast("រក្សាទុកស្តុកមិនបាន — ពិនិត្យ deploy API gift-stock", "bad");
+      setStockOk(false);
+      toast("Stock API មិនដំណើរការ — deploy server/index.js + store.js", "bad");
     } finally {
       setStockBusy("");
     }
   }
 
-  function addProduct() {
+  function addProduct(type) {
     const id = `svc-${Date.now().toString(36)}`;
+    const isChat = type === "live_chat";
     const p = {
       id,
-      name: "New Gift Service",
-      nameKm: "សេវាកូដថ្មី",
+      name: isChat ? "Live Chat Service" : "Stock Gift Service",
+      nameKm: isChat ? "សេវា Live Chat" : "សេវាស្តុកកូដ",
       region: "Cambodia",
-      blurbKm: "បង់រួចទទួលកូដស្វ័យប្រវត្តិ",
-      blurbEn: "Pay then get code instantly",
+      blurbKm: isChat ? "បង់រួចទាក់ទង Live Chat / Telegram" : "បង់រួចទទួលកូដស្វ័យប្រវត្តិ",
+      blurbEn: isChat ? "Pay then contact Live Chat" : "Pay then get code from stock",
       famous: true,
       hot: true,
       open: true,
-      hue: 210,
-      mark: "GC",
+      hue: isChat ? 280 : 210,
+      mark: isChat ? "LC" : "ST",
       image: "",
-      deliveryType: "gift_code",
+      deliveryType: isChat ? "live_chat" : "stock",
       packs: [{ id: `${id}-1`, name: "Pack 1", nameKm: "Pack 1", price: 1, cost: 1, category: "Gift Card", image: "" }],
     };
     setProducts((x) => [...x, p]);
@@ -288,7 +293,6 @@ function LocalServicesPanel() {
   function updateAt(i, patch) {
     setProducts((list) => list.map((p, idx) => (idx === i ? { ...p, ...patch } : p)));
   }
-
   function updatePack(pi, pk, patch) {
     setProducts((list) =>
       list.map((p, idx) => {
@@ -297,7 +301,6 @@ function LocalServicesPanel() {
       }),
     );
   }
-
   function addPack(pi) {
     setProducts((list) =>
       list.map((p, idx) => {
@@ -310,7 +313,6 @@ function LocalServicesPanel() {
       }),
     );
   }
-
   function removePack(pi, pk) {
     setProducts((list) =>
       list.map((p, idx) => {
@@ -319,267 +321,226 @@ function LocalServicesPanel() {
       }),
     );
   }
-
   function removeProduct(i) {
     if (!confirm("លុប service នេះ?")) return;
     setProducts((list) => list.filter((_, idx) => idx !== i));
     setEditIdx(0);
   }
 
-  // Flatten all packs for the STOCK ZONE (always visible)
-  const allPacks = [];
+  const stockPacks = [];
   products.forEach((p) => {
-    (p.packs || []).forEach((pk) => {
-      allPacks.push({ service: p.name || p.id, serviceId: p.id, pack: pk });
-    });
+    const dt = p.deliveryType === "gift_code" ? "stock" : p.deliveryType;
+    if (dt !== "stock") return;
+    (p.packs || []).forEach((pk) => stockPacks.push({ service: p.name || p.id, pack: pk }));
   });
 
   return (
-    <section
-      className="card local-svc-panel"
-      style={{
-        marginBottom: 28,
-        border: "2px solid #3b82f6",
-        borderRadius: 16,
-        padding: 16,
-        background: "linear-gradient(180deg, rgba(59,130,246,0.08), transparent)",
-      }}
-    >
-      {/* ===== BIG STOCK ZONE — always on top ===== */}
-      <div
-        style={{
-          background: "#0f172a",
-          color: "#e2e8f0",
-          borderRadius: 14,
-          padding: 16,
-          marginBottom: 18,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
-          <span style={{ display: "inline-flex", color: "#60a5fa" }}><AIcon name="box" size={24} /></span>
-          <div style={{ flex: 1 }}>
-            <h2 style={{ margin: 0, fontSize: "1.15rem", color: "#fff" }}>កន្លែងដាក់ស្តុកកូដ (Add Stock)</h2>
-            <p style={{ margin: "4px 0 0", fontSize: 13, color: "#94a3b8" }}>
-              បិទកូដខាងក្រោម → ចុច «+ បន្ថែមស្តុក» · មួយបន្ទាត់ = មួយកូដ · អតិថិជនបង់រួចទទួលស្វ័យប្រវត្តិ
+    <section className="card" style={{ marginBottom: 28, borderRadius: 16, padding: 0, overflow: "hidden", border: "1px solid var(--border, #e2e8f0)" }}>
+      {/* Header */}
+      <div style={{ padding: "16px 18px", background: "var(--card-soft, #f8fafc)", borderBottom: "1px solid var(--border, #e2e8f0)" }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "flex-start", flexWrap: "wrap" }}>
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <h1 style={{ margin: 0, fontSize: "1.1rem", display: "flex", alignItems: "center", gap: 8 }}>
+              <AIcon name="box" size={20} /> សេវា Local
+            </h1>
+            <p style={{ margin: "6px 0 0", fontSize: 13, color: "var(--muted)" }}>
+              <b>ស្តុក</b> = កូដ auto បន្ទាប់ពីបង់ · <b>Live Chat</b> = អតិថិជនឆាត Admin បន្ទាប់ពីបង់
             </p>
           </div>
-          <button type="button" className="ad-btn soft" onClick={load} disabled={loading}>
-            <AIcon name="refresh" size={16} /> ផ្ទុក
-          </button>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button type="button" className="ad-btn soft" onClick={load} disabled={loading}>
+              <AIcon name="refresh" size={16} /> ផ្ទុក
+            </button>
+            <button type="button" className="ad-btn soft" onClick={() => addProduct("stock")}>
+              + ស្តុក
+            </button>
+            <button type="button" className="ad-btn soft" onClick={() => addProduct("live_chat")}>
+              + Live Chat
+            </button>
+            <button type="button" className="ad-btn primary" disabled={saving} onClick={() => save(products)}>
+              {saving ? "…" : (<><AIcon name="check" size={16} /> រក្សាទុក</>)}
+            </button>
+          </div>
         </div>
+      </div>
 
-        {apiErr ? (
-          <div style={{ background: "#7f1d1d", color: "#fecaca", padding: "10px 12px", borderRadius: 10, marginBottom: 12, fontSize: 13 }}>
-            <span style={{ display: "inline-flex", verticalAlign: "middle", marginRight: 6 }}><AIcon name="alert" size={16} /></span>{apiErr}
+      <div style={{ padding: 16 }}>
+        {/* STOCK ZONE */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <AIcon name="box" size={18} />
+            <strong>ដាក់ស្តុកកូដ</strong>
+            <span style={{ fontSize: 12, color: "var(--muted)" }}>(សម្រាប់ service ប្រភេទស្តុកតែប៉ុណ្ណោះ)</span>
           </div>
-        ) : null}
-
-        {loading ? (
-          <div className="ad-loading" style={{ color: "#94a3b8" }}>
-            <span className="ad-spin" /> កំពុងផ្ទុក…
-          </div>
-        ) : allPacks.length === 0 ? (
-          <div style={{ padding: 12, background: "#1e293b", borderRadius: 10, fontSize: 14 }}>
-            មិនទាន់មាន pack — ចុច <b>+ Service</b> ខាងក្រោមជាមុន សិន រួចរក្សាទុក បន្ទាប់មកដាក់ស្តុកនៅទីនេះ។
-          </div>
-        ) : (
-          allPacks.map(({ service, pack: pk }) => (
-            <div
-              key={pk.id}
-              style={{
-                background: "#1e293b",
-                borderRadius: 12,
-                padding: 14,
-                marginBottom: 12,
-                border: "1px solid #334155",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
-                <div>
-                  <div style={{ fontWeight: 700, color: "#fff" }}>
-                    {service} · {pk.name || pk.id}
-                  </div>
-                  <div style={{ fontSize: 12, color: "#94a3b8" }}>
-                    ID: <code style={{ color: "#93c5fd" }}>{pk.id}</code> · តម្លៃ ${Number(pk.price || 0).toFixed(2)}
-                  </div>
-                </div>
-                <div
-                  style={{
-                    background: (stockCounts[pk.id] || 0) > 0 ? "#14532d" : "#7f1d1d",
-                    color: "#fff",
-                    borderRadius: 999,
-                    padding: "6px 12px",
-                    fontWeight: 700,
-                    fontSize: 13,
-                  }}
-                >
-                  នៅសល់ {stockCounts[pk.id] || 0} កូដ
-                </div>
-              </div>
-              <textarea
-                rows={4}
-                placeholder={"បិទកូដនៅទីនេះ...\nCODE-001\nCODE-002\nCODE-003"}
-                value={stockDraft[pk.id] ?? ""}
-                onChange={(e) => setStockDraft((s) => ({ ...s, [pk.id]: e.target.value }))}
-                style={{
-                  width: "100%",
-                  borderRadius: 10,
-                  padding: 12,
-                  fontFamily: "ui-monospace, monospace",
-                  fontSize: 14,
-                  border: "2px solid #3b82f6",
-                  background: "#0f172a",
-                  color: "#86efac",
-                  resize: "vertical",
-                }}
-              />
-              <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
-                <button
-                  type="button"
-                  className="ad-btn primary"
-                  style={{ fontWeight: 700, padding: "10px 16px" }}
-                  disabled={stockBusy === pk.id}
-                  onClick={() => saveStock(pk.id, "append")}
-                >
-                  <AIcon name="box" size={16} /> បន្ថែមស្តុក
-                </button>
-                <button
-                  type="button"
-                  className="ad-btn soft"
-                  disabled={stockBusy === pk.id}
-                  onClick={() => {
-                    if (confirm("ជំនួសស្តុកទាំងអស់?")) saveStock(pk.id, "replace");
-                  }}
-                >
-                  ជំនួសស្តុក
-                </button>
-              </div>
+          {!stockOk ? (
+            <div style={{ background: "#fef3c7", color: "#92400e", padding: "10px 12px", borderRadius: 10, fontSize: 13, marginBottom: 10, display: "flex", gap: 8, alignItems: "flex-start" }}>
+              <AIcon name="alert" size={16} />
+              <span>Stock API មិនទាន់ដំណើរការលើ server។ Push <code>server/index.js</code> + <code>server/store.js</code> រួច Clear cache & deploy។</span>
             </div>
-          ))
-        )}
-      </div>
-
-      {/* ===== Service editor ===== */}
-      <div className="ad-head" style={{ marginBottom: 12 }}>
-        <div>
-          <h1 style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "1.05rem", margin: 0 }}>
-            <AIcon name="box" size={20} /> កំណត់ Service / Pack
-          </h1>
-          <p style={{ margin: "4px 0 0", color: "var(--muted)", fontSize: 13 }}>
-            បន្ថែម service ថ្មី · រូប · តម្លៃ · បន្ទាប់មកដាក់ស្តុកខាងលើ
-            {usingDefaults ? " · កំពុងប្រើ default" : ""}
-          </p>
-        </div>
-        <div className="ad-head-actions" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <button type="button" className="ad-btn soft" onClick={addProduct}>
-            + Service
-          </button>
-          <button type="button" className="ad-btn primary" disabled={saving} onClick={() => save(products)}>
-            {saving ? "…" : (<><AIcon name="check" size={16} /> រក្សាទុក Service</>)}
-          </button>
-        </div>
-      </div>
-
-      {loading ? null : products.length === 0 ? (
-        <p className="ad-empty">មិនទាន់មាន service — ចុច «+ Service»</p>
-      ) : (
-        products.map((p, i) => {
-          const open = editIdx === i;
-          const totalStock = (p.packs || []).reduce((s, pk) => s + (stockCounts[pk.id] || 0), 0);
-          return (
-            <article key={p.id || i} className={`ad-game${p.open !== false ? " on" : ""}`} style={{ marginBottom: 10, borderRadius: 12 }}>
-              <div className="ad-game-top" style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", padding: "10px 12px" }}>
-                {p.image ? (
-                  <img src={p.image} alt="" style={{ width: 40, height: 40, borderRadius: 10, objectFit: "cover" }} />
-                ) : (
-                  <span className="ad-tag" style={{ width: 40, height: 40, borderRadius: 10, display: "grid", placeItems: "center", fontWeight: 700 }}>
-                    {(p.mark || "GC").slice(0, 2)}
-                  </span>
-                )}
-                <div style={{ flex: 1, minWidth: 120 }}>
-                  <strong style={{ display: "block" }}>{p.name || p.id}</strong>
-                  <small style={{ color: "var(--muted)" }}>
-                    {(p.packs || []).length} packs · ស្តុក {totalStock}
-                  </small>
-                </div>
-                <label style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 13 }}>
-                  <input type="checkbox" checked={p.open !== false} onChange={(e) => updateAt(i, { open: e.target.checked })} />
-                  បង្ហាញ
-                </label>
-                <button type="button" className="ad-btn soft" onClick={() => setEditIdx(open ? -1 : i)}>
-                  {open ? "បិទ" : "កែ"}
-                </button>
-                <button type="button" className="ad-btn danger" onClick={() => removeProduct(i)}>
-                  លុប
-                </button>
-              </div>
-              {open ? (
-                <div className="ad-order-detail" style={{ padding: "12px 14px 16px", borderTop: "1px solid rgba(0,0,0,0.06)" }}>
-                  <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 14 }}>
-                    <div>
-                      <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 6 }}>រូប</div>
-                      <ImageSlot
-                        src={p.image || ""}
-                        fallback={(p.mark || "GC").slice(0, 2)}
-                        size={72}
-                        custom={!!p.image}
-                        label="Upload"
-                        onUrl={(url) => updateAt(i, { image: url })}
-                        onClear={() => updateAt(i, { image: "" })}
-                      />
-                    </div>
-                    <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 1fr", flex: 1, minWidth: 240 }}>
-                      <label>
-                        ID
-                        <input value={p.id} onChange={(e) => updateAt(i, { id: e.target.value })} />
-                      </label>
-                      <label>
-                        Mark
-                        <input value={p.mark || ""} onChange={(e) => updateAt(i, { mark: e.target.value })} />
-                      </label>
-                      <label>
-                        Name EN
-                        <input value={p.name || ""} onChange={(e) => updateAt(i, { name: e.target.value })} />
-                      </label>
-                      <label>
-                        Name KM
-                        <input value={p.nameKm || ""} onChange={(e) => updateAt(i, { nameKm: e.target.value })} />
-                      </label>
+          ) : null}
+          {loading ? (
+            <div className="ad-loading"><span className="ad-spin" /> កំពុងផ្ទុក…</div>
+          ) : stockPacks.length === 0 ? (
+            <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>
+              មិនទាន់មាន pack ប្រភេទស្តុក — ចុច <b>+ ស្តុក</b> ខាងលើ។
+            </p>
+          ) : (
+            stockPacks.map(({ service, pack: pk }) => (
+              <div key={pk.id} style={{ border: "1px solid var(--border, #e2e8f0)", borderRadius: 12, padding: 12, marginBottom: 10 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+                  <div>
+                    <strong>{service}</strong>
+                    <span style={{ color: "var(--muted)" }}> · {pk.name || pk.id}</span>
+                    <div style={{ fontSize: 12, color: "var(--muted)" }}>
+                      <code>{pk.id}</code> · ${Number(pk.price || 0).toFixed(2)}
                     </div>
                   </div>
-                  <h4 style={{ margin: "4px 0 10px" }}>Packs</h4>
-                  {(p.packs || []).map((pk, j) => (
-                    <div
-                      key={pk.id || j}
-                      style={{ display: "grid", gridTemplateColumns: "52px 1fr 1.4fr 0.7fr 0.7fr auto", gap: 8, alignItems: "center", marginBottom: 8 }}
-                    >
-                      <ImageSlot
-                        src={pk.image || ""}
-                        fallback={(pk.name || "?").slice(0, 1)}
-                        size={48}
-                        custom={!!pk.image}
-                        label="Pack"
-                        onUrl={(url) => updatePack(i, j, { image: url })}
-                        onClear={() => updatePack(i, j, { image: "" })}
-                      />
-                      <input placeholder="id" value={pk.id} onChange={(e) => updatePack(i, j, { id: e.target.value })} />
-                      <input placeholder="name" value={pk.name} onChange={(e) => updatePack(i, j, { name: e.target.value, nameKm: e.target.value })} />
-                      <input type="number" step="0.01" placeholder="price" value={pk.price} onChange={(e) => updatePack(i, j, { price: Number(e.target.value) })} />
-                      <input type="number" step="0.01" placeholder="cost" value={pk.cost} onChange={(e) => updatePack(i, j, { cost: Number(e.target.value) })} />
-                      <button type="button" className="ad-btn danger" onClick={() => removePack(i, j)}>
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                  <button type="button" className="ad-btn soft" onClick={() => addPack(i)}>
-                    + Pack
+                  <span className={`ad-tag${(stockCounts[pk.id] || 0) > 0 ? " ok" : ""}`}>
+                    នៅសល់ {stockCounts[pk.id] || 0}
+                  </span>
+                </div>
+                <textarea
+                  rows={3}
+                  placeholder={"CODE-001\nCODE-002\nCODE-003"}
+                  value={stockDraft[pk.id] ?? ""}
+                  onChange={(e) => setStockDraft((s) => ({ ...s, [pk.id]: e.target.value }))}
+                  style={{ width: "100%", borderRadius: 10, padding: 10, fontFamily: "ui-monospace, monospace", fontSize: 13 }}
+                />
+                <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+                  <button type="button" className="ad-btn primary" disabled={stockBusy === pk.id} onClick={() => saveStock(pk.id, "append")}>
+                    <AIcon name="box" size={15} /> បន្ថែមស្តុក
+                  </button>
+                  <button
+                    type="button"
+                    className="ad-btn soft"
+                    disabled={stockBusy === pk.id}
+                    onClick={() => confirm("ជំនួសស្តុកទាំងអស់?") && saveStock(pk.id, "replace")}
+                  >
+                    ជំនួស
                   </button>
                 </div>
-              ) : null}
-            </article>
-          );
-        })
-      )}
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* SERVICE LIST */}
+        <div style={{ borderTop: "1px solid var(--border, #e2e8f0)", paddingTop: 14 }}>
+          <strong style={{ display: "block", marginBottom: 10 }}>បញ្ជី Service</strong>
+          {loading ? null : products.length === 0 ? (
+            <p className="ad-empty">មិនទាន់មាន — ចុច + ស្តុក ឬ + Live Chat</p>
+          ) : (
+            products.map((p, i) => {
+              const open = editIdx === i;
+              let dt = p.deliveryType || "stock";
+              if (dt === "gift_code") dt = "stock";
+              const isStock = dt === "stock";
+              const totalStock = (p.packs || []).reduce((s, pk) => s + (stockCounts[pk.id] || 0), 0);
+              return (
+                <article key={p.id || i} className={`ad-game${p.open !== false ? " on" : ""}`} style={{ marginBottom: 10, borderRadius: 12 }}>
+                  <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", padding: "10px 12px" }}>
+                    {p.image ? (
+                      <img src={p.image} alt="" style={{ width: 40, height: 40, borderRadius: 10, objectFit: "cover" }} />
+                    ) : (
+                      <span className="ad-tag" style={{ width: 40, height: 40, borderRadius: 10, display: "grid", placeItems: "center" }}>
+                        {(p.mark || "GC").slice(0, 2)}
+                      </span>
+                    )}
+                    <div style={{ flex: 1, minWidth: 140 }}>
+                      <strong style={{ display: "block" }}>{p.name || p.id}</strong>
+                      <small style={{ color: "var(--muted)" }}>
+                        {(p.packs || []).length} packs
+                        {isStock ? ` · ស្តុក ${totalStock}` : " · Live Chat"}
+                      </small>
+                    </div>
+                    <span className={`ad-tag${isStock ? " ok" : ""}`}>{isStock ? "ស្តុក" : "Live Chat"}</span>
+                    <label style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 13 }}>
+                      <input type="checkbox" checked={p.open !== false} onChange={(e) => updateAt(i, { open: e.target.checked })} />
+                      បង្ហាញ
+                    </label>
+                    <button type="button" className="ad-btn soft" onClick={() => setEditIdx(open ? -1 : i)}>
+                      {open ? "បិទ" : "កែ"}
+                    </button>
+                    <button type="button" className="ad-btn danger" onClick={() => removeProduct(i)}>
+                      លុប
+                    </button>
+                  </div>
+                  {open ? (
+                    <div style={{ padding: "12px 14px 16px", borderTop: "1px solid rgba(0,0,0,0.06)" }}>
+                      <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 12 }}>
+                        <ImageSlot
+                          src={p.image || ""}
+                          fallback={(p.mark || "GC").slice(0, 2)}
+                          size={64}
+                          custom={!!p.image}
+                          label="រូប"
+                          onUrl={(url) => updateAt(i, { image: url })}
+                          onClear={() => updateAt(i, { image: "" })}
+                        />
+                        <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 1fr", flex: 1, minWidth: 220 }}>
+                          <label>
+                            ID
+                            <input value={p.id} onChange={(e) => updateAt(i, { id: e.target.value })} />
+                          </label>
+                          <label>
+                            ប្រភេទ
+                            <select
+                              value={dt}
+                              onChange={(e) => updateAt(i, { deliveryType: e.target.value, mark: e.target.value === "live_chat" ? "LC" : "ST" })}
+                            >
+                              <option value="stock">ស្តុក (auto កូដ)</option>
+                              <option value="live_chat">Live Chat (ឆាត Admin)</option>
+                            </select>
+                          </label>
+                          <label>
+                            Name EN
+                            <input value={p.name || ""} onChange={(e) => updateAt(i, { name: e.target.value })} />
+                          </label>
+                          <label>
+                            Name KM
+                            <input value={p.nameKm || ""} onChange={(e) => updateAt(i, { nameKm: e.target.value })} />
+                          </label>
+                          <label style={{ gridColumn: "1 / -1" }}>
+                            ការពិពណ៌នា
+                            <input value={p.blurbKm || ""} onChange={(e) => updateAt(i, { blurbKm: e.target.value, blurbEn: e.target.value })} />
+                          </label>
+                        </div>
+                      </div>
+                      <h4 style={{ margin: "4px 0 8px" }}>Packs</h4>
+                      {(p.packs || []).map((pk, j) => (
+                        <div
+                          key={pk.id || j}
+                          style={{ display: "grid", gridTemplateColumns: "48px 1fr 1.3fr 0.7fr 0.7fr auto", gap: 6, alignItems: "center", marginBottom: 6 }}
+                        >
+                          <ImageSlot
+                            src={pk.image || ""}
+                            fallback={(pk.name || "?").slice(0, 1)}
+                            size={44}
+                            custom={!!pk.image}
+                            label="Pack"
+                            onUrl={(url) => updatePack(i, j, { image: url })}
+                            onClear={() => updatePack(i, j, { image: "" })}
+                          />
+                          <input placeholder="id" value={pk.id} onChange={(e) => updatePack(i, j, { id: e.target.value })} />
+                          <input placeholder="name" value={pk.name} onChange={(e) => updatePack(i, j, { name: e.target.value, nameKm: e.target.value })} />
+                          <input type="number" step="0.01" value={pk.price} onChange={(e) => updatePack(i, j, { price: Number(e.target.value) })} />
+                          <input type="number" step="0.01" value={pk.cost} onChange={(e) => updatePack(i, j, { cost: Number(e.target.value) })} />
+                          <button type="button" className="ad-btn danger" onClick={() => removePack(i, j)}>
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                      <button type="button" className="ad-btn soft" onClick={() => addPack(i)}>
+                        + Pack
+                      </button>
+                    </div>
+                  ) : null}
+                </article>
+              );
+            })
+          )}
+        </div>
+      </div>
     </section>
   );
 }
