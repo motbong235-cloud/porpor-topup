@@ -101,7 +101,7 @@ export default function Success({ lang, settings }) {
     );
   }
 
-  const isGift = order.deliveryType === "gift_code";
+  const isGift = ["stock", "live_chat", "gift_code"].includes(order.deliveryType);
   const paid = order.status !== "pending" && order.status !== "failed";
 
   return (

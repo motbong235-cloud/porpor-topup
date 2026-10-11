@@ -10,7 +10,8 @@ export default function Game({ lang, addOrder, settings }) {
   const navigate = useNavigate();
   const { games, loading } = useCatalog();
   const game = games.find((g) => g.id === id) || null;
-  const isGift = !!(game && (game.deliveryType === "gift_code" || game.id === "roblox-gift-cards"));
+  const isGift = !!(game && ["stock", "live_chat", "gift_code"].includes(game.deliveryType));
+  const isStock = !!(game && (game.deliveryType === "stock" || game.deliveryType === "gift_code"));
 
   const [userId, setUserId] = useState("");
   const [zoneId, setZoneId] = useState("");
@@ -382,7 +383,7 @@ export default function Game({ lang, addOrder, settings }) {
               {game.packs
                 .filter((p) => cat === "all" || p.category === cat)
                 .map((p) => {
-                  const soldOut = isGift && p.inStock === false;
+                  const soldOut = isStock && p.inStock === false;
                   return (
                   <button
                     key={p.id}
@@ -418,7 +419,7 @@ export default function Game({ lang, addOrder, settings }) {
                       <div className="name">{lang === "km" ? p.nameKm : p.name}</div>
                       {p.bonus ? <div className="bonus">{p.bonus}</div> : null}
                       <div className="price">{money(p.price)}</div>
-                      {isGift ? (
+                      {isStock ? (
                         <div className="bonus" style={{ opacity: soldOut ? 1 : 0.8 }}>
                           {soldOut
                             ? (lang === "km" ? "អស់ស្តុក" : "Out of stock")
@@ -435,11 +436,19 @@ export default function Game({ lang, addOrder, settings }) {
           
           {isGift ? (
             <section className="card" style={{ borderColor: "var(--primary)" }}>
-              <h2>{lang === "km" ? "ទទួលកូដស្វ័យប្រវត្តិ" : "Instant code delivery"}</h2>
+              <h2>
+                {isStock
+                  ? (lang === "km" ? "ទទួលកូដស្វ័យប្រវត្តិ" : "Instant code from stock")
+                  : (lang === "km" ? "ទទួលតាម Live Chat" : "Delivery via Live Chat")}
+              </h2>
               <p className="hint">
-                {lang === "km"
-                  ? "បង់ប្រាក់រួច កូដនឹងបង្ហាញភ្លាមៗលើទំព័រ Payment Successful (ពីស្តុក Admin)។ បើអស់ស្តុក នឹងមាន Live Chat។"
-                  : "After payment, your code appears instantly on the Payment Successful page (from admin stock). If out of stock, use Live Chat."}
+                {isStock
+                  ? (lang === "km"
+                      ? "បង់រួចកូដបង្ហាញភ្លាមលើ Payment Successful។ អស់ស្តុក មាន Live Chat។"
+                      : "After pay, code shows on Payment Successful. Out of stock → Live Chat.")
+                  : (lang === "km"
+                      ? "បង់រួចចុច Live Chat / Telegram ដើម្បីទទួលសេវា។ Order ID ភ្ជាប់ស្វ័យប្រវត្តិ។"
+                      : "After pay, open Live Chat / Telegram. Order ID is attached automatically.")}
               </p>
             </section>
           ) : null}
