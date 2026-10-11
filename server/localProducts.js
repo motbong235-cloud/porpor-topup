@@ -3,7 +3,7 @@
  * Delivery: gift_code → after payment customer contacts Live Chat / Telegram for the code.
  * Admin pastes the code on the order (Admin → Orders).
  */
-import { getSettings } from "./store.js";
+import { getSettings, stockCount } from "./store.js";
 
 /** Default Roblox Gift Card packs (USD face value). Admin can override prices in settings.localProducts */
 export const DEFAULT_LOCAL_PRODUCTS = [
@@ -59,16 +59,22 @@ export function localCatalog() {
       numericId: false,
       idHintKm: String(g.idHintKm || ""),
       idHintEn: String(g.idHintEn || ""),
-      packs: (Array.isArray(g.packs) ? g.packs : []).map((p) => ({
-        id: String(p.id),
-        name: String(p.name || p.id),
-        nameKm: String(p.nameKm || p.name || p.id),
-        price: Number(p.price),
-        cost: Number(p.cost ?? p.price),
-        category: String(p.category || "Gift Card"),
-        bonus: p.bonus ? String(p.bonus) : "",
-        image: String(p.image || ""),
-      })).filter((p) => p.id && Number.isFinite(p.price) && p.price > 0),
+      packs: (Array.isArray(g.packs) ? g.packs : []).map((p) => {
+        const id = String(p.id);
+        const left = stockCount(id);
+        return {
+          id,
+          name: String(p.name || p.id),
+          nameKm: String(p.nameKm || p.name || p.id),
+          price: Number(p.price),
+          cost: Number(p.cost ?? p.price),
+          category: String(p.category || "Gift Card"),
+          bonus: p.bonus ? String(p.bonus) : "",
+          image: String(p.image || ""),
+          stock: left,
+          inStock: left > 0,
+        };
+      }).filter((p) => p.id && Number.isFinite(p.price) && p.price > 0),
     }))
     .filter((g) => g.packs.length);
 }

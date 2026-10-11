@@ -17,6 +17,12 @@ import {
   updateOrder,
   updateSettings,
   validSession,
+  getGiftStock,
+  stockSummary,
+  setPackStock,
+  addPackStock,
+  popPackStock,
+  stockCount,
 } from "./store.js";
 import * as khmerSystem from "./khmerSystem.js";
 import * as khmerTopup from "./khmerTopup.js";
@@ -28,6 +34,8 @@ const ROOT = path.join(__dirname, "..");
 const DIST = path.join(ROOT, "dist");
 const PORT = Number(process.env.PORT) || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "porpor-admin-2026";
+/** Private admin SPA path (no leading slash). Default: pp-console — set ADMIN_PATH on Render to hide it. */
+const ADMIN_PATH = String(process.env.ADMIN_PATH || "pp-console").replace(/^\/+|\/+$/g, "") || "pp-console";
 const isProd = process.env.NODE_ENV === "production";
 
 const app = express();
@@ -95,11 +103,37 @@ function summarizeKt(codes, statuses) {
 }
 
 async function fulfillTopup(order) {
-  // Roblox / gift cards: wait for admin to send code via Live Chat
+  // Gift cards: auto-assign code from stock if available
   if (order.deliveryType === "gift_code") {
+    const codes = [];
+    const qty = Math.max(1, Math.min(10, Number(order.qty) || 1));
+    for (let i = 0; i < qty; i++) {
+      const c = popPackStock(order.packId);
+      if (!c) break;
+      codes.push(c);
+    }
+    if (codes.length >= qty) {
+      return updateOrder(order.id, {
+        status: "delivered",
+        giftCode: codes.join("\n"),
+        note: "Auto-delivered from stock",
+        deliveredAt: Date.now(),
+        paidAt: order.paidAt || Date.now(),
+      });
+    }
+    // partial or empty stock → paid, customer uses Live Chat
+    if (codes.length) {
+      return updateOrder(order.id, {
+        status: "paid",
+        giftCode: codes.join("\n"),
+        note: `Partial stock (${codes.length}/${qty}) — rest via Live Chat`,
+        paidAt: order.paidAt || Date.now(),
+      });
+    }
     return updateOrder(order.id, {
       status: "paid",
-      note: "Gift card — contact Live Chat / Telegram for code",
+      note: "No stock — deliver via Live Chat / Admin",
+      paidAt: order.paidAt || Date.now(),
     });
   }
   const settings = getSettings();
@@ -167,6 +201,11 @@ async function pollKtStatus(order) {
     return order;
   }
 }
+
+
+app.get("/api/public-config", (_req, res) => {
+  res.json({ adminPath: ADMIN_PATH });
+});
 
 app.get("/api/health", (_req, res) => {
   res.json({
@@ -259,6 +298,14 @@ app.post("/api/checkout/create", async (req, res) => {
   if (!found) return res.status(400).json({ error: "pack_unavailable" });
 
   const giftCode = isGiftCodeProduct(found.game);
+  if (giftCode) {
+    const need = Math.min(10, Math.max(1, Math.floor(Number(body.qty)) || 1));
+    const left = stockCount(found.pack.id);
+    if (left < need) {
+      return res.status(400).json({ error: "out_of_stock", stock: left });
+    }
+  }
+
   // Gift cards / local products do not need Khmer TopUp
   if (!giftCode && !khmerTopup.isTopupReady()) {
     return res.status(503).json({ error: "not_configured" });
@@ -507,6 +554,26 @@ app.get("/api/admin/integrations", adminAuth, async (_req, res) => {
 });
 
 
+
+app.get("/api/admin/gift-stock", adminAuth, (_req, res) => {
+  res.json({ stock: getGiftStock(), counts: stockSummary() });
+});
+
+app.put("/api/admin/gift-stock/:packId", adminAuth, (req, res) => {
+  const packId = String(req.params.packId || "").trim();
+  if (!packId) return res.status(400).json({ error: "bad_pack" });
+  const mode = String(req.body?.mode || "replace");
+  const raw = req.body?.codes;
+  let codes = [];
+  if (typeof raw === "string") {
+    codes = raw.split(/[\n,;]+/);
+  } else if (Array.isArray(raw)) {
+    codes = raw;
+  }
+  const count = mode === "append" ? addPackStock(packId, codes) : setPackStock(packId, codes);
+  res.json({ packId, count, stock: getGiftStock()[packId] || [] });
+});
+
 app.get("/api/admin/local-products", adminAuth, (_req, res) => {
   const s = getSettings();
   const products = Array.isArray(s.localProducts) && s.localProducts.length
@@ -622,7 +689,23 @@ if (fs.existsSync(DIST)) {
   app.use(express.static(DIST));
   app.get("*", (req, res, next) => {
     if (req.path.startsWith("/api")) return next();
-    res.sendFile(path.join(DIST, "index.html"));
+    {
+    const htmlPath = path.join(DIST, "index.html");
+    try {
+      let html = fs.readFileSync(htmlPath, "utf8");
+      const inj = `<script>window.__ADMIN_PATH__=${JSON.stringify(ADMIN_PATH)};</script>`;
+      if (html.includes("window.__ADMIN_PATH__")) {
+        html = html.replace(/<script>window\.__ADMIN_PATH__=.*?<\/script>/, inj);
+      } else if (html.includes("</head>")) {
+        html = html.replace("</head>", inj + "</head>");
+      } else {
+        html = inj + html;
+      }
+      res.type("html").send(html);
+    } catch {
+      res.sendFile(htmlPath);
+    }
+  }
   });
 } else {
   app.get("/", (_req, res) => {
