@@ -1,0 +1,4 @@
+Delete server/totp.js from the repo if it still exists.
+On Render: Manual Deploy → Clear build cache & deploy.
+After deploy, login page must show: build no2fa-2026-10-11
+And NO 2FA input field.
