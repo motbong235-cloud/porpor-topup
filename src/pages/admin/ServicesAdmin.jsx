@@ -336,98 +336,105 @@ function LocalServicesPanel() {
   });
 
   return (
-    <section className="card" style={{ marginBottom: 28, borderRadius: 16, padding: 0, overflow: "hidden", border: "1px solid var(--border, #e2e8f0)" }}>
-      {/* Header */}
-      <div style={{ padding: "16px 18px", background: "var(--card-soft, #f8fafc)", borderBottom: "1px solid var(--border, #e2e8f0)" }}>
-        <div style={{ display: "flex", gap: 12, alignItems: "flex-start", flexWrap: "wrap" }}>
-          <div style={{ flex: 1, minWidth: 200 }}>
-            <h1 style={{ margin: 0, fontSize: "1.1rem", display: "flex", alignItems: "center", gap: 8 }}>
-              <AIcon name="box" size={20} /> សេវា Local
-            </h1>
-            <p style={{ margin: "6px 0 0", fontSize: 13, color: "var(--muted)" }}>
-              <b>ស្តុក</b> = កូដ auto បន្ទាប់ពីបង់ · <b>Live Chat</b> = អតិថិជនឆាត Admin បន្ទាប់ពីបង់
-            </p>
-          </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button type="button" className="ad-btn soft" onClick={load} disabled={loading}>
-              <AIcon name="refresh" size={16} /> ផ្ទុក
-            </button>
-            <button type="button" className="ad-btn soft" onClick={() => addProduct("stock")}>
-              + ស្តុក
-            </button>
-            <button type="button" className="ad-btn soft" onClick={() => addProduct("live_chat")}>
-              + Live Chat
-            </button>
-            <button type="button" className="ad-btn primary" disabled={saving} onClick={() => save(products)}>
-              {saving ? "…" : (<><AIcon name="check" size={16} /> រក្សាទុក</>)}
-            </button>
-          </div>
+    <section className="ad-local">
+      <header className="ad-local-head">
+        <div className="ad-local-head-text">
+          <h1>
+            <AIcon name="box" size={20} /> សេវា Local
+          </h1>
+          <p>
+            <b>ស្តុក</b> = កូដ auto · <b>Live Chat</b> = ឆាត Admin បន្ទាប់ពីបង់
+          </p>
         </div>
-      </div>
+        <div className="ad-local-actions">
+          <button type="button" className="ad-btn soft" onClick={load} disabled={loading}>
+            <AIcon name="refresh" size={16} /> ផ្ទុក
+          </button>
+          <button type="button" className="ad-btn soft" onClick={() => addProduct("stock")}>
+            + ស្តុក
+          </button>
+          <button type="button" className="ad-btn soft" onClick={() => addProduct("live_chat")}>
+            + Live Chat
+          </button>
+          <button type="button" className="ad-btn primary" disabled={saving} onClick={() => save(products)}>
+            {saving ? "…" : (<><AIcon name="check" size={16} /> រក្សាទុក</>)}
+          </button>
+        </div>
+      </header>
 
-      <div style={{ padding: 16 }}>
-        {/* STOCK ZONE */}
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+      <div className="ad-local-body">
+        {/* Stock zone */}
+        <div className="ad-stock-zone">
+          <div className="ad-section-title">
             <AIcon name="box" size={18} />
             <strong>ដាក់ស្តុកកូដ</strong>
-            <span style={{ fontSize: 12, color: "var(--muted)" }}>(សម្រាប់ service ប្រភេទស្តុកតែប៉ុណ្ណោះ)</span>
+            <span className="ad-muted">សម្រាប់ service ប្រភេទស្តុក</span>
           </div>
+
           {!stockOk ? (
-            <div style={{ background: "#fef3c7", color: "#92400e", padding: "10px 12px", borderRadius: 10, fontSize: 13, marginBottom: 10, display: "flex", gap: 8, alignItems: "flex-start" }}>
+            <div className="ad-banner warn">
               <AIcon name="alert" size={16} />
-              <span>Stock API មិនទាន់ដំណើរការលើ server។ Push <code>server/index.js</code> + <code>server/store.js</code> រួច Clear cache & deploy។</span>
+              <span>Stock API មិនទាន់ដំណើរការ — deploy <code>server/index.js</code> + <code>server/store.js</code></span>
             </div>
           ) : null}
+
           {loading ? (
             <div className="ad-loading"><span className="ad-spin" /> កំពុងផ្ទុក…</div>
           ) : stockPacks.length === 0 ? (
-            <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>
-              មិនទាន់មាន pack ប្រភេទស្តុក — ចុច <b>+ ស្តុក</b> ខាងលើ។
-            </p>
+            <p className="ad-muted">មិនទាន់មាន pack ស្តុក — ចុច <b>+ ស្តុក</b> ខាងលើ</p>
           ) : (
-            stockPacks.map(({ service, pack: pk }) => (
-              <div key={pk.id} style={{ border: "1px solid var(--border, #e2e8f0)", borderRadius: 12, padding: 12, marginBottom: 10 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
-                  <div>
-                    <strong>{service}</strong>
-                    <span style={{ color: "var(--muted)" }}> · {pk.name || pk.id}</span>
-                    <div style={{ fontSize: 12, color: "var(--muted)" }}>
-                      <code>{pk.id}</code> · ${Number(pk.price || 0).toFixed(2)}
+            <div className="ad-stock-list">
+              {stockPacks.map(({ service, pack: pk }) => (
+                <div key={pk.id} className="ad-stock-card">
+                  <div className="ad-stock-card-top">
+                    <div>
+                      <strong>{service}</strong>
+                      <span className="ad-muted"> · {pk.name || pk.id}</span>
+                      <div className="ad-mono-sm">
+                        <code>{pk.id}</code> · ${Number(pk.price || 0).toFixed(2)}
+                      </div>
                     </div>
+                    <span className={`ad-tag${(stockCounts[pk.id] || 0) > 0 ? " ok" : ""}`}>
+                      នៅសល់ {stockCounts[pk.id] || 0}
+                    </span>
                   </div>
-                  <span className={`ad-tag${(stockCounts[pk.id] || 0) > 0 ? " ok" : ""}`}>
-                    នៅសល់ {stockCounts[pk.id] || 0}
-                  </span>
+                  <textarea
+                    className="ad-stock-ta"
+                    rows={3}
+                    placeholder={"CODE-001\nCODE-002\nCODE-003"}
+                    value={stockDraft[pk.id] ?? ""}
+                    onChange={(e) => setStockDraft((s) => ({ ...s, [pk.id]: e.target.value }))}
+                  />
+                  <div className="ad-row-btns">
+                    <button
+                      type="button"
+                      className="ad-btn primary"
+                      disabled={stockBusy === pk.id}
+                      onClick={() => saveStock(pk.id, "append")}
+                    >
+                      <AIcon name="box" size={15} /> បន្ថែមស្តុក
+                    </button>
+                    <button
+                      type="button"
+                      className="ad-btn soft"
+                      disabled={stockBusy === pk.id}
+                      onClick={() => confirm("ជំនួសស្តុកទាំងអស់?") && saveStock(pk.id, "replace")}
+                    >
+                      ជំនួស
+                    </button>
+                  </div>
                 </div>
-                <textarea
-                  rows={3}
-                  placeholder={"CODE-001\nCODE-002\nCODE-003"}
-                  value={stockDraft[pk.id] ?? ""}
-                  onChange={(e) => setStockDraft((s) => ({ ...s, [pk.id]: e.target.value }))}
-                  style={{ width: "100%", borderRadius: 10, padding: 10, fontFamily: "ui-monospace, monospace", fontSize: 13 }}
-                />
-                <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
-                  <button type="button" className="ad-btn primary" disabled={stockBusy === pk.id} onClick={() => saveStock(pk.id, "append")}>
-                    <AIcon name="box" size={15} /> បន្ថែមស្តុក
-                  </button>
-                  <button
-                    type="button"
-                    className="ad-btn soft"
-                    disabled={stockBusy === pk.id}
-                    onClick={() => confirm("ជំនួសស្តុកទាំងអស់?") && saveStock(pk.id, "replace")}
-                  >
-                    ជំនួស
-                  </button>
-                </div>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </div>
 
-        {/* SERVICE LIST */}
-        <div style={{ borderTop: "1px solid var(--border, #e2e8f0)", paddingTop: 14 }}>
-          <strong style={{ display: "block", marginBottom: 10 }}>បញ្ជី Service</strong>
+        {/* Service list */}
+        <div className="ad-svc-list">
+          <div className="ad-section-title">
+            <strong>បញ្ជី Service</strong>
+          </div>
+
           {loading ? null : products.length === 0 ? (
             <p className="ad-empty">មិនទាន់មាន — ចុច + ស្តុក ឬ + Live Chat</p>
           ) : (
@@ -442,27 +449,25 @@ function LocalServicesPanel() {
                   : dt === "live_chat";
               const totalStock = (p.packs || []).reduce((s, pk) => s + (stockCounts[pk.id] || 0), 0);
               return (
-                <article key={p.id || i} className={`ad-game${p.open !== false ? " on" : ""}`} style={{ marginBottom: 10, borderRadius: 12 }}>
-                  <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", padding: "10px 12px" }}>
+                <article key={p.id || i} className={`ad-svc-item${p.open !== false ? " on" : ""}`}>
+                  <div className="ad-svc-row">
                     {p.image ? (
-                      <img src={p.image} alt="" style={{ width: 40, height: 40, borderRadius: 10, objectFit: "cover" }} />
+                      <img src={p.image} alt="" className="ad-svc-thumb" />
                     ) : (
-                      <span className="ad-tag" style={{ width: 40, height: 40, borderRadius: 10, display: "grid", placeItems: "center" }}>
-                        {(p.mark || "GC").slice(0, 2)}
-                      </span>
+                      <span className="ad-svc-mark">{(p.mark || "GC").slice(0, 2)}</span>
                     )}
-                    <div style={{ flex: 1, minWidth: 140 }}>
-                      <strong style={{ display: "block" }}>{p.name || p.id}</strong>
-                      <small style={{ color: "var(--muted)" }}>
+                    <div className="ad-svc-info">
+                      <strong>{p.name || p.id}</strong>
+                      <small>
                         {(p.packs || []).length} packs
-                        {isStock ? ` · ស្តុក ${totalStock}` : " · Live Chat"}{needUser ? " · Username" : ""}
+                        {isStock ? ` · ស្តុក ${totalStock}` : " · Live Chat"}
+                        {needUser ? " · Username" : ""}
                       </small>
                     </div>
                     <span className={`ad-tag${isStock ? " ok" : ""}`}>{isStock ? "ស្តុក" : "Live Chat"}</span>
                     <button
                       type="button"
-                      className={`ad-btn${needUser ? " primary" : " soft"}`}
-                      title="បើក/បិទ Username"
+                      className={`ad-btn${needUser ? " primary" : " soft"} sm`}
                       onClick={async () => {
                         const next = products.map((x, idx) =>
                           idx === i ? { ...x, requireUsername: !needUser } : x,
@@ -471,22 +476,27 @@ function LocalServicesPanel() {
                         await save(next);
                       }}
                     >
-                      {needUser ? "Username ✓" : "Username ✕"}
+                      {needUser ? "User ✓" : "User ✕"}
                     </button>
-                    <label style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 13 }}>
-                      <input type="checkbox" checked={p.open !== false} onChange={(e) => updateAt(i, { open: e.target.checked })} />
+                    <label className="ad-check">
+                      <input
+                        type="checkbox"
+                        checked={p.open !== false}
+                        onChange={(e) => updateAt(i, { open: e.target.checked })}
+                      />
                       បង្ហាញ
                     </label>
-                    <button type="button" className="ad-btn soft" onClick={() => setEditIdx(open ? -1 : i)}>
+                    <button type="button" className="ad-btn soft sm" onClick={() => setEditIdx(open ? -1 : i)}>
                       {open ? "បិទ" : "កែ"}
                     </button>
-                    <button type="button" className="ad-btn danger" onClick={() => removeProduct(i)}>
+                    <button type="button" className="ad-btn danger sm" onClick={() => removeProduct(i)}>
                       លុប
                     </button>
                   </div>
+
                   {open ? (
-                    <div style={{ padding: "12px 14px 16px", borderTop: "1px solid rgba(0,0,0,0.06)" }}>
-                      <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 12 }}>
+                    <div className="ad-svc-edit">
+                      <div className="ad-svc-edit-top">
                         <ImageSlot
                           src={p.image || ""}
                           fallback={(p.mark || "GC").slice(0, 2)}
@@ -496,42 +506,11 @@ function LocalServicesPanel() {
                           onUrl={(url) => updateAt(i, { image: url })}
                           onClear={() => updateAt(i, { image: "" })}
                         />
-                        <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 1fr", flex: 1, minWidth: 220 }}>
+                        <div className="ad-form-grid">
                           <label>
                             ID
                             <input value={p.id} onChange={(e) => updateAt(i, { id: e.target.value })} />
                           </label>
-                          <div style={{ gridColumn: "1 / -1" }}>
-                            <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 6 }}>របៀបដំណើរការ (ចុចជ្រើស)</div>
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                              {[
-                                { dt: "stock", user: false, label: "ស្តុក", sub: "កូដ auto · គ្មាន username" },
-                                { dt: "stock", user: true, label: "ស្តុក + Username", sub: "កូដ auto · មាន form login" },
-                                { dt: "live_chat", user: false, label: "Live Chat", sub: "ឆាត Admin · គ្មាន username" },
-                                { dt: "live_chat", user: true, label: "Live Chat + Username", sub: "ឆាត Admin · មាន form login" },
-                              ].map((m) => {
-                                const on = dt === m.dt && !!needUser === m.user;
-                                return (
-                                  <button
-                                    key={m.dt + String(m.user)}
-                                    type="button"
-                                    className={`ad-btn${on ? " primary" : " soft"}`}
-                                    style={{ flexDirection: "column", alignItems: "flex-start", gap: 2, padding: "10px 12px", textAlign: "left", height: "auto" }}
-                                    onClick={() =>
-                                      updateAt(i, {
-                                        deliveryType: m.dt,
-                                        requireUsername: m.user,
-                                        mark: m.dt === "live_chat" ? "LC" : "ST",
-                                      })
-                                    }
-                                  >
-                                    <strong style={{ fontSize: 13 }}>{m.label}</strong>
-                                    <span style={{ fontSize: 11, opacity: 0.85 }}>{m.sub}</span>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
                           <label>
                             Name EN
                             <input value={p.name || ""} onChange={(e) => updateAt(i, { name: e.target.value })} />
@@ -540,37 +519,83 @@ function LocalServicesPanel() {
                             Name KM
                             <input value={p.nameKm || ""} onChange={(e) => updateAt(i, { nameKm: e.target.value })} />
                           </label>
-                          <label style={{ gridColumn: "1 / -1" }}>
+                          <label className="span-2">
                             ការពិពណ៌នា
-                            <input value={p.blurbKm || ""} onChange={(e) => updateAt(i, { blurbKm: e.target.value, blurbEn: e.target.value })} />
+                            <input
+                              value={p.blurbKm || ""}
+                              onChange={(e) => updateAt(i, { blurbKm: e.target.value, blurbEn: e.target.value })}
+                            />
                           </label>
                         </div>
                       </div>
-                      <h4 style={{ margin: "4px 0 8px" }}>Packs</h4>
+
+                      <div className="ad-mode-label">របៀបដំណើរការ</div>
+                      <div className="ad-mode-grid">
+                        {[
+                          { dt: "stock", user: false, label: "ស្តុក", sub: "កូដ auto · គ្មាន username" },
+                          { dt: "stock", user: true, label: "ស្តុក + User", sub: "កូដ auto · មាន form" },
+                          { dt: "live_chat", user: false, label: "Live Chat", sub: "ឆាត Admin · គ្មាន username" },
+                          { dt: "live_chat", user: true, label: "Live Chat + User", sub: "ឆាត Admin · មាន form" },
+                        ].map((m) => {
+                          const on = dt === m.dt && !!needUser === m.user;
+                          return (
+                            <button
+                              key={m.dt + String(m.user)}
+                              type="button"
+                              className={`ad-mode${on ? " on" : ""}`}
+                              onClick={() =>
+                                updateAt(i, {
+                                  deliveryType: m.dt,
+                                  requireUsername: m.user,
+                                  mark: m.dt === "live_chat" ? "LC" : "ST",
+                                })
+                              }
+                            >
+                              <strong>{m.label}</strong>
+                              <span>{m.sub}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="ad-mode-label">Packs</div>
                       {(p.packs || []).map((pk, j) => (
-                        <div
-                          key={pk.id || j}
-                          style={{ display: "grid", gridTemplateColumns: "48px 1fr 1.3fr 0.7fr 0.7fr auto", gap: 6, alignItems: "center", marginBottom: 6 }}
-                        >
+                        <div key={pk.id || j} className="ad-pack-row">
                           <ImageSlot
                             src={pk.image || ""}
                             fallback={(pk.name || "?").slice(0, 1)}
-                            size={44}
+                            size={40}
                             custom={!!pk.image}
-                            label="Pack"
+                            label=""
                             onUrl={(url) => updatePack(i, j, { image: url })}
                             onClear={() => updatePack(i, j, { image: "" })}
                           />
                           <input placeholder="id" value={pk.id} onChange={(e) => updatePack(i, j, { id: e.target.value })} />
-                          <input placeholder="name" value={pk.name} onChange={(e) => updatePack(i, j, { name: e.target.value, nameKm: e.target.value })} />
-                          <input type="number" step="0.01" value={pk.price} onChange={(e) => updatePack(i, j, { price: Number(e.target.value) })} />
-                          <input type="number" step="0.01" value={pk.cost} onChange={(e) => updatePack(i, j, { cost: Number(e.target.value) })} />
-                          <button type="button" className="ad-btn danger" onClick={() => removePack(i, j)}>
+                          <input
+                            placeholder="name"
+                            value={pk.name}
+                            onChange={(e) => updatePack(i, j, { name: e.target.value, nameKm: e.target.value })}
+                          />
+                          <input
+                            type="number"
+                            step="0.01"
+                            placeholder="$"
+                            value={pk.price}
+                            onChange={(e) => updatePack(i, j, { price: Number(e.target.value) })}
+                          />
+                          <input
+                            type="number"
+                            step="0.01"
+                            placeholder="cost"
+                            value={pk.cost}
+                            onChange={(e) => updatePack(i, j, { cost: Number(e.target.value) })}
+                          />
+                          <button type="button" className="ad-btn danger sm" onClick={() => removePack(i, j)}>
                             ×
                           </button>
                         </div>
                       ))}
-                      <button type="button" className="ad-btn soft" onClick={() => addPack(i)}>
+                      <button type="button" className="ad-btn soft sm" onClick={() => addPack(i)}>
                         + Pack
                       </button>
                     </div>
