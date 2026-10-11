@@ -144,7 +144,7 @@ export async function uploadImage(file, size = 512, mode = "square") {
 /**
  * Click-to-upload image slot.
  * src      → image currently shown (custom or supplier default)
- * custom   → true when the shown image was uploaded by the admin (shows the ✕ clear button)
+ * custom   → true when the shown image was uploaded by the admin (shows the clear (X) button)
  */
 export function ImageSlot({ src, fallback = "?", size = 64, custom, onUrl, onClear, label = "Upload image", round = 14 }) {
   const input = useRef(null);

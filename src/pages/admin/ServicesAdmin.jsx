@@ -254,7 +254,7 @@ function LocalServicesPanel() {
         body: JSON.stringify({ codes: text, mode: mode || "replace" }),
       });
       setStockCounts((c) => ({ ...c, [packId]: d.count }));
-      toast(mode === "append" ? `✅ បន្ថែមស្តុក · សរុប ${d.count}` : `✅ ស្តុកថ្មី · ${d.count} កូដ`);
+      toast(mode === "append" ? `បន្ថែមស្តុក · សរុប ${d.count}` : `ស្តុកថ្មី · ${d.count} កូដ`);
       if (mode !== "append") setStockDraft((s) => ({ ...s, [packId]: "" }));
     } catch {
       toast("រក្សាទុកស្តុកមិនបាន — ពិនិត្យ deploy API gift-stock", "bad");
@@ -356,7 +356,7 @@ function LocalServicesPanel() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 22 }}>📦</span>
+          <span style={{ display: "inline-flex", color: "#60a5fa" }}><AIcon name="box" size={24} /></span>
           <div style={{ flex: 1 }}>
             <h2 style={{ margin: 0, fontSize: "1.15rem", color: "#fff" }}>កន្លែងដាក់ស្តុកកូដ (Add Stock)</h2>
             <p style={{ margin: "4px 0 0", fontSize: 13, color: "#94a3b8" }}>
@@ -370,7 +370,7 @@ function LocalServicesPanel() {
 
         {apiErr ? (
           <div style={{ background: "#7f1d1d", color: "#fecaca", padding: "10px 12px", borderRadius: 10, marginBottom: 12, fontSize: 13 }}>
-            ⚠️ {apiErr}
+            <span style={{ display: "inline-flex", verticalAlign: "middle", marginRight: 6 }}><AIcon name="alert" size={16} /></span>{apiErr}
           </div>
         ) : null}
 
@@ -441,7 +441,7 @@ function LocalServicesPanel() {
                   disabled={stockBusy === pk.id}
                   onClick={() => saveStock(pk.id, "append")}
                 >
-                  📦 + បន្ថែមស្តុក
+                  <AIcon name="box" size={16} /> បន្ថែមស្តុក
                 </button>
                 <button
                   type="button"
@@ -475,7 +475,7 @@ function LocalServicesPanel() {
             + Service
           </button>
           <button type="button" className="ad-btn primary" disabled={saving} onClick={() => save(products)}>
-            {saving ? "…" : "💾 រក្សាទុក Service"}
+            {saving ? "…" : (<><AIcon name="check" size={16} /> រក្សាទុក Service</>)}
           </button>
         </div>
       </div>

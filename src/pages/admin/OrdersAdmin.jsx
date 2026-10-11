@@ -154,7 +154,7 @@ export default function OrdersAdmin() {
                     {o.note ? <p className="ad-note">{o.note}</p> : null}
                     {o.deliveryType === "gift_code" || o.gameId === "roblox-gift-cards" ? (
                       <p className="ad-note">
-                        🎁 Gift Card — {o.giftCode ? <>កូដ: <code>{o.giftCode}</code></> : "មិនទាន់ដាក់កូដ (ផ្ញើតាម Live Chat រួចដាក់កូដខាងក្រោម)"}
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><AIcon name="box" size={15} /> Gift Card</span> — {o.giftCode ? <>កូដ: <code>{o.giftCode}</code></> : "មិនទាន់ដាក់កូដ (ផ្ញើតាម Live Chat រួចដាក់កូដខាងក្រោម)"}
                       </p>
                     ) : null}
                     <div className="ad-actions">
