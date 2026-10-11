@@ -174,7 +174,8 @@ export default function Game({ lang, addOrder, settings }) {
   const ERRORS = {
     maintenance: { km: "ហាងកំពុងថែទាំ សូមព្យាយាមម្តងទៀតពេលក្រោយ", en: "The shop is under maintenance. Try again later." },
     not_configured: { km: "ការទូទាត់មិនទាន់រួចរាល់ សូមទាក់ទងអ្នកគ្រប់គ្រង", en: "Payments are not set up yet. Please contact support." },
-    qr_failed: { km: "មិនអាចបង្កើត QR បង់ប្រាក់បានទេ សូមទាក់ទងអ្នកគ្រប់គ្រងហាង", en: "Could not create the payment QR. Please contact the shop." },
+    out_of_stock: { km: "អស់ស្តុកហើយ — សូមជ្រើស pack ផ្សេង ឬរង់ចាំ Admin ដាក់ស្តុក", en: "Out of stock — pick another pack or wait for restock" },
+      qr_failed: { km: "មិនអាចបង្កើត QR បង់ប្រាក់បានទេ សូមទាក់ទងអ្នកគ្រប់គ្រងហាង", en: "Could not create the payment QR. Please contact the shop." },
     pack_unavailable: { km: "កញ្ចប់នេះមិនមានលក់ទៀតទេ សូមជ្រើសកញ្ចប់ផ្សេង", en: "This package is no longer available." },
     coupon_invalid: { km: "កូដបញ្ចុះតម្លៃមិនត្រឹមត្រូវ", en: "Invalid coupon code." },
     coupon_min: { km: "ចំនួនទិញមិនដល់កម្រិតអប្បបរមានៃកូដនេះ", en: "Order is below this coupon's minimum." },
@@ -380,12 +381,16 @@ export default function Game({ lang, addOrder, settings }) {
             <div className="packs">
               {game.packs
                 .filter((p) => cat === "all" || p.category === cat)
-                .map((p) => (
+                .map((p) => {
+                  const soldOut = isGift && p.inStock === false;
+                  return (
                   <button
                     key={p.id}
                     type="button"
-                    className={`pack${p.image ? " has-img" : ""}${packId === p.id ? " active" : ""}`}
+                    disabled={soldOut}
+                    className={`pack${p.image ? " has-img" : ""}${packId === p.id ? " active" : ""}${soldOut ? " sold-out" : ""}`}
                     onClick={() => {
+                      if (soldOut) return;
                       setPackId(p.id);
                       const nextSub = Math.round(p.price * qty * 100) / 100;
                       const res = applyCoupon(coupon || appliedCode, nextSub || 1, settings?.coupons);
@@ -413,20 +418,28 @@ export default function Game({ lang, addOrder, settings }) {
                       <div className="name">{lang === "km" ? p.nameKm : p.name}</div>
                       {p.bonus ? <div className="bonus">{p.bonus}</div> : null}
                       <div className="price">{money(p.price)}</div>
+                      {isGift ? (
+                        <div className="bonus" style={{ opacity: soldOut ? 1 : 0.8 }}>
+                          {soldOut
+                            ? (lang === "km" ? "អស់ស្តុក" : "Out of stock")
+                            : (lang === "km" ? `នៅសល់ ${p.stock ?? "—"}` : `Stock ${p.stock ?? "—"}`)}
+                        </div>
+                      ) : null}
                     </div>
                   </button>
-                ))}
+                  );
+                })}
             </div>
           </section>
 
           
           {isGift ? (
             <section className="card" style={{ borderColor: "var(--primary)" }}>
-              <h2>{lang === "km" ? "🎁 ទទួលកូដតាម Live Chat" : "🎁 Get code via Live Chat"}</h2>
+              <h2>{lang === "km" ? "🎁 ទទួលកូដស្វ័យប្រវត្តិ" : "🎁 Instant code delivery"}</h2>
               <p className="hint">
                 {lang === "km"
-                  ? "បង់ប្រាក់រួច សូមចូល Live Chat / Telegram ដើម្បីទទួល Roblox Gift Card code។ កូដនឹងត្រូវបានរក្សាទុកក្នុងលំដាប់របស់អ្នកផងដែរ។"
-                  : "After payment, open Live Chat / Telegram to receive your Roblox Gift Card code. The code will also appear on your order tracking page."}
+                  ? "បង់ប្រាក់រួច កូដនឹងបង្ហាញភ្លាមៗលើទំព័រ Payment Successful (ពីស្តុក Admin)។ បើអស់ស្តុក នឹងមាន Live Chat។"
+                  : "After payment, your code appears instantly on the Payment Successful page (from admin stock). If out of stock, use Live Chat."}
               </p>
             </section>
           ) : null}
