@@ -185,21 +185,36 @@ function blankLocal() {
   };
 }
 
+
+
 function LocalServicesPanel() {
   const [products, setProducts] = useState([]);
   const [usingDefaults, setUsingDefaults] = useState(true);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [editIdx, setEditIdx] = useState(-1);
+  const [editIdx, setEditIdx] = useState(0); // open first by default
+  const [stockCounts, setStockCounts] = useState({});
+  const [stockDraft, setStockDraft] = useState({});
+  const [stockBusy, setStockBusy] = useState("");
+  const [apiErr, setApiErr] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
+    setApiErr("");
     try {
-      const d = await api("/api/admin/local-products");
+      const [d, st] = await Promise.all([
+        api("/api/admin/local-products"),
+        api("/api/admin/gift-stock").catch((e) => {
+          setApiErr("gift-stock API មិនទាន់ deploy — ត្រូវ push server/index.js + store.js");
+          return { counts: {} };
+        }),
+      ]);
       setProducts(Array.isArray(d.products) ? d.products : []);
       setUsingDefaults(!!d.usingDefaults);
-    } catch {
+      setStockCounts(st.counts || d.stockCounts || {});
+    } catch (e) {
       setProducts([]);
+      setApiErr(e.message || "មិនអាចទាញ services");
     } finally {
       setLoading(false);
     }
@@ -218,7 +233,7 @@ function LocalServicesPanel() {
       });
       setProducts(d.products || list);
       setUsingDefaults(false);
-      toast("បានរក្សាទុក Local services");
+      toast("បានរក្សាទុក services");
     } catch {
       toast("រក្សាទុកមិនបាន", "bad");
     } finally {
@@ -226,12 +241,46 @@ function LocalServicesPanel() {
     }
   }
 
+  async function saveStock(packId, mode) {
+    const text = stockDraft[packId] ?? "";
+    if (!String(text).trim() && mode === "append") {
+      toast("សូមបិទកូដសិន", "bad");
+      return;
+    }
+    setStockBusy(packId);
+    try {
+      const d = await api(`/api/admin/gift-stock/${encodeURIComponent(packId)}`, {
+        method: "PUT",
+        body: JSON.stringify({ codes: text, mode: mode || "replace" }),
+      });
+      setStockCounts((c) => ({ ...c, [packId]: d.count }));
+      toast(mode === "append" ? `✅ បន្ថែមស្តុក · សរុប ${d.count}` : `✅ ស្តុកថ្មី · ${d.count} កូដ`);
+      if (mode !== "append") setStockDraft((s) => ({ ...s, [packId]: "" }));
+    } catch {
+      toast("រក្សាទុកស្តុកមិនបាន — ពិនិត្យ deploy API gift-stock", "bad");
+    } finally {
+      setStockBusy("");
+    }
+  }
+
   function addProduct() {
-    const p = blankLocal();
-    p.id = `service-${Date.now().toString(36)}`;
-    p.name = "New Service";
-    p.nameKm = "សេវាថ្មី";
-    p.packs = [{ id: `${p.id}-1`, name: "Pack 1", price: 1, cost: 1, category: "Gift Card" }];
+    const id = `svc-${Date.now().toString(36)}`;
+    const p = {
+      id,
+      name: "New Gift Service",
+      nameKm: "សេវាកូដថ្មី",
+      region: "Cambodia",
+      blurbKm: "បង់រួចទទួលកូដស្វ័យប្រវត្តិ",
+      blurbEn: "Pay then get code instantly",
+      famous: true,
+      hot: true,
+      open: true,
+      hue: 210,
+      mark: "GC",
+      image: "",
+      deliveryType: "gift_code",
+      packs: [{ id: `${id}-1`, name: "Pack 1", nameKm: "Pack 1", price: 1, cost: 1, category: "Gift Card", image: "" }],
+    };
     setProducts((x) => [...x, p]);
     setEditIdx(products.length);
   }
@@ -244,8 +293,7 @@ function LocalServicesPanel() {
     setProducts((list) =>
       list.map((p, idx) => {
         if (idx !== pi) return p;
-        const packs = (p.packs || []).map((x, j) => (j === pk ? { ...x, ...patch } : x));
-        return { ...p, packs };
+        return { ...p, packs: (p.packs || []).map((x, j) => (j === pk ? { ...x, ...patch } : x)) };
       }),
     );
   }
@@ -257,7 +305,7 @@ function LocalServicesPanel() {
         const n = (p.packs || []).length + 1;
         return {
           ...p,
-          packs: [...(p.packs || []), { id: `${p.id}-${n}`, name: `Pack ${n}`, price: 1, cost: 1, category: "Gift Card" }],
+          packs: [...(p.packs || []), { id: `${p.id}-${n}`, name: `Pack ${n}`, nameKm: `Pack ${n}`, price: 1, cost: 1, category: "Gift Card", image: "" }],
         };
       }),
     );
@@ -274,56 +322,189 @@ function LocalServicesPanel() {
 
   function removeProduct(i) {
     if (!confirm("លុប service នេះ?")) return;
-    const next = products.filter((_, idx) => idx !== i);
-    setProducts(next);
-    setEditIdx(-1);
+    setProducts((list) => list.filter((_, idx) => idx !== i));
+    setEditIdx(0);
   }
 
-  return (
-    <section className="card" style={{ marginBottom: 24, borderColor: "var(--primary, #2563eb)" }}>
-      <PageHead km="Local Services (Gift Card / Live Chat)" en="Admin adds services — code delivered via Live Chat">
-        <button type="button" className="ad-btn soft" onClick={load} disabled={loading}>
-          <AIcon name="refresh" size={16} /> ផ្ទុក
-        </button>
-        <button type="button" className="ad-btn primary" onClick={addProduct}>
-          + បន្ថែម Service
-        </button>
-        <button type="button" className="ad-btn primary" disabled={saving} onClick={() => save(products)}>
-          {saving ? "…" : "💾 រក្សាទុក"}
-        </button>
-      </PageHead>
-      <p style={{ margin: "0 0 12px", color: "var(--muted)", fontSize: 14 }}>
-        សេវាដែល Admin បន្ថែមខ្លួនឯង (ឧ. Roblox Gift Card)។ បន្ទាប់ពីអតិថិជនបង់ → Live Chat → Admin ផ្តល់កូដ។
-        {usingDefaults ? " · កំពុងប្រើ default (រក្សាទុកដើម្បី lock)" : ""}
-      </p>
+  // Flatten all packs for the STOCK ZONE (always visible)
+  const allPacks = [];
+  products.forEach((p) => {
+    (p.packs || []).forEach((pk) => {
+      allPacks.push({ service: p.name || p.id, serviceId: p.id, pack: pk });
+    });
+  });
 
-      {loading ? (
-        <div className="ad-loading">
-          <span className="ad-spin" /> កំពុងផ្ទុក…
+  return (
+    <section
+      className="card local-svc-panel"
+      style={{
+        marginBottom: 28,
+        border: "2px solid #3b82f6",
+        borderRadius: 16,
+        padding: 16,
+        background: "linear-gradient(180deg, rgba(59,130,246,0.08), transparent)",
+      }}
+    >
+      {/* ===== BIG STOCK ZONE — always on top ===== */}
+      <div
+        style={{
+          background: "#0f172a",
+          color: "#e2e8f0",
+          borderRadius: 14,
+          padding: 16,
+          marginBottom: 18,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 22 }}>📦</span>
+          <div style={{ flex: 1 }}>
+            <h2 style={{ margin: 0, fontSize: "1.15rem", color: "#fff" }}>កន្លែងដាក់ស្តុកកូដ (Add Stock)</h2>
+            <p style={{ margin: "4px 0 0", fontSize: 13, color: "#94a3b8" }}>
+              បិទកូដខាងក្រោម → ចុច «+ បន្ថែមស្តុក» · មួយបន្ទាត់ = មួយកូដ · អតិថិជនបង់រួចទទួលស្វ័យប្រវត្តិ
+            </p>
+          </div>
+          <button type="button" className="ad-btn soft" onClick={load} disabled={loading}>
+            <AIcon name="refresh" size={16} /> ផ្ទុក
+          </button>
         </div>
-      ) : products.length === 0 ? (
-        <p className="ad-empty">មិនទាន់មាន service — ចុច «+ បន្ថែម Service»</p>
+
+        {apiErr ? (
+          <div style={{ background: "#7f1d1d", color: "#fecaca", padding: "10px 12px", borderRadius: 10, marginBottom: 12, fontSize: 13 }}>
+            ⚠️ {apiErr}
+          </div>
+        ) : null}
+
+        {loading ? (
+          <div className="ad-loading" style={{ color: "#94a3b8" }}>
+            <span className="ad-spin" /> កំពុងផ្ទុក…
+          </div>
+        ) : allPacks.length === 0 ? (
+          <div style={{ padding: 12, background: "#1e293b", borderRadius: 10, fontSize: 14 }}>
+            មិនទាន់មាន pack — ចុច <b>+ Service</b> ខាងក្រោមជាមុន សិន រួចរក្សាទុក បន្ទាប់មកដាក់ស្តុកនៅទីនេះ។
+          </div>
+        ) : (
+          allPacks.map(({ service, pack: pk }) => (
+            <div
+              key={pk.id}
+              style={{
+                background: "#1e293b",
+                borderRadius: 12,
+                padding: 14,
+                marginBottom: 12,
+                border: "1px solid #334155",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+                <div>
+                  <div style={{ fontWeight: 700, color: "#fff" }}>
+                    {service} · {pk.name || pk.id}
+                  </div>
+                  <div style={{ fontSize: 12, color: "#94a3b8" }}>
+                    ID: <code style={{ color: "#93c5fd" }}>{pk.id}</code> · តម្លៃ ${Number(pk.price || 0).toFixed(2)}
+                  </div>
+                </div>
+                <div
+                  style={{
+                    background: (stockCounts[pk.id] || 0) > 0 ? "#14532d" : "#7f1d1d",
+                    color: "#fff",
+                    borderRadius: 999,
+                    padding: "6px 12px",
+                    fontWeight: 700,
+                    fontSize: 13,
+                  }}
+                >
+                  នៅសល់ {stockCounts[pk.id] || 0} កូដ
+                </div>
+              </div>
+              <textarea
+                rows={4}
+                placeholder={"បិទកូដនៅទីនេះ...\nCODE-001\nCODE-002\nCODE-003"}
+                value={stockDraft[pk.id] ?? ""}
+                onChange={(e) => setStockDraft((s) => ({ ...s, [pk.id]: e.target.value }))}
+                style={{
+                  width: "100%",
+                  borderRadius: 10,
+                  padding: 12,
+                  fontFamily: "ui-monospace, monospace",
+                  fontSize: 14,
+                  border: "2px solid #3b82f6",
+                  background: "#0f172a",
+                  color: "#86efac",
+                  resize: "vertical",
+                }}
+              />
+              <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  className="ad-btn primary"
+                  style={{ fontWeight: 700, padding: "10px 16px" }}
+                  disabled={stockBusy === pk.id}
+                  onClick={() => saveStock(pk.id, "append")}
+                >
+                  📦 + បន្ថែមស្តុក
+                </button>
+                <button
+                  type="button"
+                  className="ad-btn soft"
+                  disabled={stockBusy === pk.id}
+                  onClick={() => {
+                    if (confirm("ជំនួសស្តុកទាំងអស់?")) saveStock(pk.id, "replace");
+                  }}
+                >
+                  ជំនួសស្តុក
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* ===== Service editor ===== */}
+      <div className="ad-head" style={{ marginBottom: 12 }}>
+        <div>
+          <h1 style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "1.05rem", margin: 0 }}>
+            <AIcon name="box" size={20} /> កំណត់ Service / Pack
+          </h1>
+          <p style={{ margin: "4px 0 0", color: "var(--muted)", fontSize: 13 }}>
+            បន្ថែម service ថ្មី · រូប · តម្លៃ · បន្ទាប់មកដាក់ស្តុកខាងលើ
+            {usingDefaults ? " · កំពុងប្រើ default" : ""}
+          </p>
+        </div>
+        <div className="ad-head-actions" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button type="button" className="ad-btn soft" onClick={addProduct}>
+            + Service
+          </button>
+          <button type="button" className="ad-btn primary" disabled={saving} onClick={() => save(products)}>
+            {saving ? "…" : "💾 រក្សាទុក Service"}
+          </button>
+        </div>
+      </div>
+
+      {loading ? null : products.length === 0 ? (
+        <p className="ad-empty">មិនទាន់មាន service — ចុច «+ Service»</p>
       ) : (
         products.map((p, i) => {
           const open = editIdx === i;
+          const totalStock = (p.packs || []).reduce((s, pk) => s + (stockCounts[pk.id] || 0), 0);
           return (
-            <article key={p.id || i} className={`ad-game${p.open !== false ? " on" : ""}`} style={{ marginBottom: 10 }}>
-              <div className="ad-game-top" style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+            <article key={p.id || i} className={`ad-game${p.open !== false ? " on" : ""}`} style={{ marginBottom: 10, borderRadius: 12 }}>
+              <div className="ad-game-top" style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", padding: "10px 12px" }}>
                 {p.image ? (
-                  <img src={p.image} alt="" style={{ width: 36, height: 36, borderRadius: 8, objectFit: "cover" }} />
+                  <img src={p.image} alt="" style={{ width: 40, height: 40, borderRadius: 10, objectFit: "cover" }} />
                 ) : (
-                  <span className="ad-tag" style={{ width: 36, height: 36, display: "grid", placeItems: "center" }}>{(p.mark || "GC").slice(0, 2)}</span>
+                  <span className="ad-tag" style={{ width: 40, height: 40, borderRadius: 10, display: "grid", placeItems: "center", fontWeight: 700 }}>
+                    {(p.mark || "GC").slice(0, 2)}
+                  </span>
                 )}
-                <strong>{p.name || p.id}</strong>
-                <span className="ad-tag">{p.deliveryType === "gift_code" ? "🎁 Gift / Live Chat" : "Top-up"}</span>
-                <span className="ad-tag">{(p.packs || []).length} packs</span>
-                <label style={{ display: "flex", gap: 6, alignItems: "center", marginLeft: "auto" }}>
-                  <input
-                    type="checkbox"
-                    checked={p.open !== false}
-                    onChange={(e) => updateAt(i, { open: e.target.checked })}
-                  />
-                  បង្ហាញលើហាង
+                <div style={{ flex: 1, minWidth: 120 }}>
+                  <strong style={{ display: "block" }}>{p.name || p.id}</strong>
+                  <small style={{ color: "var(--muted)" }}>
+                    {(p.packs || []).length} packs · ស្តុក {totalStock}
+                  </small>
+                </div>
+                <label style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 13 }}>
+                  <input type="checkbox" checked={p.open !== false} onChange={(e) => updateAt(i, { open: e.target.checked })} />
+                  បង្ហាញ
                 </label>
                 <button type="button" className="ad-btn soft" onClick={() => setEditIdx(open ? -1 : i)}>
                   {open ? "បិទ" : "កែ"}
@@ -333,94 +514,58 @@ function LocalServicesPanel() {
                 </button>
               </div>
               {open ? (
-                <div className="ad-order-detail" style={{ marginTop: 12 }}>
-                  <div style={{ display: "flex", gap: 16, alignItems: "flex-start", marginBottom: 14, flexWrap: "wrap" }}>
+                <div className="ad-order-detail" style={{ padding: "12px 14px 16px", borderTop: "1px solid rgba(0,0,0,0.06)" }}>
+                  <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 14 }}>
                     <div>
-                      <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 6 }}>រូប Service</div>
+                      <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 6 }}>រូប</div>
                       <ImageSlot
                         src={p.image || ""}
                         fallback={(p.mark || "GC").slice(0, 2)}
                         size={72}
                         custom={!!p.image}
-                        label="Upload service image"
+                        label="Upload"
                         onUrl={(url) => updateAt(i, { image: url })}
                         onClear={() => updateAt(i, { image: "" })}
                       />
                     </div>
-                    <div className="ad-form-grid" style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 1fr", flex: 1, minWidth: 240 }}>
+                    <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 1fr", flex: 1, minWidth: 240 }}>
                       <label>
-                        ID (slug)
-                        <input value={p.id} onChange={(e) => updateAt(i, { id: e.target.value })} placeholder="roblox-gift-cards" />
+                        ID
+                        <input value={p.id} onChange={(e) => updateAt(i, { id: e.target.value })} />
                       </label>
                       <label>
                         Mark
-                        <input value={p.mark || ""} onChange={(e) => updateAt(i, { mark: e.target.value })} placeholder="RBX" />
+                        <input value={p.mark || ""} onChange={(e) => updateAt(i, { mark: e.target.value })} />
                       </label>
                       <label>
-                        Name (EN)
+                        Name EN
                         <input value={p.name || ""} onChange={(e) => updateAt(i, { name: e.target.value })} />
                       </label>
                       <label>
-                        Name (KM)
+                        Name KM
                         <input value={p.nameKm || ""} onChange={(e) => updateAt(i, { nameKm: e.target.value })} />
-                      </label>
-                      <label style={{ gridColumn: "1 / -1" }}>
-                        Blurb KM
-                        <input value={p.blurbKm || ""} onChange={(e) => updateAt(i, { blurbKm: e.target.value })} />
-                      </label>
-                      <label style={{ gridColumn: "1 / -1" }}>
-                        Blurb EN
-                        <input value={p.blurbEn || ""} onChange={(e) => updateAt(i, { blurbEn: e.target.value })} />
-                      </label>
-                      <label>
-                        Delivery
-                        <select
-                          value={p.deliveryType || "gift_code"}
-                          onChange={(e) => updateAt(i, { deliveryType: e.target.value })}
-                        >
-                          <option value="gift_code">Gift code / Live Chat</option>
-                        </select>
                       </label>
                     </div>
                   </div>
-
-                  <h4 style={{ margin: "8px 0 10px" }}>Packs / តម្លៃ + រូបកញ្ចប់</h4>
+                  <h4 style={{ margin: "4px 0 10px" }}>Packs</h4>
                   {(p.packs || []).map((pk, j) => (
                     <div
-                      key={j}
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "56px 1fr 1.5fr 0.8fr 0.8fr auto",
-                        gap: 8,
-                        marginBottom: 10,
-                        alignItems: "center",
-                      }}
+                      key={pk.id || j}
+                      style={{ display: "grid", gridTemplateColumns: "52px 1fr 1.4fr 0.7fr 0.7fr auto", gap: 8, alignItems: "center", marginBottom: 8 }}
                     >
                       <ImageSlot
                         src={pk.image || ""}
                         fallback={(pk.name || "?").slice(0, 1)}
                         size={48}
                         custom={!!pk.image}
-                        label="Pack image"
+                        label="Pack"
                         onUrl={(url) => updatePack(i, j, { image: url })}
                         onClear={() => updatePack(i, j, { image: "" })}
                       />
                       <input placeholder="id" value={pk.id} onChange={(e) => updatePack(i, j, { id: e.target.value })} />
                       <input placeholder="name" value={pk.name} onChange={(e) => updatePack(i, j, { name: e.target.value, nameKm: e.target.value })} />
-                      <input
-                        type="number"
-                        step="0.01"
-                        placeholder="price $"
-                        value={pk.price}
-                        onChange={(e) => updatePack(i, j, { price: Number(e.target.value) })}
-                      />
-                      <input
-                        type="number"
-                        step="0.01"
-                        placeholder="cost $"
-                        value={pk.cost}
-                        onChange={(e) => updatePack(i, j, { cost: Number(e.target.value) })}
-                      />
+                      <input type="number" step="0.01" placeholder="price" value={pk.price} onChange={(e) => updatePack(i, j, { price: Number(e.target.value) })} />
+                      <input type="number" step="0.01" placeholder="cost" value={pk.cost} onChange={(e) => updatePack(i, j, { cost: Number(e.target.value) })} />
                       <button type="button" className="ad-btn danger" onClick={() => removePack(i, j)}>
                         ×
                       </button>
