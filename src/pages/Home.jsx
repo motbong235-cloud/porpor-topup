@@ -44,7 +44,7 @@ export default function Home({ lang, settings }) {
   const [slide, setSlide] = useState(0);
   const [filter, setFilter] = useState("");
   const famous = useMemo(() => games.filter((g) => g.famous), [games]);
-  const spotlight = useMemo(() => (famous.length ? famous : games).slice(0, 3), [famous, games]);
+  const spotlight = useMemo(() => (famous.length ? famous : games).slice(0, 5), [famous, games]);
   const firstTo = games[0] ? `/game/${games[0].id}` : "/";
   const filtered = useMemo(() => {
     const q = filter.trim().toLowerCase();
