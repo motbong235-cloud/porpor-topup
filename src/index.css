@@ -1135,26 +1135,85 @@ img {
   color: var(--muted);
 }
 
-/* Float chat */
+/* Float Live Chat */
 .float-chat {
   position: fixed;
-  right: 16px;
+  right: 14px;
   bottom: 20px;
   z-index: 40;
-  width: 48px;
-  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 52px;
+  padding: 0 16px 0 14px;
   border-radius: 999px;
   border: none;
-  box-shadow: 0 8px 24px -8px rgba(29, 106, 223, 0.6);
+  text-decoration: none;
+  color: #fff;
+  background: linear-gradient(135deg, #2aabee 0%, #1d6adf 55%, #0a4cb5 100%);
+  box-shadow:
+    0 10px 28px -8px rgba(29, 106, 223, 0.65),
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+}
+
+.float-chat:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow:
+    0 16px 32px -10px rgba(29, 106, 223, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.18) inset;
+}
+
+.float-chat-icon {
   display: grid;
   place-items: center;
-  color: var(--on-primary);
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.float-chat-label {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.float-chat-pulse {
+  position: absolute;
+  inset: -4px;
+  border-radius: 999px;
+  border: 2px solid rgba(42, 171, 238, 0.45);
+  animation: float-pulse 2s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes float-pulse {
+  0% { transform: scale(1); opacity: 0.7; }
+  70% { transform: scale(1.18); opacity: 0; }
+  100% { transform: scale(1.18); opacity: 0; }
+}
+
+.float-chat {
+  position: fixed;
 }
 
 @media (min-width: 640px) {
   .float-chat {
     right: 24px;
     bottom: 28px;
+    height: 54px;
+    padding: 0 18px 0 16px;
+  }
+  .float-chat-label {
+    font-size: 14px;
+  }
+}
+
+/* Mobile: icon + short label still ok; very small screens icon-focused */
+@media (max-width: 360px) {
+  .float-chat {
+    padding: 0 12px;
   }
 }
 
@@ -1165,6 +1224,12 @@ img {
 @media (min-width: 1024px) {
   .float-chat.lift {
     bottom: 28px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .float-chat-pulse {
+    animation: none;
   }
 }
 
@@ -2476,16 +2541,23 @@ body {
   display: flex !important;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
-  background: #0f172a !important;
+  background: linear-gradient(135deg, #2aabee, #1d6adf) !important;
   color: #fff !important;
   border-radius: 999px;
-  padding: 12px 16px;
-  font-weight: 600;
+  padding: 14px 18px;
+  font-weight: 800;
+  font-size: 15px;
   text-decoration: none;
+  box-shadow: 0 10px 24px -10px rgba(29, 106, 223, 0.55);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
 }
-.success-livechat:hover { opacity: 0.92; }
+.success-livechat:hover {
+  filter: brightness(1.06);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px -10px rgba(29, 106, 223, 0.6);
+}
 .success-actions {
   display: flex;
   flex-direction: column;
@@ -3037,4 +3109,62 @@ html.dark .hot-foot {
   .hot-card:hover {
     transform: none;
   }
+}
+
+
+.float-chat-icon img {
+  display: block;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.livechat-btn-icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+
+/* ABA + KHQR real logos */
+.pay-logos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+.pay-logo {
+  display: block;
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 6px;
+}
+.pay-logo.aba-khqr { height: 32px; }
+.pay-choice-logos {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.pay-choice-logos img {
+  display: block;
+  height: 22px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 4px;
+}
+.pay-method-logos {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+}
+.pay-method-logos img {
+  height: 22px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 4px;
 }
