@@ -600,16 +600,16 @@ img {
   fill: var(--primary);
 }
 
-/* Events / spotlight */
+/* Events / spotlight — even 2×2 on phone, 4 across on laptop */
 .events {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
 @media (min-width: 640px) {
   .events {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 14px;
   }
 }
@@ -619,12 +619,6 @@ img {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 16px;
     max-width: none;
-  }
-}
-
-@media (min-width: 1280px) {
-  .events {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
 
@@ -2786,5 +2780,261 @@ header.header {
   .success-card,
   .footer {
     animation: none !important;
+  }
+}
+
+
+/* ---- events-special — compact size ---- */
+.events-special {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  max-width: 100%;
+}
+
+@media (min-width: 640px) {
+  .events-special {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    max-width: 720px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .events-special {
+    max-width: 800px;
+    gap: 12px;
+  }
+}
+
+.events-special .event-card {
+  display: block;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  overflow: hidden;
+  box-shadow: 0 2px 8px -4px rgba(0, 0, 0, 0.12);
+}
+
+.events-special .event-art {
+  aspect-ratio: 1;
+  border-radius: 0;
+}
+
+.events-special .event-meta {
+  padding: 6px 8px 8px;
+  background: linear-gradient(
+    to top,
+    rgba(8, 32, 68, 0.88) 0%,
+    rgba(8, 32, 68, 0.3) 60%,
+    transparent 100%
+  );
+}
+
+html.dark .events-special .event-meta {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.85) 0%,
+    rgba(0, 0, 0, 0.25) 60%,
+    transparent 100%
+  );
+}
+
+.events-special .event-meta strong {
+  font-size: 10px;
+  line-height: 1.25;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .events-special .event-meta strong {
+    font-size: 11px;
+  }
+}
+
+.events-special .event-meta span {
+  margin-top: 1px;
+  font-size: 9px;
+  font-weight: 600;
+  opacity: 0.95;
+}
+
+@media (min-width: 640px) {
+  .events-special .event-meta span {
+    font-size: 10px;
+  }
+}
+
+.events-special .event-tag {
+  top: 4px;
+  left: 4px;
+  padding: 2px 5px;
+  font-size: 8px;
+  background: rgba(29, 106, 223, 0.92);
+  backdrop-filter: blur(4px);
+}
+
+
+/* ---- Hot / ពេញនិយម cards (clean design) ---- */
+.events-special {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+@media (min-width: 640px) {
+  .events-special {
+    gap: 12px;
+    max-width: 680px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .events-special {
+    max-width: 760px;
+    gap: 14px;
+  }
+}
+
+.hot-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 2px 10px -6px rgba(15, 40, 80, 0.2);
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease,
+    border-color 0.3s ease;
+}
+
+.hot-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--primary) 55%, var(--line));
+  box-shadow: 0 14px 28px -14px rgba(29, 106, 223, 0.45);
+}
+
+.hot-art {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 0;
+}
+
+.hot-art .event-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hot-card:hover .hot-art .event-img {
+  transform: scale(1.07);
+}
+
+.hot-mark {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+@media (min-width: 640px) {
+  .hot-mark {
+    font-size: 22px;
+  }
+}
+
+.hot-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 2;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: linear-gradient(105deg, #5eb0ff, #1d6adf 55%, #0a4cb5);
+  box-shadow: 0 4px 10px -3px rgba(29, 106, 223, 0.65);
+}
+
+@media (min-width: 640px) {
+  .hot-badge {
+    font-size: 10px;
+    padding: 4px 9px;
+  }
+}
+
+.hot-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 8px 10px;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+
+.hot-name {
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--ink);
+}
+
+@media (min-width: 640px) {
+  .hot-name {
+    font-size: 12px;
+  }
+}
+
+.hot-price {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+@media (min-width: 640px) {
+  .hot-price {
+    font-size: 11px;
+  }
+}
+
+html.dark .hot-card {
+  background: color-mix(in srgb, var(--surface) 92%, #0a1628);
+  box-shadow: 0 2px 12px -6px rgba(0, 0, 0, 0.45);
+}
+
+html.dark .hot-foot {
+  background: color-mix(in srgb, var(--surface) 88%, #060d18);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hot-card,
+  .hot-art .event-img {
+    transition: none !important;
+  }
+  .hot-card:hover {
+    transform: none;
   }
 }
