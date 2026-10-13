@@ -109,9 +109,10 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
           </div>
           <div>
             <div className="footer-label">{t(lang, "accept")}</div>
-            <div className="khqr-badge">
-              <span>KHQR</span>
-              <strong>ABA KHQR</strong>
+            <div className="pay-logos">
+              <img className="pay-logo aba" src="/aba-logo.svg" alt="ABA" height={28} />
+              <img className="pay-logo khqr" src="/khqr-logo.svg" alt="KHQR" height={28} />
+              <img className="pay-logo aba-khqr" src="/aba-khqr.svg" alt="ABA KHQR" height={32} />
             </div>
             <div className="footer-links">
               <Link to="/legal/privacy">{t(lang, "privacy")}</Link>
