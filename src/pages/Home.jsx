@@ -44,7 +44,7 @@ export default function Home({ lang, settings }) {
   const [slide, setSlide] = useState(0);
   const [filter, setFilter] = useState("");
   const famous = useMemo(() => games.filter((g) => g.famous), [games]);
-  const spotlight = useMemo(() => (famous.length ? famous : games).slice(0, 5), [famous, games]);
+  const spotlight = useMemo(() => (famous.length ? famous : games).slice(0, 4), [famous, games]);
   const firstTo = games[0] ? `/game/${games[0].id}` : "/";
   const filtered = useMemo(() => {
     const q = filter.trim().toLowerCase();
@@ -131,20 +131,22 @@ export default function Home({ lang, settings }) {
             </span>
             <h2>{t(lang, "special")}</h2>
           </div>
-          <div className="events">
+          <div className="events events-special">
             {spotlight.map((g) => {
               const min = Math.min(...g.packs.map((p) => p.price));
               return (
-                <Link key={g.id} className="event-card" to={`/game/${g.id}`}>
-                  <div className="event-art game-tile" style={{ "--h": g.hue }}>
+                <Link key={g.id} className="event-card hot-card" to={`/game/${g.id}`}>
+                  <div className="hot-art game-tile" style={{ "--h": g.hue }}>
                     {g.image ? (
                       <img className="event-img" src={g.image} alt="" loading="lazy" onError={(e) => e.currentTarget.remove()} />
-                    ) : null}
-                    <span className="event-tag">{t(lang, "hot")}</span>
-                    <div className="event-meta">
-                      <strong>{g.name}</strong>
-                      <span>{lang === "km" ? `ចាប់ពី ${money(min)}` : `From ${money(min)}`}</span>
-                    </div>
+                    ) : (
+                      <span className="hot-mark">{(g.mark || "★").slice(0, 3)}</span>
+                    )}
+                    <span className="hot-badge">{t(lang, "hot")}</span>
+                  </div>
+                  <div className="hot-foot">
+                    <strong className="hot-name">{g.name}</strong>
+                    <span className="hot-price">{lang === "km" ? `ចាប់ពី ${money(min)}` : `From ${money(min)}`}</span>
                   </div>
                 </Link>
               );
