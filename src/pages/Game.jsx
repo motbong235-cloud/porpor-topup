@@ -512,11 +512,12 @@ export default function Game({ lang, addOrder, settings }) {
             <h2>{t(lang, "payment")}</h2>
             <div className="pay-choices">
               <div className="pay-choice active">
-                <span style={{ color: "var(--primary)" }}>
-                  <Icon name="badge" />
+                <span className="pay-choice-logos">
+                  <img src="/aba-logo.svg" alt="ABA" height={24} />
+                  <img src="/khqr-logo.svg" alt="KHQR" height={24} />
                 </span>
                 <span>
-                  <strong>{t(lang, "khqr")}</strong>
+                  <strong>ABA KHQR</strong>
                   <span>{t(lang, "khqrHint")}</span>
                 </span>
               </div>

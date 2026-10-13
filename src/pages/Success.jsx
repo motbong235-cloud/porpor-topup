@@ -157,7 +157,10 @@ export default function Success({ lang, settings }) {
           ) : null}
           <div className="row">
             <span>{lang === "km" ? "វិធីទូទាត់" : "Payment Method"}</span>
-            <strong>ABA KHQR</strong>
+            <strong className="pay-method-logos">
+              <img src="/aba-logo.svg" alt="ABA" height={22} />
+              <img src="/khqr-logo.svg" alt="KHQR" height={22} />
+            </strong>
           </div>
           <div className="row">
             <span>Order ID</span>
