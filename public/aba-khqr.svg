@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 48" fill="none">
+  <rect width="200" height="48" rx="10" fill="#fff"/>
+  <rect x="0.5" y="0.5" width="199" height="47" rx="9.5" stroke="#D0D7E2"/>
+  <!-- ABA -->
+  <rect x="8" y="8" width="52" height="32" rx="6" fill="#003D7A"/>
+  <text x="34" y="30" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="16" font-weight="900" fill="#fff">ABA</text>
+  <!-- divider -->
+  <rect x="70" y="12" width="1" height="24" fill="#D0D7E2"/>
+  <!-- KHQR -->
+  <rect x="82" y="12" width="22" height="22" rx="3" fill="#0B3A5C"/>
+  <rect x="86" y="16" width="6" height="6" fill="#fff"/>
+  <rect x="94" y="16" width="6" height="6" fill="#fff"/>
+  <rect x="86" y="24" width="6" height="6" fill="#fff"/>
+  <rect x="95" y="25" width="4" height="4" fill="#fff"/>
+  <text x="112" y="30" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="800" fill="#0B3A5C">KHQR</text>
+</svg>
