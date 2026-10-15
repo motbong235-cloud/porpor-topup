@@ -52,6 +52,9 @@ export default function Game({ lang, addOrder, settings }) {
   const [payErr, setPayErr] = useState("");
   const [qrOpen, setQrOpen] = useState(false);
   const [liveQr, setLiveQr] = useState(null);
+  const [payDeeplink, setPayDeeplink] = useState("");
+  const [payPhase, setPayPhase] = useState("qr"); // qr | scanned
+  const [payLeft, setPayLeft] = useState(600);
   const [checkoutId, setCheckoutId] = useState(null);
   const [paying, setPaying] = useState(false);
   const [orderTotal, setOrderTotal] = useState(0);
@@ -81,6 +84,15 @@ export default function Game({ lang, addOrder, settings }) {
     }, 4000);
     return () => clearInterval(timer);
   }, [qrOpen, checkoutId, navigate]);
+
+  useEffect(() => {
+    if (!qrOpen) return undefined;
+    setPayLeft(600);
+    const tmr = setInterval(() => {
+      setPayLeft((s) => (s <= 1 ? 0 : s - 1));
+    }, 1000);
+    return () => clearInterval(tmr);
+  }, [qrOpen, checkoutId]);
 
   if (loading && !game) {
     return (
@@ -246,6 +258,8 @@ export default function Game({ lang, addOrder, settings }) {
       addOrder(data.order);
       setOrderTotal(data.order.total);
       setLiveQr(data.payment.qrImage);
+      setPayDeeplink(data.payment.deeplink || data.payment.payUrl || "");
+      setPayPhase("qr");
       setCheckoutId(data.order.id);
       setQrOpen(true);
     } catch (e) {
@@ -586,26 +600,100 @@ export default function Game({ lang, addOrder, settings }) {
       <div className="spacer-mobile" />
 
       <div
-        className={`modal-backdrop${qrOpen ? " open" : ""}`}
+        className={`pw-sheet-bg${qrOpen ? " open" : ""}`}
         onClick={(e) => e.target === e.currentTarget && setQrOpen(false)}
       >
-        <div className="modal">
-          <h3>{t(lang, "qrTitle")}</h3>
-          <p>{t(lang, "qrBody")}</p>
-          {qrSrc ? (
-            <div style={{ margin: "16px auto 0", width: 200, textAlign: "center" }}>
-              <img src={qrSrc} alt="KHQR" style={{ width: "100%", borderRadius: 12 }} />
-            </div>
-          ) : null}
-          <div className="modal-amount">{money(orderTotal || total)}</div>
-          <div className="modal-actions">
-            <button type="button" className="cancel" onClick={() => setQrOpen(false)}>
-              {t(lang, "cancel")}
-            </button>
-            <button type="button" className="bg-brand" disabled={paying} onClick={confirmQr}>
-              {paying ? "…" : t(lang, "confirmPay")}
-            </button>
+        <div className="pw-sheet" onClick={(e) => e.stopPropagation()}>
+          <div className="pw-handle" />
+          <div className="pw-brand">
+            <span className="aba-logo">ABA</span>
+            <span className="pw-brand-text">PAYWAY</span>
           </div>
+
+          {payPhase === "qr" ? (
+            <>
+              <div className="pw-amount">{money(orderTotal || total)}</div>
+              <p className="pw-hint">
+                {lang === "km"
+                  ? "ស្កេន QR ដោយ app ធនាគារ ឬបើក ABA Mobile"
+                  : "Scan with any bank app or open ABA Mobile"}
+              </p>
+              {qrSrc ? (
+                <div className="pw-qr-wrap">
+                  <img src={qrSrc} alt="KHQR" className="pw-qr" />
+                </div>
+              ) : null}
+              <div className="pw-timer">
+                {payLeft > 0 ? (
+                  <>
+                    <span className="pw-timer-dot" />
+                    {lang === "km" ? "ផុតកំណត់ក្នុង" : "Expires in"}{" "}
+                    {String(Math.floor(payLeft / 60)).padStart(2, "0")}:
+                    {String(payLeft % 60).padStart(2, "0")}
+                  </>
+                ) : (
+                  <span style={{ color: "var(--danger)" }}>
+                    {lang === "km" ? "QR ផុតកំណត់" : "QR expired"}
+                  </span>
+                )}
+              </div>
+              <p className="pw-order">Order · {checkoutId}</p>
+              {payDeeplink ? (
+                <button
+                  type="button"
+                  className="btn bg-brand pw-aba-btn"
+                  onClick={() => {
+                    window.location.href = payDeeplink;
+                    setPayPhase("scanned");
+                  }}
+                >
+                  {lang === "km" ? "បើកក្នុង ABA Mobile" : "Open in ABA Mobile"}
+                </button>
+              ) : (
+                <button type="button" className="btn bg-brand pw-aba-btn" onClick={() => setPayPhase("scanned")}>
+                  {lang === "km" ? "ខ្ញុំបានស្កេនហើយ" : "I have scanned"}
+                </button>
+              )}
+              <button type="button" className="btn btn-soft pw-secondary" disabled={paying} onClick={confirmQr}>
+                {paying ? "…" : lang === "km" ? "ខ្ញុំបានបង់ហើយ" : "I have paid"}
+              </button>
+              <button type="button" className="pw-link" onClick={() => setQrOpen(false)}>
+                {t(lang, "cancel")}
+              </button>
+            </>
+          ) : (
+            <div className="pw-scanned">
+              <div className="pw-scanned-ico" aria-hidden="true">
+                <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                  <rect x="12" y="12" width="16" height="16" rx="2" stroke="#1d6adf" strokeWidth="3" />
+                  <rect x="36" y="12" width="16" height="16" rx="2" stroke="#1d6adf" strokeWidth="3" />
+                  <rect x="12" y="36" width="16" height="16" rx="2" stroke="#1d6adf" strokeWidth="3" />
+                  <path d="M36 44h16M44 36v16" stroke="#1d6adf" strokeWidth="3" strokeLinecap="round" />
+                  <circle cx="48" cy="48" r="10" fill="#22c55e" />
+                  <path d="M43 48l3 3 6-7" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <h3 className="pw-scanned-title">
+                {lang === "km" ? "QR បានស្កេនហើយ" : "QR code is scanned"}
+              </h3>
+              <p className="pw-scanned-desc">
+                {lang === "km"
+                  ? "សូមបញ្ជាក់ការបង់ប្រាក់ក្នុង app ABA តាមសេចក្តីណែនាំលើអេក្រង់"
+                  : "Please follow in-app screen instruction."}
+              </p>
+              <div className="pw-waiting">
+                <span className="pw-spin" />
+                {lang === "km" ? "កំពុងរង់ចាំការបញ្ជាក់…" : "Waiting for confirmation…"}
+              </div>
+              <p className="pw-order">Order · {checkoutId}</p>
+              <button type="button" className="btn btn-soft pw-secondary" disabled={paying} onClick={confirmQr}>
+                {paying ? "…" : lang === "km" ? "ខ្ញុំបានបង់ហើយ" : "I have paid"}
+              </button>
+              <button type="button" className="pw-link" onClick={() => setPayPhase("qr")}>
+                {lang === "km" ? "← មើល QR ម្ដងទៀត" : "← Show QR again"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -440,6 +440,9 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
     transactionId: qr.transaction_id,
     qrImage: qr.qr_image,
     qrString: qr.qr_string,
+    payUrl: qr.pay_url || "",
+    deeplink: qr.deeplink || qr.pay_url || "",
+    expiresAt: qr.expires_at || "",
   });
   auditLog("checkout_create", { orderId: updated.id, total: updated.total, ip: clientIp(req) });
   return res.json({
@@ -448,6 +451,9 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
       transactionId: qr.transaction_id,
       qrImage: qr.qr_image,
       qrString: qr.qr_string,
+      payUrl: qr.pay_url || "",
+      deeplink: qr.deeplink || qr.pay_url || "",
+      expiresAt: qr.expires_at || "",
     },
   });
 });

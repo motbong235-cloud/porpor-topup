@@ -115,12 +115,19 @@ export async function createQr(amount, billNumber, username) {
     }
 
     if (data.ok && data.payment_id) {
+      const deeplink =
+        data.abapay_deeplink ||
+        data.aba_deeplink ||
+        data.deeplink ||
+        data.pay_url ||
+        "";
       return {
         success: true,
         qr_image: data.card_image || data.qr_image || "",
-        qr_string: data.qr_string || data.qr_data || "",
+        qr_string: data.qr_string || data.qr_data || data.qr || "",
         transaction_id: String(data.payment_id),
-        pay_url: data.pay_url || "",
+        pay_url: data.pay_url || data.checkout_url || "",
+        deeplink,
         expires_at: data.expires_at || "",
         raw: { ...data, card_image: undefined, qr_image: undefined },
       };
