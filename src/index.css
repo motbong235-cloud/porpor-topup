@@ -3731,3 +3731,16 @@ input:focus {
     border-radius: 16px !important;
   }
 }
+
+/* ---- Banner fix: stop the banner growing wider than the screen on phones ----
+   aspect-ratio + min-height made the browser widen the box (200px * 16/7 = 457px) and push it off-screen. */
+.banner {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+/* Uploaded banner photos keep their natural shape (no forced min-height → no side cropping) */
+.banner.banner-has-photo {
+  min-height: 0;
+}
