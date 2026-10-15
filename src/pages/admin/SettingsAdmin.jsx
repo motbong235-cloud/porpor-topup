@@ -107,7 +107,7 @@ export default function SettingsAdmin() {
 
       <section className="ad-card">
         <h2>Logo គេហទំព័រ</h2>
-        <p className="ad-hint">បង្ហាញនៅ Header ។ ណែនាំរូបការ៉េ (PNG ផ្ទៃថ្លា) ទំហំ 512×512 ។ ទុកទទេ = ប្រើ "PP" ដើម</p>
+        <p className="ad-hint">បង្ហាញនៅ Header ហើយក៏ជា Favicon (រូបតូចក្នុង Google/Browser) និង Icon របស់ App ពេលអតិថិជន Download ។ ណែនាំរូបការ៉េ (PNG ផ្ទៃថ្លា) ទំហំ 512×512 ។ ទុកទទេ = ប្រើ "PP" ដើម</p>
         <WideImageSlot
           src={form.logoUrl}
           ratio="1 / 1"

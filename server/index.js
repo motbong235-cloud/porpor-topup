@@ -42,6 +42,7 @@ import {
   readAuditLog,
 } from "./security.js";
 import { issueCsrf, csrfGuard } from "./csrf.js";
+import * as branding from "./branding.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");
@@ -689,6 +690,7 @@ app.put("/api/admin/settings", adminAuth, (req, res) => {
     if (body[k] !== undefined) patch[k] = body[k];
   }
   if (patch.logoUrl !== undefined) patch.logoUrl = cleanImageUrl(patch.logoUrl);
+  if (patch.logoUrl !== undefined) branding.clearBrandingCache();
   if (patch.bannerUrls !== undefined) {
     patch.bannerUrls = (Array.isArray(patch.bannerUrls) ? patch.bannerUrls : [])
       .map(cleanImageUrl)
@@ -863,12 +865,61 @@ app.post("/api/admin/upload", adminAuth, express.raw({ type: () => true, limit: 
   res.json({ url: `/uploads/${name}` });
 });
 
+/* ---------- Branding: favicon / app icon / manifest follow the logo uploaded in Admin ---------- */
+const ICON_CACHE = "public, max-age=3600"; // links carry ?v=<logo hash>, so a new logo is picked up immediately
+function defaultIconPath(file) {
+  for (const base of [path.join(DIST, "icons"), path.join(ROOT, "public", "icons")]) {
+    const p = path.join(base, file);
+    if (fs.existsSync(p)) return p;
+  }
+  return null;
+}
+async function sendIcon(res, size, kind, fallbackFile) {
+  const r = await branding.renderLogo(size, kind).catch(() => null);
+  res.setHeader("Cache-Control", ICON_CACHE);
+  if (r) return res.type(r.type).send(r.buf);
+  const p = defaultIconPath(fallbackFile);
+  return p ? res.sendFile(p) : res.status(404).end();
+}
+const ICON_ROUTES = [
+  ["/favicon-48.png", 48, "any", "icon-192.png"],
+  ["/favicon.ico", 48, "any", "icon-192.png"],
+  ["/apple-touch-icon.png", 180, "apple", "apple-touch-icon.png"],
+  ["/icons/app-192.png", 192, "any", "icon-192.png"],
+  ["/icons/app-512.png", 512, "any", "icon-512.png"],
+  ["/icons/app-maskable-192.png", 192, "maskable", "maskable-192.png"],
+  ["/icons/app-maskable-512.png", 512, "maskable", "maskable-512.png"],
+];
+for (const [route, size, kind, fallback] of ICON_ROUTES) {
+  app.get(route, (_req, res) => sendIcon(res, size, kind, fallback));
+}
+app.get("/manifest.webmanifest", (_req, res) => {
+  let base = {};
+  for (const p of [path.join(DIST, "manifest.webmanifest"), path.join(ROOT, "public", "manifest.webmanifest")]) {
+    try {
+      base = JSON.parse(fs.readFileSync(p, "utf8"));
+      break;
+    } catch {}
+  }
+  res.setHeader("Cache-Control", "no-cache");
+  res.type("application/manifest+json").send(JSON.stringify(branding.buildManifest(base)));
+});
+
 if (fs.existsSync(DIST)) {
   // Serve assets but NEVER auto-serve index.html (we inject ADMIN_PATH ourselves)
   app.use(
     express.static(DIST, {
       index: false,
       maxAge: isProd ? "7d" : 0,
+      setHeaders: (res, filePath) => {
+        const f = path.basename(filePath);
+        // The service worker + manifest must always be revalidated so app updates reach installed users.
+        if (f === "sw.js" || f === "manifest.webmanifest" || f === "offline.html") {
+          res.setHeader("Cache-Control", "no-cache");
+        }
+        if (f === "sw.js") res.setHeader("Service-Worker-Allowed", "/");
+        if (f === "manifest.webmanifest") res.setHeader("Content-Type", "application/manifest+json; charset=utf-8");
+      },
     }),
   );
   app.get("*", (req, res, next) => {
@@ -876,6 +927,12 @@ if (fs.existsSync(DIST)) {
     const htmlPath = path.join(DIST, "index.html");
     try {
       let html = fs.readFileSync(htmlPath, "utf8");
+      if (branding.hasLogo()) {
+        // Replace the default favicon / manifest links with ones that point to the admin logo
+        html = html
+          .replace(/<link[^>]+rel="(?:icon|shortcut icon|apple-touch-icon|manifest)"[^>]*>\s*/g, "")
+          .replace("</head>", `    ${branding.headTags(`${req.protocol}://${req.get("host")}`)}\n  </head>`);
+      }
       const inj = `<script>window.__ADMIN_PATH__=${JSON.stringify(ADMIN_PATH)};</script>`;
       if (html.includes("window.__ADMIN_PATH__")) {
         html = html.replace(/<script>window\.__ADMIN_PATH__=.*?<\/script>/, inj);

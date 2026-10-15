@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useCatalog } from "../lib/catalog";
+import { useInstallPrompt } from "../hooks/useInstallPrompt";
 import { t } from "../lib/i18n";
 import { GameTile, Icon } from "./Icons";
 
@@ -27,6 +28,8 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
   const [menu, setMenu] = useState(false);
   const [search, setSearch] = useState(false);
   const [q, setQ] = useState("");
+  const [iosHelp, setIosHelp] = useState(false);
+  const pwa = useInstallPrompt();
   const lift = location.pathname.startsWith("/game");
 
   useEffect(() => {
@@ -45,6 +48,15 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
     setMenu(false);
     setSearch(false);
   }, [location.pathname, location.search]);
+
+  async function handleInstall() {
+    setMenu(false);
+    if (pwa.canPrompt) {
+      await pwa.install();
+    } else if (pwa.isIos) {
+      setIosHelp(true);
+    }
+  }
 
   const hits = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -74,6 +86,17 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
             </div>
           </Link>
           <div className="header-actions">
+            {pwa.visible && (
+              <button
+                type="button"
+                className="icon-btn install-btn"
+                aria-label={t(lang, "install")}
+                title={t(lang, "install")}
+                onClick={handleInstall}
+              >
+                <Icon name="download" size={18} />
+              </button>
+            )}
             <button type="button" className="lang-btn" onClick={() => setLang(lang === "km" ? "en" : "km")}>
               {lang === "km" ? "EN" : "ខ្មែរ"}
             </button>
@@ -168,6 +191,11 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
           <Link to="/reseller" onClick={() => setMenu(false)}>
             <Icon name="store" /> {t(lang, "reseller")}
           </Link>
+          {pwa.visible && (
+            <button type="button" className="nav-item install-item" onClick={handleInstall}>
+              <Icon name="download" /> {t(lang, "install")}
+            </button>
+          )}
         </nav>
       </aside>
 
@@ -209,6 +237,30 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
               ))
             )}
           </ul>
+        </div>
+      </div>
+      <div className={`install-modal${iosHelp ? " open" : ""}`} onClick={(e) => e.target === e.currentTarget && setIosHelp(false)}>
+        <div className="install-sheet" role="dialog" aria-modal="true" aria-label={t(lang, "installIosTitle")}>
+          <div className="install-sheet-head">
+            <LogoMark url={settings && settings.logoUrl} style={{ width: 44, height: 44, fontSize: 13 }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <strong>{t(lang, "installTitle")}</strong>
+              <div className="logo-tag" style={{ marginTop: 2 }}>
+                {t(lang, "installIosTitle")}
+              </div>
+            </div>
+            <button type="button" className="icon-btn" aria-label={t(lang, "close")} onClick={() => setIosHelp(false)}>
+              <Icon name="x" />
+            </button>
+          </div>
+          <ol className="install-steps">
+            <li>{t(lang, "installIosStep1")}</li>
+            <li>{t(lang, "installIosStep2")}</li>
+            <li>{t(lang, "installIosStep3")}</li>
+          </ol>
+          <button type="button" className="btn bg-brand install-ok" onClick={() => setIosHelp(false)}>
+            OK
+          </button>
         </div>
       </div>
     </div>
