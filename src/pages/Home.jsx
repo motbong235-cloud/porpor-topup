@@ -78,7 +78,7 @@ export default function Home({ lang, settings }) {
 
   return (
     <div className="container">
-      <section className="banner">
+      <section className="banner banner-v2">
         {hasCustom
           ? custom.map((url, i) => (
               <div key={url + i} className={`banner-slide banner-photo${i === slide ? " active" : ""}`}>

@@ -3431,3 +3431,303 @@ html.dark .hot-foot {
     border-radius: 1.25rem;
   }
 }
+
+/* =========================================================
+   Porpor TOPUP v2 — modern 2026 refresh
+   ========================================================= */
+:root {
+  --primary: #2563eb;
+  --primary-2: #60a5fa;
+  --radius: 1.15rem;
+  --shadow: 0 4px 24px -6px rgba(15, 23, 42, 0.12);
+  --shadow-lg: 0 20px 50px -18px rgba(37, 99, 235, 0.35);
+  --glass: color-mix(in srgb, var(--surface) 78%, transparent);
+}
+
+html.dark {
+  --shadow: 0 4px 24px -6px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 20px 50px -16px rgba(37, 99, 235, 0.45);
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 10% -10%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, color-mix(in srgb, #22d3ee 8%, transparent), transparent 50%),
+    var(--bg);
+}
+
+/* Sticky glass header */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  background: var(--glass) !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--surface) 40%, transparent);
+}
+
+.header-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 10px 16px;
+}
+
+.logo-name {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-size: 15px;
+}
+
+.logo-tag {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+.icon-btn,
+.lang-btn {
+  border-radius: 12px !important;
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.icon-btn:hover,
+.lang-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px -8px rgba(37, 99, 235, 0.35);
+}
+
+/* Banner / hero */
+.banner {
+  border-radius: 24px !important;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  box-shadow: var(--shadow-lg);
+  min-height: 200px;
+}
+
+@media (min-width: 768px) {
+  .banner {
+    min-height: 280px;
+    border-radius: 28px !important;
+  }
+}
+
+.banner-slide {
+  background:
+    linear-gradient(135deg, #0b1f3a 0%, #1d4ed8 48%, #38bdf8 120%) !important;
+}
+
+.banner-title {
+  font-size: clamp(1.45rem, 4.2vw, 2.35rem) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+}
+
+.banner-sub {
+  opacity: 0.9;
+  font-size: 14px;
+  max-width: 36ch;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.kicker-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.25);
+  animation: pulse 1.6s ease infinite;
+}
+
+.btn.bg-brand,
+.btn-primary {
+  border-radius: 999px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.01em;
+  background: linear-gradient(105deg, #60a5fa, #2563eb 55%, #1d4ed8) !important;
+  box-shadow:
+    0 12px 28px -10px rgba(37, 99, 235, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+  border: none !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.btn.bg-brand:hover,
+.btn-primary:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+  box-shadow: 0 16px 32px -10px rgba(37, 99, 235, 0.65) !important;
+}
+
+.btn-ghost {
+  border-radius: 999px !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(8px);
+}
+
+/* Sections */
+.section-head h2 {
+  font-size: clamp(1.15rem, 2.5vw, 1.45rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.section-head .star {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--primary) 14%, var(--surface));
+  color: var(--primary);
+}
+
+/* Game cards — modern */
+.game-card {
+  border-radius: 20px !important;
+  padding: 12px !important;
+  border: 1px solid color-mix(in srgb, var(--line) 85%, transparent) !important;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 92%, #fff), var(--surface)) !important;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+html.dark .game-card {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 100%, #1e293b), var(--surface)) !important;
+}
+
+.game-card:hover:not(.disabled) {
+  transform: translateY(-6px) scale(1.02) !important;
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--line)) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.game-tile {
+  border-radius: 16px !important;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line) 50%, transparent);
+}
+
+.game-name {
+  font-weight: 750;
+  font-size: 13px;
+  letter-spacing: -0.02em;
+  margin-top: 10px;
+}
+
+.game-cta.on {
+  display: inline-flex;
+  margin-top: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  color: var(--primary);
+  letter-spacing: 0.02em;
+}
+
+.game-card:hover:not(.disabled) .game-cta.on {
+  background: linear-gradient(105deg, #60a5fa, #2563eb) !important;
+  color: #fff !important;
+}
+
+.game-badge.hot {
+  background: linear-gradient(100deg, #f97316, #ef4444) !important;
+  box-shadow: 0 6px 14px -6px rgba(239, 68, 68, 0.55);
+}
+
+/* Event / special cards */
+.events a,
+.events-special a,
+.event-card {
+  border-radius: 18px !important;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.events a:hover,
+.events-special a:hover,
+.event-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Packs on game page */
+.pack {
+  border-radius: 16px !important;
+  border: 1px solid var(--line) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.pack.on {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+  transform: translateY(-2px);
+}
+
+/* Payment sheet already light — refine inputs */
+.field input,
+input[type="text"],
+input[type="search"] {
+  border-radius: 14px !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.field input:focus,
+input:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+  outline: none;
+}
+
+/* Bottom pay bar */
+.pay-bar {
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  background: color-mix(in srgb, var(--surface) 88%, transparent) !important;
+  border-top: 1px solid var(--line);
+  box-shadow: 0 -12px 40px -16px rgba(15, 23, 42, 0.2);
+}
+
+/* Footer */
+.footer {
+  border-top: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* Smooth page */
+.container {
+  animation: pp-fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Mobile bottom spacing */
+@media (max-width: 640px) {
+  .banner {
+    border-radius: 18px !important;
+  }
+  .game-card {
+    border-radius: 16px !important;
+  }
+}
