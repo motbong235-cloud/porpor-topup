@@ -121,6 +121,13 @@ export function Icon({ name, size = 20 }) {
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
         </svg>
       );
+    case "send":
+      return (
+        <svg {...props} strokeWidth={2}>
+          <path d="M22 2 11 13" />
+          <path d="M22 2 15 22l-4-9-9-4 20-7z" />
+        </svg>
+      );
     case "download":
       return (
         <svg {...props}>

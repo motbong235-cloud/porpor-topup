@@ -163,8 +163,9 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
         target="_blank"
         rel="noreferrer"
         aria-label={t(lang, "chat")}
+        title={t(lang, "chat")}
       >
-        <Icon name="help" />
+        <Icon name="send" size={24} />
       </a>
 
       <div className={`overlay${menu ? " open" : ""}`} onClick={() => setMenu(false)} />
@@ -258,7 +259,7 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
             <span>{t(lang, "installBody")}</span>
           </div>
           <button type="button" className="btn bg-brand install-banner-cta" onClick={handleInstall}>
-            {t(lang, "install")}
+            {t(lang, "installShort")}
           </button>
           <button type="button" className="install-banner-x" aria-label={t(lang, "close")} onClick={dismissBanner}>
             <Icon name="x" size={16} />

@@ -3958,3 +3958,54 @@ input:focus {
     opacity: 0;
   }
 }
+
+/* ---- Fix: install banner button readable + close button always visible; chat button = Telegram plane ---- */
+/* .btn.bg-brand has !important gradient — needs a more specific selector to turn the pill white */
+.install-banner .install-banner-cta.btn.bg-brand {
+  background: #fff !important;
+  color: #0b3d91 !important;
+  padding: 7px 14px !important;
+  font-size: 12.5px !important;
+  box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.35) !important;
+}
+.install-banner-text {
+  min-width: 0;
+}
+.install-banner-text strong {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.install-banner-x {
+  flex-shrink: 0;
+}
+@media (max-width: 440px) {
+  /* little room on phones: keep title + button + close, drop the 2nd text line */
+  .install-banner-text span {
+    display: none;
+  }
+}
+
+/* Floating chat button: clean round Telegram button, clear of the banner */
+.float-chat {
+  width: 52px;
+  height: 52px;
+  padding: 0 !important;
+  justify-content: center;
+  border-radius: 50%;
+  box-shadow:
+    0 10px 24px -8px rgba(29, 106, 223, 0.7),
+    0 0 0 3px rgba(255, 255, 255, 0.85),
+    0 0 0 1px rgba(29, 106, 223, 0.18);
+}
+.float-chat svg {
+  transform: translate(-1px, 1px);
+}
+.float-chat.above-install {
+  bottom: calc(82px + env(safe-area-inset-bottom));
+}
+@media (min-width: 1024px) {
+  .float-chat.above-install {
+    bottom: 28px;
+  }
+}
