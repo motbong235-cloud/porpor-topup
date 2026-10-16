@@ -158,7 +158,7 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
       </footer>
 
       <a
-        className={`float-chat bg-brand${lift ? " lift" : ""}`}
+        className={`float-chat bg-brand${lift ? " lift" : ""}${showBanner ? " above-install" : ""}`}
         href={(settings && settings.telegram) || "https://t.me/porportopup"}
         target="_blank"
         rel="noreferrer"

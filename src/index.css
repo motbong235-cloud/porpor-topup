@@ -3851,3 +3851,49 @@ input:focus {
 .install-banner-logo .logo-mark {
   box-shadow: none;
 }
+
+/* ---- Install banner: smaller + positioned so it never covers the chat button ---- */
+.install-banner {
+  left: 10px;
+  right: 10px;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  max-width: 440px;
+  gap: 8px;
+  padding: 7px 8px 7px 8px;
+  border-radius: 14px;
+  box-shadow: 0 8px 22px -8px rgba(13, 71, 161, 0.5);
+}
+.install-banner-logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+}
+.install-banner-logo .logo-mark {
+  width: 32px !important;
+  height: 32px !important;
+  font-size: 11px !important;
+}
+.install-banner-text strong {
+  font-size: 12.5px;
+}
+.install-banner-text span {
+  font-size: 10.5px;
+  -webkit-line-clamp: 1;
+}
+.install-banner-cta {
+  padding: 6px 11px !important;
+  font-size: 12px !important;
+}
+.install-banner-x {
+  width: 24px;
+  height: 24px;
+}
+/* Chat button sits above the banner (not under it) */
+.float-chat.above-install {
+  bottom: calc(68px + env(safe-area-inset-bottom));
+}
+@media (min-width: 1024px) {
+  .float-chat.above-install {
+    bottom: 28px;
+  }
+}
