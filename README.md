@@ -77,7 +77,7 @@ render.yaml      Render blueprint
 
 ### Flow
 1. Admin → **Services**: pick which **Khmer TopUp** games/packages to sell (live from `GET /games`) and set a markup %
-2. Customer picks a package, verifies their ID, pays **KHQR** via **Khmer System** (`ABA_API_KEY` + `ABA_MERCHANT_ID`)
+2. Customer picks a package, verifies their ID, pays **KHQR** via **ABA PayWay** (`ABA_API_KEY` + `ABA_MERCHANT_ID`)
 3. Server confirms the payment → places the order(s) on **Khmer TopUp** (`KHMER_TOPUP_API_KEY`)
 4. Polls until `completed` / `refunded`
 
@@ -87,8 +87,8 @@ Prices are always calculated on the server (supplier cost + markup − coupon); 
 
 | Variable | Purpose |
 |----------|---------|
-| `ABA_API_KEY` | Khmer System payment |
-| `ABA_MERCHANT_ID` | Khmer System merchant |
+| `ABA_API_KEY` | ABA PayWay payment |
+| `ABA_MERCHANT_ID` | ABA PayWay merchant |
 | `KHMER_TOPUP_API_KEY` | Game catalog + auto delivery |
 | `ADMIN_PASSWORD` | Admin panel |
 

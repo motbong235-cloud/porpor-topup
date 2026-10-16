@@ -1,5 +1,5 @@
 /**
- * Khmer-System ABA PayWay (Node port of khmer_system.py)
+ * ABA PayWay (Node port of khmer_system.py)
  * Env: ABA_API_KEY, ABA_MERCHANT_ID
  */
 const BASE_URL = process.env.KHMER_SYSTEM_URL || "https://khmer-system.com";
@@ -19,7 +19,7 @@ function merchantId() {
   return clean(process.env.ABA_MERCHANT_ID);
 }
 
-/** Admin-only: call generate-qr with the current env values and report exactly what Khmer System answers. */
+/** Admin-only: call generate-qr with the current env values and report exactly what ABA PayWay answers. */
 export async function diagnose() {
   const rawKey = String(process.env.ABA_API_KEY || "");
   const rawMid = String(process.env.ABA_MERCHANT_ID || "");
@@ -63,13 +63,13 @@ export function isPaymentReady() {
   return Boolean(apiKey() && merchantId());
 }
 
-/** Khmer System wants a short "username" label for the payer (the bot sends the Telegram username). */
+/** ABA PayWay wants a short "username" label for the payer (the bot sends the Telegram username). */
 function makeUsername(raw) {
   const u = String(raw || "").replace(/^@/, "").replace(/[^A-Za-z0-9_]/g, "").slice(0, 32);
   return u || "customer";
 }
 
-/** Browser-like headers — some Khmer System hosts sit behind a WAF that blocks bare clients. */
+/** Browser-like headers — some ABA PayWay hosts sit behind a WAF that blocks bare clients. */
 const HEADERS = {
   "Content-Type": "application/json",
   Accept: "application/json",
@@ -79,7 +79,7 @@ const HEADERS = {
 
 /**
  * Create a KHQR payment.
- * Current Khmer System API (same as the working Telegram bot):
+ * Current ABA PayWay API (same as the working Telegram bot):
  *   POST /aba-api/generate-qr  { api_key, merchant_id, username, amount }
  *   → { ok: true, payment_id, qr_image, card_image, pay_url, expires_at }
  */

@@ -1,5 +1,5 @@
 """
-Khmer-System ABA PayWay Module
+ABA PayWay Module
 អាចយកទៅប្រើជាមួយ Website ឬ Telegram Bot បាន
 
 Usage:
@@ -33,7 +33,7 @@ def is_ready() -> bool:
 
 def create_qr(amount: float, bill_number: str, description: str = "Payment") -> dict:
     """
-    បង្កើត QR តាម Khmer-System
+    បង្កើត QR តាម ABA PayWay
 
     Args:
         amount: ចំនួនលុយ (ឧ. 1.50)

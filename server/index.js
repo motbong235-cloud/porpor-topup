@@ -433,7 +433,7 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
 
   const qr = await khmerSystem.createQr(order.total, order.id, `p${order.id}`);
   if (!qr.success) {
-    console.error("[checkout] Khmer System QR failed:", qr.error, JSON.stringify(qr.raw || {}));
+    console.error("[checkout] ABA PayWay QR failed:", qr.error, JSON.stringify(qr.raw || {}));
     updateOrder(order.id, { status: "failed", note: `QR error: ${qr.error}` });
     return res.status(502).json({ error: "qr_failed", detail: qr.error });
   }
@@ -982,6 +982,6 @@ app.listen(PORT, () => {
   if (isProd) {
     console.log("[security] HSTS + CSP headers enabled; use Cloudflare WAF in front of the domain");
   }
-  console.log(`  Khmer System payment: ${khmerSystem.isPaymentReady() ? "READY" : "NOT CONFIGURED"}`);
+  console.log(`  ABA PayWay payment: ${khmerSystem.isPaymentReady() ? "READY" : "NOT CONFIGURED"}`);
   console.log(`  Khmer TopUp auto:     ${khmerTopup.isTopupReady() ? "READY" : "NOT CONFIGURED"}`);
 });

@@ -97,7 +97,7 @@ setInterval(() => {
 
 /**
  * Never trust the browser to say "I paid".
- * Only Khmer System checkPayment (or admin) may advance pending → paid.
+ * Only ABA PayWay checkPayment (or admin) may advance pending → paid.
  */
 export function assertPaymentProviderPaid(pay) {
   return !!(pay && pay.paid === true);

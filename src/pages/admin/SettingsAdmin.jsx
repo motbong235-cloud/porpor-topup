@@ -164,7 +164,7 @@ export default function SettingsAdmin() {
       </section>
 
       <section className="ad-card">
-        <h2>ពិនិត្យការតភ្ជាប់ការទូទាត់ (Khmer System)</h2>
+        <h2>ពិនិត្យការតភ្ជាប់ការទូទាត់ (ABA PayWay)</h2>
         <p className="ad-hint">សាកល្បងបង្កើត QR $0.01 ដោយប្រើ ABA_API_KEY / ABA_MERCHANT_ID ក្នុង Render ហើយបង្ហាញចម្លើយពិតរបស់ API</p>
         <button type="button" className="ad-btn soft" onClick={testPayment} disabled={testing}>
           {testing ? "កំពុងសាកល្បង…" : "សាកល្បងឥឡូវ"}
