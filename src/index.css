@@ -3744,3 +3744,94 @@ input:focus {
 .banner.banner-has-photo {
   min-height: 0;
 }
+
+
+/* ---------- Install banner (home, above bottom) ---------- */
+.install-banner {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 45;
+  max-width: 520px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 12px 12px 14px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #0b3d91 0%, #1d6adf 55%, #4aa2ff 100%);
+  color: #fff;
+  box-shadow: 0 12px 32px -8px rgba(13, 71, 161, 0.55);
+  animation: installBannerIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes installBannerIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+.install-banner-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.18);
+}
+.install-banner-text {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.install-banner-text strong {
+  font-size: 13.5px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+.install-banner-text span {
+  font-size: 11.5px;
+  opacity: 0.92;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.install-banner-cta {
+  flex-shrink: 0;
+  padding: 8px 12px !important;
+  font-size: 12.5px !important;
+  font-weight: 800 !important;
+  border-radius: 999px !important;
+  background: #fff !important;
+  color: #0b3d91 !important;
+  border: none !important;
+  white-space: nowrap;
+}
+.install-banner-x {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.install-sheet-body {
+  margin: 12px 0 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--muted, #64748b);
+}
+@media (min-width: 768px) {
+  .install-banner {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: min(520px, calc(100% - 24px));
+  }
+}

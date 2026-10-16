@@ -49,14 +49,33 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
     setSearch(false);
   }, [location.pathname, location.search]);
 
+  const [bannerGone, setBannerGone] = useState(() => {
+    try {
+      return localStorage.getItem("pp_install_banner_gone") === "1";
+    } catch {
+      return false;
+    }
+  });
+
   async function handleInstall() {
     setMenu(false);
     if (pwa.canPrompt) {
-      await pwa.install();
-    } else if (pwa.isIos) {
+      const r = await pwa.install();
+      if (r === "unavailable" || r === "dismissed") setIosHelp(true);
+    } else {
       setIosHelp(true);
     }
   }
+
+  function dismissBanner() {
+    setBannerGone(true);
+    try {
+      localStorage.setItem("pp_install_banner_gone", "1");
+    } catch {}
+  }
+
+  const showBanner =
+    pwa.visible && !bannerGone && (location.pathname === "/" || location.pathname === "");
 
   const hits = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -86,17 +105,6 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
             </div>
           </Link>
           <div className="header-actions">
-            {pwa.visible && (
-              <button
-                type="button"
-                className="icon-btn install-btn"
-                aria-label={t(lang, "install")}
-                title={t(lang, "install")}
-                onClick={handleInstall}
-              >
-                <Icon name="download" size={18} />
-              </button>
-            )}
             <button type="button" className="lang-btn" onClick={() => setLang(lang === "km" ? "en" : "km")}>
               {lang === "km" ? "EN" : "ខ្មែរ"}
             </button>
@@ -239,6 +247,25 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
           </ul>
         </div>
       </div>
+
+      {showBanner && (
+        <div className="install-banner" role="region" aria-label={t(lang, "install")}>
+          <div className="install-banner-icon" aria-hidden>
+            <Icon name="download" size={22} />
+          </div>
+          <div className="install-banner-text">
+            <strong>{t(lang, "installTitle")}</strong>
+            <span>{t(lang, "installBody")}</span>
+          </div>
+          <button type="button" className="btn bg-brand install-banner-cta" onClick={handleInstall}>
+            {t(lang, "install")}
+          </button>
+          <button type="button" className="install-banner-x" aria-label={t(lang, "close")} onClick={dismissBanner}>
+            <Icon name="x" size={16} />
+          </button>
+        </div>
+      )}
+
       <div className={`install-modal${iosHelp ? " open" : ""}`} onClick={(e) => e.target === e.currentTarget && setIosHelp(false)}>
         <div className="install-sheet" role="dialog" aria-modal="true" aria-label={t(lang, "installIosTitle")}>
           <div className="install-sheet-head">
@@ -246,18 +273,34 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
             <div style={{ flex: 1, minWidth: 0 }}>
               <strong>{t(lang, "installTitle")}</strong>
               <div className="logo-tag" style={{ marginTop: 2 }}>
-                {t(lang, "installIosTitle")}
+                {pwa.isIos ? t(lang, "installIosTitle") : t(lang, "installAndroidTitle")}
               </div>
             </div>
             <button type="button" className="icon-btn" aria-label={t(lang, "close")} onClick={() => setIosHelp(false)}>
               <Icon name="x" />
             </button>
           </div>
+          <p className="install-sheet-body">{t(lang, "installBody")}</p>
           <ol className="install-steps">
-            <li>{t(lang, "installIosStep1")}</li>
-            <li>{t(lang, "installIosStep2")}</li>
-            <li>{t(lang, "installIosStep3")}</li>
+            {pwa.isIos ? (
+              <>
+                <li>{t(lang, "installIosStep1")}</li>
+                <li>{t(lang, "installIosStep2")}</li>
+                <li>{t(lang, "installIosStep3")}</li>
+              </>
+            ) : (
+              <>
+                <li>{t(lang, "installAndroidStep1")}</li>
+                <li>{t(lang, "installAndroidStep2")}</li>
+                <li>{t(lang, "installAndroidStep3")}</li>
+              </>
+            )}
           </ol>
+          {pwa.canPrompt && (
+            <button type="button" className="btn bg-brand install-ok" style={{ marginBottom: 10 }} onClick={async () => { await pwa.install(); setIosHelp(false); }}>
+              {t(lang, "install")}
+            </button>
+          )}
           <button type="button" className="btn bg-brand install-ok" onClick={() => setIosHelp(false)}>
             OK
           </button>

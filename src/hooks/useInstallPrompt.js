@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 
 /**
- * "Download as app" (PWA install).
- *  - Android / Chrome / Edge / desktop: captures `beforeinstallprompt` and shows the native install dialog.
- *  - iOS Safari: no install API exists, so we expose `isIos` and the UI shows "Share → Add to Home Screen".
- *  - Already installed (standalone): `installed` is true and the button is hidden.
+ * PWA install prompt.
+ * - Chrome/Edge/Android: beforeinstallprompt → native dialog
+ * - iOS Safari: manual Share → Add to Home Screen
+ * - Other mobile: show how-to sheet
+ * - Already installed (standalone): hide
  */
-let deferred = null; // survive component remounts
+let deferred = null;
 const listeners = new Set();
 const notify = () => listeners.forEach((fn) => fn());
 
@@ -38,6 +39,12 @@ function detectIos() {
   return /iphone|ipad|ipod/i.test(ua) || iPadOS;
 }
 
+function detectMobile() {
+  if (typeof navigator === "undefined") return false;
+  return /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent || "") ||
+    (navigator.maxTouchPoints > 1 && window.innerWidth < 900);
+}
+
 export function useInstallPrompt() {
   const [, force] = useState(0);
   const [installedNow, setInstalledNow] = useState(false);
@@ -55,12 +62,13 @@ export function useInstallPrompt() {
 
   const installed = installedNow || isStandalone();
   const isIos = detectIos();
+  const isMobile = detectMobile();
   const canPrompt = !!deferred;
 
   const install = useCallback(async () => {
     if (!deferred) return "unavailable";
     const prompt = deferred;
-    deferred = null; // a prompt event can only be used once
+    deferred = null;
     notify();
     try {
       await prompt.prompt();
@@ -75,8 +83,9 @@ export function useInstallPrompt() {
     installed,
     canPrompt,
     isIos,
-    // show a button when the browser can prompt, or on iOS Safari (manual steps)
-    visible: !installed && (canPrompt || isIos),
+    isMobile,
+    // Show on mobile until installed (native prompt or help sheet)
+    visible: !installed && (canPrompt || isIos || isMobile),
     install,
   };
 }
