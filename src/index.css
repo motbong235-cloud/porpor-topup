@@ -3835,3 +3835,19 @@ input:focus {
     width: min(520px, calc(100% - 24px));
   }
 }
+
+/* Install banner shows the website logo (from Admin → Settings) on a white tile */
+.install-banner-logo {
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.35);
+}
+.install-banner-logo .logo-mark {
+  box-shadow: none;
+}

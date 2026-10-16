@@ -250,8 +250,8 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
 
       {showBanner && (
         <div className="install-banner" role="region" aria-label={t(lang, "install")}>
-          <div className="install-banner-icon" aria-hidden>
-            <Icon name="download" size={22} />
+          <div className="install-banner-logo" aria-hidden>
+            <LogoMark url={settings && settings.logoUrl} style={{ width: 40, height: 40, fontSize: 13 }} />
           </div>
           <div className="install-banner-text">
             <strong>{t(lang, "installTitle")}</strong>
