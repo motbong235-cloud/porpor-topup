@@ -3897,3 +3897,64 @@ input:focus {
     bottom: 28px;
   }
 }
+
+/* ---- Install banner: glass look + light sweeping back and forth ---- */
+.install-banner {
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    linear-gradient(135deg, rgba(11, 61, 145, 0.78) 0%, rgba(29, 106, 223, 0.62) 55%, rgba(74, 162, 255, 0.55) 100%);
+  -webkit-backdrop-filter: blur(14px) saturate(170%);
+  backdrop-filter: blur(14px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  box-shadow:
+    0 10px 28px -8px rgba(13, 71, 161, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.12);
+}
+.install-banner > * {
+  position: relative;
+  z-index: 2;
+}
+/* glossy top reflection like a glass pane */
+.install-banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.26) 0%, rgba(255, 255, 255, 0.04) 48%, rgba(255, 255, 255, 0) 100%);
+}
+/* light streak that glides left → right → left */
+.install-banner::before {
+  content: "";
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: 0;
+  width: 38%;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.55) 50%, rgba(255, 255, 255, 0) 100%);
+  transform: translateX(-110%) skewX(-20deg);
+  animation: installShine 3.2s ease-in-out infinite alternate;
+}
+@keyframes installShine {
+  from { transform: translateX(-110%) skewX(-20deg); }
+  to   { transform: translateX(285%) skewX(-20deg); }
+}
+.install-banner-cta {
+  background: rgba(255, 255, 255, 0.94) !important;
+  box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.35);
+}
+.install-banner-x {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+}
+@media (prefers-reduced-motion: reduce) {
+  .install-banner::before {
+    animation: none;
+    opacity: 0;
+  }
+}
