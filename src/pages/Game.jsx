@@ -327,8 +327,9 @@ export default function Game({ lang, addOrder, settings }) {
             <p className="blurb">{lang === "km" ? game.blurbKm : game.blurbEn}</p>
           ) : null}
           <div className="chips">
-            <span className="chip">{t(lang, "statSpeed")}</span>
-            <span className="chip">KHQR</span>
+            <span className="chip chip-icon"><Icon name="zap" size={14} /> {t(lang, "statSpeed")}</span>
+            <span className="chip chip-icon"><Icon name="qr" size={14} /> KHQR</span>
+            <span className="chip chip-icon"><Icon name="shield" size={14} /> Secure</span>
           </div>
         </div>
       </div>
@@ -526,7 +527,7 @@ export default function Game({ lang, addOrder, settings }) {
           ) : null}
 
 <section className="card pay-section">
-            <h2>{t(lang, "payment")}</h2>
+            <h2 className="sec-title"><Icon name="wallet" size={18} /> {t(lang, "payment")}</h2>
             <div className="pay-choices">
               <div className="pay-choice active" role="radio" aria-checked="true">
                 <div className="pay-choice-brand">
@@ -542,8 +543,8 @@ export default function Game({ lang, addOrder, settings }) {
             </div>
             <div className="coupon-row">
               <input value={coupon} onChange={(e) => setCoupon(e.target.value)} placeholder={t(lang, "coupon")} />
-              <button type="button" onClick={onCoupon}>
-                {t(lang, "apply")}
+              <button type="button" onClick={onCoupon} className="coupon-apply">
+                <Icon name="tag" size={16} /> {t(lang, "apply")}
               </button>
             </div>
             {couponMsg.text ? <p className={`msg ${couponMsg.type}`}>{couponMsg.text}</p> : null}
@@ -551,7 +552,7 @@ export default function Game({ lang, addOrder, settings }) {
         </div>
 
         <aside className="card summary">
-          <h2>{t(lang, "summary")}</h2>
+          <h2 className="sec-title"><Icon name="cart" size={18} /> {t(lang, "summary")}</h2>
           <dl>
             <div className="row">
               <dt>{t(lang, "items")}</dt>

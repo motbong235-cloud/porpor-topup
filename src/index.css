@@ -4145,3 +4145,43 @@ input:focus {
   background: color-mix(in srgb, var(--primary) 14%, var(--surface));
   font-size: 18px;
 }
+
+
+/* Section titles with icons */
+.sec-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+.sec-title .icon-svg {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+.chip-icon {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+}
+.chip-icon .icon-svg {
+  opacity: 0.9;
+}
+.delivery-ico .icon-svg {
+  color: var(--primary);
+}
+.pay-choice-check .icon-svg {
+  color: #fff;
+  stroke-width: 3;
+}
+.coupon-apply {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+}
+.drawer-nav a .icon-svg,
+.drawer-nav button .icon-svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--primary);
+}

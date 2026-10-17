@@ -136,6 +136,81 @@ export function Icon({ name, size = 20 }) {
           <path d="M5 21h14" />
         </svg>
       );
+
+    case "chat":
+      return (
+        <svg {...props} strokeWidth={2}>
+          <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z" />
+        </svg>
+      );
+    case "gift":
+      return (
+        <svg {...props} strokeWidth={2}>
+          <rect x="3" y="8" width="18" height="13" rx="2" />
+          <path d="M12 8v13M3 12h18" />
+          <path d="M12 8H7.5a2.5 2.5 0 1 1 0-5C11 3 12 8 12 8zM12 8h4.5a2.5 2.5 0 1 0 0-5C13 3 12 8 12 8z" />
+        </svg>
+      );
+    case "shield":
+      return (
+        <svg {...props} strokeWidth={2}>
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          <path d="m9 12 2 2 4-4" />
+        </svg>
+      );
+    case "qr":
+      return (
+        <svg {...props} strokeWidth={2}>
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <path d="M14 14h3v3M20 14v6M14 20h3" />
+        </svg>
+      );
+    case "tag":
+      return (
+        <svg {...props} strokeWidth={2}>
+          <path d="M20.6 13.4 12 22l-9-9 8.6-8.6a2 2 0 0 1 1.4-.6H20v6.6a2 2 0 0 1-.6 1.4z" />
+          <circle cx="16.5" cy="7.5" r="1.2" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    case "user":
+      return (
+        <svg {...props} strokeWidth={2}>
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5" />
+        </svg>
+      );
+    case "cart":
+      return (
+        <svg {...props} strokeWidth={2}>
+          <circle cx="9" cy="20" r="1.5" fill="currentColor" stroke="none" />
+          <circle cx="18" cy="20" r="1.5" fill="currentColor" stroke="none" />
+          <path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h8.4a2 2 0 0 0 2-1.5L21 8H7" />
+        </svg>
+      );
+    case "clock":
+      return (
+        <svg {...props} strokeWidth={2}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3 2" />
+        </svg>
+      );
+    case "ticket":
+      return (
+        <svg {...props} strokeWidth={2}>
+          <path d="M3 9a2 2 0 0 0 2-2V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 1 0 0 4v2a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-2a2 2 0 0 0-2-2z" />
+          <path d="M13 5v2M13 11v2M13 17v2" strokeDasharray="0" />
+        </svg>
+      );
+    case "wallet":
+      return (
+        <svg {...props} strokeWidth={2}>
+          <path d="M2 7h18a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7z" />
+          <path d="M2 7V5a2 2 0 0 1 2-2h12" />
+          <circle cx="17" cy="13" r="1.5" fill="currentColor" stroke="none" />
+        </svg>
+      );
     default:
       return null;
   }

@@ -161,7 +161,7 @@ export default function Home({ lang, settings }) {
           <span className="star">
             <Icon name="star" size={16} />
           </span>
-          <h2>{t(lang, "famous")}</h2>
+          <h2 className="sec-title"><Icon name="star" size={18} /> {t(lang, "famous")}</h2>
         </div>
         <p className="section-sub">{t(lang, "famousSub")}</p>
         <div className="game-grid">
@@ -178,7 +178,7 @@ export default function Home({ lang, settings }) {
             <span className="star">
               <Icon name="star" size={16} />
             </span>
-            <h2>{t(lang, "all")}</h2>
+            <h2 className="sec-title"><Icon name="game" size={18} /> {t(lang, "all")}</h2>
           </div>
           <input
             className="search-input"
