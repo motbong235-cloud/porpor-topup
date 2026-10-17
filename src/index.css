@@ -4185,3 +4185,63 @@ input:focus {
   flex-shrink: 0;
   color: var(--primary);
 }
+
+/* ABA logo must always be visible */
+.pay-choice-brand {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.pay-aba-mark {
+  display: block !important;
+  height: 42px !important;
+  width: auto !important;
+  max-width: 130px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: #063A66;
+  box-shadow: 0 4px 14px -4px rgba(6, 58, 102, 0.55);
+}
+.pay-khqr-mark {
+  display: block !important;
+  height: 30px !important;
+  width: auto !important;
+  max-width: 80px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+.pw-aba-img {
+  display: block !important;
+  height: 44px !important;
+  width: auto !important;
+  border-radius: 10px;
+  object-fit: contain;
+}
+@media (max-width: 380px) {
+  .pay-choice-brand {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .pay-aba-mark { height: 36px !important; }
+}
+
+
+/* ABA only — compact */
+.pay-choice-brand .pay-khqr-mark { display: none !important; }
+.pay-aba-mark {
+  display: block !important;
+  height: 28px !important;
+  width: auto !important;
+  max-width: 90px !important;
+  object-fit: contain;
+  border-radius: 7px;
+  box-shadow: 0 2px 8px -2px rgba(6, 58, 102, 0.45);
+}
+.pw-aba-img {
+  height: 30px !important;
+  max-width: 96px !important;
+  width: auto !important;
+  border-radius: 7px;
+}

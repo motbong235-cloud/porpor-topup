@@ -531,14 +531,22 @@ export default function Game({ lang, addOrder, settings }) {
             <div className="pay-choices">
               <div className="pay-choice active" role="radio" aria-checked="true">
                 <div className="pay-choice-brand">
-                  <img className="pay-aba-mark" src="/aba-logo.svg" alt="ABA" />
-                  <img className="pay-khqr-mark" src="/khqr-logo.svg" alt="KHQR" />
+                  <img
+                    className="pay-aba-mark"
+                    src={"/aba-logo.svg?v=4"}
+                    alt="ABA"
+                    width={88}
+                    height={32}
+                    decoding="async"
+                  />
                 </div>
                 <div className="pay-choice-meta">
                   <strong>ABA KHQR</strong>
                   <span>{t(lang, "khqrHint")}</span>
                 </div>
-                <span className="pay-choice-check" aria-hidden>✓</span>
+                <span className="pay-choice-check" aria-hidden>
+                  <Icon name="check" size={14} />
+                </span>
               </div>
             </div>
             <div className="coupon-row">
@@ -611,7 +619,7 @@ export default function Game({ lang, addOrder, settings }) {
         <div className="pw-sheet" onClick={(e) => e.stopPropagation()}>
           <div className="pw-handle" />
           <div className="pw-brand">
-            <img className="pw-aba-img" src="/aba-logo.svg" alt="ABA" />
+            <img className="pw-aba-img" src={"/aba-logo.svg?v=4"} alt="ABA" />
             <div className="pw-brand-col">
               <span className="pw-brand-text">ABA PAYWAY</span>
               <span className="pw-brand-sub">KHQR · Secure</span>
