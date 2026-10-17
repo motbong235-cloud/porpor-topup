@@ -4245,3 +4245,299 @@ input:focus {
   width: auto !important;
   border-radius: 7px;
 }
+
+
+/* ===== UI polish v1.4 ===== */
+:root {
+  --r-lg: 20px;
+  --r-md: 14px;
+  --shadow-sm: 0 4px 14px -6px rgba(13, 71, 161, 0.18);
+  --shadow-md: 0 12px 32px -12px rgba(13, 71, 161, 0.28);
+}
+
+.card {
+  border-radius: var(--r-lg) !important;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid color-mix(in srgb, var(--line) 85%, transparent);
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.pack {
+  border-radius: 16px !important;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  padding: 14px 12px !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+.pack:hover {
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--line));
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px);
+}
+.pack.active,
+.pack.selected,
+.pack[aria-pressed="true"] {
+  border-color: var(--primary) !important;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--primary) 10%, var(--surface)) 0%, var(--surface) 100%);
+  box-shadow: 0 8px 22px -10px rgba(29, 106, 223, 0.45);
+}
+.pack .price,
+.pack strong {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.game-card,
+.hot-card {
+  border-radius: 18px !important;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease;
+}
+.game-card:hover,
+.hot-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: var(--shadow-md);
+}
+
+.header {
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+}
+
+.btn.bg-brand,
+button.bg-brand {
+  border-radius: 999px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.01em;
+  box-shadow: 0 8px 20px -8px rgba(29, 106, 223, 0.55);
+  transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+}
+.btn.bg-brand:hover,
+button.bg-brand:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px -10px rgba(29, 106, 223, 0.6);
+}
+.btn.bg-brand:active {
+  transform: translateY(0);
+}
+
+.summary {
+  border-radius: var(--r-lg) !important;
+  box-shadow: var(--shadow-md);
+}
+.summary .total {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--primary);
+}
+
+.coupon-row input {
+  border-radius: 12px !important;
+  border: 1.5px solid var(--line) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.coupon-row input:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
+  outline: none;
+}
+.coupon-row button,
+.coupon-apply {
+  border-radius: 12px !important;
+  font-weight: 700 !important;
+}
+
+.hero,
+.banner,
+.hero-slide {
+  border-radius: 22px !important;
+}
+
+.search-input {
+  border-radius: 14px !important;
+  border: 1.5px solid var(--line) !important;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.search-input:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
+  outline: none;
+}
+
+.pay-choice {
+  border-radius: 16px !important;
+}
+
+.float-chat {
+  box-shadow: 0 12px 32px -8px rgba(29, 106, 223, 0.55) !important;
+}
+
+.empty {
+  border-radius: 16px;
+  padding: 28px 16px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+@media (min-width: 900px) {
+  .layout-2 {
+    gap: 22px;
+  }
+}
+
+/* ===== In-site Live Chat ===== */
+.livechat-fab {
+  position: fixed !important;
+  right: 14px;
+  bottom: 20px;
+  z-index: 50;
+  width: 56px !important;
+  height: 56px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  display: grid !important;
+  place-items: center !important;
+  border: none !important;
+  cursor: pointer;
+  box-shadow: 0 12px 28px -8px rgba(29, 106, 223, 0.6) !important;
+}
+.livechat-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 99px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+.livechat-panel {
+  position: fixed;
+  right: 14px;
+  bottom: 84px;
+  z-index: 55;
+  width: min(360px, calc(100vw - 28px));
+  height: min(520px, calc(100dvh - 120px));
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  box-shadow: 0 24px 48px -16px rgba(13, 71, 161, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(12px) scale(0.98);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+  overflow: hidden;
+}
+.livechat-panel.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+.livechat-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: linear-gradient(90deg, #0a3d7a, #1d6adf);
+  color: #fff;
+}
+.livechat-head strong { font-size: 15px; display: block; }
+.livechat-online {
+  font-size: 11px;
+  opacity: 0.9;
+  color: #86efac;
+}
+.livechat-x {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+}
+.livechat-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: color-mix(in srgb, var(--bg) 80%, var(--surface));
+}
+.livechat-bubble {
+  max-width: 85%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.livechat-bubble.agent {
+  align-self: flex-start;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-bottom-left-radius: 4px;
+}
+.livechat-bubble.me {
+  align-self: flex-end;
+  background: linear-gradient(135deg, #1d6adf, #3b82f6);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.livechat-form {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+.livechat-form input {
+  flex: 1;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font: inherit;
+  background: var(--bg);
+  color: var(--ink);
+}
+.livechat-form input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+.livechat-form button {
+  width: 44px;
+  border: none;
+  border-radius: 12px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+}
+.livechat-form button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Live chat button sits above the install banner when it is showing */
+body:has(.install-banner) .livechat-fab {
+  bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+}
+@media (min-width: 1024px) {
+  body:has(.install-banner) .livechat-fab {
+    bottom: 20px !important;
+  }
+}

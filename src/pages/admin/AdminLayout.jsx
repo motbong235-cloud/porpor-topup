@@ -15,6 +15,7 @@ export default function AdminLayout({ adminPath = "pp-console" }) {
     { to: base, end: true, icon: "dashboard", km: "ផ្ទាំងគ្រប់គ្រង", en: "Dashboard" },
     { to: `${base}/orders`, icon: "orders", km: "ការបញ្ជាទិញ", en: "Orders" },
     { to: `${base}/services`, icon: "services", km: "សេវាហ្គេម", en: "Services" },
+    { to: `${base}/chat`, icon: "help", km: "Live Chat", en: "Live Chat" },
     { to: `${base}/settings`, icon: "settings", km: "ការកំណត់", en: "Settings" },
   ];
 

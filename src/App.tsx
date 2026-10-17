@@ -15,6 +15,7 @@ import Dashboard from "./pages/admin/Dashboard";
 import OrdersAdmin from "./pages/admin/OrdersAdmin";
 import SettingsAdmin from "./pages/admin/SettingsAdmin";
 import ServicesAdmin from "./pages/admin/ServicesAdmin";
+import ChatAdmin from "./pages/admin/ChatAdmin";
 
 function readBootAdminPath() {
   if (typeof window === "undefined") return "pp-console";
@@ -142,6 +143,7 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route path="orders" element={<OrdersAdmin />} />
           <Route path="services" element={<ServicesAdmin />} />
+          <Route path="chat" element={<ChatAdmin />} />
           <Route path="settings" element={<SettingsAdmin />} />
           <Route path="*" element={<Navigate to={`/${adminPath}`} replace />} />
         </Route>

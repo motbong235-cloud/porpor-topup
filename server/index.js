@@ -27,6 +27,7 @@ import {
   listBackups,
 } from "./store.js";
 import * as khmerSystem from "./khmerSystem.js";
+import * as liveChat from "./liveChat.js";
 import * as khmerTopup from "./khmerTopup.js";
 import * as catalog from "./catalog.js";
 import { isGiftCodeProduct, localCatalog, DEFAULT_LOCAL_PRODUCTS } from "./localProducts.js";
@@ -306,6 +307,64 @@ app.get("/api/settings", (_req, res) => {
 });
 
 /** Which server build is live (to confirm a deploy actually took effect). */
+
+/* ---------- In-site Live Chat ---------- */
+// Chat threads are keyed by IP, so the IP must NOT be spoofable. clientIp() trusts the first X-Forwarded-For
+// value (the visitor can set it); req.ip with `trust proxy = 1` is the address Render's proxy actually saw.
+const chatIp = (req) => String(req.ip || req.socket?.remoteAddress || "unknown").slice(0, 64);
+app.post("/api/chat/session", (req, res) => {
+  // 1 IP = 1 user — thread id is always the client IP (server-side)
+  const ip = chatIp(req);
+  const meta = {
+    name: String(req.body?.name || "").slice(0, 80),
+    orderId: String(req.body?.orderId || "").slice(0, 40),
+  };
+  const thread = liveChat.getOrCreateThread(ip, meta);
+  res.json({ visitorId: thread.id, ip: thread.ip || thread.id, messages: thread.messages || [] });
+});
+
+app.get("/api/chat/messages", (req, res) => {
+  // Always bind to request IP (ignore client-supplied thread id for security)
+  const ip = chatIp(req);
+  const after = Number(req.query.after || 0) || 0;
+  const data = liveChat.getMessages(ip, after);
+  if (!data) return res.status(404).json({ error: "not_found" });
+  liveChat.markRead(ip, "user");
+  res.json(data);
+});
+
+app.post("/api/chat/messages", (req, res) => {
+  const ip = chatIp(req);
+  const text = String(req.body?.text || "").trim();
+  if (!text) return res.status(400).json({ error: "invalid" });
+  if (text.length > 2000) return res.status(400).json({ error: "too_long" });
+  const msg = liveChat.postUserMessage(ip, text, {
+    name: req.body?.name,
+    orderId: req.body?.orderId,
+  });
+  res.json({ ok: true, message: msg, ip });
+});
+
+app.get("/api/admin/chat/threads", adminAuth, (_req, res) => {
+  res.json({ threads: liveChat.listThreads() });
+});
+
+app.get("/api/admin/chat/:id", adminAuth, (req, res) => {
+  const data = liveChat.getMessages(req.params.id, 0);
+  if (!data) return res.status(404).json({ error: "not_found" });
+  liveChat.markRead(req.params.id, "admin");
+  res.json(data);
+});
+
+app.post("/api/admin/chat/:id", adminAuth, (req, res) => {
+  const text = String(req.body?.text || "").trim();
+  if (!text) return res.status(400).json({ error: "empty" });
+  const msg = liveChat.postAgentMessage(req.params.id, text);
+  if (!msg) return res.status(404).json({ error: "not_found" });
+  res.json({ ok: true, message: msg });
+});
+
+
 app.get("/api/version", (_req, res) => {
   res.set("Cache-Control", "no-store");
   res.json({

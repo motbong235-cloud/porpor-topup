@@ -22,9 +22,14 @@ export default function Support({ lang, settings }) {
           </div>
         ))}
       </div>
-      <a className="btn bg-brand" style={{ marginTop: 24 }} href={(settings && settings.telegram) || "https://t.me/porportopup"} target="_blank" rel="noreferrer">
+      <button
+        type="button"
+        className="btn bg-brand"
+        style={{ marginTop: 24 }}
+        onClick={() => window.dispatchEvent(new CustomEvent("pp-open-livechat", { detail: {} }))}
+      >
         {t(lang, "chat")}
-      </a>
+      </button>
     </div>
   );
 }

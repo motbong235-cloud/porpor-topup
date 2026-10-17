@@ -4,6 +4,7 @@ import { useCatalog } from "../lib/catalog";
 import { useInstallPrompt } from "../hooks/useInstallPrompt";
 import { t } from "../lib/i18n";
 import { GameTile, Icon } from "./Icons";
+import { LiveChat } from "./LiveChat";
 
 function LogoMark({ url, style }) {
   const [broken, setBroken] = useState("");
@@ -157,16 +158,7 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
         </div>
       </footer>
 
-      <a
-        className={`float-chat bg-brand${lift ? " lift" : ""}${showBanner ? " above-install" : ""}`}
-        href={(settings && settings.telegram) || "https://t.me/porportopup"}
-        target="_blank"
-        rel="noreferrer"
-        aria-label={t(lang, "chat")}
-        title={t(lang, "chat")}
-      >
-        <Icon name="send" size={24} />
-      </a>
+      <LiveChat lang={lang} />
 
       <div className={`overlay${menu ? " open" : ""}`} onClick={() => setMenu(false)} />
       <aside className={`drawer${menu ? " open" : ""}`}>

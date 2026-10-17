@@ -44,7 +44,35 @@ export default function Success({ lang, settings }) {
     };
   }, [code]);
 
+  function openLiveChat(o) {
+    const lines =
+      lang === "km"
+        ? [
+            "សួស្តី Admin!",
+            "ខ្ញុំបង់ប្រាក់រួចហើយ សុំជួយដាក់/ផ្តល់កូដផង។",
+            "",
+            `Order ID: ${o?.id || code}`,
+            `ផលិតផល: ${o?.gameName || ""} · ${o?.packName || ""} × ${o?.qty || 1}`,
+            `ចំនួនទឹកប្រាក់: $${Number(o?.total || 0).toFixed(2)}`,
+          ]
+        : [
+            "Hi Admin!",
+            "I have paid. Please deliver / send my code.",
+            "",
+            `Order ID: ${o?.id || code}`,
+            `Product: ${o?.gameName || ""} · ${o?.packName || ""} × ${o?.qty || 1}`,
+            `Amount: $${Number(o?.total || 0).toFixed(2)}`,
+          ];
+    const prefill = lines.filter(Boolean).join("\n");
+    window.dispatchEvent(
+      new CustomEvent("pp-open-livechat", {
+        detail: { orderId: o?.id || code, prefill, name: o?.userId || "" },
+      }),
+    );
+  }
+
   function liveChatUrl(o) {
+
     const baseTg = String(telegram || "").trim();
     const username = baseTg
       .replace(/^https?:\/\/(www\.)?t\.me\//i, "")
@@ -190,9 +218,9 @@ export default function Success({ lang, settings }) {
                 ? "កូដរបស់អ្នកត្រូវបានផ្តល់ស្វ័យប្រវត្តិ (copy ខាងលើ)។ បើមានបញ្ហា ចូល Live Chat។"
                 : "Your code was delivered automatically (copy above). Contact Live Chat if needed."}
             </p>
-            <a className="btn success-livechat" href={liveChatUrl(order)} target="_blank" rel="noreferrer">
+            <button type="button" className="btn success-livechat" onClick={() => openLiveChat(order)}>
               Live Chat
-            </a>
+            </button>
           </div>
         ) : (
           <div className="success-chat-box">
@@ -201,9 +229,9 @@ export default function Success({ lang, settings }) {
                 ? "សូមចូល Live Chat ជាមួយ Admin ដើម្បីទទួលកូដ។ Order ID នឹងភ្ជាប់ស្វ័យប្រវត្តិ។"
                 : "Open Live Chat with Admin to receive your code. Order ID is attached automatically."}
             </p>
-            <a className="btn success-livechat" href={liveChatUrl(order)} target="_blank" rel="noreferrer">
+            <button type="button" className="btn success-livechat" onClick={() => openLiveChat(order)}>
               Live Chat
-            </a>
+            </button>
           </div>
         )}
 
