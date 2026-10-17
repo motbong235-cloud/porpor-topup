@@ -4009,3 +4009,139 @@ input:focus {
     bottom: 28px;
   }
 }
+
+
+/* ===== Payment v2 — ABA branding ===== */
+.pay-section h2 {
+  margin-bottom: 12px;
+}
+.pay-choices {
+  display: grid;
+  gap: 10px;
+}
+.pay-choice {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.pay-choice.active {
+  border-color: #1d6adf;
+  background: linear-gradient(135deg, color-mix(in srgb, #1d6adf 8%, var(--surface)) 0%, var(--surface) 100%);
+  box-shadow: 0 8px 24px -12px rgba(29, 106, 223, 0.45);
+}
+.pay-choice-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.pay-aba-mark {
+  height: 36px;
+  width: auto;
+  border-radius: 8px;
+  display: block;
+  box-shadow: 0 4px 12px -4px rgba(10, 74, 122, 0.45);
+}
+.pay-khqr-mark {
+  height: 28px;
+  width: auto;
+  display: block;
+}
+.pay-choice-meta {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.pay-choice-meta strong {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.pay-choice-meta span {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+.pay-choice-check {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #1d6adf;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* ABA PayWay modal brand */
+.pw-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.pw-aba-img {
+  height: 40px;
+  width: auto;
+  border-radius: 10px;
+  display: block;
+  box-shadow: 0 6px 16px -6px rgba(10, 74, 122, 0.5);
+}
+.pw-brand-col {
+  display: grid;
+  gap: 2px;
+}
+.pw-brand-text {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+.pw-brand-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.pw-aba-btn {
+  background: linear-gradient(135deg, #0A4A7A 0%, #1d6adf 55%, #4aa2ff 100%) !important;
+  border: none !important;
+  font-weight: 800 !important;
+}
+
+/* Delivery cards */
+.delivery-card {
+  border: 1.5px solid color-mix(in srgb, var(--primary) 35%, var(--line));
+  background: linear-gradient(160deg, color-mix(in srgb, var(--primary) 7%, var(--surface)) 0%, var(--surface) 70%);
+}
+.delivery-card.livechat {
+  border-color: color-mix(in srgb, #2aabee 40%, var(--line));
+}
+.delivery-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.delivery-head h2 {
+  margin: 0;
+  font-size: 16px;
+}
+.delivery-ico {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--primary) 14%, var(--surface));
+  font-size: 18px;
+}

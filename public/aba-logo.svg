@@ -1,6 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" fill="none">
-  <rect width="120" height="40" rx="6" fill="#003D7A"/>
-  <text x="12" y="27" font-family="Arial Black,Arial,sans-serif" font-size="20" font-weight="900" fill="#fff">ABA</text>
-  <circle cx="100" cy="20" r="10" fill="#E31C23"/>
-  <text x="100" y="24" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#fff">$</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" fill="none">
+  <defs>
+    <linearGradient id="abaBg" x1="0" y1="0" x2="200" y2="80" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0A4A7A"/>
+      <stop offset="0.55" stop-color="#0B5A8C"/>
+      <stop offset="1" stop-color="#0D6A9E"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="80" rx="12" fill="url(#abaBg)"/>
+  <!-- ABA wordmark -->
+  <text x="28" y="54" font-family="Arial Black, Helvetica Neue, Arial, sans-serif" font-size="42" font-weight="900" fill="#FFFFFF" letter-spacing="1">ABA</text>
+  <!-- Red accent (apostrophe-like mark) -->
+  <path d="M148 18c0-4 2.2-7 5.5-7s5.5 3 5.5 7c0 2.2-0.8 4.2-2.2 5.6L152 34h-5l4.2-10.2C149.5 22.5 148 20.4 148 18z" fill="#E31C23"/>
 </svg>

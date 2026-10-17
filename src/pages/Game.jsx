@@ -504,36 +504,40 @@ export default function Game({ lang, addOrder, settings }) {
 
           
           {isGift ? (
-            <section className="card" style={{ borderColor: "var(--primary)" }}>
-              <h2>
-                {isStock
-                  ? (lang === "km" ? "ទទួលកូដស្វ័យប្រវត្តិ" : "Instant code from stock")
-                  : (lang === "km" ? "ទទួលតាម Live Chat" : "Delivery via Live Chat")}
-              </h2>
+            <section className={`card delivery-card ${isStock ? "stock" : "livechat"}`}>
+              <div className="delivery-head">
+                <span className="delivery-ico" aria-hidden>{isStock ? "⚡" : "💬"}</span>
+                <h2>
+                  {isStock
+                    ? (lang === "km" ? "ទទួលកូដស្វ័យប្រវត្តិ" : "Instant code from stock")
+                    : (lang === "km" ? "ទទួលតាម LIVE CHAT" : "Delivery via LIVE CHAT")}
+                </h2>
+              </div>
               <p className="hint">
                 {isStock
                   ? (lang === "km"
                       ? "បង់រួចកូដបង្ហាញភ្លាមលើ Payment Successful។ អស់ស្តុក មាន Live Chat។"
                       : "After pay, code shows on Payment Successful. Out of stock → Live Chat.")
                   : (lang === "km"
-                      ? "បង់រួចចុច Live Chat / Telegram ដើម្បីទទួលសេវា។ Order ID ភ្ជាប់ស្វ័យប្រវត្តិ។"
+                      ? "បង់រួចបើក Live Chat / Telegram ដើម្បីទទួលសេវា។ Order ID ភ្ជាប់ស្វ័យប្រវត្តិ។"
                       : "After pay, open Live Chat / Telegram. Order ID is attached automatically.")}
               </p>
             </section>
           ) : null}
 
-<section className="card">
+<section className="card pay-section">
             <h2>{t(lang, "payment")}</h2>
             <div className="pay-choices">
-              <div className="pay-choice active">
-                <span className="pay-choice-logos">
-                  <img src="/aba-logo.svg" alt="ABA" height={24} />
-                  <img src="/khqr-logo.svg" alt="KHQR" height={24} />
-                </span>
-                <span>
+              <div className="pay-choice active" role="radio" aria-checked="true">
+                <div className="pay-choice-brand">
+                  <img className="pay-aba-mark" src="/aba-logo.svg" alt="ABA" />
+                  <img className="pay-khqr-mark" src="/khqr-logo.svg" alt="KHQR" />
+                </div>
+                <div className="pay-choice-meta">
                   <strong>ABA KHQR</strong>
                   <span>{t(lang, "khqrHint")}</span>
-                </span>
+                </div>
+                <span className="pay-choice-check" aria-hidden>✓</span>
               </div>
             </div>
             <div className="coupon-row">
@@ -606,8 +610,11 @@ export default function Game({ lang, addOrder, settings }) {
         <div className="pw-sheet" onClick={(e) => e.stopPropagation()}>
           <div className="pw-handle" />
           <div className="pw-brand">
-            <span className="aba-logo">ABA</span>
-            <span className="pw-brand-text">PAYWAY</span>
+            <img className="pw-aba-img" src="/aba-logo.svg" alt="ABA" />
+            <div className="pw-brand-col">
+              <span className="pw-brand-text">ABA PAYWAY</span>
+              <span className="pw-brand-sub">KHQR · Secure</span>
+            </div>
           </div>
 
           {payPhase === "qr" ? (

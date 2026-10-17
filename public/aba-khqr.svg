@@ -1,16 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 48" fill="none">
-  <rect width="200" height="48" rx="10" fill="#fff"/>
-  <rect x="0.5" y="0.5" width="199" height="47" rx="9.5" stroke="#D0D7E2"/>
-  <!-- ABA -->
-  <rect x="8" y="8" width="52" height="32" rx="6" fill="#003D7A"/>
-  <text x="34" y="30" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="16" font-weight="900" fill="#fff">ABA</text>
-  <!-- divider -->
-  <rect x="70" y="12" width="1" height="24" fill="#D0D7E2"/>
-  <!-- KHQR -->
-  <rect x="82" y="12" width="22" height="22" rx="3" fill="#0B3A5C"/>
-  <rect x="86" y="16" width="6" height="6" fill="#fff"/>
-  <rect x="94" y="16" width="6" height="6" fill="#fff"/>
-  <rect x="86" y="24" width="6" height="6" fill="#fff"/>
-  <rect x="95" y="25" width="4" height="4" fill="#fff"/>
-  <text x="112" y="30" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="800" fill="#0B3A5C">KHQR</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 64" fill="none">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="280" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0A4A7A"/>
+      <stop offset="1" stop-color="#0D6A9E"/>
+    </linearGradient>
+  </defs>
+  <rect width="280" height="64" rx="12" fill="url(#g)"/>
+  <text x="16" y="42" font-family="Arial Black, Arial, sans-serif" font-size="28" font-weight="900" fill="#fff">ABA</text>
+  <path d="M92 14c0-3.2 1.8-5.5 4.4-5.5S101 10.8 101 14c0 1.8-0.6 3.3-1.8 4.4L96 28h-4l3.4-8.2C94 18.2 92 16.4 92 14z" fill="#E31C23"/>
+  <rect x="118" y="14" width="1.5" height="36" fill="rgba(255,255,255,0.35)"/>
+  <!-- KHQR mark -->
+  <rect x="136" y="12" width="40" height="40" rx="8" fill="#fff"/>
+  <rect x="144" y="20" width="24" height="24" rx="3" fill="none" stroke="#0A4A7A" stroke-width="2.5"/>
+  <rect x="148" y="24" width="8" height="8" fill="#0A4A7A"/>
+  <rect x="160" y="24" width="4" height="4" fill="#0A4A7A"/>
+  <rect x="148" y="36" width="4" height="4" fill="#0A4A7A"/>
+  <rect x="156" y="32" width="8" height="8" fill="#0A4A7A"/>
+  <text x="188" y="42" font-family="Arial Black, Arial, sans-serif" font-size="22" font-weight="800" fill="#fff">KHQR</text>
 </svg>
