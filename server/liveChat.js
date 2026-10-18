@@ -1,5 +1,5 @@
 /**
- * In-site Live Chat — 1 IP = 1 user thread.
+ * In-site Live Chat — 1 IP = 1 user. Supports text / image / voice.
  */
 import fs from "fs";
 import path from "path";
@@ -33,19 +33,19 @@ function write(db) {
   fs.renameSync(tmp, FILE);
 }
 
-function id() {
+function rid() {
   return crypto.randomBytes(8).toString("hex");
 }
 
-/** Normalize IP for use as thread key (1 IP → 1 chat). */
 export function ipKey(ip) {
   let s = String(ip || "unknown").trim().toLowerCase();
-  // strip IPv6-mapped IPv4 ::ffff:1.2.3.4
   if (s.startsWith("::ffff:")) s = s.slice(7);
-  // safe key
   s = s.replace(/[^a-z0-9.:]/g, "_").slice(0, 64);
   return s || "unknown";
 }
+
+const WELCOME =
+  "សួស្តី! 👋 សូមស្វាគមន៍មកកាន់ POR POR TOPUP Live Chat។\nHi! How can we help you today?";
 
 export function getOrCreateThread(ip, meta = {}) {
   const db = read();
@@ -59,20 +59,13 @@ export function getOrCreateThread(ip, meta = {}) {
       name: meta.name || "",
       orderId: meta.orderId || "",
       messages: [
-        {
-          id: id(),
-          role: "agent",
-          text:
-            "សួស្តី! 👋 សូមស្វាគមន៍មកកាន់ POR POR TOPUP Live Chat។ តើយើងអាចជួយអ្វីបាន?\n\nHi! Welcome to POR POR TOPUP Live Chat. How can we help?",
-          at: Date.now(),
-        },
+        { id: rid(), role: "agent", type: "text", text: WELCOME, at: Date.now() },
       ],
       unreadAdmin: 0,
       unreadUser: 1,
     };
     write(db);
   } else {
-    // refresh meta
     let changed = false;
     if (meta.name && !db.threads[tid].name) {
       db.threads[tid].name = String(meta.name).slice(0, 80);
@@ -90,16 +83,22 @@ export function getOrCreateThread(ip, meta = {}) {
 export function listThreads() {
   const db = read();
   return Object.values(db.threads)
-    .map((t) => ({
-      id: t.id,
-      ip: t.ip || t.id,
-      name: t.name,
-      orderId: t.orderId,
-      updatedAt: t.updatedAt,
-      unreadAdmin: t.unreadAdmin || 0,
-      last: (t.messages || []).slice(-1)[0] || null,
-      count: (t.messages || []).length,
-    }))
+    .map((t) => {
+      const last = (t.messages || []).slice(-1)[0] || null;
+      let preview = last?.text || "";
+      if (last?.type === "image") preview = "📷 Photo";
+      if (last?.type === "voice") preview = "🎤 Voice";
+      return {
+        id: t.id,
+        ip: t.ip || t.id,
+        name: t.name,
+        orderId: t.orderId,
+        updatedAt: t.updatedAt,
+        unreadAdmin: t.unreadAdmin || 0,
+        last: last ? { ...last, text: preview } : null,
+        count: (t.messages || []).length,
+      };
+    })
     .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 }
 
@@ -109,55 +108,69 @@ export function getMessages(threadId, after = 0) {
   const t = db.threads[tid] || db.threads[threadId];
   if (!t) return null;
   const msgs = (t.messages || []).filter((m) => (m.at || 0) > after);
-  return { thread: { id: t.id, ip: t.ip || t.id, name: t.name, orderId: t.orderId }, messages: msgs };
+  return {
+    thread: { id: t.id, ip: t.ip || t.id, name: t.name, orderId: t.orderId },
+    messages: msgs,
+  };
 }
 
-export function postUserMessage(threadId, text, meta = {}) {
-  const tid = ipKey(threadId);
+function pushMessage(tid, msg, meta, asAdmin) {
   const db = read();
-  if (!db.threads[tid]) {
-    getOrCreateThread(tid, meta);
-  }
-  const t = read().threads[tid];
-  if (!t) return null;
-  const msg = {
-    id: id(),
-    role: "user",
-    text: String(text || "").slice(0, 2000),
-    at: Date.now(),
-  };
+  if (!db.threads[tid]) getOrCreateThread(tid, meta || {});
+  const all = read();
+  const t = all.threads[tid];
   t.messages = t.messages || [];
   t.messages.push(msg);
   t.updatedAt = msg.at;
-  t.unreadAdmin = (t.unreadAdmin || 0) + 1;
-  if (meta.name) t.name = String(meta.name).slice(0, 80);
-  if (meta.orderId) t.orderId = String(meta.orderId).slice(0, 40);
-  if (t.messages.length > 200) t.messages = t.messages.slice(-200);
-  const all = read();
+  if (asAdmin) {
+    t.unreadUser = (t.unreadUser || 0) + 1;
+    t.unreadAdmin = 0;
+  } else {
+    t.unreadAdmin = (t.unreadAdmin || 0) + 1;
+    if (meta?.name) t.name = String(meta.name).slice(0, 80);
+    if (meta?.orderId) t.orderId = String(meta.orderId).slice(0, 40);
+  }
+  if (t.messages.length > 300) t.messages = t.messages.slice(-300);
   all.threads[tid] = t;
   write(all);
   return msg;
 }
 
-export function postAgentMessage(threadId, text) {
+export function postUserMessage(threadId, payload, meta = {}) {
+  const tid = ipKey(threadId);
+  const type = payload.type || "text";
+  const msg = {
+    id: rid(),
+    role: "user",
+    type,
+    text: type === "text" ? String(payload.text || "").slice(0, 2000) : payload.text || "",
+    mediaUrl: payload.mediaUrl || "",
+    duration: payload.duration || 0,
+    at: Date.now(),
+  };
+  if (type === "text" && !msg.text) return null;
+  if ((type === "image" || type === "voice") && !msg.mediaUrl) return null;
+  return pushMessage(tid, msg, meta, false);
+}
+
+export function postAgentMessage(threadId, payload) {
   const tid = ipKey(threadId);
   const db = read();
   const t = db.threads[tid] || db.threads[threadId];
   if (!t) return null;
+  const type = payload.type || "text";
   const msg = {
-    id: id(),
+    id: rid(),
     role: "agent",
-    text: String(text || "").slice(0, 2000),
+    type,
+    text: type === "text" ? String(payload.text || "").slice(0, 2000) : payload.text || "",
+    mediaUrl: payload.mediaUrl || "",
+    duration: payload.duration || 0,
     at: Date.now(),
   };
-  t.messages.push(msg);
-  t.updatedAt = msg.at;
-  t.unreadUser = (t.unreadUser || 0) + 1;
-  t.unreadAdmin = 0;
-  if (t.messages.length > 200) t.messages = t.messages.slice(-200);
-  db.threads[t.id] = t;
-  write(db);
-  return msg;
+  if (type === "text" && !msg.text) return null;
+  if ((type === "image" || type === "voice") && !msg.mediaUrl) return null;
+  return pushMessage(t.id, msg, null, true);
 }
 
 export function markRead(threadId, who) {

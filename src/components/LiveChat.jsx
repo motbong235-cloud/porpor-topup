@@ -1,23 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const VISITOR_KEY = "pp_chat_visitor";
-
-function getVisitorId() {
-  try {
-    let id = localStorage.getItem(VISITOR_KEY);
-    if (!id) {
-      id = "v_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
-      localStorage.setItem(VISITOR_KEY, id);
-    }
-    return id;
-  } catch {
-    return "v_anon";
-  }
-}
-
 /**
- * In-site Live Chat widget (no Telegram redirect).
- * openWithOrder: optional { orderId, prefill } when opened from Success page.
+ * Messenger-style in-site Live Chat — text, image, voice.
+ * Thread bound to IP on server.
  */
 export function LiveChat({ lang = "km", openSignal = 0 }) {
   const [open, setOpen] = useState(false);
@@ -26,29 +11,16 @@ export function LiveChat({ lang = "km", openSignal = 0 }) {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [unread, setUnread] = useState(0);
+  const [recording, setRecording] = useState(false);
+  const [recSecs, setRecSecs] = useState(0);
+  const [orderContext, setOrderContext] = useState(null);
   const listRef = useRef(null);
   const afterRef = useRef(0);
   const threadRef = useRef("");
-
-  const [orderContext, setOrderContext] = useState(null);
-
-  // External open (e.g. Success page button)
-  useEffect(() => {
-    if (openSignal > 0) setOpen(true);
-  }, [openSignal]);
-
-  useEffect(() => {
-    function onOpen(e) {
-      setOpen(true);
-      setUnread(0);
-      if (e.detail) {
-        setOrderContext(e.detail);
-        if (e.detail.prefill) setText(e.detail.prefill);
-      }
-    }
-    window.addEventListener("pp-open-livechat", onOpen);
-    return () => window.removeEventListener("pp-open-livechat", onOpen);
-  }, []);
+  const mediaRec = useRef(null);
+  const recChunks = useRef([]);
+  const recTimer = useRef(null);
+  const fileRef = useRef(null);
 
   const scrollBottom = () => {
     requestAnimationFrame(() => {
@@ -71,20 +43,33 @@ export function LiveChat({ lang = "km", openSignal = 0 }) {
     threadRef.current = data.visitorId;
     setMessages(data.messages || []);
     afterRef.current = Math.max(0, ...(data.messages || []).map((m) => m.at || 0));
-    try {
-      localStorage.setItem(VISITOR_KEY, data.visitorId);
-    } catch {}
     scrollBottom();
     return data.visitorId;
   }, [orderContext]);
+
+  useEffect(() => {
+    if (openSignal > 0) setOpen(true);
+  }, [openSignal]);
+
+  useEffect(() => {
+    function onOpen(e) {
+      setOpen(true);
+      setUnread(0);
+      if (e.detail) {
+        setOrderContext(e.detail);
+        if (e.detail.prefill) setText(e.detail.prefill);
+      }
+    }
+    window.addEventListener("pp-open-livechat", onOpen);
+    return () => window.removeEventListener("pp-open-livechat", onOpen);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
     let alive = true;
     ensureSession().catch(() => {});
     const poll = setInterval(async () => {
-      const tid = threadRef.current || thread;
-      if (!alive || !tid) return;
+      if (!alive) return;
       try {
         const r = await fetch(`/api/chat/messages?after=${afterRef.current}`);
         if (!r.ok) return;
@@ -93,44 +78,43 @@ export function LiveChat({ lang = "km", openSignal = 0 }) {
         if (news.length) {
           setMessages((prev) => {
             const ids = new Set(prev.map((m) => m.id));
-            const merged = [...prev];
-            for (const m of news) {
-              if (!ids.has(m.id)) merged.push(m);
-            }
-            return merged;
+            return [...prev, ...news.filter((m) => !ids.has(m.id))];
           });
           afterRef.current = Math.max(afterRef.current, ...news.map((m) => m.at || 0));
           scrollBottom();
-          if (!open) setUnread((u) => u + news.filter((m) => m.role === "agent").length);
         }
       } catch {}
-    }, 2500);
+    }, 2200);
     return () => {
       alive = false;
       clearInterval(poll);
     };
-  }, [open, thread, ensureSession]);
+  }, [open, ensureSession]);
 
-  // Prefill when order context arrives
   useEffect(() => {
-    if (open && orderContext?.prefill) {
-      setText(orderContext.prefill);
-    }
+    if (open && orderContext?.prefill) setText(orderContext.prefill);
   }, [open, orderContext]);
 
-  async function send(e) {
-    e?.preventDefault?.();
-    const body = text.trim();
-    if (!body || sending) return;
+  async function uploadBlob(blob) {
+    const r = await fetch("/api/chat/upload", {
+      method: "POST",
+      headers: { "Content-Type": blob.type || "application/octet-stream" },
+      body: blob,
+    });
+    const data = await r.json();
+    if (!r.ok || !data.url) throw new Error(data.error || "upload_failed");
+    return data;
+  }
+
+  async function sendPayload(payload) {
     setSending(true);
     try {
-      let tid = thread;
-      if (!tid) tid = await ensureSession();
+      if (!threadRef.current) await ensureSession();
       const r = await fetch("/api/chat/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          text: body,
+          ...payload,
           orderId: orderContext?.orderId || "",
           name: orderContext?.name || "",
         }),
@@ -139,62 +123,211 @@ export function LiveChat({ lang = "km", openSignal = 0 }) {
       if (data.message) {
         setMessages((prev) => [...prev, data.message]);
         afterRef.current = Math.max(afterRef.current, data.message.at || 0);
-        setText("");
         scrollBottom();
       }
     } catch {}
     setSending(false);
   }
 
-  const title = lang === "km" ? "Live Chat" : "Live Chat";
-  const placeholder = lang === "km" ? "សរសេរសារ…" : "Type a message…";
-  const online = lang === "km" ? "ក្រុមការងារអនឡាញ" : "Support online";
+  async function sendText(e) {
+    e?.preventDefault?.();
+    const body = text.trim();
+    if (!body || sending) return;
+    setText("");
+    await sendPayload({ type: "text", text: body });
+  }
+
+  async function onPickImage(e) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !file.type.startsWith("image/")) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert(lang === "km" ? "រូបធំពេក (អត់លើស 5MB)" : "Image too large (max 5MB)");
+      return;
+    }
+    setSending(true);
+    try {
+      const up = await uploadBlob(file);
+      await sendPayload({ type: "image", mediaUrl: up.url, text: "" });
+    } catch {
+      alert(lang === "km" ? "ផ្ញើរូបមិនបាន" : "Could not send image");
+    }
+    setSending(false);
+  }
+
+  async function startRec() {
+    if (recording || sending) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mime = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : MediaRecorder.isTypeSupported("audio/webm")
+          ? "audio/webm"
+          : "";
+      const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      recChunks.current = [];
+      rec.ondataavailable = (ev) => {
+        if (ev.data?.size) recChunks.current.push(ev.data);
+      };
+      rec.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        clearInterval(recTimer.current);
+        const secs = recSecs;
+        setRecording(false);
+        setRecSecs(0);
+        const blob = new Blob(recChunks.current, { type: rec.mimeType || "audio/webm" });
+        if (blob.size < 200) return;
+        setSending(true);
+        try {
+          const up = await uploadBlob(blob);
+          await sendPayload({ type: "voice", mediaUrl: up.url, duration: secs, text: "" });
+        } catch {
+          alert(lang === "km" ? "ផ្ញើសំឡេងមិនបាន" : "Could not send voice");
+        }
+        setSending(false);
+      };
+      mediaRec.current = rec;
+      rec.start();
+      setRecording(true);
+      setRecSecs(0);
+      recTimer.current = setInterval(() => setRecSecs((s) => s + 1), 1000);
+    } catch {
+      alert(lang === "km" ? "មិនអាចបើកមីក្រូហ្វូន" : "Microphone permission denied");
+    }
+  }
+
+  function stopRec() {
+    if (mediaRec.current && recording) {
+      try {
+        mediaRec.current.stop();
+      } catch {}
+    }
+  }
+
+  function fmtTime(at) {
+    try {
+      return new Date(at).toLocaleTimeString(lang === "km" ? "km-KH" : "en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return "";
+    }
+  }
+
+  const title = "POR POR Support";
+  const online = lang === "km" ? "កំពុងអនឡាញ" : "Active now";
+  const placeholder = lang === "km" ? "Aa" : "Aa";
 
   return (
     <>
       <button
         type="button"
         className="float-chat bg-brand livechat-fab"
-        aria-label={title}
+        aria-label="Live Chat"
         onClick={() => {
           setOpen((v) => !v);
           setUnread(0);
         }}
       >
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2">
           <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z" />
         </svg>
         {unread > 0 ? <span className="livechat-badge">{unread}</span> : null}
       </button>
 
-      <div className={`livechat-panel${open ? " open" : ""}`} role="dialog" aria-label={title}>
-        <div className="livechat-head">
-          <div>
-            <strong>{title}</strong>
-            <span className="livechat-online">● {online}</span>
+      <div className={`msgr-panel${open ? " open" : ""}`} role="dialog" aria-label={title}>
+        <header className="msgr-head">
+          <div className="msgr-head-left">
+            <div className="msgr-avatar">PP</div>
+            <div>
+              <strong>{title}</strong>
+              <span className="msgr-status">● {online}</span>
+            </div>
           </div>
-          <button type="button" className="livechat-x" aria-label="Close" onClick={() => setOpen(false)}>
+          <button type="button" className="msgr-x" aria-label="Close" onClick={() => setOpen(false)}>
             ✕
           </button>
-        </div>
-        <div className="livechat-list" ref={listRef}>
+        </header>
+
+        <div className="msgr-list" ref={listRef}>
           {messages.map((m) => (
-            <div key={m.id} className={`livechat-bubble ${m.role === "user" ? "me" : "agent"}`}>
-              {m.text}
+            <div key={m.id} className={`msgr-row ${m.role === "user" ? "me" : "them"}`}>
+              {m.role !== "user" ? <div className="msgr-mini-av">PP</div> : null}
+              <div className="msgr-col">
+                <div className={`msgr-bubble ${m.type || "text"}`}>
+                  {m.type === "image" && m.mediaUrl ? (
+                    <a href={m.mediaUrl} target="_blank" rel="noreferrer">
+                      <img src={m.mediaUrl} alt="" className="msgr-img" />
+                    </a>
+                  ) : null}
+                  {m.type === "voice" && m.mediaUrl ? (
+                    <div className="msgr-voice">
+                      <audio controls preload="metadata" src={m.mediaUrl} />
+                      {m.duration ? <span className="msgr-dur">{m.duration}s</span> : null}
+                    </div>
+                  ) : null}
+                  {(m.type === "text" || !m.type) && m.text ? <span className="msgr-text">{m.text}</span> : null}
+                </div>
+                <time className="msgr-time">{fmtTime(m.at)}</time>
+              </div>
             </div>
           ))}
         </div>
-        <form className="livechat-form" onSubmit={send}>
+
+        {recording ? (
+          <div className="msgr-rec-bar">
+            <span className="msgr-rec-dot" />
+            {lang === "km" ? "កំពុងថត" : "Recording"}… {recSecs}s
+            <button type="button" className="msgr-rec-stop" onClick={stopRec}>
+              {lang === "km" ? "ផ្ញើ" : "Send"}
+            </button>
+          </div>
+        ) : null}
+
+        <form className="msgr-composer" onSubmit={sendText}>
+          <input ref={fileRef} type="file" accept="image/*" hidden onChange={onPickImage} />
+          <button
+            type="button"
+            className="msgr-icon-btn"
+            title="Photo"
+            disabled={sending || recording}
+            onClick={() => fileRef.current?.click()}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="5" width="18" height="14" rx="2" />
+              <circle cx="8.5" cy="10.5" r="1.5" />
+              <path d="m21 15-5-5L5 19" />
+            </svg>
+          </button>
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder={placeholder}
             maxLength={2000}
             autoComplete="off"
+            disabled={recording}
           />
-          <button type="submit" disabled={sending || !text.trim()} aria-label="Send">
-            ➤
-          </button>
+          {text.trim() ? (
+            <button type="submit" className="msgr-send" disabled={sending} aria-label="Send">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M2 21 23 12 2 3v7l15 2-15 2v7z" />
+              </svg>
+            </button>
+          ) : (
+            <button
+              type="button"
+              className={`msgr-icon-btn mic${recording ? " on" : ""}`}
+              title="Voice"
+              disabled={sending}
+              onClick={recording ? stopRec : startRec}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="9" y="2" width="6" height="12" rx="3" />
+                <path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8" />
+              </svg>
+            </button>
+          )}
         </form>
       </div>
     </>

@@ -309,12 +309,43 @@ app.get("/api/settings", (_req, res) => {
 /** Which server build is live (to confirm a deploy actually took effect). */
 
 /* ---------- In-site Live Chat ---------- */
-// Chat threads are keyed by IP, so the IP must NOT be spoofable. clientIp() trusts the first X-Forwarded-For
-// value (the visitor can set it); req.ip with `trust proxy = 1` is the address Render's proxy actually saw.
-const chatIp = (req) => String(req.ip || req.socket?.remoteAddress || "unknown").slice(0, 64);
+
+/* ---------- Live Chat media (image + voice) — rate-limited by IP via body size ---------- */
+function sniffChatMedia(b) {
+  if (!Buffer.isBuffer(b) || b.length < 12) return null;
+  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return "png";
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "jpg";
+  if (b.toString("ascii", 0, 4) === "GIF8") return "gif";
+  if (b.toString("ascii", 0, 4) === "RIFF" && b.toString("ascii", 8, 12) === "WEBP") return "webp";
+  // webm
+  if (b[0] === 0x1a && b[1] === 0x45 && b[2] === 0xdf && b[3] === 0xa3) return "webm";
+  // ogg
+  if (b.toString("ascii", 0, 4) === "OggS") return "ogg";
+  // mp4 / m4a
+  if (b.toString("ascii", 4, 8) === "ftyp") return "m4a";
+  return null;
+}
+
+app.post("/api/chat/upload", express.raw({ type: () => true, limit: "6mb" }), (req, res) => {
+  const ext = sniffChatMedia(req.body);
+  if (!ext) return res.status(400).json({ error: "bad_file" });
+  // images + audio only
+  const ok = ["png", "jpg", "gif", "webp", "webm", "ogg", "m4a"].includes(ext);
+  if (!ok) return res.status(400).json({ error: "bad_file" });
+  if (!req.body || req.body.length < 64) return res.status(400).json({ error: "empty" });
+  const name = `chat-${Date.now().toString(36)}-${crypto.randomBytes(5).toString("hex")}.${ext}`;
+  try {
+    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+    fs.writeFileSync(path.join(UPLOAD_DIR, name), req.body);
+  } catch (e) {
+    return res.status(500).json({ error: "write_failed" });
+  }
+  res.json({ url: `/uploads/${name}`, type: ["webm", "ogg", "m4a"].includes(ext) ? "voice" : "image" });
+});
+
 app.post("/api/chat/session", (req, res) => {
   // 1 IP = 1 user — thread id is always the client IP (server-side)
-  const ip = chatIp(req);
+  const ip = clientIp(req);
   const meta = {
     name: String(req.body?.name || "").slice(0, 80),
     orderId: String(req.body?.orderId || "").slice(0, 40),
@@ -325,7 +356,7 @@ app.post("/api/chat/session", (req, res) => {
 
 app.get("/api/chat/messages", (req, res) => {
   // Always bind to request IP (ignore client-supplied thread id for security)
-  const ip = chatIp(req);
+  const ip = clientIp(req);
   const after = Number(req.query.after || 0) || 0;
   const data = liveChat.getMessages(ip, after);
   if (!data) return res.status(404).json({ error: "not_found" });
@@ -334,14 +365,27 @@ app.get("/api/chat/messages", (req, res) => {
 });
 
 app.post("/api/chat/messages", (req, res) => {
-  const ip = chatIp(req);
+  const ip = clientIp(req);
+  const type = String(req.body?.type || "text");
   const text = String(req.body?.text || "").trim();
-  if (!text) return res.status(400).json({ error: "invalid" });
-  if (text.length > 2000) return res.status(400).json({ error: "too_long" });
-  const msg = liveChat.postUserMessage(ip, text, {
-    name: req.body?.name,
-    orderId: req.body?.orderId,
-  });
+  const mediaUrl = String(req.body?.mediaUrl || "").trim();
+  const duration = Number(req.body?.duration) || 0;
+  if (type === "text") {
+    if (!text) return res.status(400).json({ error: "invalid" });
+    if (text.length > 2000) return res.status(400).json({ error: "too_long" });
+  } else if (type === "image" || type === "voice") {
+    if (!/^\/uploads\/[\w.-]{1,120}$/.test(mediaUrl)) {
+      return res.status(400).json({ error: "bad_media" });
+    }
+  } else {
+    return res.status(400).json({ error: "bad_type" });
+  }
+  const msg = liveChat.postUserMessage(
+    ip,
+    { type, text, mediaUrl, duration },
+    { name: req.body?.name, orderId: req.body?.orderId },
+  );
+  if (!msg) return res.status(400).json({ error: "invalid" });
   res.json({ ok: true, message: msg, ip });
 });
 
@@ -357,9 +401,15 @@ app.get("/api/admin/chat/:id", adminAuth, (req, res) => {
 });
 
 app.post("/api/admin/chat/:id", adminAuth, (req, res) => {
+  const type = String(req.body?.type || "text");
   const text = String(req.body?.text || "").trim();
-  if (!text) return res.status(400).json({ error: "empty" });
-  const msg = liveChat.postAgentMessage(req.params.id, text);
+  const mediaUrl = String(req.body?.mediaUrl || "").trim();
+  const duration = Number(req.body?.duration) || 0;
+  if (type === "text" && !text) return res.status(400).json({ error: "empty" });
+  if ((type === "image" || type === "voice") && !/^\/uploads\/[\w.-]{1,120}$/.test(mediaUrl)) {
+    return res.status(400).json({ error: "bad_media" });
+  }
+  const msg = liveChat.postAgentMessage(req.params.id, { type, text, mediaUrl, duration });
   if (!msg) return res.status(404).json({ error: "not_found" });
   res.json({ ok: true, message: msg });
 });
