@@ -30,7 +30,7 @@ function GameCard({ game, lang, famous }) {
   }
 
   return (
-    <Link className="game-card" to={`/game/${game.id}`}>
+    <Link className="game-card card-hover" to={`/game/${game.id}`}>
       {badge}
       <GameTile game={game} />
       <div className="game-name">{game.name}</div>

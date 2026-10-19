@@ -94,7 +94,7 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
 
   return (
     <div className="shell">
-      <header className="header">
+      <header className="header site-header">
         <div className="header-inner">
           <Link to="/" className="logo">
             <LogoMark url={settings && settings.logoUrl} />
