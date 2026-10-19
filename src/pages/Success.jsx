@@ -66,7 +66,16 @@ export default function Success({ lang, settings }) {
     const prefill = lines.filter(Boolean).join("\n");
     window.dispatchEvent(
       new CustomEvent("pp-open-livechat", {
-        detail: { orderId: o?.id || code, prefill, name: o?.userId || "" },
+        detail: {
+          orderId: o?.id || code,
+          prefill,
+          name: o?.userId || o?.playerId || "",
+          username: o?.userId || o?.playerId || "",
+          amount: o?.total,
+          item: `${o?.gameName || ""} · ${o?.packName || ""} × ${o?.qty || 1}`.trim(),
+          title: "New Order",
+          status: "ASSIGNED",
+        },
       }),
     );
   }

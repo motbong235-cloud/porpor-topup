@@ -14,6 +14,7 @@ export function LiveChat({ lang = "km", openSignal = 0 }) {
   const [recording, setRecording] = useState(false);
   const [recSecs, setRecSecs] = useState(0);
   const [orderContext, setOrderContext] = useState(null);
+  const [pinOpen, setPinOpen] = useState(true);
   const listRef = useRef(null);
   const afterRef = useRef(0);
   const threadRef = useRef("");
@@ -215,7 +216,7 @@ export function LiveChat({ lang = "km", openSignal = 0 }) {
     }
   }
 
-  const title = "POR POR Support";
+  const title = lang === "km" ? "Live Chat · POR POR" : "Live Chat · POR POR";
   const online = lang === "km" ? "កំពុងអនឡាញ" : "Active now";
   const placeholder = lang === "km" ? "Aa" : "Aa";
 
@@ -242,7 +243,7 @@ export function LiveChat({ lang = "km", openSignal = 0 }) {
             <div className="msgr-avatar">PP</div>
             <div>
               <strong>{title}</strong>
-              <span className="msgr-status">● {online}</span>
+              <span className="msgr-status"><span className="msgr-dot" /> {online}</span>
             </div>
           </div>
           <button type="button" className="msgr-x" aria-label="Close" onClick={() => setOpen(false)}>
@@ -251,6 +252,58 @@ export function LiveChat({ lang = "km", openSignal = 0 }) {
         </header>
 
         <div className="msgr-list" ref={listRef}>
+          {/* Pinned guide — Dino-style */}
+          <div className={`msgr-pin${pinOpen ? " open" : ""}`}>
+            <button type="button" className="msgr-pin-head" onClick={() => setPinOpen((v) => !v)}>
+              <span className="msgr-pin-ico">🔔</span>
+              <span className="msgr-pin-title">
+                {lang === "km" ? "PINNED GUIDE · របៀបប្រើ" : "PINNED GUIDE"}
+              </span>
+              <span className="msgr-pin-chev">{pinOpen ? "▾" : "▸"}</span>
+            </button>
+            {pinOpen ? (
+              <div className="msgr-pin-body">
+                {lang === "km" ? (
+                  <>
+                    <p><b>1.</b> បន្ទាប់ពីបង់ប្រាក់រួច សូមផ្ញើ Order ID មកក្នុង chat នេះ</p>
+                    <p><b>2.</b> បើ service ត្រូវ Login (Roblox/Robux…) ផ្ញើ Username + ព័ត៌មានតាមសំណើ admin</p>
+                    <p><b>3.</b> Admin នឹងដំណើរការ និង update ស្ថានភាព order</p>
+                    <p className="msgr-pin-note">កុំផ្ញើពាក្យសម្ងាត់ក្នុង chat បើមិនចាំបាច់</p>
+                  </>
+                ) : (
+                  <>
+                    <p><b>1.</b> After payment, send your Order ID in this chat</p>
+                    <p><b>2.</b> For login-required items, send username when asked</p>
+                    <p><b>3.</b> Support will process and update your order</p>
+                    <p className="msgr-pin-note">Never share passwords unless support requests a secure flow</p>
+                  </>
+                )}
+              </div>
+            ) : null}
+          </div>
+
+          {/* New Order card */}
+          {orderContext?.orderId ? (
+            <div className="msgr-order-card">
+              <div className="msgr-order-top">
+                <strong>{orderContext.title || (lang === "km" ? "ការបញ្ជាទិញថ្មី" : "New Order")}</strong>
+                <span className="msgr-order-badge">{orderContext.status || "ASSIGNED"}</span>
+              </div>
+              <div className="msgr-order-rows">
+                <div><span>Order ID</span><b>{orderContext.orderId}</b></div>
+                {orderContext.username || orderContext.name ? (
+                  <div><span>Username</span><b>{orderContext.username || orderContext.name}</b></div>
+                ) : null}
+                {orderContext.amount != null && orderContext.amount !== "" ? (
+                  <div><span>Amount</span><b>${Number(orderContext.amount).toFixed(2)} USD</b></div>
+                ) : null}
+                {orderContext.item ? (
+                  <div><span>Item</span><b>{orderContext.item}</b></div>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
           {messages.map((m) => (
             <div key={m.id} className={`msgr-row ${m.role === "user" ? "me" : "them"}`}>
               {m.role !== "user" ? <div className="msgr-mini-av">PP</div> : null}

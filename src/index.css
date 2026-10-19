@@ -4599,3 +4599,115 @@ html:not(.dark) .msgr-composer input[type="text"] {
   50% { opacity: 0.35; }
 }
 .livechat-fab { z-index: 55 !important; }
+
+
+/* ===== Live Chat pin + New Order card (Dino-style) ===== */
+.msgr-pin {
+  margin: 10px 10px 6px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #ecfdf5, #f0fdf4);
+  border: 1px solid #a7f3d0;
+  overflow: hidden;
+}
+html.dark .msgr-pin {
+  background: linear-gradient(180deg, #064e3b, #0f172a);
+  border-color: #065f46;
+}
+.msgr-pin-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  font-size: 12.5px;
+  cursor: pointer;
+  text-align: left;
+}
+.msgr-pin-ico { font-size: 14px; }
+.msgr-pin-title { flex: 1; color: #047857; letter-spacing: 0.02em; }
+html.dark .msgr-pin-title { color: #6ee7b7; }
+.msgr-pin-chev { opacity: 0.7; font-size: 12px; }
+.msgr-pin-body {
+  padding: 0 12px 12px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #334155;
+}
+html.dark .msgr-pin-body { color: #cbd5e1; }
+.msgr-pin-body p { margin: 0 0 6px; }
+.msgr-pin-note {
+  margin-top: 6px !important;
+  font-size: 11.5px;
+  color: #b45309;
+  font-weight: 600;
+}
+
+.msgr-order-card {
+  margin: 8px 10px 12px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 24px -12px rgba(15, 23, 42, 0.2);
+  overflow: hidden;
+}
+html.dark .msgr-order-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+.msgr-order-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px 8px;
+}
+.msgr-order-top strong {
+  font-size: 14px;
+  font-weight: 900;
+}
+.msgr-order-badge {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.msgr-order-rows {
+  padding: 4px 14px 14px;
+  display: grid;
+  gap: 6px;
+}
+.msgr-order-rows > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12.5px;
+}
+.msgr-order-rows span {
+  color: #64748b;
+  font-weight: 600;
+}
+.msgr-order-rows b {
+  font-weight: 800;
+  text-align: right;
+  word-break: break-all;
+}
+.msgr-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4ade80;
+  margin-right: 4px;
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.25);
+}
+.msgr-head {
+  background: linear-gradient(135deg, #0f766e, #1d6adf 55%, #2563eb) !important;
+}
