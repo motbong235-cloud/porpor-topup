@@ -52,9 +52,10 @@ export default function Game({ lang, addOrder, settings }) {
   const [payErr, setPayErr] = useState("");
   const [qrOpen, setQrOpen] = useState(false);
   const [liveQr, setLiveQr] = useState(null);
+  const [qrExpiresAt, setQrExpiresAt] = useState(0);
   const [payDeeplink, setPayDeeplink] = useState("");
   const [payPhase, setPayPhase] = useState("qr"); // qr | scanned
-  const [payLeft, setPayLeft] = useState(600);
+  const [payLeft, setPayLeft] = useState(3600); // 1 hour
   const [checkoutId, setCheckoutId] = useState(null);
   const [paying, setPaying] = useState(false);
   const [orderTotal, setOrderTotal] = useState(0);
@@ -87,12 +88,14 @@ export default function Game({ lang, addOrder, settings }) {
 
   useEffect(() => {
     if (!qrOpen) return undefined;
-    setPayLeft(600);
+    // 1 hour default; if API gave expiresAt, count down to that
+    const fromApi = qrExpiresAt > Date.now() ? Math.floor((qrExpiresAt - Date.now()) / 1000) : 0;
+    setPayLeft(fromApi > 0 ? fromApi : 3600);
     const tmr = setInterval(() => {
       setPayLeft((s) => (s <= 1 ? 0 : s - 1));
     }, 1000);
     return () => clearInterval(tmr);
-  }, [qrOpen, checkoutId]);
+  }, [qrOpen, checkoutId, qrExpiresAt]);
 
   if (loading && !game) {
     return (
@@ -258,6 +261,16 @@ export default function Game({ lang, addOrder, settings }) {
       addOrder(data.order);
       setOrderTotal(data.order.total);
       setLiveQr(data.payment.qrImage);
+      {
+        const expRaw = data.payment.expiresAt;
+        let expMs = 0;
+        if (expRaw) {
+          const n = Date.parse(expRaw) || Number(expRaw) || 0;
+          expMs = n < 1e12 ? n * 1000 : n; // sec vs ms
+        }
+        if (!expMs || expMs < Date.now()) expMs = Date.now() + 3600_000;
+        setQrExpiresAt(expMs);
+      }
       setPayDeeplink(data.payment.deeplink || data.payment.payUrl || "");
       setPayPhase("qr");
       setCheckoutId(data.order.id);
@@ -644,7 +657,10 @@ export default function Game({ lang, addOrder, settings }) {
                   <>
                     <span className="pw-timer-dot" />
                     {lang === "km" ? "ផុតកំណត់ក្នុង" : "Expires in"}{" "}
-                    {String(Math.floor(payLeft / 60)).padStart(2, "0")}:
+                    {payLeft >= 3600
+                      ? `${String(Math.floor(payLeft / 3600)).padStart(2, "0")}:`
+                      : ""}
+                    {String(Math.floor((payLeft % 3600) / 60)).padStart(2, "0")}:
                     {String(payLeft % 60).padStart(2, "0")}
                   </>
                 ) : (
