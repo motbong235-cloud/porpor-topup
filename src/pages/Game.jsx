@@ -90,7 +90,7 @@ export default function Game({ lang, addOrder, settings }) {
     if (!qrOpen) return undefined;
     // 1 hour default; if API gave expiresAt, count down to that
     const fromApi = qrExpiresAt > Date.now() ? Math.floor((qrExpiresAt - Date.now()) / 1000) : 0;
-    setPayLeft(fromApi > 0 ? fromApi : 3600);
+    setPayLeft(Math.max(3600, fromApi > 0 ? fromApi : 3600)); // always show ≥ 1 hour
     const tmr = setInterval(() => {
       setPayLeft((s) => (s <= 1 ? 0 : s - 1));
     }, 1000);
@@ -268,7 +268,7 @@ export default function Game({ lang, addOrder, settings }) {
           const n = Date.parse(expRaw) || Number(expRaw) || 0;
           expMs = n < 1e12 ? n * 1000 : n; // sec vs ms
         }
-        if (!expMs || expMs < Date.now()) expMs = Date.now() + 3600_000;
+        if (!expMs || expMs < Date.now() + 3600_000) expMs = Date.now() + 3600_000; // min 1 hour
         setQrExpiresAt(expMs);
       }
       setPayDeeplink(data.payment.deeplink || data.payment.payUrl || "");

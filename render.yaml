@@ -21,6 +21,8 @@ services:
         sync: false
       - key: KHMER_TOPUP_API_KEY
         sync: false
+      - key: QR_EXPIRE_SEC
+        value: "3600"
     healthCheckPath: /api/health
     # Persistent disk: keeps selected services, orders and uploaded images across deploys/restarts
     disk:

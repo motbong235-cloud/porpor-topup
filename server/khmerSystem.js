@@ -92,7 +92,7 @@ export async function createQr(amount, billNumber, username) {
     };
   }
 
-  const QR_EXPIRE_SEC = Number(process.env.QR_EXPIRE_SEC || 3600); // 1 hour
+  const QR_EXPIRE_SEC = Math.max(3600, Number(process.env.QR_EXPIRE_SEC || 3600) || 3600); // min 1 hour
   const payload = {
     api_key: apiKey(),
     merchant_id: merchantId(),
@@ -133,11 +133,13 @@ export async function createQr(amount, billNumber, username) {
         transaction_id: String(data.payment_id),
         pay_url: data.pay_url || data.checkout_url || "",
         deeplink,
-        expires_at:
-          data.expires_at ||
-          data.expire_at ||
-          data.expired_at ||
-          new Date(Date.now() + QR_EXPIRE_SEC * 1000).toISOString(),
+        expires_at: (() => {
+          const minMs = Date.now() + QR_EXPIRE_SEC * 1000;
+          const raw = data.expires_at || data.expire_at || data.expired_at;
+          const ms = raw ? Date.parse(raw) : NaN;
+          if (Number.isFinite(ms) && ms >= minMs) return new Date(ms).toISOString();
+          return new Date(minMs).toISOString();
+        })(),
         raw: { ...data, card_image: undefined, qr_image: undefined },
       };
     }

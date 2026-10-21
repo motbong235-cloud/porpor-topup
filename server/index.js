@@ -546,10 +546,19 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
     updateOrder(order.id, { status: "failed", note: `QR error: ${qr.error}` });
     return res.status(502).json({ error: "qr_failed", detail: qr.error });
   }
-  const QR_EXPIRE_SEC = Number(process.env.QR_EXPIRE_SEC || 3600);
-  const expiresAt =
+  // QR lifetime: default / minimum 1 hour (3600s). Provider may return shorter —
+  // we still expose at least 1h to the client countdown; actual bank QR may vary.
+  const QR_EXPIRE_SEC = Math.max(3600, Number(process.env.QR_EXPIRE_SEC || 3600) || 3600);
+  const minExpiryMs = Date.now() + QR_EXPIRE_SEC * 1000;
+  let expiresAt =
     qr.expires_at ||
-    new Date(Date.now() + QR_EXPIRE_SEC * 1000).toISOString();
+    qr.expire_at ||
+    qr.expired_at ||
+    new Date(minExpiryMs).toISOString();
+  const expMs = Date.parse(expiresAt);
+  if (!Number.isFinite(expMs) || expMs < minExpiryMs) {
+    expiresAt = new Date(minExpiryMs).toISOString();
+  }
   const updated = updateOrder(order.id, {
     transactionId: qr.transaction_id,
     qrImage: qr.qr_image,
