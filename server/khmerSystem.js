@@ -120,19 +120,36 @@ export async function createQr(amount, billNumber, username) {
     }
 
     if (data.ok && data.payment_id) {
-      const deeplink =
+      let deeplink =
         data.abapay_deeplink ||
         data.aba_deeplink ||
         data.deeplink ||
         data.pay_url ||
         "";
+      const qr_string = data.qr_string || data.qr_data || data.qr || "";
+      if (!deeplink || !String(deeplink).toLowerCase().startsWith("abamobilebank://")) {
+        if (qr_string) {
+          deeplink = `abamobilebank://ababank.com?type=payway&qrcode=${encodeURIComponent(qr_string)}`;
+        }
+      }
+      const _base = String(process.env.PUBLIC_BASE_URL || process.env.RENDER_EXTERNAL_URL || "").replace(/\/$/, "");
+      let open_aba_url = "";
+      if (_base && deeplink) {
+        const tok = Buffer.from(String(deeplink), "utf8")
+          .toString("base64")
+          .replace(/\+/g, "-")
+          .replace(/\//g, "_")
+          .replace(/=+$/g, "");
+        open_aba_url = `${_base}/open-aba?d=${tok}`;
+      }
       return {
         success: true,
         qr_image: data.card_image || data.qr_image || "",
-        qr_string: data.qr_string || data.qr_data || data.qr || "",
+        qr_string,
         transaction_id: String(data.payment_id),
         pay_url: data.pay_url || data.checkout_url || "",
         deeplink,
+        open_aba_url,
         expires_at: (() => {
           const minMs = Date.now() + QR_EXPIRE_SEC * 1000;
           const raw = data.expires_at || data.expire_at || data.expired_at;

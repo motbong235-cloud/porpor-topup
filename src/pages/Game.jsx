@@ -271,7 +271,7 @@ export default function Game({ lang, addOrder, settings }) {
         if (!expMs || expMs < Date.now() + 3600_000) expMs = Date.now() + 3600_000; // min 1 hour
         setQrExpiresAt(expMs);
       }
-      setPayDeeplink(data.payment.deeplink || data.payment.payUrl || "");
+      setPayDeeplink(data.payment.openAbaUrl || data.payment.deeplink || data.payment.payUrl || "");
       setPayPhase("qr");
       setCheckoutId(data.order.id);
       setQrOpen(true);
@@ -679,7 +679,7 @@ export default function Game({ lang, addOrder, settings }) {
                     setPayPhase("scanned");
                   }}
                 >
-                  {lang === "km" ? "បើកក្នុង ABA Mobile" : "Open in ABA Mobile"}
+                  {lang === "km" ? "OPEN ABA Mobile" : "OPEN ABA Mobile"}
                 </button>
               ) : (
                 <button type="button" className="btn bg-brand pw-aba-btn" onClick={() => setPayPhase("scanned")}>

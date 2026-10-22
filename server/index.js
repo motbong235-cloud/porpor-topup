@@ -27,6 +27,7 @@ import {
   listBackups,
 } from "./store.js";
 import * as khmerSystem from "./khmerSystem.js";
+import * as khmerSystemPay from "./khmerSystemPay.js";
 import * as liveChat from "./liveChat.js";
 import * as khmerTopup from "./khmerTopup.js";
 import * as catalog from "./catalog.js";
@@ -559,12 +560,14 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
   if (!Number.isFinite(expMs) || expMs < minExpiryMs) {
     expiresAt = new Date(minExpiryMs).toISOString();
   }
+  const openAba = qr.open_aba_url || "";
   const updated = updateOrder(order.id, {
     transactionId: qr.transaction_id,
     qrImage: qr.qr_image,
     qrString: qr.qr_string,
     payUrl: qr.pay_url || "",
     deeplink: qr.deeplink || qr.pay_url || "",
+    openAbaUrl: openAba,
     expiresAt,
   });
   auditLog("checkout_create", { orderId: updated.id, total: updated.total, ip: clientIp(req) });
@@ -575,7 +578,8 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
       qrImage: qr.qr_image,
       qrString: qr.qr_string,
       payUrl: qr.pay_url || "",
-      deeplink: qr.deeplink || qr.pay_url || "",
+      deeplink: openAba || qr.deeplink || qr.pay_url || "",
+      openAbaUrl: openAba,
       expiresAt,
     },
   });
@@ -1095,6 +1099,10 @@ setInterval(() => {
 try {
   runAutoBackup();
 } catch {}
+
+
+/** OPEN ABA Mobile — same as Kai- bot */
+app.get("/open-aba", (req, res) => khmerSystemPay.openAbaRoute(req, res));
 
 app.listen(PORT, () => {
   console.log(`Porpor TOPUP on :${PORT}`);
