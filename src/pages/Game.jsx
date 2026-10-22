@@ -134,7 +134,7 @@ export default function Game({ lang, addOrder, settings }) {
           </div>
         </div>
         <div className="card" style={{ marginTop: 24, textAlign: "center" }}>
-          <p style={{ fontWeight: 600 }}>{t(lang, "paused")}</p>
+          <p style={{ fontWeight: 600 }}>{t(lang, "maintenance")} — {t(lang, "unavailable")}</p>
           <Link className="btn bg-brand" style={{ marginTop: 16 }} to="/support">
             {t(lang, "chat")}
           </Link>

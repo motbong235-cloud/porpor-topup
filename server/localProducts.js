@@ -85,7 +85,7 @@ export function localCatalog() {
   const list = overrides && overrides.length ? overrides : DEFAULT_LOCAL_PRODUCTS;
   const forced = forcedUsernameIds();
   return list
-    .filter((g) => g && g.open !== false)
+    .filter((g) => g && g.id)
     .map((g) => {
       const dt = normDelivery(g.deliveryType || "stock");
       const requireUsername = !!g.requireUsername || forced.includes(String(g.id).toLowerCase());

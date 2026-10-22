@@ -105,12 +105,13 @@ export async function storefront() {
 
   for (const g of supplier) {
     const s = sel.games?.[g.slug];
-    if (!s?.enabled) continue;
-    const hasOwn = s.markup !== undefined && s.markup !== null && s.markup !== "" && Number.isFinite(Number(s.markup));
+    // Show all known games; enabled=false → open:false (OFF / MAINTENANCE on storefront)
+    const isOpen = !!s?.enabled;
+    const hasOwn = s && s.markup !== undefined && s.markup !== null && s.markup !== "" && Number.isFinite(Number(s.markup));
     const markup = hasOwn ? Number(s.markup) : globalMarkup;
-    const allowed = Array.isArray(s.packages) ? new Set(s.packages.map(String)) : null;
+    const allowed = Array.isArray(s?.packages) ? new Set(s.packages.map(String)) : null;
 
-    const packs = g.packs
+    const packs = (g.packs || [])
       .filter((p) => p.inStock && (!allowed || allowed.has(p.id)))
       .map((p) => ({
         id: p.id,
@@ -120,21 +121,23 @@ export async function storefront() {
         cost: p.cost,
         category: p.category,
         bonus: p.bonus,
-        // priority: image uploaded for this package → game's default package image → supplier image
-        image: s.packImages?.[p.id] || s.packIcon || p.image || "",
+        image: (s && (s.packImages?.[p.id] || s.packIcon)) || p.image || "",
       }));
-    if (!packs.length) continue;
+
+    // If never configured in admin and no packs, skip; if disabled, still show (even 0 packs)
+    if (!s && !packs.length) continue;
+    if (isOpen && !packs.length) continue;
 
     out.push({
       id: g.slug,
       name: g.name,
       nameKm: g.name,
-      image: s.image || g.image,
+      image: (s && s.image) || g.image,
       mark: markOf(g.name),
       hue: hueOf(g.slug),
-      famous: !!s.featured,
-      hot: !!s.featured,
-      open: true,
+      famous: !!(s && s.featured),
+      hot: !!(s && s.featured),
+      open: isOpen,
       hasZone: g.hasZone,
       zoneLabelKm: "Zone ID",
       zoneLabelEn: "Zone ID",
@@ -142,7 +145,7 @@ export async function storefront() {
       idHintKm: g.hint,
       idHintEn: g.hint,
       numericId: g.numericId,
-      packs,
+      packs: isOpen ? packs : packs, // keep packs for display; checkout blocked by open
     });
   }
   return out;

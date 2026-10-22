@@ -15,7 +15,7 @@ function GameCard({ game, lang, famous }) {
   const cta = game.open ? (
     <span className="game-cta on">{t(lang, "topup")}</span>
   ) : (
-    <span className="game-cta off">{t(lang, "off")}</span>
+    <span className="game-cta off">{t(lang, "maintenance")}</span>
   );
 
   if (!game.open) {
@@ -132,8 +132,8 @@ export default function Home({ lang, settings }) {
             <h2>{t(lang, "special")}</h2>
           </div>
           <div className="events events-special">
-            {spotlight.map((g) => {
-              const min = Math.min(...g.packs.map((p) => p.price));
+            {spotlight.filter((g) => g.open !== false).map((g) => {
+              const min = Math.min(...(g.packs || []).map((p) => p.price));
               return (
                 <Link key={g.id} className="event-card hot-card" to={`/game/${g.id}`}>
                   <div className="hot-art game-tile" style={{ "--h": g.hue }}>

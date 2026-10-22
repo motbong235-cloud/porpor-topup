@@ -52,7 +52,8 @@ export const dict = {
     statSpeed: "ដឹកជញ្ជូនភ្លាម",
     statChat: "ជំនួយផ្ទាល់",
     topup: "បញ្ចូល",
-    off: "ផ្អាក",
+    off: "OFF",
+    maintenance: "ថែទាំ",
     hot: "ពេញនិយម",
     years: "៥+ ឆ្នាំ · ទុកចិត្តបាន",
     trusted:
@@ -212,7 +213,8 @@ export const dict = {
     statSpeed: "Instant delivery",
     statChat: "Live chat support",
     topup: "TOPUP",
-    off: "Off",
+    off: "OFF",
+    maintenance: "MAINTENANCE",
     hot: "Hot",
     years: "5+ Years · Trusted",
     trusted:
