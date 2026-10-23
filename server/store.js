@@ -8,6 +8,9 @@ const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "..", "data");
 const DB_FILE = path.join(DATA_DIR, "db.json");
 export const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
 
+/** Shop working hours (Cambodia time). Single source of truth — shown on the storefront ticker. */
+export const SHOP_HOURS = "8:30 AM – 11:00 PM";
+
 const DEFAULT_SETTINGS = {
   siteName: "POR POR TOPUP",
   taglineKm: "ហាងហ្គេមព្រីមៀម",
@@ -21,8 +24,9 @@ const DEFAULT_SETTINGS = {
   logoUrl: "",
   /** Homepage banner images (max 5) — empty = use the built-in gradient slides */
   bannerUrls: [],
-  deliveryHours: "7:00 AM – 11:00 PM",
-  tickerSoldBase: 4000,
+  deliveryHours: SHOP_HOURS,
+  /** 0 = show only real orders (no fake starting number) */
+  tickerSoldBase: 0,
   tickerSoldLabel: "",
   coupons: [
     { code: "PORPOR10", type: "percent", value: 10, min: 0 },
@@ -38,7 +42,13 @@ const DEFAULT_SETTINGS = {
 
 const LEGACY_KEYS = ["defaultWallet", "closedGames", "packageMap", "allowDemoPay"];
 
+let ensured = false;
+/** In-memory copy of db.json — avoids re-reading + re-parsing the whole file on every request. */
+let mem = null;
+let lastBak = 0;
+
 function ensure() {
+  if (ensured && fs.existsSync(DB_FILE)) return;
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
   if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
   if (!fs.existsSync(DB_FILE)) {
@@ -49,38 +59,55 @@ function ensure() {
       giftStock: {},
     };
     fs.writeFileSync(DB_FILE, JSON.stringify(seed, null, 2));
+    mem = null;
   }
+  ensured = true;
 }
 
 function read() {
+  if (mem) return mem;
   ensure();
   try {
-    return JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
+    mem = JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
   } catch {
     // db.json damaged (e.g. crash mid-write) — fall back to the last good backup
     try {
-      return JSON.parse(fs.readFileSync(DB_FILE + ".bak", "utf8"));
+      mem = JSON.parse(fs.readFileSync(DB_FILE + ".bak", "utf8"));
     } catch {
-      return { settings: { ...DEFAULT_SETTINGS }, orders: [], sessions: {}, giftStock: {} };
+      mem = { settings: { ...DEFAULT_SETTINGS }, orders: [], sessions: {}, giftStock: {} };
     }
   }
+  return mem;
 }
 
-/** Atomic write (tmp file + rename) with a rolling backup, so saved services never get lost half-written. */
+/** Atomic write (tmp file + rename) with a rolling backup (at most one every 30s), so saved services never get lost half-written. */
 function write(db) {
   ensure();
   const tmp = DB_FILE + ".tmp";
-  fs.writeFileSync(tmp, JSON.stringify(db, null, 2));
   try {
-    if (fs.existsSync(DB_FILE)) fs.copyFileSync(DB_FILE, DB_FILE + ".bak");
-  } catch {}
-  fs.renameSync(tmp, DB_FILE);
+    fs.writeFileSync(tmp, JSON.stringify(db));
+    const now = Date.now();
+    if (now - lastBak > 30_000) {
+      try {
+        if (fs.existsSync(DB_FILE)) fs.copyFileSync(DB_FILE, DB_FILE + ".bak");
+        lastBak = now;
+      } catch {}
+    }
+    fs.renameSync(tmp, DB_FILE);
+    mem = db;
+  } catch (e) {
+    mem = null; // reload from disk next time
+    throw e;
+  }
 }
 
 export function getSettings() {
   const db = read();
   const merged = { ...DEFAULT_SETTINGS, ...db.settings };
   for (const k of LEGACY_KEYS) delete merged[k];
+  // Working hours are fixed; also drop the old hours + the old fake sold-counter seed saved in db.json
+  merged.deliveryHours = SHOP_HOURS;
+  if (Number(merged.tickerSoldBase) === 4000) merged.tickerSoldBase = 0;
   return merged;
 }
 
@@ -93,7 +120,7 @@ export function updateSettings(patch) {
 }
 
 export function listOrders() {
-  return read().orders || [];
+  return (read().orders || []).slice();
 }
 
 export function getOrder(id) {

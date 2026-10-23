@@ -40,7 +40,10 @@ function GameCard({ game, lang, famous }) {
 }
 
 
-function OrderTicker() {
+const SHOP_HOURS = "8:30 AM – 11:00 PM";
+
+/** Real data from /api/ticker (paid orders, sold count, average delivery time). */
+function useTicker() {
   const [data, setData] = useState(null);
   useEffect(() => {
     let alive = true;
@@ -52,21 +55,51 @@ function OrderTicker() {
         })
         .catch(() => {});
     load();
-    const id = setInterval(load, 45000);
+    const id = setInterval(load, 30000);
     return () => {
       alive = false;
       clearInterval(id);
     };
   }, []);
-  const delivery = (data && data.delivery) || "7:00 AM – 11:00 PM";
+  return data;
+}
+
+function ago(at, lang) {
+  if (!at) return "";
+  const m = Math.max(0, Math.floor((Date.now() - at) / 60000));
+  if (lang === "km") {
+    if (m < 1) return "ទើបតែ";
+    if (m < 60) return `${m} នាទីមុន`;
+    if (m < 1440) return `${Math.floor(m / 60)} ម៉ោងមុន`;
+    return `${Math.floor(m / 1440)} ថ្ងៃមុន`;
+  }
+  if (m < 1) return "just now";
+  if (m < 60) return `${m} min ago`;
+  if (m < 1440) return `${Math.floor(m / 60)} h ago`;
+  return `${Math.floor(m / 1440)} d ago`;
+}
+
+function fmtDuration(sec, lang) {
+  if (sec == null) return "—";
+  if (sec < 60) return lang === "km" ? `${Math.max(1, sec)} វិនាទី` : `${Math.max(1, sec)} sec`;
+  const m = Math.round(sec / 60);
+  if (m < 60) return lang === "km" ? `${m} នាទី` : `${m} min`;
+  const h = Math.round((m / 60) * 10) / 10;
+  return lang === "km" ? `${h} ម៉ោង` : `${h} h`;
+}
+
+function OrderTicker({ data, lang }) {
+  const delivery = (data && data.delivery) || SHOP_HOURS;
   const sold = (data && data.soldLabel) || "ការបញ្ជាទិញ";
   const items = (data && Array.isArray(data.items) ? data.items : []).filter((x) => x && x.label);
-  // Need enough chips for seamless loop; duplicate real items only
+  // Need enough chips for a seamless loop; repeat the real items only
   const loop = items.length
     ? items.length < 8
       ? [...items, ...items, ...items, ...items]
       : [...items, ...items]
     : [];
+  // slow, calm scroll: ~8s per order (never faster than 45s per loop), whatever the number of orders
+  const ordersSpeed = { animationDuration: `${Math.max(45, Math.round((loop.length / 2) * 8))}s` };
   return (
     <div className="pp-ticker" aria-label="orders ticker">
       <div className="pp-ticker-delivery">
@@ -74,7 +107,7 @@ function OrderTicker() {
           {Array.from({ length: 6 }).map((_, i) => (
             <span key={i} className="pp-ticker-chip">
               <span className="pp-ticker-bolt" aria-hidden>⚡</span>
-              ដឹកជញ្ជូន: {delivery}
+              {lang === "km" ? "ម៉ោងធ្វើការ" : "Working hours"}: {delivery}
             </span>
           ))}
         </div>
@@ -86,11 +119,12 @@ function OrderTicker() {
         </div>
         <div className="pp-ticker-scroll">
           {loop.length > 0 ? (
-            <div className="pp-ticker-track pp-ticker-orders-track">
+            <div className="pp-ticker-track pp-ticker-orders-track" style={ordersSpeed}>
               {loop.map((it, i) => (
                 <span key={(it.id || i) + "-" + i} className="pp-ticker-item">
                   <span className="pp-ticker-ok">●</span>
                   {it.label}
+                  {it.at ? <span className="pp-ticker-ago">{ago(it.at, lang)}</span> : null}
                 </span>
               ))}
             </div>
@@ -103,8 +137,19 @@ function OrderTicker() {
   );
 }
 
+function GameSkeletons({ n = 8 }) {
+  return Array.from({ length: n }).map((_, i) => (
+    <div key={i} className="game-card skeleton" aria-hidden>
+      <div className="sk-tile" />
+      <div className="sk-line" />
+      <div className="sk-line short" />
+    </div>
+  ));
+}
+
 export default function Home({ lang, settings }) {
   const { games, loading, error } = useCatalog();
+  const ticker = useTicker();
   const [slide, setSlide] = useState(0);
   const [filter, setFilter] = useState("");
   const famous = useMemo(() => games.filter((g) => g.famous), [games]);
@@ -187,7 +232,7 @@ export default function Home({ lang, settings }) {
         </>)}
       </section>
 
-      <OrderTicker />
+      <OrderTicker data={ticker} lang={lang} />
 
       {spotlight.length > 0 && (
         <section className="section">
@@ -259,9 +304,7 @@ export default function Home({ lang, settings }) {
         </p>
         <div className="game-grid">
           {loading ? (
-            <div className="empty" style={{ gridColumn: "1 / -1" }}>
-              {t(lang, "catalogLoading")}
-            </div>
+            <GameSkeletons />
           ) : error ? (
             <div className="empty" style={{ gridColumn: "1 / -1" }}>
               {t(lang, "catalogError")}
@@ -295,28 +338,28 @@ export default function Home({ lang, settings }) {
             <div className="stat-icon">
               <Icon name="package" size={22} />
             </div>
-            <div className="stat-value">10,000,000+</div>
+            <div className="stat-value">{ticker ? Number(ticker.sold || 0).toLocaleString() : "…"}</div>
             <div className="stat-label">{t(lang, "statOrders")}</div>
           </div>
           <div className="stat">
             <div className="stat-icon">
               <Icon name="game" size={22} />
             </div>
-            <div className="stat-value">{games.length}+</div>
+            <div className="stat-value">{loading && !games.length ? "…" : games.filter((g) => g.open !== false).length}</div>
             <div className="stat-label">{t(lang, "statGames")}</div>
           </div>
           <div className="stat">
             <div className="stat-icon">
               <Icon name="zap" size={22} />
             </div>
-            <div className="stat-value">1 sec – 5 min</div>
+            <div className="stat-value">{ticker ? fmtDuration(ticker.avgDeliverySec, lang) : "…"}</div>
             <div className="stat-label">{t(lang, "statSpeed")}</div>
           </div>
           <div className="stat">
             <div className="stat-icon">
               <Icon name="help" size={22} />
             </div>
-            <div className="stat-value">24 / 7</div>
+            <div className="stat-value stat-hours">{(ticker && ticker.delivery) || SHOP_HOURS}</div>
             <div className="stat-label">{t(lang, "statChat")}</div>
           </div>
         </div>

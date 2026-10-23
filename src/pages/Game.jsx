@@ -70,6 +70,11 @@ export default function Game({ lang, addOrder, settings }) {
   const sub = pack ? Math.round(pack.price * qty * 100) / 100 : 0;
   const total = Math.max(0, Math.round((sub - applied) * 100) / 100);
 
+  // get the CSRF token ready now, so pressing "pay" doesn't wait for an extra round-trip
+  useEffect(() => {
+    ensureCsrf();
+  }, []);
+
   // auto-check payment while the QR is open
   useEffect(() => {
     if (!qrOpen || !checkoutId) return undefined;

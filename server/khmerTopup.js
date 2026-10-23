@@ -27,7 +27,8 @@ async function api(path, opts = {}) {
   const r = await fetch(`${BASE}${path}`, {
     ...opts,
     headers,
-    signal: AbortSignal.timeout(30000),
+    // reads fail fast (cached/stale data is served meanwhile); orders keep the longer timeout
+    signal: AbortSignal.timeout(String(opts.method || "GET").toUpperCase() === "POST" ? 30000 : 12000),
   });
   const data = await r.json().catch(() => ({}));
   if (!r.ok) {

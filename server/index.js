@@ -25,6 +25,7 @@ import {
   stockCount,
   runAutoBackup,
   listBackups,
+  SHOP_HOURS,
 } from "./store.js";
 import * as khmerSystem from "./khmerSystem.js";
 import * as khmerSystemPay from "./khmerSystemPay.js";
@@ -270,17 +271,20 @@ app.get("/api/public-config", (_req, res) => {
 
 
 app.get("/api/ticker", (_req, res) => {
+  // Everything here comes from real orders in the database — nothing is made up.
+  res.set("Cache-Control", "public, max-age=10");
   try {
     const settings = getSettings();
     const all = listOrders();
     const okStatus = new Set([
       "paid", "delivered", "done", "success", "completed", "processing", "fulfilled",
     ]);
+    const stamp = (o) => Number(o.paidAt || o.deliveredAt || o.createdAt) || 0;
     const real = all
       .filter((o) => okStatus.has(String(o.status || "").toLowerCase()))
-      .sort((a, b) => (Number(b.paidAt || b.deliveredAt || b.createdAt) || 0) - (Number(a.paidAt || a.deliveredAt || a.createdAt) || 0));
+      .sort((a, b) => stamp(b) - stamp(a));
 
-    const items = real.slice(0, 50).map((o) => {
+    const items = real.slice(0, 30).map((o) => {
       const game = String(o.gameName || o.productName || o.serviceName || "").trim();
       const pack = String(o.packName || o.packageName || o.title || "").trim();
       const qty = Number(o.qty) > 1 ? ` ×${o.qty}` : "";
@@ -292,30 +296,37 @@ app.get("/api/ticker", (_req, res) => {
       return {
         id: String(o.id || "").slice(-8),
         label: label.slice(0, 56),
-        at: Number(o.paidAt || o.deliveredAt || o.createdAt) || 0,
+        at: stamp(o),
       };
     });
 
-    // Real sold count only (optional base from admin still allowed if set intentionally)
+    // Real average delivery time (payment → delivered), from the latest delivered orders
+    const spans = real
+      .filter((o) => o.deliveredAt && o.paidAt)
+      .slice(0, 100)
+      .map((o) => (Number(o.deliveredAt) - Number(o.paidAt)) / 1000)
+      .filter((n) => Number.isFinite(n) && n >= 0 && n < 6 * 3600);
+    const avgDeliverySec = spans.length ? Math.round(spans.reduce((a, b) => a + b, 0) / spans.length) : null;
+
+    // Real sold count (a starting number is only added if the admin set one on purpose)
     const realCount = real.length;
     const base = Number(settings.tickerSoldBase);
     const sold = Number.isFinite(base) && base > 0 ? base + realCount : realCount;
     const soldLabel =
       (settings.tickerSoldLabel && String(settings.tickerSoldLabel).trim()) ||
-      (sold > 0
-        ? `ការបញ្ជាទិញ — ${sold}+ បានលក់`
-        : "ការបញ្ជាទិញ — កំពុងរង់ចាំ order ដំបូង");
+      (sold > 0 ? `ការបញ្ជាទិញ — ${sold} បានលក់` : "ការបញ្ជាទិញ");
 
     res.json({
       ok: true,
-      delivery: settings.deliveryHours || "7:00 AM – 11:00 PM",
+      delivery: SHOP_HOURS,
       soldLabel,
       sold,
+      avgDeliverySec,
       items, // real only — empty if no paid orders yet
     });
   } catch (e) {
     console.error("[ticker]", e);
-    res.json({ ok: true, delivery: "7:00 AM – 11:00 PM", soldLabel: "ការបញ្ជាទិញ", sold: 0, items: [] });
+    res.json({ ok: true, delivery: SHOP_HOURS, soldLabel: "ការបញ្ជាទិញ", sold: 0, avgDeliverySec: null, items: [] });
   }
 });
 
@@ -477,12 +488,15 @@ app.get("/api/version", (_req, res) => {
 
 /** Games + packages the admin selected from Khmer TopUp (prices include markup). */
 app.get("/api/catalog", async (_req, res) => {
+  // short browser/CDN cache: repeat visits and page changes are instant; admin edits show within ~15s
+  res.set("Cache-Control", "public, max-age=15, stale-while-revalidate=60");
   if (!khmerTopup.isTopupReady()) {
     return res.json({ games: [], error: "topup_not_configured" });
   }
   try {
     res.json({ games: await catalog.publicCatalog() });
   } catch (e) {
+    res.set("Cache-Control", "no-store");
     res.status(502).json({ games: [], error: "catalog_unavailable", message: e.message });
   }
 });
@@ -1157,6 +1171,7 @@ app.get("/open-aba", (req, res) => khmerSystemPay.openAbaRoute(req, res));
 
 app.listen(PORT, () => {
   console.log(`Porpor TOPUP on :${PORT}`);
+  catalog.warmCatalog();
   if (isWeakAdminPassword(ADMIN_PASSWORD)) {
     console.warn("[security] ADMIN_PASSWORD is weak or default — set a strong password in Render env (12+ chars, letters+numbers)");
   }

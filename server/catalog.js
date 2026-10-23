@@ -74,17 +74,49 @@ export function normalizeGame(g) {
   };
 }
 
+let inflight = null;
+
+/** One shared request to the supplier — concurrent callers reuse it instead of each waiting on their own. */
+function refresh() {
+  if (inflight) return inflight;
+  inflight = khmerTopup
+    .listGames()
+    .then((data) => {
+      const list = Array.isArray(data) ? data : data.games || data.data || [];
+      cache = { at: Date.now(), games: list.map(normalizeGame).filter((g) => g.slug), raw: list };
+      return cache.games;
+    })
+    .catch((e) => {
+      if (!cache.games) throw e;
+      cache.at = Date.now() - TTL + 15_000; // serve stale, retry in 15s
+      return cache.games;
+    })
+    .finally(() => {
+      inflight = null;
+    });
+  return inflight;
+}
+
+/**
+ * Stale-while-revalidate: once loaded, customers always get the cached list instantly;
+ * an expired cache is refreshed in the background instead of making the next customer wait.
+ */
 export async function fetchSupplierGames(force = false) {
-  if (!force && cache.games && Date.now() - cache.at < TTL) return cache.games;
-  try {
-    const data = await khmerTopup.listGames();
-    const list = Array.isArray(data) ? data : data.games || data.data || [];
-    cache = { at: Date.now(), games: list.map(normalizeGame).filter((g) => g.slug), raw: list };
-  } catch (e) {
-    if (!cache.games) throw e;
-    cache.at = Date.now() - TTL + 15_000; // serve stale, retry in 15s
+  if (force) return refresh();
+  if (cache.games) {
+    if (Date.now() - cache.at >= TTL) refresh().catch(() => {});
+    return cache.games;
   }
-  return cache.games;
+  return refresh();
+}
+
+/** Call at startup so the first customer doesn't pay for the cold supplier request. */
+export function warmCatalog() {
+  if (!khmerTopup.isTopupReady()) return;
+  refresh().catch((e) => console.warn("[catalog] warm-up failed:", e.message));
+  setInterval(() => {
+    if (Date.now() - cache.at >= TTL - 5_000) refresh().catch(() => {});
+  }, TTL / 2).unref();
 }
 
 export function rawSupplierGames() {

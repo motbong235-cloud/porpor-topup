@@ -820,8 +820,8 @@ img {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: #fff;
-  background: linear-gradient(100deg, #f472b6, #ec4899);
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
+  background: linear-gradient(100deg, #4aa2ff, #1d6adf);
+  box-shadow: 0 4px 12px rgba(29, 106, 223, 0.28);
 }
 .game-badge.off {
   background: #94a3b8;
@@ -4892,41 +4892,39 @@ main {
 }
 
 
-/* ===== Order ticker / marquee (Kira-style) ===== */
+/* ===== Order ticker / marquee — soft blue, same card language as the rest of the site ===== */
 .pp-ticker {
-  margin: 12px 0 18px;
+  margin: 14px 0 20px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 .pp-ticker-delivery {
   overflow: hidden;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #ec4899, #f43f5e 55%, #fb7185);
-  box-shadow: 0 6px 18px rgba(236, 72, 153, 0.28);
+  border-radius: var(--radius);
+  background: linear-gradient(100deg, color-mix(in srgb, var(--primary) 14%, var(--surface)), color-mix(in srgb, var(--primary-2) 10%, var(--surface)));
+  border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--line));
+  box-shadow: var(--shadow);
+  /* soft fade at both edges */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
 }
 .pp-ticker-track {
   display: flex;
   width: max-content;
-  gap: 28px;
-  padding: 10px 0;
-  animation: pp-marquee 28s linear infinite;
+  gap: 36px;
+  padding: 11px 0;
+  animation: pp-marquee 50s linear infinite;
   will-change: transform;
-}
-.pp-ticker-track.slow {
-  animation-duration: 90s;
-  gap: 22px;
-  padding: 0;
 }
 .pp-ticker-chip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #fff;
-  font-weight: 800;
-  font-size: 0.82rem;
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 0.84rem;
   white-space: nowrap;
-  letter-spacing: 0.02em;
   padding: 0 4px;
 }
 .pp-ticker-bolt {
@@ -4935,18 +4933,19 @@ main {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.22);
-  font-size: 0.75rem;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.7rem;
 }
 .pp-ticker-sales {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #fff;
-  border: 1px solid var(--line, #e8eef6);
-  border-radius: 14px;
-  padding: 8px 12px;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #dbe6f3);
+  border-radius: var(--radius);
+  padding: 9px 14px;
+  box-shadow: var(--shadow);
   overflow: hidden;
 }
 .pp-ticker-sold {
@@ -4956,22 +4955,25 @@ main {
   gap: 8px;
   font-size: 0.78rem;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--ink, #0c1b33);
   white-space: nowrap;
-  padding-right: 10px;
-  border-right: 1px solid #e2e8f0;
+  padding-right: 12px;
+  border-right: 1px solid var(--line, #dbe6f3);
 }
 .pp-ticker-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+  background: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
+  animation: pulse 2.4s ease-in-out infinite;
 }
 .pp-ticker-scroll {
   flex: 1;
   overflow: hidden;
   min-width: 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
 }
 .pp-ticker-item {
   display: inline-flex;
@@ -4979,28 +4981,38 @@ main {
   gap: 6px;
   font-size: 0.78rem;
   font-weight: 600;
-  color: #475569;
+  color: var(--muted, #5c6e88);
   white-space: nowrap;
   padding: 4px 0;
 }
 .pp-ticker-ok {
-  color: #22c55e;
-  font-size: 0.65rem;
+  color: var(--primary);
+  font-size: 0.6rem;
+}
+.pp-ticker-ago {
+  margin-left: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface, #fff));
 }
 .pp-ticker-delivery-track {
-  animation-duration: 32s;
+  animation-duration: 55s;
 }
 .pp-ticker-orders-track {
-  animation-duration: 90s;
-  gap: 28px;
+  animation-duration: 60s; /* real duration is set from the number of orders in Home.jsx */
+  gap: 34px;
   padding: 0;
 }
+.pp-ticker-scroll:hover .pp-ticker-track,
+.pp-ticker-delivery:hover .pp-ticker-track { animation-play-state: paused; }
 .pp-ticker-item.muted {
-  color: #94a3b8;
+  color: var(--muted, #94a3b8);
   font-weight: 500;
 }
 @keyframes pp-marquee {
-
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
 }
@@ -5023,3 +5035,30 @@ main {
 .section-head h2 {
   letter-spacing: -0.02em;
 }
+
+
+/* ===== Loading skeletons (feel fast while the catalog loads) ===== */
+.game-card.skeleton {
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sk-tile,
+.sk-line {
+  border-radius: 12px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--primary) 8%, var(--surface)) 25%, color-mix(in srgb, var(--primary) 18%, var(--surface)) 50%, color-mix(in srgb, var(--primary) 8%, var(--surface)) 75%);
+  background-size: 200% 100%;
+  animation: pp-skeleton 1.2s ease-in-out infinite;
+}
+.sk-tile { aspect-ratio: 1 / 1; width: 100%; }
+.sk-line { height: 12px; width: 80%; }
+.sk-line.short { width: 50%; }
+@keyframes pp-skeleton {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sk-tile, .sk-line { animation: none; }
+}
+.stat-value.stat-hours { font-size: clamp(1rem, 3.4vw, 1.35rem); white-space: nowrap; }
