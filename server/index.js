@@ -268,6 +268,44 @@ app.get("/api/public-config", (_req, res) => {
   res.json({ adminPath: ADMIN_PATH });
 });
 
+
+app.get("/api/ticker", (_req, res) => {
+  try {
+    const settings = getSettings();
+    const orders = listOrders()
+      .filter((o) => {
+        const s = String(o.status || "").toLowerCase();
+        return s === "paid" || s === "delivered" || s === "done" || s === "success" || s === "completed";
+      })
+      .slice(-40)
+      .reverse();
+    const items = orders.map((o) => {
+      const name = o.productName || o.packageName || o.gameName || o.serviceName || o.title || "Order";
+      const qty = o.qty || o.amountLabel || o.diamond || o.points || "";
+      const label = qty ? `${name} — ${qty}` : name;
+      return { id: String(o.id || "").slice(-6), label: String(label).slice(0, 48) };
+    });
+    const sold = Math.max(orders.length, Number(settings.tickerSoldBase || 0) || 0) + (Number(settings.tickerSoldBonus || 0) || 0);
+    res.json({
+      ok: true,
+      delivery: settings.deliveryHours || "7:00 AM – 11:00 PM",
+      soldLabel: settings.tickerSoldLabel || `ការបញ្ជាទិញ — ${Math.max(sold, 4000)}+ បានលក់`,
+      sold: Math.max(sold, 0),
+      items: items.length
+        ? items
+        : [
+            { id: "demo1", label: "Mobile Legends — Diamond" },
+            { id: "demo2", label: "Free Fire — Diamonds" },
+            { id: "demo3", label: "Roblox Robux — 1500" },
+            { id: "demo4", label: "PUBG UC — 660" },
+            { id: "demo5", label: "Genshin — Genesis Crystals" },
+          ],
+    });
+  } catch (e) {
+    res.json({ ok: true, delivery: "7:00 AM – 11:00 PM", soldLabel: "ការបញ្ជាទិញ — 4000+ បានលក់", items: [] });
+  }
+});
+
 app.get("/api/health", (_req, res) => {
   res.json({
     ok: true,

@@ -4890,3 +4890,123 @@ main {
   .game-grid { gap: 10px; }
   .banner, .hero { border-radius: 1rem; }
 }
+
+
+/* ===== Order ticker / marquee (Kira-style) ===== */
+.pp-ticker {
+  margin: 12px 0 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pp-ticker-delivery {
+  overflow: hidden;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ec4899, #f43f5e 55%, #fb7185);
+  box-shadow: 0 6px 18px rgba(236, 72, 153, 0.28);
+}
+.pp-ticker-track {
+  display: flex;
+  width: max-content;
+  gap: 28px;
+  padding: 10px 0;
+  animation: pp-marquee 22s linear infinite;
+  will-change: transform;
+}
+.pp-ticker-track.slow {
+  animation-duration: 38s;
+  gap: 22px;
+  padding: 0;
+}
+.pp-ticker-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.82rem;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  padding: 0 4px;
+}
+.pp-ticker-bolt {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  font-size: 0.75rem;
+}
+.pp-ticker-sales {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid var(--line, #e8eef6);
+  border-radius: 14px;
+  padding: 8px 12px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+}
+.pp-ticker-sold {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #0f172a;
+  white-space: nowrap;
+  padding-right: 10px;
+  border-right: 1px solid #e2e8f0;
+}
+.pp-ticker-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+}
+.pp-ticker-scroll {
+  flex: 1;
+  overflow: hidden;
+  min-width: 0;
+}
+.pp-ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #475569;
+  white-space: nowrap;
+  padding: 4px 0;
+}
+.pp-ticker-ok {
+  color: #22c55e;
+  font-size: 0.65rem;
+}
+@keyframes pp-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pp-ticker-track { animation: none; }
+}
+@media (max-width: 520px) {
+  .pp-ticker-sold { font-size: 0.72rem; max-width: 42%; overflow: hidden; text-overflow: ellipsis; }
+  .pp-ticker-chip { font-size: 0.78rem; }
+}
+
+/* light UI polish */
+.game-card.card-hover {
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+.game-card.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+}
+.section-head h2 {
+  letter-spacing: -0.02em;
+}

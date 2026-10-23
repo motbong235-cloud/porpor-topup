@@ -39,6 +39,61 @@ function GameCard({ game, lang, famous }) {
   );
 }
 
+
+function OrderTicker() {
+  const [data, setData] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    const load = () =>
+      fetch("/api/ticker")
+        .then((r) => r.json())
+        .then((d) => {
+          if (alive && d && d.ok !== false) setData(d);
+        })
+        .catch(() => {});
+    load();
+    const id = setInterval(load, 60000);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, []);
+  const delivery = (data && data.delivery) || "7:00 AM – 11:00 PM";
+  const sold = (data && data.soldLabel) || "ការបញ្ជាទិញ — 4000+ បានលក់";
+  const items = (data && data.items) || [];
+  const loop = items.length ? [...items, ...items, ...items] : items;
+  return (
+    <div className="pp-ticker" aria-label="orders ticker">
+      <div className="pp-ticker-delivery">
+        <div className="pp-ticker-track">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <span key={i} className="pp-ticker-chip">
+              <span className="pp-ticker-bolt" aria-hidden>⚡</span>
+              ដឹកជញ្ជូន: {delivery}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="pp-ticker-sales">
+        <div className="pp-ticker-sold">
+          <span className="pp-ticker-dot" />
+          {sold}
+        </div>
+        <div className="pp-ticker-scroll">
+          <div className="pp-ticker-track slow">
+            {loop.map((it, i) => (
+              <span key={(it.id || i) + "-" + i} className="pp-ticker-item">
+                <span className="pp-ticker-ok">●</span>
+                {it.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Home({ lang, settings }) {
   const { games, loading, error } = useCatalog();
   const [slide, setSlide] = useState(0);
@@ -122,6 +177,8 @@ export default function Home({ lang, settings }) {
         </div>
         </>)}
       </section>
+
+      <OrderTicker />
 
       {spotlight.length > 0 && (
         <section className="section">

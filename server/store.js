@@ -21,6 +21,9 @@ const DEFAULT_SETTINGS = {
   logoUrl: "",
   /** Homepage banner images (max 5) — empty = use the built-in gradient slides */
   bannerUrls: [],
+  deliveryHours: "7:00 AM – 11:00 PM",
+  tickerSoldBase: 4000,
+  tickerSoldLabel: "",
   coupons: [
     { code: "PORPOR10", type: "percent", value: 10, min: 0 },
     { code: "BLUE", type: "fixed", value: 0.5, min: 2 },
