@@ -52,20 +52,25 @@ function OrderTicker() {
         })
         .catch(() => {});
     load();
-    const id = setInterval(load, 60000);
+    const id = setInterval(load, 45000);
     return () => {
       alive = false;
       clearInterval(id);
     };
   }, []);
   const delivery = (data && data.delivery) || "7:00 AM – 11:00 PM";
-  const sold = (data && data.soldLabel) || "ការបញ្ជាទិញ — 4000+ បានលក់";
-  const items = (data && data.items) || [];
-  const loop = items.length ? [...items, ...items, ...items] : items;
+  const sold = (data && data.soldLabel) || "ការបញ្ជាទិញ";
+  const items = (data && Array.isArray(data.items) ? data.items : []).filter((x) => x && x.label);
+  // Need enough chips for seamless loop; duplicate real items only
+  const loop = items.length
+    ? items.length < 8
+      ? [...items, ...items, ...items, ...items]
+      : [...items, ...items]
+    : [];
   return (
     <div className="pp-ticker" aria-label="orders ticker">
       <div className="pp-ticker-delivery">
-        <div className="pp-ticker-track">
+        <div className="pp-ticker-track pp-ticker-delivery-track">
           {Array.from({ length: 6 }).map((_, i) => (
             <span key={i} className="pp-ticker-chip">
               <span className="pp-ticker-bolt" aria-hidden>⚡</span>
@@ -80,14 +85,18 @@ function OrderTicker() {
           {sold}
         </div>
         <div className="pp-ticker-scroll">
-          <div className="pp-ticker-track slow">
-            {loop.map((it, i) => (
-              <span key={(it.id || i) + "-" + i} className="pp-ticker-item">
-                <span className="pp-ticker-ok">●</span>
-                {it.label}
-              </span>
-            ))}
-          </div>
+          {loop.length > 0 ? (
+            <div className="pp-ticker-track pp-ticker-orders-track">
+              {loop.map((it, i) => (
+                <span key={(it.id || i) + "-" + i} className="pp-ticker-item">
+                  <span className="pp-ticker-ok">●</span>
+                  {it.label}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <span className="pp-ticker-item muted">រង់ចាំការបញ្ជាទិញពិត…</span>
+          )}
         </div>
       </div>
     </div>

@@ -4910,11 +4910,11 @@ main {
   width: max-content;
   gap: 28px;
   padding: 10px 0;
-  animation: pp-marquee 22s linear infinite;
+  animation: pp-marquee 28s linear infinite;
   will-change: transform;
 }
 .pp-ticker-track.slow {
-  animation-duration: 38s;
+  animation-duration: 90s;
   gap: 22px;
   padding: 0;
 }
@@ -4987,7 +4987,20 @@ main {
   color: #22c55e;
   font-size: 0.65rem;
 }
+.pp-ticker-delivery-track {
+  animation-duration: 32s;
+}
+.pp-ticker-orders-track {
+  animation-duration: 90s;
+  gap: 28px;
+  padding: 0;
+}
+.pp-ticker-item.muted {
+  color: #94a3b8;
+  font-weight: 500;
+}
 @keyframes pp-marquee {
+
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
 }

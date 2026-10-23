@@ -272,37 +272,50 @@ app.get("/api/public-config", (_req, res) => {
 app.get("/api/ticker", (_req, res) => {
   try {
     const settings = getSettings();
-    const orders = listOrders()
-      .filter((o) => {
-        const s = String(o.status || "").toLowerCase();
-        return s === "paid" || s === "delivered" || s === "done" || s === "success" || s === "completed";
-      })
-      .slice(-40)
-      .reverse();
-    const items = orders.map((o) => {
-      const name = o.productName || o.packageName || o.gameName || o.serviceName || o.title || "Order";
-      const qty = o.qty || o.amountLabel || o.diamond || o.points || "";
-      const label = qty ? `${name} — ${qty}` : name;
-      return { id: String(o.id || "").slice(-6), label: String(label).slice(0, 48) };
+    const all = listOrders();
+    const okStatus = new Set([
+      "paid", "delivered", "done", "success", "completed", "processing", "fulfilled",
+    ]);
+    const real = all
+      .filter((o) => okStatus.has(String(o.status || "").toLowerCase()))
+      .sort((a, b) => (Number(b.paidAt || b.deliveredAt || b.createdAt) || 0) - (Number(a.paidAt || a.deliveredAt || a.createdAt) || 0));
+
+    const items = real.slice(0, 50).map((o) => {
+      const game = String(o.gameName || o.productName || o.serviceName || "").trim();
+      const pack = String(o.packName || o.packageName || o.title || "").trim();
+      const qty = Number(o.qty) > 1 ? ` ×${o.qty}` : "";
+      let label = "";
+      if (game && pack) label = `${game} — ${pack}${qty}`;
+      else if (pack) label = `${pack}${qty}`;
+      else if (game) label = `${game}${qty}`;
+      else label = `Order ${String(o.id || "").slice(-6)}`;
+      return {
+        id: String(o.id || "").slice(-8),
+        label: label.slice(0, 56),
+        at: Number(o.paidAt || o.deliveredAt || o.createdAt) || 0,
+      };
     });
-    const sold = Math.max(orders.length, Number(settings.tickerSoldBase || 0) || 0) + (Number(settings.tickerSoldBonus || 0) || 0);
+
+    // Real sold count only (optional base from admin still allowed if set intentionally)
+    const realCount = real.length;
+    const base = Number(settings.tickerSoldBase);
+    const sold = Number.isFinite(base) && base > 0 ? base + realCount : realCount;
+    const soldLabel =
+      (settings.tickerSoldLabel && String(settings.tickerSoldLabel).trim()) ||
+      (sold > 0
+        ? `ការបញ្ជាទិញ — ${sold}+ បានលក់`
+        : "ការបញ្ជាទិញ — កំពុងរង់ចាំ order ដំបូង");
+
     res.json({
       ok: true,
       delivery: settings.deliveryHours || "7:00 AM – 11:00 PM",
-      soldLabel: settings.tickerSoldLabel || `ការបញ្ជាទិញ — ${Math.max(sold, 4000)}+ បានលក់`,
-      sold: Math.max(sold, 0),
-      items: items.length
-        ? items
-        : [
-            { id: "demo1", label: "Mobile Legends — Diamond" },
-            { id: "demo2", label: "Free Fire — Diamonds" },
-            { id: "demo3", label: "Roblox Robux — 1500" },
-            { id: "demo4", label: "PUBG UC — 660" },
-            { id: "demo5", label: "Genshin — Genesis Crystals" },
-          ],
+      soldLabel,
+      sold,
+      items, // real only — empty if no paid orders yet
     });
   } catch (e) {
-    res.json({ ok: true, delivery: "7:00 AM – 11:00 PM", soldLabel: "ការបញ្ជាទិញ — 4000+ បានលក់", items: [] });
+    console.error("[ticker]", e);
+    res.json({ ok: true, delivery: "7:00 AM – 11:00 PM", soldLabel: "ការបញ្ជាទិញ", sold: 0, items: [] });
   }
 });
 
