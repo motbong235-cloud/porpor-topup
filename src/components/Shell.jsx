@@ -30,9 +30,24 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
   const [search, setSearch] = useState(false);
   const [q, setQ] = useState("");
   const [iosHelp, setIosHelp] = useState(false);
+  const [tgUser, setTgUser] = useState(null);
+  const [tgBot, setTgBot] = useState("");
   const pwa = useInstallPrompt();
   const lift = location.pathname.startsWith("/game");
 
+  useEffect(() => {
+    fetch("/api/auth/me").then((r) => r.json()).then((d) => { if (d?.ok && d.user) setTgUser(d.user); }).catch(() => {});
+    fetch("/api/auth/telegram/config").then((r) => r.json()).then((d) => { if (d?.botUsername) setTgBot(d.botUsername); }).catch(() => {});
+  }, []);
+  useEffect(() => {
+    window.onTelegramAuth = (user) => {
+      fetch("/api/auth/telegram", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(user) })
+        .then((r) => r.json())
+        .then((d) => { if (d?.ok) setTgUser(d.user); })
+        .catch(() => {});
+    };
+    return () => { delete window.onTelegramAuth; };
+  }, []);
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
     document.documentElement.lang = lang === "km" ? "km" : "en";
@@ -109,6 +124,29 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
             <button type="button" className="lang-btn" onClick={() => setLang(lang === "km" ? "en" : "km")}>
               {lang === "km" ? "EN" : "ខ្មែរ"}
             </button>
+            {tgUser ? (
+              <button type="button" className="lang-btn" title={tgUser.username || tgUser.first_name}
+                onClick={() => fetch("/api/auth/logout", { method: "POST" }).then(() => setTgUser(null))}>
+                {tgUser.username ? `@${tgUser.username}` : (tgUser.first_name || "TG")}
+              </button>
+            ) : tgBot ? (
+              <a className="lang-btn" href={`https://oauth.telegram.org/auth?bot_id=0&origin=${encodeURIComponent(window.location.origin)}&request_access=write&embed=1`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (document.getElementById("telegram-login-script")) return;
+                  const s = document.createElement("script");
+                  s.id = "telegram-login-script";
+                  s.src = `https://telegram.org/js/telegram-widget.js?22`;
+                  s.setAttribute("data-telegram-login", tgBot);
+                  s.setAttribute("data-size", "small");
+                  s.setAttribute("data-onauth", "onTelegramAuth(user)");
+                  s.setAttribute("data-request-access", "write");
+                  s.async = true;
+                  document.body.appendChild(s);
+                }}>
+                {lang === "km" ? "Login TG" : "TG Login"}
+              </a>
+            ) : null}
             <button
               type="button"
               className="icon-btn"

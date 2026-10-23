@@ -190,9 +190,13 @@ export async function checkPayment(paymentId) {
       signal: AbortSignal.timeout(15000),
     });
     const data = await r.json();
-    const status = String(data.status || "").toUpperCase();
-    const paid = !!data.ok && status === "PAID";
-    return { paid, status: status.toLowerCase(), amount: data.amount, raw: data };
+    const status = String(data.status || data.payment_status || data.state || "").toUpperCase();
+    const paidFlag = data.ok === true || data.paid === true || data.success === true;
+    const paidStatuses = new Set(["PAID", "SUCCESS", "COMPLETED", "COMPLETE", "DONE", "SETTLED"]);
+    const paid = paidFlag || paidStatuses.has(status);
+    const code = data.status_code ?? data.code;
+    const paidByCode = code === 1 || code === "1" || code === 200;
+    return { paid: !!(paid || paidByCode), status: status.toLowerCase() || (paid ? "paid" : "unknown"), amount: data.amount ?? data.total ?? data.paid_amount, raw: data };
   } catch (e) {
     return { paid: false, error: e.message || String(e) };
   }

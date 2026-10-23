@@ -46,6 +46,7 @@ import {
 } from "./security.js";
 import { issueCsrf, csrfGuard } from "./csrf.js";
 import * as branding from "./branding.js";
+import * as tg from "./telegramNotify.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");
@@ -136,9 +137,13 @@ function publicOrder(o) {
     method: o.method,
     status: o.status,
     createdAt: o.createdAt,
+    paidAt: o.paidAt || null,
+    providerPaid: !!o.providerPaid,
+    needsManual: !!o.needsManual,
     deliveryType: o.deliveryType || "topup",
     giftCode: o.giftCode || null,
     note: o.note || "",
+    telegramId: o.telegramId || null,
   };
 }
 
@@ -229,11 +234,14 @@ async function fulfillTopup(order) {
     }
   } catch (e) {
     return updateOrder(order.id, {
-      status: "failed",
+      status: "paid",
+      paidAt: order.paidAt || Date.now(),
+      providerPaid: true,
       ktOrderCodes: codes,
-      ktOrderCode: codes[0],
+      ktOrderCode: codes[0] || order.ktOrderCode,
       ktStatuses: statuses,
-      note: `TopUp error after ${codes.length}/${order.qty || 1} placed: ${e.message}`,
+      note: `TopUp error after ${codes.length}/${order.qty || 1}: ${e.message} — fulfill manually`,
+      needsManual: true,
     });
   }
 
@@ -517,6 +525,34 @@ app.post("/api/verify", limit("verify", { limit: 30, windowMs: 60_000 }), async 
   }
 });
 
+
+app.get("/api/auth/telegram/config", (_req, res) => {
+  res.json({ ok: tg.isLoginReady(), botUsername: tg.botUsername() || null });
+});
+app.post("/api/auth/telegram", limit("tglogin", { limit: 20, windowMs: 60_000 }), (req, res) => {
+  const v = tg.verifyTelegramLogin(req.body || {});
+  if (!v.ok) return res.status(401).json({ error: v.error || "unauthorized" });
+  const token = crypto.randomBytes(24).toString("hex");
+  const expires = Date.now() + 30 * 24 * 3600 * 1000;
+  if (!global.__tgSessions) global.__tgSessions = new Map();
+  global.__tgSessions.set(token, { user: v.user, expires });
+  res.cookie("porpor_tg", token, { httpOnly: true, sameSite: "lax", secure: isProd, maxAge: 30 * 24 * 3600 * 1000, path: "/" });
+  auditLog("tg_login", { tgId: v.user.id, username: v.user.username, ip: clientIp(req) });
+  res.json({ ok: true, user: v.user });
+});
+app.get("/api/auth/me", (req, res) => {
+  const token = req.cookies?.porpor_tg;
+  const sess = token && global.__tgSessions?.get(token);
+  if (!sess || sess.expires < Date.now()) return res.json({ ok: false, user: null });
+  res.json({ ok: true, user: sess.user });
+});
+app.post("/api/auth/logout", (req, res) => {
+  const token = req.cookies?.porpor_tg;
+  if (token && global.__tgSessions) global.__tgSessions.delete(token);
+  res.clearCookie("porpor_tg", { path: "/" });
+  res.json({ ok: true });
+});
+
 app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000 }), async (req, res) => {
   const body = req.body || {};
   const settings = getSettings();
@@ -638,6 +674,7 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
     expiresAt,
   });
   auditLog("checkout_create", { orderId: updated.id, total: updated.total, ip: clientIp(req) });
+  try { tg.notifyChannel(tg.formatOrderMsg("new", updated)).catch(() => {}); } catch {}
   return res.json({
     order: publicOrder(updated),
     payment: {
@@ -656,20 +693,30 @@ app.get("/api/checkout/:id/status", limit("paystatus", { limit: 40, windowMs: 60
   let order = getOrder(req.params.id);
   if (!order) return res.status(404).json({ error: "not_found" });
 
-  // Payment bypass guard: ONLY provider confirmation can mark paid (never trust client body).
-  if (order.status === "pending" && order.transactionId && khmerSystem.isPaymentReady()) {
+  if (order.status === "failed" && (order.providerPaid || order.paidAt)) {
+    order = updateOrder(order.id, {
+      status: "paid",
+      note: ((order.note || "") + " | recovered from false failed").trim(),
+      needsManual: true,
+    });
+  }
+
+  const canCheckPay =
+    order.transactionId &&
+    khmerSystem.isPaymentReady() &&
+    (order.status === "pending" || (order.status === "failed" && !order.providerPaid));
+
+  if (canCheckPay) {
     const pay = await khmerSystem.checkPayment(order.transactionId);
-    if (assertPaymentProviderPaid(pay)) {
-      // Optional amount check when provider returns amount
+    console.log("[pay-check]", order.id, pay.status, pay.paid, pay.error || "");
+    if (assertPaymentProviderPaid(pay) || pay.paid === true) {
       const paidAmt = Number(pay.amount ?? pay.total ?? pay.paid_amount);
-      if (Number.isFinite(paidAmt) && paidAmt > 0 && Math.abs(paidAmt - Number(order.total)) > 0.02) {
+      if (Number.isFinite(paidAmt) && paidAmt > 0 && Math.abs(paidAmt - Number(order.total)) > 0.05) {
         console.warn("[pay] amount mismatch", order.id, paidAmt, order.total);
-        order = updateOrder(order.id, {
-          note: `Amount mismatch provider=${paidAmt} order=${order.total}`,
-        });
+        order = updateOrder(order.id, { note: `Amount mismatch provider=${paidAmt} order=${order.total}` });
       } else {
         const fresh = getOrder(order.id);
-        if (fresh && fresh.status === "pending") {
+        if (fresh && (fresh.status === "pending" || fresh.status === "failed")) {
           order = updateOrder(order.id, {
             status: "paid",
             paidAt: Date.now(),
@@ -677,7 +724,11 @@ app.get("/api/checkout/:id/status", limit("paystatus", { limit: 40, windowMs: 60
             providerPaid: true,
           });
           auditLog("payment_ok", { orderId: order.id, total: order.total, ip: clientIp(req) });
+          try { tg.notifyChannel(tg.formatOrderMsg("paid", order)).catch(() => {}); } catch {}
           order = await fulfillTopup(order);
+          if (order && order.status === "delivered") {
+            try { tg.notifyChannel(tg.formatOrderMsg("delivered", order)).catch(() => {}); } catch {}
+          }
         } else if (fresh) {
           order = fresh;
         }
@@ -685,7 +736,7 @@ app.get("/api/checkout/:id/status", limit("paystatus", { limit: 40, windowMs: 60
     }
   }
 
-  if (order.status === "processing" && order.ktOrderCode) {
+  if (order.status === "processing" && (order.ktOrderCode || (order.ktOrderCodes || []).length)) {
     order = await pollKtStatus(order);
   }
 
