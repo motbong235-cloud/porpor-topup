@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { api } from "./ui";
+import { AIcon, api } from "./ui";
 import "./Admin.css";
 
 export default function ChatAdmin() {
@@ -173,12 +173,12 @@ export default function ChatAdmin() {
             </div>
             <form className="ad-chat-form" onSubmit={send}>
               <input ref={fileRef} type="file" accept="image/*" hidden onChange={sendImage} />
-              <button type="button" className="ad-btn soft" onClick={() => fileRef.current?.click()} disabled={sending}>
-                📷
+              <button type="button" className="ad-btn soft" onClick={() => fileRef.current?.click()} disabled={sending} aria-label="Photo">
+                <AIcon name="camera" size={18} />
               </button>
               <input value={text} onChange={(e) => setText(e.target.value)} placeholder="ឆ្លើយតប…" />
               <button type="submit" className="ad-btn primary" disabled={!text.trim() || sending}>
-                ផ្ញើ
+                <AIcon name="send" size={15} /> ផ្ញើ
               </button>
             </form>
           </>

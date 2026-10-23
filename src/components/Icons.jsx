@@ -71,6 +71,19 @@ export function Icon({ name, size = 20 }) {
           <path d="M9 22V12h6v10" />
         </svg>
       );
+    case "bell":
+      return (
+        <svg {...props} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8" />
+          <path d="M10.3 21a1.9 1.9 0 0 0 3.4 0" />
+        </svg>
+      );
+    case "chevD":
+      return (
+        <svg {...props} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      );
     case "star":
       return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className="icon-svg">

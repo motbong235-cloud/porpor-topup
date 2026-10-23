@@ -525,7 +525,7 @@ export default function Game({ lang, addOrder, settings }) {
           {isGift ? (
             <section className={`card delivery-card ${isStock ? "stock" : "livechat"}`}>
               <div className="delivery-head">
-                <span className="delivery-ico" aria-hidden>{isStock ? "⚡" : "💬"}</span>
+                <span className="delivery-ico" aria-hidden><Icon name={isStock ? "zap" : "chat"} size={20} /></span>
                 <h2>
                   {isStock
                     ? (lang === "km" ? "ទទួលកូដស្វ័យប្រវត្តិ" : "Instant code from stock")
@@ -727,7 +727,8 @@ export default function Game({ lang, addOrder, settings }) {
                 {paying ? "…" : lang === "km" ? "ខ្ញុំបានបង់ហើយ" : "I have paid"}
               </button>
               <button type="button" className="pw-link" onClick={() => setPayPhase("qr")}>
-                {lang === "km" ? "← មើល QR ម្ដងទៀត" : "← Show QR again"}
+                <Icon name="chevL" size={14} />
+                {lang === "km" ? "មើល QR ម្ដងទៀត" : "Show QR again"}
               </button>
             </div>
           )}

@@ -2018,3 +2018,9 @@ table.ad-table {
   flex: 1;
   padding: 10px 12px;
 }
+
+
+/* icons replacing emoji / text glyphs */
+.ad-link-sm { display: inline-flex; align-items: center; gap: 4px; }
+.ad-chat-form .ad-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.ad-btn.sm { display: inline-flex; align-items: center; gap: 5px; }

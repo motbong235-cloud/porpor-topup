@@ -156,7 +156,8 @@ export async function storefront() {
         image: (s && (s.packImages?.[p.id] || s.packIcon)) || p.image || "",
       }));
 
-    // If never configured in admin and no packs, skip; if disabled, still show (even 0 packs)
+    // OFF games are hidden from the website unless the admin chose "show as OFF" for that game
+    if (!isOpen && !s?.showWhenOff) continue;
     if (!s && !packs.length) continue;
     if (isOpen && !packs.length) continue;
 
@@ -170,6 +171,7 @@ export async function storefront() {
       famous: !!(s && s.featured),
       hot: !!(s && s.featured),
       open: isOpen,
+      showWhenOff: !!s?.showWhenOff,
       hasZone: g.hasZone,
       zoneLabelKm: "Zone ID",
       zoneLabelEn: "Zone ID",
@@ -185,10 +187,13 @@ export async function storefront() {
 
 export async function publicCatalog() {
   const games = await storefront();
-  const local = localCatalog().map((g) => ({
-    ...g,
-    packs: g.packs.map(({ cost, ...p }) => p),
-  }));
+  // OFF local products are hidden unless the admin chose "show as OFF"
+  const local = localCatalog()
+    .filter((g) => g.open !== false || g.showWhenOff)
+    .map((g) => ({
+      ...g,
+      packs: g.packs.map(({ cost, ...p }) => p),
+    }));
   // local gift cards first (featured)
   return [...local, ...games.map((g) => ({ ...g, packs: g.packs.map(({ cost, ...p }) => p) }))];
 }
@@ -232,6 +237,7 @@ export function sanitizeSelection(input) {
     }
     out.games[slug] = {
       enabled: !!v?.enabled,
+      showWhenOff: !!v?.showWhenOff,
       featured: !!v?.featured,
       markup: mkNum !== null && Number.isFinite(mkNum) ? Math.min(500, Math.max(0, mkNum)) : null,
       packages: Array.isArray(v?.packages) ? v.packages.map(String).slice(0, 2000) : null,

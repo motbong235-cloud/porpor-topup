@@ -481,7 +481,7 @@ app.post("/api/admin/chat/:id", adminAuth, (req, res) => {
 app.get("/api/version", (_req, res) => {
   res.set("Cache-Control", "no-store");
   res.json({
-    build: "server-2026-10-11-b",
+    build: "v2.0.0",
     usernameRequiredIds: String(process.env.USERNAME_REQUIRED_IDS || ""),
   });
 });
@@ -509,7 +509,7 @@ app.post("/api/verify", limit("verify", { limit: 30, windowMs: 60_000 }), async 
   }
   try {
     const game = await catalog.findGame(slug);
-    if (!game) return res.status(404).json({ result: "unknown", error: "game_unavailable" });
+    if (!game || game.open === false) return res.status(404).json({ result: "unknown", error: "game_unavailable" });
     const data = await khmerTopup.verifyAccount(slug, playerId, serverId);
     return res.json(data);
   } catch (e) {
@@ -539,6 +539,8 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
     return res.status(502).json({ error: "catalog_unavailable" });
   }
   if (!found) return res.status(400).json({ error: "pack_unavailable" });
+  // A game the admin turned OFF can never be ordered, even by calling the API directly
+  if (found.game.open === false) return res.status(400).json({ error: "pack_unavailable" });
 
   const giftCode = isGiftCodeProduct(found.game);
   if (giftCode) {
@@ -983,6 +985,7 @@ app.put("/api/admin/local-products", adminAuth, (req, res) => {
         famous: !!g.famous,
         hot: !!g.hot,
         open: g.open !== false,
+        showWhenOff: !!g.showWhenOff,
         hue: Number(g.hue) || 210,
         mark: String(g.mark || "GC").slice(0, 4),
         image: (function () {

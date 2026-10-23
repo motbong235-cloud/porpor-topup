@@ -45,7 +45,7 @@ export function ipKey(ip) {
 }
 
 const WELCOME =
-  "សួស្តី! 👋 សូមស្វាគមន៍មកកាន់ POR POR TOPUP Live Chat។\nHi! How can we help you today?";
+  "សួស្តី! សូមស្វាគមន៍មកកាន់ POR POR TOPUP Live Chat។\nHi! How can we help you today?";
 
 export function getOrCreateThread(ip, meta = {}) {
   const db = read();
@@ -86,8 +86,8 @@ export function listThreads() {
     .map((t) => {
       const last = (t.messages || []).slice(-1)[0] || null;
       let preview = last?.text || "";
-      if (last?.type === "image") preview = "📷 Photo";
-      if (last?.type === "voice") preview = "🎤 Voice";
+      if (last?.type === "image") preview = "Photo";
+      if (last?.type === "voice") preview = "Voice";
       return {
         id: t.id,
         ip: t.ip || t.id,

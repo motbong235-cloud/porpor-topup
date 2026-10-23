@@ -206,7 +206,7 @@ body{font-family:system-ui,sans-serif;background:#0b1220;color:#e8eefc;display:f
 a.btn{display:inline-block;margin-top:1rem;padding:.85rem 1.2rem;border-radius:12px;background:linear-gradient(135deg,#1d6adf,#22d3ee);color:#fff;font-weight:700;text-decoration:none}
 </style></head><body>
 <div class="card">
-  <h1>🏦 ABA Mobile</h1>
+  <h1>ABA Mobile</h1>
   <p>កំពុងបើកកម្មវិធី ABA…</p>
   <p><a class="btn" href=${jsDl}>OPEN ABA Mobile</a></p>
   <p style="opacity:.6;font-size:.85rem">បើមិនបើកសូមចុចប៊ូតុង (Chrome/Safari មិនមែន in-app Telegram)</p>
@@ -236,7 +236,7 @@ export function openAbaRoute(req, res) {
     }
   }
   if (!deeplink || !deeplink.toLowerCase().startsWith("abamobilebank://")) {
-    res.status(400).type("html").send("<p>❌ Invalid or expired ABA link</p>");
+    res.status(400).type("html").send("<p>Invalid or expired ABA link</p>");
     return;
   }
   res.type("html").send(openAbaHtml(deeplink));

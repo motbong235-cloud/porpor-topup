@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Icon } from "./Icons";
 
 /**
  * Messenger-style in-site Live Chat — text, image, voice.
@@ -247,7 +248,7 @@ export function LiveChat({ lang = "km", openSignal = 0 }) {
             </div>
           </div>
           <button type="button" className="msgr-x" aria-label="Close" onClick={() => setOpen(false)}>
-            ✕
+            <Icon name="x" size={16} />
           </button>
         </header>
 
@@ -255,11 +256,11 @@ export function LiveChat({ lang = "km", openSignal = 0 }) {
           {/* Pinned guide — Dino-style */}
           <div className={`msgr-pin${pinOpen ? " open" : ""}`}>
             <button type="button" className="msgr-pin-head" onClick={() => setPinOpen((v) => !v)}>
-              <span className="msgr-pin-ico">🔔</span>
+              <span className="msgr-pin-ico"><Icon name="bell" size={16} /></span>
               <span className="msgr-pin-title">
                 {lang === "km" ? "PINNED GUIDE · របៀបប្រើ" : "PINNED GUIDE"}
               </span>
-              <span className="msgr-pin-chev">{pinOpen ? "▾" : "▸"}</span>
+              <span className="msgr-pin-chev"><Icon name={pinOpen ? "chevD" : "chevR"} size={14} /></span>
             </button>
             {pinOpen ? (
               <div className="msgr-pin-body">

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AIcon, ImageSlot, PageHead, Switch, api, toast, usd } from "./ui";
 
-const blank = { enabled: false, featured: false, markup: null, packages: null, image: "", packIcon: "", packImages: {} };
+const blank = { enabled: false, showWhenOff: false, featured: false, markup: null, packages: null, image: "", packIcon: "", packImages: {} };
 
 function sellPrice(cost, markup) {
   return Math.ceil(cost * (1 + (Number(markup) || 0) / 100) * 100 - 1e-9) / 100;
@@ -55,7 +55,13 @@ function GameCard({ g, s, defaultMarkup, isOpen, onToggleOpen, patch }) {
           </div>
           <div className="ad-tags">
             {s.image ? <span className="ad-tag">រូបផ្ទាល់ខ្លួន</span> : null}
-            {s.enabled ? <span className="ad-tag ok">កំពុងលក់ · {chosen.size} កញ្ចប់</span> : <span className="ad-tag">មិនលក់</span>}
+            {s.enabled ? (
+              <span className="ad-tag ok">កំពុងលក់ · {chosen.size} កញ្ចប់</span>
+            ) : s.showWhenOff ? (
+              <span className="ad-tag">បង្ហាញជា OFF</span>
+            ) : (
+              <span className="ad-tag">លាក់ពី website</span>
+            )}
           </div>
         </div>
         <div className="ad-game-sw">
@@ -84,6 +90,16 @@ function GameCard({ g, s, defaultMarkup, isOpen, onToggleOpen, patch }) {
             onChange={(e) => patch(g.slug, { markup: e.target.value === "" ? null : e.target.value })}
           />
         </label>
+        {!s.enabled ? (
+          <label className="ad-check" title="ពេលបិទលក់ ហ្គេមនេះលាក់ពី website។ ធីកនេះដើម្បីបង្ហាញវាជា OFF/ថែទាំ">
+            <input
+              type="checkbox"
+              checked={!!s.showWhenOff}
+              onChange={(e) => patch(g.slug, { showWhenOff: e.target.checked })}
+            />
+            បង្ហាញជា OFF
+          </label>
+        ) : null}
         <button type="button" className="ad-btn soft sm" onClick={onToggleOpen}>
           កញ្ចប់ ({chosen.size}/{g.packs.length}){customPacks ? ` · ${customPacks} រូប` : ""}
           <span className={`ad-chev${isOpen ? " up" : ""}`}>
@@ -476,7 +492,7 @@ function LocalServicesPanel() {
                         await save(next);
                       }}
                     >
-                      {needUser ? "User ✓" : "User ✕"}
+                      <AIcon name={needUser ? "check" : "x"} size={13} /> User
                     </button>
                     <label className="ad-check">
                       <input
@@ -484,8 +500,18 @@ function LocalServicesPanel() {
                         checked={p.open !== false}
                         onChange={(e) => updateAt(i, { open: e.target.checked })}
                       />
-                      បង្ហាញ
+                      បើកលក់
                     </label>
+                    {p.open === false ? (
+                      <label className="ad-check" title="ពេលបិទ វាលាក់ពី website។ ធីកនេះដើម្បីបង្ហាញជា OFF">
+                        <input
+                          type="checkbox"
+                          checked={!!p.showWhenOff}
+                          onChange={(e) => updateAt(i, { showWhenOff: e.target.checked })}
+                        />
+                        បង្ហាញជា OFF
+                      </label>
+                    ) : null}
                     <button type="button" className="ad-btn soft sm" onClick={() => setEditIdx(open ? -1 : i)}>
                       {open ? "បិទ" : "កែ"}
                     </button>

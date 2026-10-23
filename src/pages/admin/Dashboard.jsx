@@ -120,7 +120,7 @@ export default function Dashboard() {
       <section className="ad-card">
         <div className="ad-card-head">
           <h2>ការបញ្ជាទិញថ្មីៗ</h2>
-          <Link to={`/${ADMIN_PATH}/orders`} className="ad-link-sm">មើលទាំងអស់ →</Link>
+          <Link to={`/${ADMIN_PATH}/orders`} className="ad-link-sm">មើលទាំងអស់ <AIcon name="chevR" size={14} /></Link>
         </div>
         {recent.length === 0 ? (
           <p className="ad-empty">មិនទាន់មានការបញ្ជាទិញនៅឡើយទេ</p>

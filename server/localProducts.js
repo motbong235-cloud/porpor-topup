@@ -99,6 +99,7 @@ export function localCatalog() {
         famous: !!g.famous,
         hot: !!g.hot,
         open: g.open !== false,
+        showWhenOff: !!g.showWhenOff,
         hue: Number(g.hue) || 210,
         mark: String(g.mark || "GC"),
         image: String(g.image || ""),

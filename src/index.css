@@ -5062,3 +5062,14 @@ main {
   .sk-tile, .sk-line { animation: none; }
 }
 .stat-value.stat-hours { font-size: clamp(1rem, 3.4vw, 1.35rem); white-space: nowrap; }
+
+
+/* ===== SVG icons replacing emoji / text glyphs ===== */
+.msgr-x { display: inline-grid; place-items: center; padding: 0; }
+.msgr-pin-ico, .msgr-pin-chev { display: inline-grid; place-items: center; }
+.msgr-pin-ico { color: var(--primary); }
+.pw-link { display: inline-flex; align-items: center; gap: 4px; }
+.pp-ticker-bolt .icon-svg { width: 12px; height: 12px; }
+.pp-ticker-ok { display: inline-grid; place-items: center; }
+.pp-ticker-ok .icon-svg { stroke-width: 3; }
+.hot-mark .icon-svg { color: #fff; }

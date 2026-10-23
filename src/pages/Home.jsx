@@ -106,7 +106,7 @@ function OrderTicker({ data, lang }) {
         <div className="pp-ticker-track pp-ticker-delivery-track">
           {Array.from({ length: 6 }).map((_, i) => (
             <span key={i} className="pp-ticker-chip">
-              <span className="pp-ticker-bolt" aria-hidden>⚡</span>
+              <span className="pp-ticker-bolt" aria-hidden><Icon name="zap" size={12} /></span>
               {lang === "km" ? "ម៉ោងធ្វើការ" : "Working hours"}: {delivery}
             </span>
           ))}
@@ -122,7 +122,7 @@ function OrderTicker({ data, lang }) {
             <div className="pp-ticker-track pp-ticker-orders-track" style={ordersSpeed}>
               {loop.map((it, i) => (
                 <span key={(it.id || i) + "-" + i} className="pp-ticker-item">
-                  <span className="pp-ticker-ok">●</span>
+                  <span className="pp-ticker-ok" aria-hidden><Icon name="check" size={12} /></span>
                   {it.label}
                   {it.at ? <span className="pp-ticker-ago">{ago(it.at, lang)}</span> : null}
                 </span>
@@ -251,7 +251,7 @@ export default function Home({ lang, settings }) {
                     {g.image ? (
                       <img className="event-img" src={g.image} alt="" loading="lazy" onError={(e) => e.currentTarget.remove()} />
                     ) : (
-                      <span className="hot-mark">{(g.mark || "★").slice(0, 3)}</span>
+                      <span className="hot-mark">{g.mark ? g.mark.slice(0, 3) : <Icon name="star" size={22} />}</span>
                     )}
                     <span className="hot-badge">{t(lang, "hot")}</span>
                   </div>
