@@ -5,6 +5,7 @@ import { useInstallPrompt } from "../hooks/useInstallPrompt";
 import { t } from "../lib/i18n";
 import { GameTile, Icon } from "./Icons";
 import { LiveChat } from "./LiveChat";
+import { refreshCatalog } from "../lib/catalog";
 
 function LogoMark({ url, style }) {
   const [broken, setBroken] = useState("");
@@ -67,6 +68,7 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
           }
           setTgUser(d.user);
           setTgOpen(false);
+          refreshCatalog().catch(() => {});
         })
         .catch(() => setTgErr("network"));
     };

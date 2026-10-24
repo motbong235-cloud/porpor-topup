@@ -495,16 +495,18 @@ app.get("/api/version", (_req, res) => {
 });
 
 /** Games + packages the admin selected from Khmer TopUp (prices include markup). */
-app.get("/api/catalog", async (_req, res) => {
-  // short browser/CDN cache: repeat visits and page changes are instant; admin edits show within ~15s
-  res.set("Cache-Control", "public, max-age=15, stale-while-revalidate=60");
-  if (!khmerTopup.isTopupReady()) {
-    return res.json({ games: [], error: "topup_not_configured" });
-  }
+app.get("/api/catalog", async (req, res) => {
   try {
-    res.json({ games: await catalog.publicCatalog() });
+    const settings = getSettings();
+    let games = await catalog.publicCatalog();
+    const tgUser = tg.readTgSession(req.cookies?.porpor_tg);
+    const applied = catalog.applyResellerToCatalog(games, settings, tgUser);
+    res.json({
+      games: applied.games,
+      isReseller: applied.isReseller,
+      resellerUsername: applied.isReseller ? (tgUser?.username || tgUser?.id || null) : null,
+    });
   } catch (e) {
-    res.set("Cache-Control", "no-store");
     res.status(502).json({ games: [], error: "catalog_unavailable", message: e.message });
   }
 });
@@ -620,7 +622,12 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
   }
 
   const qty = Math.min(10, Math.max(1, Math.floor(Number(body.qty)) || 1));
-  const subtotal = round2(found.pack.price * qty);
+  // Reseller fixed price (USD) when logged-in TG user is in reseller list
+  const tgUser = tg.readTgSession(req.cookies?.porpor_tg);
+  const isRes = catalog.isResellerUser(settings, tgUser);
+  const fixedRp = isRes ? catalog.resellerFixedPrice(settings, found.pack.id) : null;
+  const unitPrice = fixedRp != null ? fixedRp : Number(found.pack.price);
+  const subtotal = round2(unitPrice * qty);
   const cp = calcCoupon(settings, body.coupon, subtotal);
   if (!cp.ok) return res.status(400).json({ error: cp.error });
   const total = round2(subtotal - cp.discount);
@@ -935,6 +942,7 @@ app.put("/api/admin/settings", adminAuth, (req, res) => {
   const allowed = [
     "siteName", "taglineKm", "taglineEn", "telegram", "announcementKm", "announcementEn",
     "supportEmail", "maintenance", "coupons", "autoTopup", "logoUrl", "bannerUrls", "localProducts",
+    "deliveryHours", "tickerSoldBase", "tickerSoldLabel", "resellers", "resellerPrices",
   ];
   const patch = {};
   for (const k of allowed) {
@@ -947,6 +955,29 @@ app.put("/api/admin/settings", adminAuth, (req, res) => {
       .map(cleanImageUrl)
       .filter(Boolean)
       .slice(0, 5);
+  }
+  // Resellers: username list (Telegram) + optional telegramId; fixed prices by pack id
+  if (patch.resellers !== undefined) {
+    patch.resellers = (Array.isArray(patch.resellers) ? patch.resellers : [])
+      .map((r) => ({
+        username: String(r.username || "").trim().replace(/^@/, "").toLowerCase().slice(0, 64),
+        telegramId: r.telegramId ? Number(r.telegramId) || null : null,
+        active: r.active !== false,
+        note: String(r.note || "").slice(0, 120),
+      }))
+      .filter((r) => r.username || r.telegramId)
+      .slice(0, 200);
+  }
+  if (patch.resellerPrices !== undefined) {
+    const src = patch.resellerPrices && typeof patch.resellerPrices === "object" ? patch.resellerPrices : {};
+    const out = {};
+    for (const [k, v] of Object.entries(src)) {
+      const id = String(k).trim().slice(0, 80);
+      const n = Number(v);
+      if (!id || !Number.isFinite(n) || n <= 0) continue;
+      out[id] = Math.round(n * 100) / 100;
+    }
+    patch.resellerPrices = out;
   }
   res.json(updateSettings(patch));
 });

@@ -506,7 +506,7 @@ export default function Game({ lang, addOrder, settings }) {
                       <div className="cat-label">{p.category}</div>
                       <div className="name">{lang === "km" ? p.nameKm : p.name}</div>
                       {p.bonus ? <div className="bonus">{p.bonus}</div> : null}
-                      <div className="price">{money(p.price)}</div>
+                      <div className="price">{money(p.price)}{p.resellerPrice ? " · Reseller" : ""}</div>
                       {isStock ? (
                         <div className="bonus" style={{ opacity: soldOut ? 1 : 0.8 }}>
                           {soldOut

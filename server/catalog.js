@@ -248,3 +248,43 @@ export function sanitizeSelection(input) {
   }
   return out;
 }
+
+
+/**
+ * Apply fixed reseller pack prices (USD) for a logged-in reseller user.
+ * settings.resellerPrices = { packId: number }
+ * settings.resellers = [{ username, telegramId, active }]
+ */
+export function isResellerUser(settings, tgUser) {
+  if (!tgUser) return false;
+  const list = Array.isArray(settings?.resellers) ? settings.resellers : [];
+  const uname = String(tgUser.username || "").toLowerCase().replace(/^@/, "");
+  const tid = Number(tgUser.id) || 0;
+  return list.some((r) => {
+    if (r && r.active === false) return false;
+    const ru = String(r.username || "").toLowerCase().replace(/^@/, "");
+    const rid = Number(r.telegramId) || 0;
+    if (tid && rid && tid === rid) return true;
+    if (uname && ru && uname === ru) return true;
+    return false;
+  });
+}
+
+export function resellerFixedPrice(settings, packId) {
+  const map = settings?.resellerPrices || {};
+  const v = Number(map[String(packId)]);
+  return Number.isFinite(v) && v > 0 ? Math.round(v * 100) / 100 : null;
+}
+
+export function applyResellerToCatalog(games, settings, tgUser) {
+  if (!isResellerUser(settings, tgUser)) return { games, isReseller: false };
+  const out = (games || []).map((g) => ({
+    ...g,
+    packs: (g.packs || []).map((p) => {
+      const rp = resellerFixedPrice(settings, p.id);
+      if (rp == null) return p;
+      return { ...p, price: rp, resellerPrice: true, retailPrice: p.price };
+    }),
+  }));
+  return { games: out, isReseller: true };
+}

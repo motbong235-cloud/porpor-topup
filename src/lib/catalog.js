@@ -18,20 +18,27 @@ const saved = readSaved();
 let cached = saved ? saved.games : null;
 let cachedAt = saved ? saved.at || 0 : 0;
 let inflight = null;
+const listeners = new Set();
+
+function notify() {
+  for (const fn of listeners) {
+    try { fn(cached || []); } catch {}
+  }
+}
 
 function load(force = false) {
-  // Fresh enough (this tab already has it) → no network at all
   if (!force && cached && Date.now() - cachedAt < FRESH_MS) return Promise.resolve(cached);
   if (!inflight) {
-    inflight = fetch("/api/catalog")
+    inflight = fetch("/api/catalog", { credentials: "include" })
       .then(async (r) => {
         const data = await r.json().catch(() => ({}));
         if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
         cached = Array.isArray(data.games) ? data.games : [];
         cachedAt = Date.now();
         try {
-          sessionStorage.setItem(KEY, JSON.stringify({ at: cachedAt, games: cached }));
+          sessionStorage.setItem(KEY, JSON.stringify({ at: cachedAt, games: cached, isReseller: !!data.isReseller }));
         } catch {}
+        notify();
         return cached;
       })
       .finally(() => {
@@ -41,8 +48,13 @@ function load(force = false) {
   return inflight;
 }
 
-/** Live catalog from the server (games selected from Khmer TopUp).
- *  Shows the last known list instantly, then refreshes quietly in the background. */
+/** Force refresh after Telegram login so reseller prices apply */
+export function refreshCatalog() {
+  cachedAt = 0;
+  try { sessionStorage.removeItem(KEY); } catch {}
+  return load(true);
+}
+
 export function useCatalog() {
   const [games, setGames] = useState(cached || []);
   const [loading, setLoading] = useState(!cached);
@@ -50,6 +62,8 @@ export function useCatalog() {
 
   useEffect(() => {
     let alive = true;
+    const onUpdate = (g) => alive && setGames(g);
+    listeners.add(onUpdate);
     load()
       .then((g) => {
         if (!alive) return;
@@ -60,8 +74,9 @@ export function useCatalog() {
       .finally(() => alive && setLoading(false));
     return () => {
       alive = false;
+      listeners.delete(onUpdate);
     };
   }, []);
 
-  return { games, loading, error };
+  return { games, loading, error, refresh: refreshCatalog };
 }
