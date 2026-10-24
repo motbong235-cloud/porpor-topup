@@ -1,6 +1,20 @@
 /**
- * ABA PayWay (Node port of khmer_system.py)
+ * ABA PayWay / KHQR flow for Porpor TOPUP
+ * ----------------------------------------
+ * 1) Checkout  → createQr(amount, orderId)
+ *    POST {KHMER_SYSTEM_URL}/aba-api/generate-qr
+ *    body: { api_key, merchant_id, username, amount }
+ *    ← payment_id, qr_image, qr_string, pay_url, deeplink
+ *
+ * 2) Customer scans KHQR (any bank) OR taps OPEN ABA Mobile (deeplink)
+ *
+ * 3) Poll GET /api/checkout/:id/status
+ *    → checkPayment(payment_id) via POST /aba-api/check-payment
+ *    when PAID → order status "paid" → fulfillTopup (Khmer TopUp)
+ *
  * Env: ABA_API_KEY, ABA_MERCHANT_ID
+ * Optional: KHMER_SYSTEM_URL (default https://khmer-system.com)
+ *           QR_EXPIRE_SEC (default 3600 = 1h), PUBLIC_BASE_URL (for /open-aba)
  */
 const BASE_URL = process.env.KHMER_SYSTEM_URL || "https://khmer-system.com";
 const CREATE_URL = `${BASE_URL}/aba-api/generate-qr`;
@@ -104,19 +118,23 @@ export async function createQr(amount, billNumber, username) {
     ttl: QR_EXPIRE_SEC,
   };
 
+  let lastErr = "unknown";
+  for (let attempt = 1; attempt <= 2; attempt++) {
   try {
     const r = await fetch(CREATE_URL, {
       method: "POST",
       headers: HEADERS,
       body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(20000),
+      signal: AbortSignal.timeout(25000),
     });
     const text = await r.text();
     let data;
     try {
       data = JSON.parse(text);
     } catch {
-      return { success: false, error: `HTTP ${r.status} (non-JSON): ${text.slice(0, 200)}` };
+      lastErr = `HTTP ${r.status} (non-JSON): ${text.slice(0, 200)}`;
+      if (attempt < 2) { await new Promise((x) => setTimeout(x, 800)); continue; }
+      return { success: false, error: lastErr };
     }
 
     if (data.ok && data.payment_id) {
@@ -160,14 +178,16 @@ export async function createQr(amount, billNumber, username) {
         raw: { ...data, card_image: undefined, qr_image: undefined },
       };
     }
-    return {
-      success: false,
-      error: data.message || data.error || "Failed to create QR",
-      raw: data,
-    };
+    lastErr = data.message || data.error || "Failed to create QR";
+    if (attempt < 2) { await new Promise((x) => setTimeout(x, 800)); continue; }
+    return { success: false, error: lastErr, raw: data };
   } catch (e) {
-    return { success: false, error: e.message || String(e) };
+    lastErr = e.message || String(e);
+    if (attempt < 2) { await new Promise((x) => setTimeout(x, 800)); continue; }
+    return { success: false, error: lastErr };
   }
+  } // retry loop
+  return { success: false, error: lastErr };
 }
 
 /** POST /aba-api/check-payment { api_key, merchant_id, payment_id } → { ok, status: "PAID" | ... } */

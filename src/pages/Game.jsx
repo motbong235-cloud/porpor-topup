@@ -87,7 +87,7 @@ export default function Game({ lang, addOrder, settings }) {
           navigate(`/success?code=${encodeURIComponent(checkoutId)}`);
         }
       } catch {}
-    }, 4000);
+    }, 2500);
     return () => clearInterval(timer);
   }, [qrOpen, checkoutId, navigate]);
 
