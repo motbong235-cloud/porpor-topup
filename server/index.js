@@ -527,28 +527,35 @@ app.post("/api/verify", limit("verify", { limit: 30, windowMs: 60_000 }), async 
 
 
 app.get("/api/auth/telegram/config", (_req, res) => {
-  res.json({ ok: tg.isLoginReady(), botUsername: tg.botUsername() || null });
+  res.json({
+    ok: tg.isLoginReady(),
+    botUsername: tg.botUsername() || null,
+    configured: tg.isLoginReady(),
+  });
 });
 app.post("/api/auth/telegram", limit("tglogin", { limit: 20, windowMs: 60_000 }), (req, res) => {
   const v = tg.verifyTelegramLogin(req.body || {});
-  if (!v.ok) return res.status(401).json({ error: v.error || "unauthorized" });
-  const token = crypto.randomBytes(24).toString("hex");
-  const expires = Date.now() + 30 * 24 * 3600 * 1000;
-  if (!global.__tgSessions) global.__tgSessions = new Map();
-  global.__tgSessions.set(token, { user: v.user, expires });
-  res.cookie("porpor_tg", token, { httpOnly: true, sameSite: "lax", secure: isProd, maxAge: 30 * 24 * 3600 * 1000, path: "/" });
+  if (!v.ok) {
+    console.warn("[tg-login]", v.error, req.body?.id);
+    return res.status(401).json({ error: v.error || "unauthorized" });
+  }
+  const token = tg.signTgSession(v.user);
+  res.cookie("porpor_tg", token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: isProd,
+    maxAge: 30 * 24 * 3600 * 1000,
+    path: "/",
+  });
   auditLog("tg_login", { tgId: v.user.id, username: v.user.username, ip: clientIp(req) });
   res.json({ ok: true, user: v.user });
 });
 app.get("/api/auth/me", (req, res) => {
-  const token = req.cookies?.porpor_tg;
-  const sess = token && global.__tgSessions?.get(token);
-  if (!sess || sess.expires < Date.now()) return res.json({ ok: false, user: null });
-  res.json({ ok: true, user: sess.user });
+  const user = tg.readTgSession(req.cookies?.porpor_tg);
+  if (!user) return res.json({ ok: false, user: null });
+  res.json({ ok: true, user });
 });
 app.post("/api/auth/logout", (req, res) => {
-  const token = req.cookies?.porpor_tg;
-  if (token && global.__tgSessions) global.__tgSessions.delete(token);
   res.clearCookie("porpor_tg", { path: "/" });
   res.json({ ok: true });
 });
