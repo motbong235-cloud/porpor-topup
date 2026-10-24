@@ -190,10 +190,17 @@ export async function createQr(amount, billNumber, username) {
   return { success: false, error: lastErr };
 }
 
-/** POST /aba-api/check-payment { api_key, merchant_id, payment_id } → { ok, status: "PAID" | ... } */
+/**
+ * POST /aba-api/check-payment
+ * CRITICAL: never treat response.ok / success / HTTP 200 as "customer paid".
+ * Those only mean the API call worked. Paid requires explicit status/paid flag.
+ */
 export async function checkPayment(paymentId) {
   if (!isPaymentReady()) {
     return { paid: false, error: "Keys not set", simulation: true };
+  }
+  if (!paymentId) {
+    return { paid: false, error: "missing payment_id" };
   }
 
   const payload = {
@@ -209,14 +216,44 @@ export async function checkPayment(paymentId) {
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(15000),
     });
-    const data = await r.json();
-    const status = String(data.status || data.payment_status || data.state || "").toUpperCase();
-    const paidFlag = data.ok === true || data.paid === true || data.success === true;
+    let data;
+    try {
+      data = await r.json();
+    } catch {
+      return { paid: false, error: `HTTP ${r.status} non-JSON` };
+    }
+
+    const status = String(
+      data.status || data.payment_status || data.state || data.tran_status || "",
+    ).toUpperCase().trim();
+
+    // Explicit paid only — ignore data.ok / data.success (API ack, not payment)
     const paidStatuses = new Set(["PAID", "SUCCESS", "COMPLETED", "COMPLETE", "DONE", "SETTLED"]);
-    const paid = paidFlag || paidStatuses.has(status);
-    const code = data.status_code ?? data.code;
-    const paidByCode = code === 1 || code === "1" || code === 200;
-    return { paid: !!(paid || paidByCode), status: status.toLowerCase() || (paid ? "paid" : "unknown"), amount: data.amount ?? data.total ?? data.paid_amount, raw: data };
+    const unpaidStatuses = new Set([
+      "PENDING", "UNPAID", "WAITING", "CREATED", "EXPIRED", "FAILED", "CANCELLED", "CANCELED", "TIMEOUT", "OPEN",
+    ]);
+
+    let paid = false;
+    if (data.paid === true || String(data.paid).toLowerCase() === "true") paid = true;
+    if (paidStatuses.has(status)) paid = true;
+    if (unpaidStatuses.has(status)) paid = false;
+
+    // Provider-specific codes ONLY when they mean payment state (not HTTP)
+    // e.g. payment_status_code === "0" sometimes means paid on ABA — require status too
+    const psc = data.payment_status_code ?? data.tran_status_code;
+    if (psc !== undefined && psc !== null && String(psc) !== "" && paidStatuses.has(status)) {
+      paid = true;
+    }
+
+    // Never mark paid from simulation / missing keys responses
+    if (data.simulation) paid = false;
+
+    return {
+      paid: !!paid,
+      status: status.toLowerCase() || (paid ? "paid" : "pending"),
+      amount: data.amount ?? data.total ?? data.paid_amount,
+      raw: data,
+    };
   } catch (e) {
     return { paid: false, error: e.message || String(e) };
   }

@@ -723,21 +723,25 @@ app.get("/api/checkout/:id/status", limit("paystatus", { limit: 40, windowMs: 60
   if (canCheckPay) {
     const pay = await khmerSystem.checkPayment(order.transactionId);
     console.log("[pay-check]", order.id, pay.status, pay.paid, pay.error || "");
-    if (assertPaymentProviderPaid(pay) || pay.paid === true) {
+    // Strict: only explicit provider paid (never trust ok/success alone)
+    if (assertPaymentProviderPaid(pay) && pay.paid === true && !pay.simulation && !pay.error) {
       const paidAmt = Number(pay.amount ?? pay.total ?? pay.paid_amount);
+      // If provider returns an amount, it must match order total (±$0.05)
       if (Number.isFinite(paidAmt) && paidAmt > 0 && Math.abs(paidAmt - Number(order.total)) > 0.05) {
-        console.warn("[pay] amount mismatch", order.id, paidAmt, order.total);
-        order = updateOrder(order.id, { note: `Amount mismatch provider=${paidAmt} order=${order.total}` });
+        console.warn("[pay] amount mismatch BLOCKED", order.id, paidAmt, order.total);
+        order = updateOrder(order.id, { note: `Amount mismatch blocked provider=${paidAmt} order=${order.total}` });
+        auditLog("payment_amount_mismatch", { orderId: order.id, paidAmt, total: order.total });
       } else {
         const fresh = getOrder(order.id);
-        if (fresh && (fresh.status === "pending" || fresh.status === "failed")) {
+        if (fresh && (fresh.status === "pending" || (fresh.status === "failed" && !fresh.providerPaid))) {
           order = updateOrder(order.id, {
             status: "paid",
             paidAt: Date.now(),
             paidIp: clientIp(req),
             providerPaid: true,
+            payStatusRaw: pay.status || "paid",
           });
-          auditLog("payment_ok", { orderId: order.id, total: order.total, ip: clientIp(req) });
+          auditLog("payment_ok", { orderId: order.id, total: order.total, ip: clientIp(req), status: pay.status });
           try { tg.notifyChannel(tg.formatOrderMsg("paid", order)).catch(() => {}); } catch {}
           order = await fulfillTopup(order);
           if (order && order.status === "delivered") {
@@ -747,6 +751,8 @@ app.get("/api/checkout/:id/status", limit("paystatus", { limit: 40, windowMs: 60
           order = fresh;
         }
       }
+    } else if (pay.paid) {
+      console.warn("[pay] rejected non-strict paid signal", order.id, pay.status, pay.raw && Object.keys(pay.raw));
     }
   }
 
