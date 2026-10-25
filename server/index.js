@@ -65,6 +65,13 @@ function isWeakAdminPassword(pw) {
 const ADMIN_PATH = String(process.env.ADMIN_PATH || "pp-console").replace(/^\/+|\/+$/g, "") || "pp-console";
 const isProd = process.env.NODE_ENV === "production";
 
+/** Checkout idempotency: key -> { orderId, at } (in-memory, ~15 min) */
+const checkoutIdem = new Map();
+setInterval(() => {
+  const cut = Date.now() - 15 * 60_000;
+  for (const [k, v] of checkoutIdem) if (!v || v.at < cut) checkoutIdem.delete(k);
+}, 60_000).unref?.();
+
 const app = express();
 app.set("trust proxy", 1); // Render / reverse proxy — real client IP
 app.use(express.json({ limit: "1mb" }));
@@ -99,7 +106,8 @@ function adminAuth(req, res, next) {
 }
 
 function newCode() {
-  return `PP-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+  // Longer random id reduces IDOR / enumeration of track URLs
+  return `PP-${crypto.randomBytes(5).toString("hex").toUpperCase()}`;
 }
 
 function uniqueCode() {
@@ -274,7 +282,8 @@ app.get("/api/csrf", (req, res) => {
 });
 
 app.get("/api/public-config", (_req, res) => {
-  res.json({ adminPath: ADMIN_PATH });
+  // Do not expose ADMIN_PATH here (security). Path is injected into index.html as window.__ADMIN_PATH__ only.
+  res.json({ ok: true });
 });
 
 
@@ -368,13 +377,20 @@ app.get("/api/settings", (_req, res) => {
     maintenance: s.maintenance,
     logoUrl: s.logoUrl || "",
     bannerUrls: Array.isArray(s.bannerUrls) ? s.bannerUrls : [],
-    coupons: (s.coupons || []).map((c) => ({
-      code: c.code,
-      type: c.type,
-      value: c.value,
-      min: c.min,
-    })),
+    // Never list coupon codes publicly — validate only at checkout when user types a code
+    couponsEnabled: Array.isArray(s.coupons) && s.coupons.length > 0,
   });
+});
+
+/** Preview coupon discount — does not list codes; user must already know the code */
+app.post("/api/coupon/preview", limit("coupon", { limit: 30, windowMs: 60_000 }), (req, res) => {
+  const code = String(req.body?.code || "").trim();
+  const subtotal = Number(req.body?.subtotal) || 0;
+  if (!code) return res.json({ ok: true, discount: 0, code: "" });
+  if (subtotal < 0 || subtotal > 1e6) return res.status(400).json({ ok: false, error: "bad_subtotal" });
+  const cp = calcCoupon(getSettings(), code, subtotal);
+  if (!cp.ok) return res.json({ ok: false, error: cp.error === "coupon_min" ? "min" : "bad", discount: 0 });
+  res.json({ ok: true, discount: cp.discount, code: cp.code });
 });
 
 /** Which server build is live (to confirm a deploy actually took effect). */
@@ -397,7 +413,11 @@ function sniffChatMedia(b) {
   return null;
 }
 
-app.post("/api/chat/upload", express.raw({ type: () => true, limit: "6mb" }), (req, res) => {
+app.post(
+  "/api/chat/upload",
+  limit("chat_upload", { limit: 8, windowMs: 60_000 }),
+  express.raw({ type: () => true, limit: "3mb" }),
+  (req, res) => {
   const ext = sniffChatMedia(req.body);
   if (!ext) return res.status(400).json({ error: "bad_file" });
   // images + audio only
@@ -422,7 +442,7 @@ app.post("/api/chat/session", (req, res) => {
     orderId: String(req.body?.orderId || "").slice(0, 40),
   };
   const thread = liveChat.getOrCreateThread(ip, meta);
-  res.json({ visitorId: thread.id, ip: thread.ip || thread.id, messages: thread.messages || [] });
+  res.json({ visitorId: thread.id, messages: thread.messages || [] });
 });
 
 app.get("/api/chat/messages", (req, res) => {
@@ -689,6 +709,9 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
   });
   auditLog("checkout_create", { orderId: updated.id, total: updated.total, ip: clientIp(req) });
   try { tg.notifyChannel(tg.formatOrderMsg("new", updated)).catch(() => {}); } catch {}
+  if (idemRaw) {
+    checkoutIdem.set(`${clientIp(req)}:${idemRaw}`, { orderId: updated.id, at: Date.now() });
+  }
   return res.json({
     order: publicOrder(updated),
     payment: {

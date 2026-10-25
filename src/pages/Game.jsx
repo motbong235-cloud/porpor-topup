@@ -192,17 +192,36 @@ export default function Game({ lang, addOrder, settings }) {
       .finally(() => setChecking(false));
   }
 
-  function onCoupon() {
-    const res = applyCoupon(coupon, sub || 1, settings?.coupons);
-    if (!res.ok) {
+  async function onCoupon() {
+    const code = String(coupon || "").trim();
+    if (!code) {
       setApplied(0);
       setAppliedCode("");
-      setCouponMsg({ type: "err", text: res.error === "min" ? t(lang, "couponMin") : t(lang, "couponBad") });
+      setCouponMsg({ type: "", text: "" });
       return;
     }
-    setApplied(sub ? res.discount : 0);
-    setAppliedCode(res.code);
-    setCouponMsg({ type: res.code ? "ok" : "", text: res.code ? t(lang, "couponOk") : "" });
+    try {
+      const res = await fetch("/api/coupon/preview", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, subtotal: sub || 1 }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!data.ok) {
+        setApplied(0);
+        setAppliedCode("");
+        setCouponMsg({ type: "err", text: data.error === "min" ? t(lang, "couponMin") : t(lang, "couponBad") });
+        return;
+      }
+      setApplied(sub ? Number(data.discount) || 0 : 0);
+      setAppliedCode(data.code || code.toUpperCase());
+      setCouponMsg({ type: data.code ? "ok" : "", text: data.code ? t(lang, "couponOk") : "" });
+    } catch {
+      setApplied(0);
+      setAppliedCode("");
+      setCouponMsg({ type: "err", text: t(lang, "couponBad") });
+    }
   }
 
   function validate() {
@@ -251,6 +270,7 @@ export default function Game({ lang, addOrder, settings }) {
           server,
           nickname: nick,
           coupon: appliedCode,
+          idempotencyKey: `pp-${game.id}-${p.id}-${qty}-${isGift ? (needUsername ? userId.trim() : "gift") : userId.trim()}-${zoneId.trim()}-${Math.floor(Date.now() / 120000)}`,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -482,13 +502,23 @@ export default function Game({ lang, addOrder, settings }) {
                       if (soldOut) return;
                       setPackId(p.id);
                       const nextSub = Math.round(p.price * qty * 100) / 100;
-                      const res = applyCoupon(coupon || appliedCode, nextSub || 1, settings?.coupons);
-                      if (res.ok && res.code) {
-                        setApplied(nextSub ? res.discount : 0);
-                        setAppliedCode(res.code);
-                      } else {
-                        setApplied(0);
-                      }
+                      const codeTry = String(coupon || appliedCode || "").trim();
+                      if (codeTry) {
+                        fetch("/api/coupon/preview", {
+                          method: "POST",
+                          credentials: "include",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ code: codeTry, subtotal: nextSub || 1 }),
+                        })
+                          .then((r) => r.json())
+                          .then((data) => {
+                            if (data?.ok && data.code) {
+                              setApplied(nextSub ? Number(data.discount) || 0 : 0);
+                              setAppliedCode(data.code);
+                            } else setApplied(0);
+                          })
+                          .catch(() => setApplied(0));
+                      } else setApplied(0);
                     }}
                   >
                     {p.image ? (
