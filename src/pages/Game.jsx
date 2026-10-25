@@ -22,6 +22,35 @@ async function ensureCsrf() {
   }
 }
 
+
+const catLabel = (c) => (String(c || "").trim().toLowerCase() === "gift card" ? "Roblox" : c);
+
+function ServiceHero({ game, lang, children }) {
+  const blurb = lang === "km" ? game.blurbKm : game.blurbEn;
+  const [bad, setBad] = useState(false);
+  const hasBanner = !!game.banner && !bad;
+  return (
+    <header
+      className={`svc-hero${hasBanner ? " has-banner" : ""}`}
+      style={{ "--hue": game.hue || 210 }}
+    >
+      {hasBanner ? (
+        <img className="svc-hero-img" src={game.banner} alt="" onError={() => setBad(true)} />
+      ) : null}
+      <div className="svc-hero-shade" aria-hidden />
+      <div className="svc-hero-body">
+        <GameTile game={game} />
+        <div className="svc-hero-text">
+          {game.region ? <span className="svc-region">{game.region}</span> : null}
+          <h1>{game.name}</h1>
+          {blurb ? <p className="svc-blurb">{blurb}</p> : null}
+          {children}
+        </div>
+      </div>
+    </header>
+  );
+}
+
 export default function Game({ lang, addOrder, settings }) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -63,7 +92,7 @@ export default function Game({ lang, addOrder, settings }) {
 
   const cats = useMemo(() => {
     if (!game) return ["all"];
-    return ["all", ...Array.from(new Set(game.packs.map((p) => p.category)))];
+    return ["all", ...Array.from(new Set(game.packs.map((p) => catLabel(p.category))))];
   }, [game]);
 
   const pack = game?.packs.find((p) => p.id === packId) || null;
@@ -128,16 +157,7 @@ export default function Game({ lang, addOrder, settings }) {
         <nav className="crumb">
           <Link to="/">{t(lang, "home")}</Link> · <span>{game.name}</span>
         </nav>
-        <div className="hero-game">
-          <GameTile game={game} />
-          <div>
-            {game.region ? <div className="region">{game.region}</div> : null}
-            <h1>{game.name}</h1>
-            {(lang === "km" ? game.blurbKm : game.blurbEn) ? (
-            <p className="blurb">{lang === "km" ? game.blurbKm : game.blurbEn}</p>
-          ) : null}
-          </div>
-        </div>
+        <ServiceHero game={game} lang={lang} />
         <div className="card" style={{ marginTop: 24, textAlign: "center" }}>
           <p style={{ fontWeight: 600 }}>{t(lang, "maintenance")} — {t(lang, "unavailable")}</p>
           <Link className="btn bg-brand" style={{ marginTop: 16 }} to="/support">
@@ -356,28 +376,20 @@ export default function Game({ lang, addOrder, settings }) {
       <nav className="crumb">
         <Link to="/">{t(lang, "home")}</Link> · <span>{game.name}</span>
       </nav>
-      <div className="hero-game">
-        <GameTile game={game} />
-        <div>
-          {game.region ? <div className="region">{game.region}</div> : null}
-          <h1>{game.name}</h1>
-          {(lang === "km" ? game.blurbKm : game.blurbEn) ? (
-            <p className="blurb">{lang === "km" ? game.blurbKm : game.blurbEn}</p>
-          ) : null}
-          <div className="chips">
-            <span className="chip chip-icon"><Icon name="zap" size={14} /> {t(lang, "statSpeed")}</span>
-            <span className="chip chip-icon"><Icon name="qr" size={14} /> KHQR</span>
-            <span className="chip chip-icon"><Icon name="shield" size={14} /> Secure</span>
-          </div>
+      <ServiceHero game={game} lang={lang}>
+        <div className="chips">
+          <span className="chip chip-icon"><Icon name="zap" size={14} /> {t(lang, "statSpeed")}</span>
+          <span className="chip chip-icon"><Icon name="qr" size={14} /> KHQR</span>
+          <span className="chip chip-icon"><Icon name="shield" size={14} /> Secure</span>
         </div>
-      </div>
+      </ServiceHero>
 
       <div className="layout-2">
         <div style={{ display: "grid", gap: 24 }}>
           {/* Full account form for Khmer TopUp games */}
           {!isGift && (
           <section className="card">
-            <h2>{t(lang, "account")}</h2>
+            <h2 className="sec-title"><span className="step-no">1</span> {t(lang, "account")}</h2>
             {(lang === "km" ? game.idHintKm : game.idHintEn) ? (
               <p className="hint">{lang === "km" ? game.idHintKm : game.idHintEn}</p>
             ) : null}
@@ -445,7 +457,7 @@ export default function Game({ lang, addOrder, settings }) {
           {/* Local stock / live chat — same account card style as auto topup */}
           {isGift && needUsername ? (
             <section className="card">
-              <h2>{t(lang, "account")}</h2>
+              <h2 className="sec-title"><span className="step-no">1</span> {t(lang, "account")}</h2>
               <p className="hint">
                 {lang === "km"
                   ? game.idHintKm || "បញ្ចូល Username ដូចពេល login ហ្គេម"
@@ -468,7 +480,7 @@ export default function Game({ lang, addOrder, settings }) {
 
           <section className="card">
             <div className="pack-head">
-              <h2>{t(lang, "packs")}</h2>
+              <h2 className="sec-title"><span className="step-no">2</span> {t(lang, "packs")}</h2>
               <div className="qty">
                 <span>{t(lang, "qty")}</span>
                 <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))}>
@@ -480,6 +492,7 @@ export default function Game({ lang, addOrder, settings }) {
                 </button>
               </div>
             </div>
+            {cats.length > 2 ? (
             <div className="cats">
               {cats.map((c) => (
                 <button key={c} type="button" className={`cat${cat === c ? " active" : ""}`} onClick={() => setCat(c)}>
@@ -487,9 +500,10 @@ export default function Game({ lang, addOrder, settings }) {
                 </button>
               ))}
             </div>
+            ) : null}
             <div className="packs">
               {game.packs
-                .filter((p) => cat === "all" || p.category === cat)
+                .filter((p) => cat === "all" || catLabel(p.category) === cat)
                 .map((p) => {
                   const soldOut = isStock && p.inStock === false;
                   return (
@@ -497,6 +511,7 @@ export default function Game({ lang, addOrder, settings }) {
                     key={p.id}
                     type="button"
                     disabled={soldOut}
+                    aria-pressed={packId === p.id}
                     className={`pack${p.image ? " has-img" : ""}${packId === p.id ? " active" : ""}${soldOut ? " sold-out" : ""}`}
                     onClick={() => {
                       if (soldOut) return;
@@ -532,8 +547,11 @@ export default function Game({ lang, addOrder, settings }) {
                         }}
                       />
                     ) : null}
+                    {packId === p.id ? (
+                      <span className="pack-tick" aria-hidden><Icon name="check" size={12} /></span>
+                    ) : null}
                     <div className="pack-body">
-                      <div className="cat-label">{p.category}</div>
+                      <div className="cat-label">{catLabel(p.category)}</div>
                       <div className="name">{lang === "km" ? p.nameKm : p.name}</div>
                       {p.bonus ? <div className="bonus">{p.bonus}</div> : null}
                       <div className="price">{money(p.price)}{p.resellerPrice ? " · Reseller" : ""}</div>
@@ -575,7 +593,7 @@ export default function Game({ lang, addOrder, settings }) {
           ) : null}
 
 <section className="card pay-section">
-            <h2 className="sec-title"><Icon name="wallet" size={18} /> {t(lang, "payment")}</h2>
+            <h2 className="sec-title"><span className="step-no">3</span> {t(lang, "payment")}</h2>
             <div className="pay-choices">
               <div className="pay-choice active" role="radio" aria-checked="true">
                 <div className="pay-choice-brand">
@@ -643,6 +661,10 @@ export default function Game({ lang, addOrder, settings }) {
       </div>
 
       <div className="pay-mobile">
+        <div className="pay-mobile-sel">
+          <span>{pack ? (lang === "km" ? pack.nameKm : pack.name) : (lang === "km" ? "សូមជ្រើសកញ្ចប់" : "Select a package")}</span>
+          {pack ? <b>×{qty}</b> : null}
+        </div>
         {payErr ? (
           <p className="msg err" style={{ margin: "0 0 8px" }}>
             {payErr}

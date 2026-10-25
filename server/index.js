@@ -1087,7 +1087,7 @@ app.put("/api/admin/local-products", adminAuth, (req, res) => {
             nameKm: String(p.nameKm || p.name || p.id || "").trim(),
             price: Number(p.price),
             cost: Number(p.cost != null ? p.cost : p.price),
-            category: String(p.category || "Gift Card"),
+            category: (String(p.category || "").trim().toLowerCase() === "gift card" ? "Roblox" : String(p.category || "Roblox")),
             bonus: p.bonus ? String(p.bonus) : "",
             image: img,
           };
@@ -1108,6 +1108,11 @@ app.put("/api/admin/local-products", adminAuth, (req, res) => {
         mark: String(g.mark || "GC").slice(0, 4),
         image: (function () {
           let u = String(g.image || "").trim();
+          if (/^\/uploads\/[\w.-]{1,100}$/.test(u) || /^https:\/\/[^\s"'<>]{1,490}$/.test(u)) return u;
+          return "";
+        })(),
+        banner: (function () {
+          let u = String(g.banner || "").trim();
           if (/^\/uploads\/[\w.-]{1,100}$/.test(u) || /^https:\/\/[^\s"'<>]{1,490}$/.test(u)) return u;
           return "";
         })(),

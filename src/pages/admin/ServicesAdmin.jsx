@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AIcon, ImageSlot, PageHead, Switch, api, toast, usd } from "./ui";
+import { AIcon, ImageSlot, PageHead, Switch, WideImageSlot, api, toast, usd } from "./ui";
 
 const blank = { enabled: false, showWhenOff: false, featured: false, markup: null, packages: null, image: "", packIcon: "", packImages: {} };
 
@@ -182,7 +182,7 @@ function GameCard({ g, s, defaultMarkup, isOpen, onToggleOpen, patch }) {
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 
-/* ─── Local services (Gift cards / manual delivery) ─── */
+/* ─── Local services (Roblox / manual delivery) ─── */
 function blankLocal() {
   return {
     id: "",
@@ -197,7 +197,7 @@ function blankLocal() {
     hue: 210,
     mark: "GC",
     deliveryType: "gift_code",
-    packs: [{ id: "", name: "", price: 0, cost: 0, category: "Gift Card" }],
+    packs: [{ id: "", name: "", price: 0, cost: 0, category: "Roblox" }],
   };
 }
 
@@ -301,7 +301,7 @@ function LocalServicesPanel() {
       image: "",
       deliveryType: isChat ? "live_chat" : "stock",
       requireUsername: isChat ? true : false,
-      packs: [{ id: `${id}-1`, name: "Pack 1", nameKm: "Pack 1", price: 1, cost: 1, category: "Gift Card", image: "" }],
+      packs: [{ id: `${id}-1`, name: "Pack 1", nameKm: "Pack 1", price: 1, cost: 1, category: "Roblox", image: "" }],
     };
     setProducts((x) => [...x, p]);
     setEditIdx(products.length);
@@ -325,7 +325,7 @@ function LocalServicesPanel() {
         const n = (p.packs || []).length + 1;
         return {
           ...p,
-          packs: [...(p.packs || []), { id: `${p.id}-${n}`, name: `Pack ${n}`, nameKm: `Pack ${n}`, price: 1, cost: 1, category: "Gift Card", image: "" }],
+          packs: [...(p.packs || []), { id: `${p.id}-${n}`, name: `Pack ${n}`, nameKm: `Pack ${n}`, price: 1, cost: 1, category: "Roblox", image: "" }],
         };
       }),
     );
@@ -554,6 +554,17 @@ function LocalServicesPanel() {
                           </label>
                         </div>
                       </div>
+
+                      <div className="ad-mode-label">Banner (ក្បាលទំព័រ service)</div>
+                      <WideImageSlot
+                        src={p.banner || ""}
+                        ratio="16 / 5"
+                        maxWidth={1600}
+                        label="Upload banner"
+                        hint="1600 × 500 px · បង្ហាញខាងលើទំព័រទិញ"
+                        onUrl={(url) => updateAt(i, { banner: url })}
+                        onClear={() => updateAt(i, { banner: "" })}
+                      />
 
                       <div className="ad-mode-label">របៀបដំណើរការ</div>
                       <div className="ad-mode-grid">
