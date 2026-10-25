@@ -38,16 +38,6 @@ const DEFAULT_SETTINGS = {
   ktSelection: { markupPercent: 0, games: {} },
   /** Local services (gift cards etc.) managed in Admin → Services */
   localProducts: [],
-  /**
-   * Reseller accounts (Telegram username without @, optional telegramId).
-   * Example: [{ username: "seller01", telegramId: 123, active: true }]
-   */
-  resellers: [],
-  /**
-   * Fixed reseller sell prices by pack id (USD, not percent).
-   * Example: { "12345": 0.95, "gift-robux-10": 8.5 }
-   */
-  resellerPrices: {},
 };
 
 const LEGACY_KEYS = ["defaultWallet", "closedGames", "packageMap", "allowDemoPay"];

@@ -166,7 +166,7 @@ function GameCard({ g, s, defaultMarkup, isOpen, onToggleOpen, patch }) {
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 
-/* ─── Local services (Roblox / manual delivery) ─── */
+/* ─── Local services (Gift cards / manual delivery) ─── */
 function blankLocal() {
   return {
     id: "",
@@ -181,7 +181,7 @@ function blankLocal() {
     hue: 210,
     mark: "GC",
     deliveryType: "gift_code",
-    packs: [{ id: "", name: "", price: 0, cost: 0, category: "Roblox" }],
+    packs: [{ id: "", name: "", price: 0, cost: 0, category: "Gift Card" }],
   };
 }
 
@@ -285,7 +285,7 @@ function LocalServicesPanel() {
       image: "",
       deliveryType: isChat ? "live_chat" : "stock",
       requireUsername: isChat ? true : false,
-      packs: [{ id: `${id}-1`, name: "Pack 1", nameKm: "Pack 1", price: 1, cost: 1, category: "Roblox", image: "" }],
+      packs: [{ id: `${id}-1`, name: "Pack 1", nameKm: "Pack 1", price: 1, cost: 1, category: "Gift Card", image: "" }],
     };
     setProducts((x) => [...x, p]);
     setEditIdx(products.length);
@@ -309,7 +309,7 @@ function LocalServicesPanel() {
         const n = (p.packs || []).length + 1;
         return {
           ...p,
-          packs: [...(p.packs || []), { id: `${p.id}-${n}`, name: `Pack ${n}`, nameKm: `Pack ${n}`, price: 1, cost: 1, category: "Roblox", image: "" }],
+          packs: [...(p.packs || []), { id: `${p.id}-${n}`, name: `Pack ${n}`, nameKm: `Pack ${n}`, price: 1, cost: 1, category: "Gift Card", image: "" }],
         };
       }),
     );

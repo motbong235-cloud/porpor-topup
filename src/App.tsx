@@ -39,71 +39,37 @@ function PpConsoleRedirect({ adminPath }) {
   return <Navigate to={to} replace />;
 }
 
-const PUBLIC_FIRST = new Set(["", "game", "orders", "track", "success", "support", "reseller", "legal"]);
-
-function pathLooksAdmin(pathname) {
-  const seg = String(pathname || "").split("/").filter(Boolean)[0] || "";
-  if (!seg) return false;
-  if (PUBLIC_FIRST.has(seg)) return false;
-  // private admin path, legacy aliases, or any non-public first segment
-  return true;
-}
-
 export default function App() {
   const location = useLocation();
-  const path = location.pathname;
-  const boot = readBootAdminPath();
-  // If user already opened /porpor-panel-06 (or current ADMIN_PATH), use it immediately — no blank wait
-  const fromUrl = (() => {
-    const seg = path.split("/").filter(Boolean)[0] || "";
-    if (seg === "pp-console" || seg === "admin") return boot;
-    if (seg && !PUBLIC_FIRST.has(seg)) return seg;
-    return boot;
-  })();
-  const [adminPath, setAdminPath] = useState(fromUrl);
-  const [adminPathReady, setAdminPathReady] = useState(true); // show UI immediately; refine path in background
+  const [adminPath, setAdminPath] = useState(readBootAdminPath);
+  const [adminPathReady, setAdminPathReady] = useState(!!(typeof window !== "undefined" && window.__ADMIN_PATH__));
 
-  // Confirm private path from server (short timeout — never block the page)
+  // Always confirm private path from server (fixes mismatch when env ADMIN_PATH ≠ default)
   useEffect(() => {
     let alive = true;
-    const ac = typeof AbortController !== "undefined" ? new AbortController() : null;
-    const timer = setTimeout(() => ac?.abort?.(), 2500);
-    fetch("/api/public-config", { signal: ac?.signal, credentials: "same-origin" })
+    fetch("/api/public-config")
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (!alive || !d?.adminPath) return;
         const p = String(d.adminPath).replace(/^\/+|\/+$/g, "") || "pp-console";
         if (typeof window !== "undefined") window.__ADMIN_PATH__ = p;
         setAdminPath(p);
-        try {
-          sessionStorage.setItem("pp_admin_path", p);
-        } catch {}
       })
-      .catch(() => {
-        try {
-          const saved = sessionStorage.getItem("pp_admin_path");
-          if (saved) setAdminPath(saved.replace(/^\/+|\/+$/g, ""));
-        } catch {}
-      })
-      .finally(() => {
-        clearTimeout(timer);
-        if (alive) setAdminPathReady(true);
-      });
+      .catch(() => {})
+      .finally(() => alive && setAdminPathReady(true));
     return () => {
       alive = false;
-      clearTimeout(timer);
-      ac?.abort?.();
     };
   }, []);
 
+  const path = location.pathname;
   const isAdminRoute =
     path === `/${adminPath}` ||
     path.startsWith(`/${adminPath}/`) ||
     path === "/admin" ||
     path.startsWith("/admin/") ||
     path === "/pp-console" ||
-    path.startsWith("/pp-console/") ||
-    pathLooksAdmin(path);
+    path.startsWith("/pp-console/");
 
   const initial = getPrefs();
   const [lang, setLangState] = useState(initial.lang);
@@ -157,12 +123,20 @@ export default function App() {
   if (!adminPathReady && !isAdminRoute && !isKnownPublic) {
     return (
       <div style={{ minHeight: "40vh", display: "grid", placeItems: "center", color: "#64748b" }}>
-        កំពុងផ្ទុក…
+        Loading…
       </div>
     );
   }
 
   if (isAdminRoute) {
+    // Wait for real path so we do not mount wrong routes
+    if (!adminPathReady) {
+      return (
+        <div style={{ minHeight: "40vh", display: "grid", placeItems: "center", color: "#64748b" }}>
+          Loading admin…
+        </div>
+      );
+    }
     return (
       <Routes>
         <Route path={`/${adminPath}`} element={<AdminLayout adminPath={adminPath} />}>

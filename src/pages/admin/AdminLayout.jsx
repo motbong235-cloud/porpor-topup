@@ -26,28 +26,10 @@ export default function AdminLayout({ adminPath = "pp-console" }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    let alive = true;
-    const t = setTimeout(() => {
-      if (alive) {
-        setAuthed(false);
-        setReady(true);
-      }
-    }, 4000);
     api("/api/admin/me")
-      .then(() => {
-        if (alive) setAuthed(true);
-      })
-      .catch(() => {
-        if (alive) setAuthed(false);
-      })
-      .finally(() => {
-        clearTimeout(t);
-        if (alive) setReady(true);
-      });
-    return () => {
-      alive = false;
-      clearTimeout(t);
-    };
+      .then(() => setAuthed(true))
+      .catch(() => setAuthed(false))
+      .finally(() => setReady(true));
   }, []);
 
   useEffect(() => {

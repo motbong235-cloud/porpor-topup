@@ -5,7 +5,6 @@ import { useInstallPrompt } from "../hooks/useInstallPrompt";
 import { t } from "../lib/i18n";
 import { GameTile, Icon } from "./Icons";
 import { LiveChat } from "./LiveChat";
-import { refreshCatalog } from "../lib/catalog";
 
 function LogoMark({ url, style }) {
   const [broken, setBroken] = useState("");
@@ -31,64 +30,9 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
   const [search, setSearch] = useState(false);
   const [q, setQ] = useState("");
   const [iosHelp, setIosHelp] = useState(false);
-  const [tgUser, setTgUser] = useState(null);
-  const [tgBot, setTgBot] = useState("");
-  const [tgOpen, setTgOpen] = useState(false);
-  const [tgErr, setTgErr] = useState("");
   const pwa = useInstallPrompt();
   const lift = location.pathname.startsWith("/game");
 
-  useEffect(() => {
-    fetch("/api/auth/me", { credentials: "include" })
-      .then((r) => r.json())
-      .then((d) => { if (d?.ok && d.user) setTgUser(d.user); })
-      .catch(() => {});
-    fetch("/api/auth/telegram/config")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d?.botUsername) setTgBot(d.botUsername);
-        else setTgBot("");
-      })
-      .catch(() => {});
-  }, []);
-  useEffect(() => {
-    window.onTelegramAuth = (user) => {
-      setTgErr("");
-      fetch("/api/auth/telegram", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(user),
-      })
-        .then(async (r) => {
-          const d = await r.json().catch(() => ({}));
-          if (!r.ok || !d?.ok) {
-            setTgErr(d?.error || "login_failed");
-            return;
-          }
-          setTgUser(d.user);
-          setTgOpen(false);
-          refreshCatalog().catch(() => {});
-        })
-        .catch(() => setTgErr("network"));
-    };
-    return () => { delete window.onTelegramAuth; };
-  }, []);
-  useEffect(() => {
-    if (!tgOpen || !tgBot) return;
-    const box = document.getElementById("tg-login-widget");
-    if (!box) return;
-    box.innerHTML = "";
-    const s = document.createElement("script");
-    s.src = "https://telegram.org/js/telegram-widget.js?22";
-    s.async = true;
-    s.setAttribute("data-telegram-login", tgBot);
-    s.setAttribute("data-size", "large");
-    s.setAttribute("data-radius", "10");
-    s.setAttribute("data-onauth", "onTelegramAuth(user)");
-    s.setAttribute("data-request-access", "write");
-    box.appendChild(s);
-  }, [tgOpen, tgBot]);
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
     document.documentElement.lang = lang === "km" ? "km" : "en";
@@ -165,22 +109,6 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
             <button type="button" className="lang-btn" onClick={() => setLang(lang === "km" ? "en" : "km")}>
               {lang === "km" ? "EN" : "ខ្មែរ"}
             </button>
-            {tgUser ? (
-              <button
-                type="button"
-                className="lang-btn"
-                title={tgUser.username || tgUser.first_name}
-                onClick={() =>
-                  fetch("/api/auth/logout", { method: "POST", credentials: "include" }).then(() => setTgUser(null))
-                }
-              >
-                {tgUser.username ? `@${tgUser.username}` : tgUser.first_name || "TG"}
-              </button>
-            ) : (
-              <button type="button" className="lang-btn" onClick={() => setTgOpen(true)}>
-                {lang === "km" ? "Login TG" : "TG Login"}
-              </button>
-            )}
             <button
               type="button"
               className="icon-btn"
@@ -230,25 +158,6 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
         </div>
       </footer>
 
-      {tgOpen ? (
-        <div className="tg-login-overlay" onClick={() => setTgOpen(false)} role="presentation">
-          <div className="tg-login-modal card" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Telegram login">
-            <button type="button" className="tg-login-close" onClick={() => setTgOpen(false)} aria-label="Close">×</button>
-            <h3>{lang === "km" ? "ចូលតាម Telegram" : "Login with Telegram"}</h3>
-            <p className="tg-login-hint">
-              {tgBot
-                ? lang === "km"
-                  ? "ចុចប៊ូតុងខាងក្រោម ដើម្បីភ្ជាប់គណនី Telegram"
-                  : "Tap the button below to connect your Telegram account"
-                : lang === "km"
-                  ? "Admin មិនទាន់ដាក់ TELEGRAM_BOT_TOKEN / TELEGRAM_BOT_USERNAME នៅ Render"
-                  : "Admin has not set TELEGRAM_BOT_TOKEN / TELEGRAM_BOT_USERNAME on Render"}
-            </p>
-            <div id="tg-login-widget" className="tg-login-widget" />
-            {tgErr ? <p className="tg-login-err">{tgErr}</p> : null}
-          </div>
-        </div>
-      ) : null}
       <LiveChat lang={lang} />
 
       <div className={`overlay${menu ? " open" : ""}`} onClick={() => setMenu(false)} />

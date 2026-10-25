@@ -46,7 +46,6 @@ import {
 } from "./security.js";
 import { issueCsrf, csrfGuard } from "./csrf.js";
 import * as branding from "./branding.js";
-import * as tg from "./telegramNotify.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");
@@ -64,13 +63,6 @@ function isWeakAdminPassword(pw) {
 /** Private admin SPA path (no leading slash). Default: pp-console — set ADMIN_PATH on Render to hide it. */
 const ADMIN_PATH = String(process.env.ADMIN_PATH || "pp-console").replace(/^\/+|\/+$/g, "") || "pp-console";
 const isProd = process.env.NODE_ENV === "production";
-
-/** Checkout idempotency: key -> { orderId, at } (in-memory, ~15 min) */
-const checkoutIdem = new Map();
-setInterval(() => {
-  const cut = Date.now() - 15 * 60_000;
-  for (const [k, v] of checkoutIdem) if (!v || v.at < cut) checkoutIdem.delete(k);
-}, 60_000).unref?.();
 
 const app = express();
 app.set("trust proxy", 1); // Render / reverse proxy — real client IP
@@ -106,8 +98,7 @@ function adminAuth(req, res, next) {
 }
 
 function newCode() {
-  // Longer random id reduces IDOR / enumeration of track URLs
-  return `PP-${crypto.randomBytes(5).toString("hex").toUpperCase()}`;
+  return `PP-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
 }
 
 function uniqueCode() {
@@ -145,13 +136,9 @@ function publicOrder(o) {
     method: o.method,
     status: o.status,
     createdAt: o.createdAt,
-    paidAt: o.paidAt || null,
-    providerPaid: !!o.providerPaid,
-    needsManual: !!o.needsManual,
     deliveryType: o.deliveryType || "topup",
     giftCode: o.giftCode || null,
     note: o.note || "",
-    telegramId: o.telegramId || null,
   };
 }
 
@@ -242,14 +229,11 @@ async function fulfillTopup(order) {
     }
   } catch (e) {
     return updateOrder(order.id, {
-      status: "paid",
-      paidAt: order.paidAt || Date.now(),
-      providerPaid: true,
+      status: "failed",
       ktOrderCodes: codes,
-      ktOrderCode: codes[0] || order.ktOrderCode,
+      ktOrderCode: codes[0],
       ktStatuses: statuses,
-      note: `TopUp error after ${codes.length}/${order.qty || 1}: ${e.message} — fulfill manually`,
-      needsManual: true,
+      note: `TopUp error after ${codes.length}/${order.qty || 1} placed: ${e.message}`,
     });
   }
 
@@ -282,8 +266,7 @@ app.get("/api/csrf", (req, res) => {
 });
 
 app.get("/api/public-config", (_req, res) => {
-  // Do not expose ADMIN_PATH here (security). Path is injected into index.html as window.__ADMIN_PATH__ only.
-  res.json({ ok: true });
+  res.json({ adminPath: ADMIN_PATH });
 });
 
 
@@ -377,20 +360,13 @@ app.get("/api/settings", (_req, res) => {
     maintenance: s.maintenance,
     logoUrl: s.logoUrl || "",
     bannerUrls: Array.isArray(s.bannerUrls) ? s.bannerUrls : [],
-    // Never list coupon codes publicly — validate only at checkout when user types a code
-    couponsEnabled: Array.isArray(s.coupons) && s.coupons.length > 0,
+    coupons: (s.coupons || []).map((c) => ({
+      code: c.code,
+      type: c.type,
+      value: c.value,
+      min: c.min,
+    })),
   });
-});
-
-/** Preview coupon discount — does not list codes; user must already know the code */
-app.post("/api/coupon/preview", limit("coupon", { limit: 30, windowMs: 60_000 }), (req, res) => {
-  const code = String(req.body?.code || "").trim();
-  const subtotal = Number(req.body?.subtotal) || 0;
-  if (!code) return res.json({ ok: true, discount: 0, code: "" });
-  if (subtotal < 0 || subtotal > 1e6) return res.status(400).json({ ok: false, error: "bad_subtotal" });
-  const cp = calcCoupon(getSettings(), code, subtotal);
-  if (!cp.ok) return res.json({ ok: false, error: cp.error === "coupon_min" ? "min" : "bad", discount: 0 });
-  res.json({ ok: true, discount: cp.discount, code: cp.code });
 });
 
 /** Which server build is live (to confirm a deploy actually took effect). */
@@ -413,11 +389,7 @@ function sniffChatMedia(b) {
   return null;
 }
 
-app.post(
-  "/api/chat/upload",
-  limit("chat_upload", { limit: 8, windowMs: 60_000 }),
-  express.raw({ type: () => true, limit: "3mb" }),
-  (req, res) => {
+app.post("/api/chat/upload", express.raw({ type: () => true, limit: "6mb" }), (req, res) => {
   const ext = sniffChatMedia(req.body);
   if (!ext) return res.status(400).json({ error: "bad_file" });
   // images + audio only
@@ -442,7 +414,7 @@ app.post("/api/chat/session", (req, res) => {
     orderId: String(req.body?.orderId || "").slice(0, 40),
   };
   const thread = liveChat.getOrCreateThread(ip, meta);
-  res.json({ visitorId: thread.id, messages: thread.messages || [] });
+  res.json({ visitorId: thread.id, ip: thread.ip || thread.id, messages: thread.messages || [] });
 });
 
 app.get("/api/chat/messages", (req, res) => {
@@ -515,18 +487,16 @@ app.get("/api/version", (_req, res) => {
 });
 
 /** Games + packages the admin selected from Khmer TopUp (prices include markup). */
-app.get("/api/catalog", async (req, res) => {
+app.get("/api/catalog", async (_req, res) => {
+  // short browser/CDN cache: repeat visits and page changes are instant; admin edits show within ~15s
+  res.set("Cache-Control", "public, max-age=15, stale-while-revalidate=60");
+  if (!khmerTopup.isTopupReady()) {
+    return res.json({ games: [], error: "topup_not_configured" });
+  }
   try {
-    const settings = getSettings();
-    let games = await catalog.publicCatalog();
-    const tgUser = tg.readTgSession(req.cookies?.porpor_tg);
-    const applied = catalog.applyResellerToCatalog(games, settings, tgUser);
-    res.json({
-      games: applied.games,
-      isReseller: applied.isReseller,
-      resellerUsername: applied.isReseller ? (tgUser?.username || tgUser?.id || null) : null,
-    });
+    res.json({ games: await catalog.publicCatalog() });
   } catch (e) {
+    res.set("Cache-Control", "no-store");
     res.status(502).json({ games: [], error: "catalog_unavailable", message: e.message });
   }
 });
@@ -545,41 +515,6 @@ app.post("/api/verify", limit("verify", { limit: 30, windowMs: 60_000 }), async 
   } catch (e) {
     return res.json({ result: "unknown", error: e.message });
   }
-});
-
-
-app.get("/api/auth/telegram/config", (_req, res) => {
-  res.json({
-    ok: tg.isLoginReady(),
-    botUsername: tg.botUsername() || null,
-    configured: tg.isLoginReady(),
-  });
-});
-app.post("/api/auth/telegram", limit("tglogin", { limit: 20, windowMs: 60_000 }), (req, res) => {
-  const v = tg.verifyTelegramLogin(req.body || {});
-  if (!v.ok) {
-    console.warn("[tg-login]", v.error, req.body?.id);
-    return res.status(401).json({ error: v.error || "unauthorized" });
-  }
-  const token = tg.signTgSession(v.user);
-  res.cookie("porpor_tg", token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: isProd,
-    maxAge: 30 * 24 * 3600 * 1000,
-    path: "/",
-  });
-  auditLog("tg_login", { tgId: v.user.id, username: v.user.username, ip: clientIp(req) });
-  res.json({ ok: true, user: v.user });
-});
-app.get("/api/auth/me", (req, res) => {
-  const user = tg.readTgSession(req.cookies?.porpor_tg);
-  if (!user) return res.json({ ok: false, user: null });
-  res.json({ ok: true, user });
-});
-app.post("/api/auth/logout", (req, res) => {
-  res.clearCookie("porpor_tg", { path: "/" });
-  res.json({ ok: true });
 });
 
 app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000 }), async (req, res) => {
@@ -642,12 +577,7 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
   }
 
   const qty = Math.min(10, Math.max(1, Math.floor(Number(body.qty)) || 1));
-  // Reseller fixed price (USD) when logged-in TG user is in reseller list
-  const tgUser = tg.readTgSession(req.cookies?.porpor_tg);
-  const isRes = catalog.isResellerUser(settings, tgUser);
-  const fixedRp = isRes ? catalog.resellerFixedPrice(settings, found.pack.id) : null;
-  const unitPrice = fixedRp != null ? fixedRp : Number(found.pack.price);
-  const subtotal = round2(unitPrice * qty);
+  const subtotal = round2(found.pack.price * qty);
   const cp = calcCoupon(settings, body.coupon, subtotal);
   if (!cp.ok) return res.status(400).json({ error: cp.error });
   const total = round2(subtotal - cp.discount);
@@ -708,10 +638,6 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
     expiresAt,
   });
   auditLog("checkout_create", { orderId: updated.id, total: updated.total, ip: clientIp(req) });
-  try { tg.notifyChannel(tg.formatOrderMsg("new", updated)).catch(() => {}); } catch {}
-  if (idemRaw) {
-    checkoutIdem.set(`${clientIp(req)}:${idemRaw}`, { orderId: updated.id, at: Date.now() });
-  }
   return res.json({
     order: publicOrder(updated),
     payment: {
@@ -730,56 +656,36 @@ app.get("/api/checkout/:id/status", limit("paystatus", { limit: 40, windowMs: 60
   let order = getOrder(req.params.id);
   if (!order) return res.status(404).json({ error: "not_found" });
 
-  if (order.status === "failed" && (order.providerPaid || order.paidAt)) {
-    order = updateOrder(order.id, {
-      status: "paid",
-      note: ((order.note || "") + " | recovered from false failed").trim(),
-      needsManual: true,
-    });
-  }
-
-  const canCheckPay =
-    order.transactionId &&
-    khmerSystem.isPaymentReady() &&
-    (order.status === "pending" || (order.status === "failed" && !order.providerPaid));
-
-  if (canCheckPay) {
+  // Payment bypass guard: ONLY provider confirmation can mark paid (never trust client body).
+  if (order.status === "pending" && order.transactionId && khmerSystem.isPaymentReady()) {
     const pay = await khmerSystem.checkPayment(order.transactionId);
-    console.log("[pay-check]", order.id, pay.status, pay.paid, pay.error || "");
-    // Strict: only explicit provider paid (never trust ok/success alone)
-    if (assertPaymentProviderPaid(pay) && pay.paid === true && !pay.simulation && !pay.error) {
+    if (assertPaymentProviderPaid(pay)) {
+      // Optional amount check when provider returns amount
       const paidAmt = Number(pay.amount ?? pay.total ?? pay.paid_amount);
-      // If provider returns an amount, it must match order total (±$0.05)
-      if (Number.isFinite(paidAmt) && paidAmt > 0 && Math.abs(paidAmt - Number(order.total)) > 0.05) {
-        console.warn("[pay] amount mismatch BLOCKED", order.id, paidAmt, order.total);
-        order = updateOrder(order.id, { note: `Amount mismatch blocked provider=${paidAmt} order=${order.total}` });
-        auditLog("payment_amount_mismatch", { orderId: order.id, paidAmt, total: order.total });
+      if (Number.isFinite(paidAmt) && paidAmt > 0 && Math.abs(paidAmt - Number(order.total)) > 0.02) {
+        console.warn("[pay] amount mismatch", order.id, paidAmt, order.total);
+        order = updateOrder(order.id, {
+          note: `Amount mismatch provider=${paidAmt} order=${order.total}`,
+        });
       } else {
         const fresh = getOrder(order.id);
-        if (fresh && (fresh.status === "pending" || (fresh.status === "failed" && !fresh.providerPaid))) {
+        if (fresh && fresh.status === "pending") {
           order = updateOrder(order.id, {
             status: "paid",
             paidAt: Date.now(),
             paidIp: clientIp(req),
             providerPaid: true,
-            payStatusRaw: pay.status || "paid",
           });
-          auditLog("payment_ok", { orderId: order.id, total: order.total, ip: clientIp(req), status: pay.status });
-          try { tg.notifyChannel(tg.formatOrderMsg("paid", order)).catch(() => {}); } catch {}
+          auditLog("payment_ok", { orderId: order.id, total: order.total, ip: clientIp(req) });
           order = await fulfillTopup(order);
-          if (order && order.status === "delivered") {
-            try { tg.notifyChannel(tg.formatOrderMsg("delivered", order)).catch(() => {}); } catch {}
-          }
         } else if (fresh) {
           order = fresh;
         }
       }
-    } else if (pay.paid) {
-      console.warn("[pay] rejected non-strict paid signal", order.id, pay.status, pay.raw && Object.keys(pay.raw));
     }
   }
 
-  if (order.status === "processing" && (order.ktOrderCode || (order.ktOrderCodes || []).length)) {
+  if (order.status === "processing" && order.ktOrderCode) {
     order = await pollKtStatus(order);
   }
 
@@ -971,7 +877,6 @@ app.put("/api/admin/settings", adminAuth, (req, res) => {
   const allowed = [
     "siteName", "taglineKm", "taglineEn", "telegram", "announcementKm", "announcementEn",
     "supportEmail", "maintenance", "coupons", "autoTopup", "logoUrl", "bannerUrls", "localProducts",
-    "deliveryHours", "tickerSoldBase", "tickerSoldLabel", "resellers", "resellerPrices",
   ];
   const patch = {};
   for (const k of allowed) {
@@ -984,29 +889,6 @@ app.put("/api/admin/settings", adminAuth, (req, res) => {
       .map(cleanImageUrl)
       .filter(Boolean)
       .slice(0, 5);
-  }
-  // Resellers: username list (Telegram) + optional telegramId; fixed prices by pack id
-  if (patch.resellers !== undefined) {
-    patch.resellers = (Array.isArray(patch.resellers) ? patch.resellers : [])
-      .map((r) => ({
-        username: String(r.username || "").trim().replace(/^@/, "").toLowerCase().slice(0, 64),
-        telegramId: r.telegramId ? Number(r.telegramId) || null : null,
-        active: r.active !== false,
-        note: String(r.note || "").slice(0, 120),
-      }))
-      .filter((r) => r.username || r.telegramId)
-      .slice(0, 200);
-  }
-  if (patch.resellerPrices !== undefined) {
-    const src = patch.resellerPrices && typeof patch.resellerPrices === "object" ? patch.resellerPrices : {};
-    const out = {};
-    for (const [k, v] of Object.entries(src)) {
-      const id = String(k).trim().slice(0, 80);
-      const n = Number(v);
-      if (!id || !Number.isFinite(n) || n <= 0) continue;
-      out[id] = Math.round(n * 100) / 100;
-    }
-    patch.resellerPrices = out;
   }
   res.json(updateSettings(patch));
 });
@@ -1087,7 +969,7 @@ app.put("/api/admin/local-products", adminAuth, (req, res) => {
             nameKm: String(p.nameKm || p.name || p.id || "").trim(),
             price: Number(p.price),
             cost: Number(p.cost != null ? p.cost : p.price),
-            category: (String(p.category || "").trim().toLowerCase() === "gift card" ? "Roblox" : String(p.category || "Roblox")),
+            category: String(p.category || "Gift Card"),
             bonus: p.bonus ? String(p.bonus) : "",
             image: img,
           };
@@ -1108,11 +990,6 @@ app.put("/api/admin/local-products", adminAuth, (req, res) => {
         mark: String(g.mark || "GC").slice(0, 4),
         image: (function () {
           let u = String(g.image || "").trim();
-          if (/^\/uploads\/[\w.-]{1,100}$/.test(u) || /^https:\/\/[^\s"'<>]{1,490}$/.test(u)) return u;
-          return "";
-        })(),
-        banner: (function () {
-          let u = String(g.banner || "").trim();
           if (/^\/uploads\/[\w.-]{1,100}$/.test(u) || /^https:\/\/[^\s"'<>]{1,490}$/.test(u)) return u;
           return "";
         })(),

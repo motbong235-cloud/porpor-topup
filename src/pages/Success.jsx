@@ -139,7 +139,7 @@ export default function Success({ lang, settings }) {
   }
 
   const isGift = ["stock", "live_chat", "gift_code"].includes(order.deliveryType);
-  const paid = order.providerPaid || order.paidAt || ["paid", "delivered", "processing", "done", "success", "completed"].includes(String(order.status || "").toLowerCase());
+  const paid = order.status !== "pending" && order.status !== "failed";
 
   return (
     <div className="container success-page">

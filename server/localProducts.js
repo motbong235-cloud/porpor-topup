@@ -12,18 +12,17 @@ import { getSettings, stockCount } from "./store.js";
 export const DEFAULT_LOCAL_PRODUCTS = [
   {
     id: "roblox-gift-cards",
-    name: "Roblox",
-    nameKm: "Roblox",
+    name: "Roblox Gift Cards",
+    nameKm: "Roblox Gift Cards",
     region: "Cambodia / Global",
-    blurbKm: "Roblox — បង់រួចទទួលកូដស្វ័យប្រវត្តិ",
-    blurbEn: "Roblox — instant code after payment",
+    blurbKm: "កាតអំណោយ Roblox — បង់រួចទទួលកូដស្វ័យប្រវត្តិ",
+    blurbEn: "Roblox gift cards — instant code after payment",
     famous: true,
     hot: true,
     open: true,
     hue: 210,
     mark: "RBX",
     image: "",
-    banner: "",
     deliveryType: "stock",
     requireUsername: false,
     hasZone: false,
@@ -32,9 +31,9 @@ export const DEFAULT_LOCAL_PRODUCTS = [
     idHintKm: "មិនចាំបាច់ username",
     idHintEn: "No username required",
     packs: [
-      { id: "rbx-5", name: "Roblox $5", nameKm: "Roblox $5", price: 5.5, cost: 5, category: "Roblox", bonus: "" },
-      { id: "rbx-10", name: "Roblox $10", nameKm: "Roblox $10", price: 10.5, cost: 10, category: "Roblox", bonus: "" },
-      { id: "rbx-25", name: "Roblox $25", nameKm: "Roblox $25", price: 25.5, cost: 25, category: "Roblox", bonus: "" },
+      { id: "rbx-5", name: "Roblox $5", nameKm: "Roblox $5", price: 5.5, cost: 5, category: "Gift Card", bonus: "" },
+      { id: "rbx-10", name: "Roblox $10", nameKm: "Roblox $10", price: 10.5, cost: 10, category: "Gift Card", bonus: "" },
+      { id: "rbx-25", name: "Roblox $25", nameKm: "Roblox $25", price: 25.5, cost: 25, category: "Gift Card", bonus: "" },
     ],
   },
   {
@@ -65,12 +64,6 @@ export const DEFAULT_LOCAL_PRODUCTS = [
     ],
   },
 ];
-
-/** Legacy "Gift Card" label is shown as "Roblox". */
-export function normCategory(c) {
-  const s = String(c || "").trim();
-  return !s || s.toLowerCase() === "gift card" ? "Roblox" : s;
-}
 
 function normDelivery(dt) {
   if (dt === "live_chat") return "live_chat";
@@ -110,7 +103,6 @@ export function localCatalog() {
         hue: Number(g.hue) || 210,
         mark: String(g.mark || "GC"),
         image: String(g.image || ""),
-        banner: String(g.banner || ""),
         deliveryType: dt,
         requireUsername,
         hasZone: false,
@@ -134,7 +126,7 @@ export function localCatalog() {
               nameKm: String(p.nameKm || p.name || p.id),
               price: Number(p.price),
               cost: Number(p.cost ?? p.price),
-              category: normCategory(p.category),
+              category: String(p.category || "Gift Card"),
               bonus: p.bonus ? String(p.bonus) : "",
               image: String(p.image || ""),
               stock: dt === "stock" ? left : null,

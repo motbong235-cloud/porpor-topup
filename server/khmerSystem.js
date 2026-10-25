@@ -1,20 +1,6 @@
 /**
- * ABA PayWay / KHQR flow for Porpor TOPUP
- * ----------------------------------------
- * 1) Checkout  → createQr(amount, orderId)
- *    POST {KHMER_SYSTEM_URL}/aba-api/generate-qr
- *    body: { api_key, merchant_id, username, amount }
- *    ← payment_id, qr_image, qr_string, pay_url, deeplink
- *
- * 2) Customer scans KHQR (any bank) OR taps OPEN ABA Mobile (deeplink)
- *
- * 3) Poll GET /api/checkout/:id/status
- *    → checkPayment(payment_id) via POST /aba-api/check-payment
- *    when PAID → order status "paid" → fulfillTopup (Khmer TopUp)
- *
+ * ABA PayWay (Node port of khmer_system.py)
  * Env: ABA_API_KEY, ABA_MERCHANT_ID
- * Optional: KHMER_SYSTEM_URL (default https://khmer-system.com)
- *           QR_EXPIRE_SEC (default 3600 = 1h), PUBLIC_BASE_URL (for /open-aba)
  */
 const BASE_URL = process.env.KHMER_SYSTEM_URL || "https://khmer-system.com";
 const CREATE_URL = `${BASE_URL}/aba-api/generate-qr`;
@@ -118,23 +104,19 @@ export async function createQr(amount, billNumber, username) {
     ttl: QR_EXPIRE_SEC,
   };
 
-  let lastErr = "unknown";
-  for (let attempt = 1; attempt <= 2; attempt++) {
   try {
     const r = await fetch(CREATE_URL, {
       method: "POST",
       headers: HEADERS,
       body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(25000),
+      signal: AbortSignal.timeout(20000),
     });
     const text = await r.text();
     let data;
     try {
       data = JSON.parse(text);
     } catch {
-      lastErr = `HTTP ${r.status} (non-JSON): ${text.slice(0, 200)}`;
-      if (attempt < 2) { await new Promise((x) => setTimeout(x, 800)); continue; }
-      return { success: false, error: lastErr };
+      return { success: false, error: `HTTP ${r.status} (non-JSON): ${text.slice(0, 200)}` };
     }
 
     if (data.ok && data.payment_id) {
@@ -178,29 +160,20 @@ export async function createQr(amount, billNumber, username) {
         raw: { ...data, card_image: undefined, qr_image: undefined },
       };
     }
-    lastErr = data.message || data.error || "Failed to create QR";
-    if (attempt < 2) { await new Promise((x) => setTimeout(x, 800)); continue; }
-    return { success: false, error: lastErr, raw: data };
+    return {
+      success: false,
+      error: data.message || data.error || "Failed to create QR",
+      raw: data,
+    };
   } catch (e) {
-    lastErr = e.message || String(e);
-    if (attempt < 2) { await new Promise((x) => setTimeout(x, 800)); continue; }
-    return { success: false, error: lastErr };
+    return { success: false, error: e.message || String(e) };
   }
-  } // retry loop
-  return { success: false, error: lastErr };
 }
 
-/**
- * POST /aba-api/check-payment
- * CRITICAL: never treat response.ok / success / HTTP 200 as "customer paid".
- * Those only mean the API call worked. Paid requires explicit status/paid flag.
- */
+/** POST /aba-api/check-payment { api_key, merchant_id, payment_id } → { ok, status: "PAID" | ... } */
 export async function checkPayment(paymentId) {
   if (!isPaymentReady()) {
     return { paid: false, error: "Keys not set", simulation: true };
-  }
-  if (!paymentId) {
-    return { paid: false, error: "missing payment_id" };
   }
 
   const payload = {
@@ -216,44 +189,10 @@ export async function checkPayment(paymentId) {
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(15000),
     });
-    let data;
-    try {
-      data = await r.json();
-    } catch {
-      return { paid: false, error: `HTTP ${r.status} non-JSON` };
-    }
-
-    const status = String(
-      data.status || data.payment_status || data.state || data.tran_status || "",
-    ).toUpperCase().trim();
-
-    // Explicit paid only — ignore data.ok / data.success (API ack, not payment)
-    const paidStatuses = new Set(["PAID", "SUCCESS", "COMPLETED", "COMPLETE", "DONE", "SETTLED"]);
-    const unpaidStatuses = new Set([
-      "PENDING", "UNPAID", "WAITING", "CREATED", "EXPIRED", "FAILED", "CANCELLED", "CANCELED", "TIMEOUT", "OPEN",
-    ]);
-
-    let paid = false;
-    if (data.paid === true || String(data.paid).toLowerCase() === "true") paid = true;
-    if (paidStatuses.has(status)) paid = true;
-    if (unpaidStatuses.has(status)) paid = false;
-
-    // Provider-specific codes ONLY when they mean payment state (not HTTP)
-    // e.g. payment_status_code === "0" sometimes means paid on ABA — require status too
-    const psc = data.payment_status_code ?? data.tran_status_code;
-    if (psc !== undefined && psc !== null && String(psc) !== "" && paidStatuses.has(status)) {
-      paid = true;
-    }
-
-    // Never mark paid from simulation / missing keys responses
-    if (data.simulation) paid = false;
-
-    return {
-      paid: !!paid,
-      status: status.toLowerCase() || (paid ? "paid" : "pending"),
-      amount: data.amount ?? data.total ?? data.paid_amount,
-      raw: data,
-    };
+    const data = await r.json();
+    const status = String(data.status || "").toUpperCase();
+    const paid = !!data.ok && status === "PAID";
+    return { paid, status: status.toLowerCase(), amount: data.amount, raw: data };
   } catch (e) {
     return { paid: false, error: e.message || String(e) };
   }
