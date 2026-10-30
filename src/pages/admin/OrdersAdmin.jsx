@@ -1,0 +1,233 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { AIcon, PageHead, StatusBadge, STATUS, api, toast, usd } from "./ui";
+
+const FILTERS = [["", "ទាំងអស់"], ...Object.entries(STATUS).map(([k, v]) => [k, v.km])];
+
+export default function OrdersAdmin() {
+  const [list, setList] = useState([]);
+  const [q, setQ] = useState("");
+  const [status, setStatus] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState("");
+  const [busy, setBusy] = useState("");
+  const [ipStats, setIpStats] = useState([]);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      setList(await api("/api/admin/orders"));
+      try {
+        const d = await api("/api/admin/ips");
+        setIpStats(Array.isArray(d.ips) ? d.ips.slice(0, 20) : []);
+      } catch {
+        setIpStats([]);
+      }
+    } catch {
+      setList([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const counts = useMemo(() => {
+    const c = { "": list.length };
+    for (const o of list) c[o.status || "delivered"] = (c[o.status || "delivered"] || 0) + 1;
+    return c;
+  }, [list]);
+
+  const shown = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    return list.filter((o) => {
+      if (status && (o.status || "delivered") !== status) return false;
+      if (!s) return true;
+      return [o.id, o.userId, o.gameName, o.nickname, o.packName, o.clientIp, o.paidIp].some((v) => String(v || "").toLowerCase().includes(s));
+    });
+  }, [list, q, status]);
+
+  async function patch(id, body, okMsg) {
+    setBusy(id);
+    try {
+      await api(`/api/admin/orders/${id}`, { method: "PATCH", body: JSON.stringify(body) });
+      toast(okMsg);
+      await load();
+    } catch {
+      toast("សកម្មភាពមិនបានជោគជ័យ", "bad");
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function remove(id) {
+    if (!confirm(`លុបការបញ្ជាទិញ ${id} ?`)) return;
+    try {
+      await api(`/api/admin/orders/${id}`, { method: "DELETE" });
+      toast("បានលុប");
+      load();
+    } catch {
+      toast("លុបមិនបាន", "bad");
+    }
+  }
+
+  async function setGiftCode(id) {
+    const code = prompt("បញ្ចូល Roblox code:");
+    if (!code || !code.trim()) return;
+    setBusy(id);
+    try {
+      await api(`/api/admin/orders/${id}/gift-code`, {
+        method: "POST",
+        body: JSON.stringify({ giftCode: code.trim() }),
+      });
+      toast("បានរក្សាទុកកូដ និងកំណត់ជាជោគជ័យ");
+      await load();
+    } catch {
+      toast("រក្សាទុកកូដមិនបាន", "bad");
+    } finally {
+      setBusy("");
+    }
+  }
+
+  return (
+    <div>
+      <PageHead km="ការបញ្ជាទិញ" en="Search, review and fix orders">
+        <button type="button" className="ad-btn soft" onClick={load}>
+          <AIcon name="refresh" size={16} /> ផ្ទុកឡើងវិញ
+        </button>
+      </PageHead>
+
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
+        <div className="ad-search" style={{ flex: 1, marginBottom: 0 }}>
+          <AIcon name="search" size={16} />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ស្វែងរក កូដ / Player ID / IP / ហ្គេម / ឈ្មោះ…" />
+        </div>
+        <a className="ad-btn soft" href="/api/admin/backup" download>
+          Backup ទិន្នន័យ
+        </a>
+      </div>
+
+      {ipStats.length > 0 ? (
+        <div className="card" style={{ marginBottom: 16, padding: 12 }}>
+          <strong style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+            <AIcon name="search" size={16} /> IP អ្នកប្រើ (ថ្មីៗ)
+          </strong>
+          <div style={{ display: "grid", gap: 6, maxHeight: 180, overflow: "auto", fontSize: 13 }}>
+            {ipStats.map((row) => (
+              <button
+                key={row.ip}
+                type="button"
+                className="ad-btn soft"
+                style={{ justifyContent: "space-between", width: "100%" }}
+                onClick={() => setQ(row.ip)}
+                title="ចុចដើម្បី filter orders"
+              >
+                <span className="mono">{row.ip}</span>
+                <span>
+                  {row.orders} orders · paid {row.paid} · {usd(row.total)}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="ad-chips">
+        {FILTERS.map(([k, label]) => (
+          <button key={k} type="button" className={`ad-chip${status === k ? " active" : ""}`} onClick={() => setStatus(k)}>
+            {label} <em>{counts[k] || 0}</em>
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="ad-loading"><span className="ad-spin" /> កំពុងផ្ទុក…</div>
+      ) : shown.length === 0 ? (
+        <p className="ad-empty card">រកមិនឃើញការបញ្ជាទិញទេ</p>
+      ) : (
+        <div className="ad-orders">
+          {shown.map((o) => {
+            const st = o.status || "delivered";
+            const isOpen = open === o.id;
+            const canRetry = st === "paid" || (st === "failed" && o.paidAt);
+            const canDeliver = st === "paid" || st === "processing" || (st === "failed" && o.paidAt);
+            const profit = (Number(o.total) || 0) - (Number(o.cost) || 0);
+            return (
+              <article key={o.id} className={`ad-order${isOpen ? " open" : ""}`}>
+                <button type="button" className="ad-order-row" onClick={() => setOpen(isOpen ? "" : o.id)}>
+                  <span className="mono">{o.id}</span>
+                  <span className="ad-order-game">
+                    <strong>{o.gameName}</strong>
+                    <small>
+                      {o.packName} × {o.qty}
+                    </small>
+                  </span>
+                  <span className="ad-order-player">
+                    {o.nickname || "—"}
+                    <small>
+                      {o.userId}
+                      {o.zoneId ? ` (${o.zoneId})` : ""}
+                      {o.clientIp ? ` · ${o.clientIp}` : ""}
+                    </small>
+                  </span>
+                  <b>{usd(o.total)}</b>
+                  <StatusBadge status={st} />
+                  <span className="ad-order-time">{new Date(o.createdAt).toLocaleString()}</span>
+                  <span className="ad-chev">
+                    <AIcon name="chevron" size={16} />
+                  </span>
+                </button>
+
+                {isOpen ? (
+                  <div className="ad-order-detail">
+                    <dl>
+                      <div><dt>IP</dt><dd className="mono">{o.clientIp || "—"}{o.paidIp && o.paidIp !== o.clientIp ? ` → paid ${o.paidIp}` : ""}</dd></div>
+                      <div><dt>ចំណូល</dt><dd>{usd(o.total)}{o.discount ? ` (បញ្ចុះ ${usd(o.discount)})` : ""}</dd></div>
+                      <div><dt>តម្លៃដើម</dt><dd>{o.cost != null ? usd(o.cost) : "—"}</dd></div>
+                      <div><dt>ចំណេញ</dt><dd className={profit >= 0 ? "pos" : "neg"}>{o.cost != null ? usd(profit) : "—"}</dd></div>
+                      <div><dt>Coupon</dt><dd>{o.coupon || "—"}</dd></div>
+                      <div><dt>Supplier order</dt><dd className="mono">{(o.ktOrderCodes || (o.ktOrderCode ? [o.ktOrderCode] : [])).join(", ") || "—"}</dd></div>
+                      <div><dt>បានបង់នៅ</dt><dd>{o.paidAt ? new Date(o.paidAt).toLocaleString() : "មិនទាន់បង់"}</dd></div>
+                    </dl>
+                    {o.note ? <p className="ad-note">{o.note}</p> : null}
+                    {o.deliveryType === "gift_code" || o.gameId === "roblox-gift-cards" ? (
+                      <p className="ad-note">
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><AIcon name="box" size={15} /> Roblox</span> — {o.giftCode ? <>កូដ: <code>{o.giftCode}</code></> : "មិនទាន់ដាក់កូដ (ផ្ញើតាម Live Chat រួចដាក់កូដខាងក្រោម)"}
+                      </p>
+                    ) : null}
+                    <div className="ad-actions">
+                      {o.deliveryType === "gift_code" || o.gameId === "roblox-gift-cards" ? (
+                        <button type="button" className="ad-btn primary" disabled={busy === o.id} onClick={() => setGiftCode(o.id)}>
+                          <AIcon name="check" size={15} /> ដាក់ Gift Code
+                        </button>
+                      ) : null}
+                      {canRetry && o.deliveryType !== "gift_code" ? (
+                        <button type="button" className="ad-btn primary" disabled={busy === o.id} onClick={() => patch(o.id, { fulfill: true }, "បានបញ្ជូនទៅ Khmer TopUp ម្តងទៀត")}>
+                          <AIcon name="bolt" size={15} /> បញ្ចូលហ្គេមម្តងទៀត
+                        </button>
+                      ) : null}
+                      {canDeliver ? (
+                        <button
+                          type="button"
+                          className="ad-btn soft"
+                          disabled={busy === o.id}
+                          onClick={() => confirm("កំណត់ជា «ជោគជ័យ» ដោយដៃ?") && patch(o.id, { status: "delivered" }, "បានកំណត់ជាជោគជ័យ")}
+                        >
+                          <AIcon name="check" size={15} /> កំណត់ជាជោគជ័យ
+                        </button>
+                      ) : null}
+                      <button type="button" className="ad-btn danger" onClick={() => remove(o.id)}>
+                        <AIcon name="trash" size={15} /> លុប
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}

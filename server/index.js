@@ -1,0 +1,1500 @@
+import express from "express";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+import cookieParser from "cookie-parser";
+import crypto from "crypto";
+import {
+  UPLOAD_DIR,
+  createOrder,
+  createSession,
+  deleteOrder,
+  destroySession,
+  getOrder,
+  getSettings,
+  listOrders,
+  stats,
+  updateOrder,
+  updateSettings,
+  validSession,
+  getGiftStock,
+  stockSummary,
+  setPackStock,
+  addPackStock,
+  popPackStock,
+  stockCount,
+  runAutoBackup,
+  listBackups,
+  exportFullBackup,
+  importFullBackup,
+  SHOP_HOURS,
+} from "./store.js";
+import * as khmerSystem from "./khmerSystem.js";
+import * as khmerSystemPay from "./khmerSystemPay.js";
+import * as liveChat from "./liveChat.js";
+import * as khmerTopup from "./khmerTopup.js";
+import * as catalog from "./catalog.js";
+import { isGiftCodeProduct, localCatalog, DEFAULT_LOCAL_PRODUCTS, cleanBanners } from "./localProducts.js";
+import {
+  clientIp,
+  clientUa,
+  limit,
+  checkLoginAllowed,
+  recordLoginFail,
+  clearLoginFails,
+  assertPaymentProviderPaid,
+  auditLog,
+  readAuditLog,
+} from "./security.js";
+import { issueCsrf, csrfGuard } from "./csrf.js";
+import * as branding from "./branding.js";
+import * as tg from "./telegramNotify.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.join(__dirname, "..");
+const DIST = path.join(ROOT, "dist");
+const PORT = Number(process.env.PORT) || 3000;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "porpor-admin-2026";
+
+function isWeakAdminPassword(pw) {
+  const p = String(pw || "");
+  if (p.length < 12) return true;
+  if (!/[A-Za-z]/.test(p) || !/\d/.test(p)) return true;
+  if (/^porpor-admin-2026$/i.test(p)) return true;
+  return false;
+}
+/** Private admin SPA path (no leading slash). Default: pp-console — set ADMIN_PATH on Render to hide it. */
+const ADMIN_PATH = String(process.env.ADMIN_PATH || "pp-console").replace(/^\/+|\/+$/g, "") || "pp-console";
+const isProd = process.env.NODE_ENV === "production";
+
+/** Checkout idempotency: key -> { orderId, at } (in-memory, ~15 min) */
+const checkoutIdem = new Map();
+setInterval(() => {
+  const cut = Date.now() - 15 * 60_000;
+  for (const [k, v] of checkoutIdem) if (!v || v.at < cut) checkoutIdem.delete(k);
+}, 60_000).unref?.();
+
+const app = express();
+app.set("trust proxy", 1); // Render / reverse proxy — real client IP
+app.use(express.json({ limit: "1mb" }));
+app.use(cookieParser());
+app.use(csrfGuard);
+// Basic abuse shield (per-IP)
+app.use("/api/", limit("api", { limit: 180, windowMs: 60_000 }));
+
+/* Security headers — HTTPS (Render/Cloudflare) + browser hardening */
+app.use((_req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  if (isProd) {
+    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+  }
+  // Telegram Login Widget needs script + iframe from telegram.org / oauth.telegram.org
+  res.setHeader(
+    "Content-Security-Policy",
+    [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "frame-ancestors 'none'",
+      "object-src 'none'",
+      "img-src 'self' data: https: blob:",
+      "font-src 'self' https://fonts.gstatic.com data:",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "script-src 'self' https://telegram.org https://oauth.telegram.org",
+      "frame-src 'self' https://oauth.telegram.org https://telegram.org",
+      "connect-src 'self' https://telegram.org https://oauth.telegram.org",
+      "form-action 'self' https://oauth.telegram.org",
+    ].join("; "),
+  );
+  next();
+});
+
+
+function adminAuth(req, res, next) {
+  const token = req.cookies?.porpor_admin || req.headers["x-admin-token"];
+  if (!validSession(token)) {
+    return res.status(401).json({ error: "unauthorized" });
+  }
+  next();
+}
+
+function newCode() {
+  // Longer random id reduces IDOR / enumeration of track URLs
+  return `PP-${crypto.randomBytes(5).toString("hex").toUpperCase()}`;
+}
+
+function uniqueCode() {
+  let id = newCode();
+  while (getOrder(id)) id = newCode();
+  return id;
+}
+
+const round2 = (n) => Math.round(n * 100) / 100;
+
+function calcCoupon(settings, code, subtotal) {
+  const c = String(code || "").trim().toUpperCase();
+  if (!c) return { ok: true, discount: 0, code: "" };
+  const found = (settings.coupons || []).find((x) => String(x.code).toUpperCase() === c);
+  if (!found) return { ok: false, error: "coupon_invalid" };
+  if (subtotal < (Number(found.min) || 0)) return { ok: false, error: "coupon_min" };
+  const raw = found.type === "fixed" ? Number(found.value) || 0 : (subtotal * (Number(found.value) || 0)) / 100;
+  return { ok: true, discount: Math.min(subtotal, round2(raw)), code: c };
+}
+
+function publicOrder(o) {
+  if (!o) return o;
+  return {
+    id: o.id,
+    gameId: o.gameId,
+    gameName: o.gameName,
+    packName: o.packName,
+    qty: o.qty,
+    total: o.total,
+    discount: o.discount,
+    userId: o.userId,
+    zoneId: o.zoneId,
+    server: o.server,
+    nickname: o.nickname,
+    method: o.method,
+    status: o.status,
+    createdAt: o.createdAt,
+    paidAt: o.paidAt || null,
+    providerPaid: !!o.providerPaid,
+    needsManual: !!o.needsManual,
+    deliveryType: o.deliveryType || "topup",
+    giftCode: o.giftCode || null,
+    note: o.note || "",
+    telegramId: o.telegramId || null,
+  };
+}
+
+function summarizeKt(codes, statuses) {
+  const vals = codes.map((c) => String(statuses[c] || "").toLowerCase());
+  if (vals.length && vals.every((v) => v === "completed")) return { status: "delivered" };
+  if (vals.some((v) => v === "refunded")) return { status: "failed", note: "Supplier refunded" };
+  return { status: "processing" };
+}
+
+async function fulfillTopup(order) {
+  const dt = order.deliveryType || "topup";
+
+  // Robux Send / Live Chat — queue for admin; notify bot (no silent auto transfer)
+  if (dt === "live_chat" || dt === "robux_send") {
+    const queued = updateOrder(order.id, {
+      status: "queued",
+      needsManual: true,
+      note:
+        dt === "robux_send"
+          ? "Robux Send queued — admin must transfer Robux"
+          : "Live Chat / manual delivery — notify bot",
+      paidAt: order.paidAt || Date.now(),
+      queuedAt: Date.now(),
+    });
+    // Telegram already notified on paid via formatOrderMsg → formatRobuxSendMsg
+    try {
+      if (dt === "robux_send" || dt === "live_chat") {
+        tg.notifyChannel(tg.formatRobuxSendMsg(queued)).catch(() => {});
+      }
+    } catch {}
+    return queued;
+  }
+
+  // Stock / gift_code — auto-assign code from inventory
+  if (dt === "gift_code" || dt === "stock") {
+    const codes = [];
+    const qty = Math.max(1, Math.min(10, Number(order.qty) || 1));
+    for (let i = 0; i < qty; i++) {
+      const c = popPackStock(order.packId);
+      if (!c) break;
+      codes.push(c);
+    }
+    if (codes.length >= qty) {
+      return updateOrder(order.id, {
+        status: "delivered",
+        giftCode: codes.join("\n"),
+        note: "Auto-delivered from stock",
+        deliveredAt: Date.now(),
+        paidAt: order.paidAt || Date.now(),
+      });
+    }
+    if (codes.length) {
+      return updateOrder(order.id, {
+        status: "paid",
+        giftCode: codes.join("\n"),
+        note: `Partial stock (${codes.length}/${qty}) — rest via Live Chat`,
+        paidAt: order.paidAt || Date.now(),
+      });
+    }
+    return updateOrder(order.id, {
+      status: "paid",
+      note: "No stock — deliver via Live Chat / Admin",
+      paidAt: order.paidAt || Date.now(),
+    });
+  }
+  const settings = getSettings();
+  if (!settings.autoTopup) {
+    return updateOrder(order.id, { status: "paid", note: "autoTopup disabled — fulfill manually" });
+  }
+  if (!khmerTopup.isTopupReady()) {
+    return updateOrder(order.id, {
+      status: "paid",
+      note: "KHMER_TOPUP_API_KEY missing — paid but not auto-delivered",
+    });
+  }
+  if (!order.ktPackageId) {
+    return updateOrder(order.id, {
+      status: "paid",
+      note: "Missing Khmer TopUp package id on this order — fulfill manually",
+    });
+  }
+
+  const codes = [...(order.ktOrderCodes || (order.ktOrderCode ? [order.ktOrderCode] : []))];
+  const statuses = { ...(order.ktStatuses || {}) };
+  updateOrder(order.id, { status: "processing" });
+
+  try {
+    // one Khmer TopUp order per unit, so qty > 1 delivers everything the customer paid for
+    for (let i = codes.length; i < (order.qty || 1); i++) {
+      const result = await khmerTopup.placeOrder({
+        packageId: order.ktPackageId,
+        playerId: order.userId,
+        serverId: order.zoneId || order.server || undefined,
+        reference: order.qty > 1 ? `${order.id}-${i + 1}` : order.id,
+      });
+      codes.push(result.order_code);
+      statuses[result.order_code] = result.status;
+      updateOrder(order.id, { ktOrderCodes: codes, ktOrderCode: codes[0], ktStatuses: statuses });
+    }
+  } catch (e) {
+    return updateOrder(order.id, {
+      status: "paid",
+      paidAt: order.paidAt || Date.now(),
+      providerPaid: true,
+      ktOrderCodes: codes,
+      ktOrderCode: codes[0] || order.ktOrderCode,
+      ktStatuses: statuses,
+      note: `TopUp error after ${codes.length}/${order.qty || 1}: ${e.message} — fulfill manually`,
+      needsManual: true,
+    });
+  }
+
+  return updateOrder(order.id, {
+    ...summarizeKt(codes, statuses),
+    note: `Khmer TopUp ${codes.join(", ")}`,
+  });
+}
+
+async function pollKtStatus(order) {
+  const codes = order.ktOrderCodes || (order.ktOrderCode ? [order.ktOrderCode] : []);
+  if (!codes.length || !khmerTopup.isTopupReady()) return order;
+  const statuses = { ...(order.ktStatuses || {}) };
+  try {
+    for (const code of codes) {
+      if (String(statuses[code] || "").toLowerCase() === "completed") continue;
+      const remote = await khmerTopup.getOrder(code);
+      statuses[code] = String(remote.status || "").toLowerCase();
+    }
+    return updateOrder(order.id, { ktStatuses: statuses, ...summarizeKt(codes, statuses) });
+  } catch {
+    return order;
+  }
+}
+
+
+app.get("/api/csrf", (req, res) => {
+  const csrf = issueCsrf(res, isProd);
+  res.json({ csrf });
+});
+
+app.get("/api/public-config", (_req, res) => {
+  // Do not expose ADMIN_PATH here (security). Path is injected into index.html as window.__ADMIN_PATH__ only.
+  res.json({ ok: true });
+});
+
+
+app.get("/api/ticker", (_req, res) => {
+  // Everything here comes from real orders in the database — nothing is made up.
+  res.set("Cache-Control", "public, max-age=10");
+  try {
+    const settings = getSettings();
+    const all = listOrders();
+    const okStatus = new Set([
+      "paid", "delivered", "done", "success", "completed", "processing", "fulfilled",
+    ]);
+    const stamp = (o) => Number(o.paidAt || o.deliveredAt || o.createdAt) || 0;
+    const real = all
+      .filter((o) => okStatus.has(String(o.status || "").toLowerCase()))
+      .sort((a, b) => stamp(b) - stamp(a));
+
+    const items = real.slice(0, 30).map((o) => {
+      const game = String(o.gameName || o.productName || o.serviceName || "").trim();
+      const pack = String(o.packName || o.packageName || o.title || "").trim();
+      const qty = Number(o.qty) > 1 ? ` ×${o.qty}` : "";
+      let label = "";
+      if (game && pack) label = `${game} — ${pack}${qty}`;
+      else if (pack) label = `${pack}${qty}`;
+      else if (game) label = `${game}${qty}`;
+      else label = `Order ${String(o.id || "").slice(-6)}`;
+      return {
+        id: String(o.id || "").slice(-8),
+        label: label.slice(0, 56),
+        at: stamp(o),
+      };
+    });
+
+    // Real average delivery time (payment → delivered), from the latest delivered orders
+    const spans = real
+      .filter((o) => o.deliveredAt && o.paidAt)
+      .slice(0, 100)
+      .map((o) => (Number(o.deliveredAt) - Number(o.paidAt)) / 1000)
+      .filter((n) => Number.isFinite(n) && n >= 0 && n < 6 * 3600);
+    const avgDeliverySec = spans.length ? Math.round(spans.reduce((a, b) => a + b, 0) / spans.length) : null;
+
+    // Real sold count (a starting number is only added if the admin set one on purpose)
+    const realCount = real.length;
+    const base = Number(settings.tickerSoldBase);
+    const sold = Number.isFinite(base) && base > 0 ? base + realCount : realCount;
+    const soldLabel =
+      (settings.tickerSoldLabel && String(settings.tickerSoldLabel).trim()) ||
+      (sold > 0 ? `ការបញ្ជាទិញ — ${sold} បានលក់` : "ការបញ្ជាទិញ");
+
+    res.json({
+      ok: true,
+      delivery: SHOP_HOURS,
+      soldLabel,
+      sold,
+      avgDeliverySec,
+      items, // real only — empty if no paid orders yet
+    });
+  } catch (e) {
+    console.error("[ticker]", e);
+    res.json({ ok: true, delivery: SHOP_HOURS, soldLabel: "ការបញ្ជាទិញ", sold: 0, avgDeliverySec: null, items: [] });
+  }
+});
+
+app.get("/api/health", (_req, res) => {
+  res.json({
+    ok: true,
+    name: "POR POR TOPUP",
+    payment: khmerSystem.isPaymentReady(),
+    topup: khmerTopup.isTopupReady(),
+  });
+});
+
+app.get("/api/integrations/status", (_req, res) => {
+  const s = getSettings();
+  res.json({
+    paymentReady: khmerSystem.isPaymentReady(),
+    topupReady: khmerTopup.isTopupReady(),
+    autoTopup: !!s.autoTopup,
+  });
+});
+
+app.get("/api/settings", (_req, res) => {
+  const s = getSettings();
+  res.json({
+    siteName: s.siteName,
+    taglineKm: s.taglineKm,
+    taglineEn: s.taglineEn,
+    telegram: s.telegram,
+    announcementKm: s.announcementKm,
+    announcementEn: s.announcementEn,
+    maintenance: s.maintenance,
+    logoUrl: s.logoUrl || "",
+    bannerUrls: Array.isArray(s.bannerUrls) ? s.bannerUrls : [],
+    // Never list coupon codes publicly — validate only at checkout when user types a code
+    couponsEnabled: Array.isArray(s.coupons) && s.coupons.length > 0,
+  });
+});
+
+/** Preview coupon discount — does not list codes; user must already know the code */
+app.post("/api/coupon/preview", limit("coupon", { limit: 30, windowMs: 60_000 }), (req, res) => {
+  const code = String(req.body?.code || "").trim();
+  const subtotal = Number(req.body?.subtotal) || 0;
+  if (!code) return res.json({ ok: true, discount: 0, code: "" });
+  if (subtotal < 0 || subtotal > 1e6) return res.status(400).json({ ok: false, error: "bad_subtotal" });
+  const cp = calcCoupon(getSettings(), code, subtotal);
+  if (!cp.ok) return res.json({ ok: false, error: cp.error === "coupon_min" ? "min" : "bad", discount: 0 });
+  res.json({ ok: true, discount: cp.discount, code: cp.code });
+});
+
+/** Which server build is live (to confirm a deploy actually took effect). */
+
+/* ---------- In-site Live Chat ---------- */
+
+/* ---------- Live Chat media (image + voice) — rate-limited by IP via body size ---------- */
+function sniffChatMedia(b) {
+  if (!Buffer.isBuffer(b) || b.length < 12) return null;
+  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return "png";
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "jpg";
+  if (b.toString("ascii", 0, 4) === "GIF8") return "gif";
+  if (b.toString("ascii", 0, 4) === "RIFF" && b.toString("ascii", 8, 12) === "WEBP") return "webp";
+  // webm
+  if (b[0] === 0x1a && b[1] === 0x45 && b[2] === 0xdf && b[3] === 0xa3) return "webm";
+  // ogg
+  if (b.toString("ascii", 0, 4) === "OggS") return "ogg";
+  // mp4 / m4a
+  if (b.toString("ascii", 4, 8) === "ftyp") return "m4a";
+  return null;
+}
+
+app.post(
+  "/api/chat/upload",
+  limit("chat_upload", { limit: 8, windowMs: 60_000 }),
+  express.raw({ type: () => true, limit: "3mb" }),
+  (req, res) => {
+  const ext = sniffChatMedia(req.body);
+  if (!ext) return res.status(400).json({ error: "bad_file" });
+  // images + audio only
+  const ok = ["png", "jpg", "gif", "webp", "webm", "ogg", "m4a"].includes(ext);
+  if (!ok) return res.status(400).json({ error: "bad_file" });
+  if (!req.body || req.body.length < 64) return res.status(400).json({ error: "empty" });
+  const name = `chat-${Date.now().toString(36)}-${crypto.randomBytes(5).toString("hex")}.${ext}`;
+  try {
+    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+    fs.writeFileSync(path.join(UPLOAD_DIR, name), req.body);
+  } catch (e) {
+    return res.status(500).json({ error: "write_failed" });
+  }
+  res.json({ url: `/uploads/${name}`, type: ["webm", "ogg", "m4a"].includes(ext) ? "voice" : "image" });
+});
+
+app.post("/api/chat/session", (req, res) => {
+  // 1 IP = 1 user — thread id is always the client IP (server-side)
+  const ip = clientIp(req);
+  const meta = {
+    name: String(req.body?.name || "").slice(0, 80),
+    orderId: String(req.body?.orderId || "").slice(0, 40),
+  };
+  const thread = liveChat.getOrCreateThread(ip, meta);
+  res.json({ visitorId: thread.id, messages: thread.messages || [] });
+});
+
+app.get("/api/chat/messages", (req, res) => {
+  // Always bind to request IP (ignore client-supplied thread id for security)
+  const ip = clientIp(req);
+  const after = Number(req.query.after || 0) || 0;
+  const data = liveChat.getMessages(ip, after);
+  if (!data) return res.status(404).json({ error: "not_found" });
+  liveChat.markRead(ip, "user");
+  res.json(data);
+});
+
+app.post("/api/chat/messages", (req, res) => {
+  const ip = clientIp(req);
+  const type = String(req.body?.type || "text");
+  const text = String(req.body?.text || "").trim();
+  const mediaUrl = String(req.body?.mediaUrl || "").trim();
+  const duration = Number(req.body?.duration) || 0;
+  if (type === "text") {
+    if (!text) return res.status(400).json({ error: "invalid" });
+    if (text.length > 2000) return res.status(400).json({ error: "too_long" });
+  } else if (type === "image" || type === "voice") {
+    if (!/^\/uploads\/[\w.-]{1,120}$/.test(mediaUrl)) {
+      return res.status(400).json({ error: "bad_media" });
+    }
+  } else {
+    return res.status(400).json({ error: "bad_type" });
+  }
+  const msg = liveChat.postUserMessage(
+    ip,
+    { type, text, mediaUrl, duration },
+    { name: req.body?.name, orderId: req.body?.orderId },
+  );
+  if (!msg) return res.status(400).json({ error: "invalid" });
+  res.json({ ok: true, message: msg, ip });
+});
+
+app.get("/api/admin/chat/threads", adminAuth, (_req, res) => {
+  res.json({ threads: liveChat.listThreads() });
+});
+
+app.get("/api/admin/chat/:id", adminAuth, (req, res) => {
+  const data = liveChat.getMessages(req.params.id, 0);
+  if (!data) return res.status(404).json({ error: "not_found" });
+  liveChat.markRead(req.params.id, "admin");
+  res.json(data);
+});
+
+app.post("/api/admin/chat/:id", adminAuth, (req, res) => {
+  const type = String(req.body?.type || "text");
+  const text = String(req.body?.text || "").trim();
+  const mediaUrl = String(req.body?.mediaUrl || "").trim();
+  const duration = Number(req.body?.duration) || 0;
+  if (type === "text" && !text) return res.status(400).json({ error: "empty" });
+  if ((type === "image" || type === "voice") && !/^\/uploads\/[\w.-]{1,120}$/.test(mediaUrl)) {
+    return res.status(400).json({ error: "bad_media" });
+  }
+  const msg = liveChat.postAgentMessage(req.params.id, { type, text, mediaUrl, duration });
+  if (!msg) return res.status(404).json({ error: "not_found" });
+  res.json({ ok: true, message: msg });
+});
+
+
+app.get("/api/version", (_req, res) => {
+  res.set("Cache-Control", "no-store");
+  res.json({
+    build: "v2.0.0",
+    usernameRequiredIds: String(process.env.USERNAME_REQUIRED_IDS || ""),
+  });
+});
+
+/** Games + packages the admin selected from Khmer TopUp (prices include markup). */
+app.get("/api/catalog", async (req, res) => {
+  try {
+    const settings = getSettings();
+    let games = await catalog.publicCatalog();
+    const tgUser = tg.readTgSession(req.cookies?.porpor_tg);
+    const applied = catalog.applyResellerToCatalog(games, settings, tgUser);
+    res.json({
+      games: applied.games,
+      isReseller: applied.isReseller,
+      resellerUsername: applied.isReseller ? (tgUser?.username || tgUser?.id || null) : null,
+    });
+  } catch (e) {
+    res.status(502).json({ games: [], error: "catalog_unavailable", message: e.message });
+  }
+});
+
+app.post("/api/verify", limit("verify", { limit: 30, windowMs: 60_000 }), async (req, res) => {
+  const { slug, playerId, serverId } = req.body || {};
+  if (!slug || !playerId) return res.status(400).json({ result: "incomplete", message: "slug and playerId required" });
+  if (!khmerTopup.isTopupReady()) {
+    return res.status(503).json({ result: "unknown", error: "topup_not_configured" });
+  }
+  try {
+    const game = await catalog.findGame(slug);
+    if (!game || game.open === false) return res.status(404).json({ result: "unknown", error: "game_unavailable" });
+    const data = await khmerTopup.verifyAccount(slug, playerId, serverId);
+    return res.json(data);
+  } catch (e) {
+    return res.json({ result: "unknown", error: e.message });
+  }
+});
+
+
+app.get("/api/auth/telegram/config", (_req, res) => {
+  const botUsername = tg.botUsername() || null;
+  const ready = tg.isLoginReady();
+  res.set("Cache-Control", "no-store");
+  res.json({
+    ok: Boolean(botUsername),
+    botUsername,
+    configured: ready,
+    hasToken: Boolean(typeof tg.botToken === "function" ? tg.botToken() : false),
+  });
+});
+function setTgCookie(res, user) {
+  const token = tg.signTgSession(user);
+  res.cookie("porpor_tg", token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: isProd,
+    maxAge: 30 * 24 * 3600 * 1000,
+    path: "/",
+  });
+}
+
+app.post("/api/auth/telegram", limit("tglogin", { limit: 20, windowMs: 60_000 }), (req, res) => {
+  const v = tg.verifyTelegramLogin(req.body || {});
+  if (!v.ok) {
+    console.warn("[tg-login]", v.error, req.body?.id);
+    return res.status(401).json({ error: v.error || "unauthorized" });
+  }
+  setTgCookie(res, v.user);
+  auditLog("tg_login", { tgId: v.user.id, username: v.user.username, ip: clientIp(req) });
+  res.json({ ok: true, user: v.user });
+});
+
+/** Redirect-based login (more reliable on mobile / when embed widget stays blank) */
+app.get("/api/auth/telegram/callback", limit("tglogin", { limit: 30, windowMs: 60_000 }), (req, res) => {
+  const v = tg.verifyTelegramLogin(req.query || {});
+  if (!v.ok) {
+    console.warn("[tg-login-callback]", v.error, req.query?.id);
+    return res.redirect("/?tg_login=fail");
+  }
+  setTgCookie(res, v.user);
+  auditLog("tg_login", { tgId: v.user.id, username: v.user.username, ip: clientIp(req), via: "callback" });
+  res.redirect("/?tg_login=ok");
+});
+app.get("/api/auth/me", (req, res) => {
+  const user = tg.readTgSession(req.cookies?.porpor_tg);
+  if (!user) return res.json({ ok: false, user: null });
+  res.json({ ok: true, user });
+});
+app.post("/api/auth/logout", (req, res) => {
+  res.clearCookie("porpor_tg", { path: "/" });
+  res.json({ ok: true });
+});
+
+app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000 }), async (req, res, next) => {
+  try {
+  const body = req.body || {};
+  const settings = getSettings();
+  if (settings.maintenance) {
+    return res.status(503).json({ error: "maintenance" });
+  }
+  if (!khmerSystem.isPaymentReady()) {
+    return res.status(503).json({ error: "not_configured" });
+  }
+
+  if (!body.gameId || !body.packId) {
+    return res.status(400).json({ error: "invalid" });
+  }
+
+  // Idempotency: same key within ~15 min returns the same still-pending order/QR
+  const idemRaw = String(body.idempotencyKey || "").trim().slice(0, 160);
+  if (idemRaw) {
+    const hit = checkoutIdem.get(`${clientIp(req)}:${idemRaw}`);
+    const prev = hit ? getOrder(hit.orderId) : null;
+    if (prev && prev.status === "pending" && prev.qrImage) {
+      return res.json({
+        order: publicOrder(prev),
+        payment: {
+          transactionId: prev.transactionId,
+          qrImage: prev.qrImage,
+          qrString: prev.qrString,
+          payUrl: prev.payUrl || "",
+          deeplink: prev.openAbaUrl || prev.deeplink || prev.payUrl || "",
+          openAbaUrl: prev.openAbaUrl || "",
+          expiresAt: prev.expiresAt,
+        },
+      });
+    }
+  }
+
+  // Price comes from the server catalog — never trust the client total.
+  let found;
+  try {
+    found = await catalog.findPack(body.gameId, body.packId);
+  } catch (e) {
+    return res.status(502).json({ error: "catalog_unavailable" });
+  }
+  if (!found) return res.status(400).json({ error: "pack_unavailable" });
+  // A game the admin turned OFF can never be ordered, even by calling the API directly
+  if (found.game.open === false) return res.status(400).json({ error: "pack_unavailable" });
+
+  const giftCode = isGiftCodeProduct(found.game);
+  if (giftCode) {
+    const dt = found.game.deliveryType || "stock";
+    if (dt === "stock" || dt === "gift_code") {
+      const need = Math.min(10, Math.max(1, Math.floor(Number(body.qty)) || 1));
+      const left = stockCount(found.pack.id);
+      if (left < need) {
+        return res.status(400).json({ error: "out_of_stock", stock: left });
+      }
+    }
+  }
+
+  // Gift cards / local products do not need Khmer TopUp
+  if (!giftCode && !khmerTopup.isTopupReady()) {
+    return res.status(503).json({ error: "not_configured" });
+  }
+
+  const userId = String(body.userId || "").trim();
+  const needUser = giftCode
+    ? (typeof found.game.requireUsername === "boolean"
+        ? found.game.requireUsername
+        : found.game.deliveryType === "live_chat" || found.game.deliveryType === "robux_send" || found.game.deliveryType === "gift_code")
+    : true;
+  if (needUser && userId.length < 3) {
+    return res.status(400).json({ error: "invalid", detail: "need_username" });
+  }
+
+  const zoneId = String(body.zoneId || "").trim();
+  const server = String(body.server || "").trim();
+  if (!giftCode && found.game.hasZone && !zoneId) return res.status(400).json({ error: "need_zone" });
+  if (!giftCode && found.game.servers?.length && !found.game.servers.some((s) => s.value === server)) {
+    return res.status(400).json({ error: "need_server" });
+  }
+
+  const qty = Math.min(10, Math.max(1, Math.floor(Number(body.qty)) || 1));
+  // Reseller fixed price (USD) when logged-in TG user is in reseller list
+  const tgUser = tg.readTgSession(req.cookies?.porpor_tg);
+  const isRes = catalog.isResellerUser(settings, tgUser);
+  const fixedRp = isRes ? catalog.resellerFixedPrice(settings, found.pack.id) : null;
+  const unitPrice = fixedRp != null ? fixedRp : Number(found.pack.price);
+  const subtotal = round2(unitPrice * qty);
+  const cp = calcCoupon(settings, body.coupon, subtotal);
+  if (!cp.ok) return res.status(400).json({ error: cp.error });
+  const total = round2(subtotal - cp.discount);
+  if (!(total > 0)) return res.status(400).json({ error: "invalid" });
+
+  const order = createOrder({
+    id: uniqueCode(),
+    gameId: found.game.id,
+    gameName: found.game.name,
+    packId: found.pack.id,
+    packName: found.pack.name,
+    qty,
+    total,
+    discount: cp.discount,
+    cost: round2((found.pack.cost || found.pack.price) * qty),
+    userId: giftCode ? (needUser ? userId : userId || "gift") : userId,
+    zoneId,
+    server,
+    nickname: String(body.nickname || ""),
+    method: "khqr",
+    coupon: cp.code,
+    ktPackageId: giftCode ? null : Number(found.pack.id),
+    deliveryType: giftCode ? (found.game.deliveryType === "live_chat" || found.game.deliveryType === "robux_send" ? found.game.deliveryType : "stock") : (found.game.deliveryType === "robux_send" ? "robux_send" : "topup"),
+    giftCode: null,
+    status: "pending",
+    clientIp: clientIp(req),
+    userAgent: clientUa(req),
+    createdAt: Date.now(),
+  });
+
+  const qr = await khmerSystem.createQr(order.total, order.id, `p${order.id}`);
+  if (!qr.success) {
+    console.error("[checkout] ABA PayWay QR failed:", qr.error, JSON.stringify(qr.raw || {}));
+    updateOrder(order.id, { status: "failed", note: `QR error: ${qr.error}` });
+    return res.status(502).json({ error: "qr_failed", detail: qr.error });
+  }
+  // QR lifetime: default / minimum 1 hour (3600s). Provider may return shorter —
+  // we still expose at least 1h to the client countdown; actual bank QR may vary.
+  const QR_EXPIRE_SEC = Math.max(3600, Number(process.env.QR_EXPIRE_SEC || 3600) || 3600);
+  const minExpiryMs = Date.now() + QR_EXPIRE_SEC * 1000;
+  let expiresAt =
+    qr.expires_at ||
+    qr.expire_at ||
+    qr.expired_at ||
+    new Date(minExpiryMs).toISOString();
+  const expMs = Date.parse(expiresAt);
+  if (!Number.isFinite(expMs) || expMs < minExpiryMs) {
+    expiresAt = new Date(minExpiryMs).toISOString();
+  }
+  const openAba = qr.open_aba_url || "";
+  const updated = updateOrder(order.id, {
+    transactionId: qr.transaction_id,
+    qrImage: qr.qr_image,
+    qrString: qr.qr_string,
+    payUrl: qr.pay_url || "",
+    deeplink: qr.deeplink || qr.pay_url || "",
+    openAbaUrl: openAba,
+    expiresAt,
+  });
+  auditLog("checkout_create", { orderId: updated.id, total: updated.total, ip: clientIp(req) });
+  try { tg.notifyChannel(tg.formatOrderMsg("new", updated)).catch(() => {}); } catch {}
+  if (idemRaw) {
+    checkoutIdem.set(`${clientIp(req)}:${idemRaw}`, { orderId: updated.id, at: Date.now() });
+  }
+  return res.json({
+    order: publicOrder(updated),
+    payment: {
+      transactionId: qr.transaction_id,
+      qrImage: qr.qr_image,
+      qrString: qr.qr_string,
+      payUrl: qr.pay_url || "",
+      deeplink: openAba || qr.deeplink || qr.pay_url || "",
+      openAbaUrl: openAba,
+      expiresAt,
+    },
+  });
+  } catch (e) {
+    console.error("[checkout] unexpected:", e && e.stack ? e.stack : e);
+    if (!res.headersSent) res.status(500).json({ error: "server_error" });
+  }
+});
+
+app.get("/api/checkout/:id/status", limit("paystatus", { limit: 40, windowMs: 60_000 }), async (req, res) => {
+  let order = getOrder(req.params.id);
+  if (!order) return res.status(404).json({ error: "not_found" });
+
+  if (order.status === "failed" && (order.providerPaid || order.paidAt)) {
+    order = updateOrder(order.id, {
+      status: "paid",
+      note: ((order.note || "") + " | recovered from false failed").trim(),
+      needsManual: true,
+    });
+  }
+
+  const canCheckPay =
+    order.transactionId &&
+    khmerSystem.isPaymentReady() &&
+    (order.status === "pending" || (order.status === "failed" && !order.providerPaid));
+
+  if (canCheckPay) {
+    const pay = await khmerSystem.checkPayment(order.transactionId);
+    console.log("[pay-check]", order.id, pay.status, pay.paid, pay.error || "");
+    // Strict: only explicit provider paid (never trust ok/success alone)
+    if (assertPaymentProviderPaid(pay) && pay.paid === true && !pay.simulation && !pay.error) {
+      const paidAmt = Number(pay.amount ?? pay.total ?? pay.paid_amount);
+      // If provider returns an amount, it must match order total (±$0.05)
+      if (Number.isFinite(paidAmt) && paidAmt > 0 && Math.abs(paidAmt - Number(order.total)) > 0.05) {
+        console.warn("[pay] amount mismatch BLOCKED", order.id, paidAmt, order.total);
+        order = updateOrder(order.id, { note: `Amount mismatch blocked provider=${paidAmt} order=${order.total}` });
+        auditLog("payment_amount_mismatch", { orderId: order.id, paidAmt, total: order.total });
+      } else {
+        const fresh = getOrder(order.id);
+        if (fresh && (fresh.status === "pending" || (fresh.status === "failed" && !fresh.providerPaid))) {
+          order = updateOrder(order.id, {
+            status: "paid",
+            paidAt: Date.now(),
+            paidIp: clientIp(req),
+            providerPaid: true,
+            payStatusRaw: pay.status || "paid",
+          });
+          auditLog("payment_ok", { orderId: order.id, total: order.total, ip: clientIp(req), status: pay.status });
+          try { tg.notifyChannel(tg.formatOrderMsg("paid", order)).catch(() => {}); } catch {}
+          order = await fulfillTopup(order);
+          if (order && order.status === "delivered") {
+            try { tg.notifyChannel(tg.formatOrderMsg("delivered", order)).catch(() => {}); } catch {}
+          }
+        } else if (fresh) {
+          order = fresh;
+        }
+      }
+    } else if (pay.paid) {
+      console.warn("[pay] rejected non-strict paid signal", order.id, pay.status, pay.raw && Object.keys(pay.raw));
+    }
+  }
+
+  if (order.status === "processing" && (order.ktOrderCode || (order.ktOrderCodes || []).length)) {
+    order = await pollKtStatus(order);
+  }
+
+  res.json({ order: publicOrder(order) });
+});
+
+app.get("/api/orders/track", async (req, res) => {
+  const q = String(req.query.q || "").trim().toLowerCase();
+  if (!q) return res.json([]);
+  let order = listOrders().find((o) => o.id.toLowerCase() === q);
+  if (!order) return res.json([]);
+  if (order.status === "processing" && order.ktOrderCode) order = await pollKtStatus(order);
+  res.json([publicOrder(order)]);
+});
+
+app.post("/api/admin/login", limit("login", { limit: 20, windowMs: 60_000 }), (req, res) => {
+  const ip = clientIp(req);
+  const allowed = checkLoginAllowed(ip);
+  if (!allowed.ok) {
+    res.setHeader("Retry-After", String(allowed.retryAfter));
+    return res.status(429).json({ error: "locked", retryAfter: allowed.retryAfter });
+  }
+  const password = String(req.body?.password || "").trim();
+  const expected = String(ADMIN_PASSWORD || "").trim();
+  if (!password || password !== expected) {
+    recordLoginFail(ip);
+    auditLog("login_fail", { ip, reason: "bad_password" });
+    return res.status(401).json({ error: "bad_password" });
+  }
+  clearLoginFails(ip);
+  const { token, expires } = createSession();
+  // sameSite=lax so mobile browsers / custom domains keep the session cookie
+  res.cookie("porpor_admin", token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: isProd,
+    maxAge: expires - Date.now(),
+    path: "/",
+  });
+  const csrf = issueCsrf(res, isProd);
+  auditLog("login_ok", { ip });
+  res.json({
+    ok: true,
+    expires,
+    csrf,
+    token, // fallback for clients that cannot store cookies
+    weakPassword: isWeakAdminPassword(ADMIN_PASSWORD),
+    totpEnabled: false,
+  });
+});
+
+
+app.post("/api/admin/telegram/test", adminAuth, async (_req, res) => {
+  const r = await tg.notifyChannel(
+    "<b>✅ Porpor Topup</b>\nTelegram notify តភ្ជាប់រួច។\nOrder ថ្មីនឹងផ្ញើចូល channel នេះ។"
+  );
+  if (!r.ok) return res.status(400).json({ ok: false, error: r.error || r.raw || "failed" });
+  res.json({ ok: true });
+});
+
+app.post("/api/admin/logout", (req, res) => {
+  destroySession(req.cookies?.porpor_admin);
+  res.clearCookie("porpor_admin", { path: "/" });
+  res.json({ ok: true });
+});
+
+
+/** Full data backup (admin only) — download regularly */
+
+app.get("/api/admin/audit-log", adminAuth, (req, res) => {
+  const n = Math.min(500, Math.max(20, Number(req.query.limit) || 100));
+  res.json({ events: readAuditLog(n) });
+});
+
+app.get("/api/admin/backups", adminAuth, (_req, res) => {
+  res.json({ backups: listBackups() });
+});
+
+app.post("/api/admin/backups/run", adminAuth, (req, res) => {
+  const dest = runAutoBackup();
+  auditLog("backup_manual", { ip: clientIp(req), dest });
+  res.json({ ok: true, dest, backups: listBackups() });
+});
+
+app.get("/api/admin/backup", adminAuth, (_req, res) => {
+  try {
+    const payload = exportFullBackup();
+    const name = `porpor-full-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    res.setHeader("Content-Disposition", `attachment; filename="${name}"`);
+    res.json(payload);
+  } catch (e) {
+    res.status(500).json({ error: "backup_failed", message: String(e.message || e) });
+  }
+});
+
+/** Restore full backup JSON (for server migration). Body = export payload. */
+app.post("/api/admin/restore", adminAuth, (req, res) => {
+  try {
+    const body = req.body || {};
+    const summary = importFullBackup(body);
+    auditLog("restore_full", { ip: clientIp(req), ...summary });
+    res.json({ ok: true, summary });
+  } catch (e) {
+    res.status(400).json({ error: "restore_failed", message: String(e.message || e) });
+  }
+});
+
+app.get("/api/admin/me", (req, res) => {
+  const token = req.cookies?.porpor_admin || req.headers["x-admin-token"];
+  if (!validSession(token)) return res.status(401).json({ ok: false });
+  res.json({
+    ok: true,
+    weakPassword: isWeakAdminPassword(ADMIN_PASSWORD),
+    https: isProd,
+  });
+});
+
+
+app.post("/api/admin/orders/:id/gift-code", adminAuth, (req, res) => {
+  const o = getOrder(req.params.id);
+  if (!o) return res.status(404).json({ error: "not_found" });
+  const code = String(req.body?.giftCode || req.body?.code || "").trim();
+  if (!code) return res.status(400).json({ error: "empty_code" });
+  const updated = updateOrder(o.id, {
+    giftCode: code,
+    status: "delivered",
+    note: o.note || "Gift code delivered",
+    deliveredAt: Date.now(),
+  });
+  res.json(updated);
+});
+
+app.get("/api/admin/stats", adminAuth, (_req, res) => {
+  res.json(stats());
+});
+
+
+app.get("/api/admin/ips", adminAuth, (_req, res) => {
+  const map = new Map();
+  for (const o of listOrders()) {
+    const ip = o.clientIp || o.paidIp || "unknown";
+    const row = map.get(ip) || { ip, orders: 0, paid: 0, total: 0, lastAt: 0, samples: [] };
+    row.orders += 1;
+    if (o.status && o.status !== "pending" && o.status !== "failed") {
+      row.paid += 1;
+      row.total += Number(o.total) || 0;
+    }
+    row.lastAt = Math.max(row.lastAt, o.createdAt || 0);
+    if (row.samples.length < 5) row.samples.push(o.id);
+    map.set(ip, row);
+  }
+  const list = [...map.values()].sort((a, b) => b.lastAt - a.lastAt);
+  res.json({ ips: list });
+});
+
+app.get("/api/admin/orders", adminAuth, (req, res) => {
+  let list = listOrders();
+  const q = String(req.query.q || "").trim().toLowerCase();
+  const status = String(req.query.status || "").trim();
+  if (q) {
+    list = list.filter(
+      (o) =>
+        o.id.toLowerCase().includes(q) ||
+        String(o.userId).toLowerCase().includes(q) ||
+        String(o.gameName).toLowerCase().includes(q) ||
+        String(o.nickname).toLowerCase().includes(q) ||
+        String(o.clientIp || "").toLowerCase().includes(q) ||
+        String(o.paidIp || "").toLowerCase().includes(q),
+    );
+  }
+  if (status) list = list.filter((o) => (o.status || "delivered") === status);
+  res.json(list);
+});
+
+app.get("/api/admin/orders/:id", adminAuth, (req, res) => {
+  const o = getOrder(req.params.id);
+  if (!o) return res.status(404).json({ error: "not_found" });
+  res.json(o);
+});
+
+app.patch("/api/admin/orders/:id", adminAuth, async (req, res) => {
+  const patch = {};
+  if (req.body?.status !== undefined) patch.status = req.body.status;
+  if (req.body?.note !== undefined) patch.note = req.body.note;
+  let o = updateOrder(req.params.id, patch);
+  if (!o) return res.status(404).json({ error: "not_found" });
+  if (req.body?.fulfill) {
+    o = await fulfillTopup(o);
+  }
+  res.json(o);
+});
+
+app.delete("/api/admin/orders/:id", adminAuth, (req, res) => {
+  if (!deleteOrder(req.params.id)) return res.status(404).json({ error: "not_found" });
+  res.json({ ok: true });
+});
+
+/** Only allow our own uploads or https image URLs (blocks javascript:/data: URLs). */
+function cleanImageUrl(v) {
+  const s = String(v || "").trim();
+  if (/^\/uploads\/[\w.-]{1,100}$/.test(s)) return s;
+  if (/^https:\/\/[^\s"'<>]{1,500}$/.test(s)) return s;
+  return "";
+}
+
+app.get("/api/admin/settings", adminAuth, (_req, res) => {
+  res.json(getSettings());
+});
+
+app.put("/api/admin/settings", adminAuth, (req, res) => {
+  const body = req.body || {};
+  const allowed = [
+    "siteName", "taglineKm", "taglineEn", "telegram", "announcementKm", "announcementEn",
+    "supportEmail", "maintenance", "coupons", "autoTopup", "logoUrl", "bannerUrls", "localProducts",
+    "deliveryHours", "tickerSoldBase", "tickerSoldLabel", "resellers", "resellerPrices",
+    "tgBotToken", "tgBotUsername", "tgChannelId",
+  ];
+  const patch = {};
+  for (const k of allowed) {
+    if (body[k] !== undefined) patch[k] = body[k];
+  }
+  if (patch.logoUrl !== undefined) patch.logoUrl = cleanImageUrl(patch.logoUrl);
+  if (patch.logoUrl !== undefined) branding.clearBrandingCache();
+  if (patch.bannerUrls !== undefined) {
+    patch.bannerUrls = (Array.isArray(patch.bannerUrls) ? patch.bannerUrls : [])
+      .map(cleanImageUrl)
+      .filter(Boolean)
+      .slice(0, 5);
+  }
+  // Resellers: username list (Telegram) + optional telegramId; fixed prices by pack id
+  if (patch.resellers !== undefined) {
+    patch.resellers = (Array.isArray(patch.resellers) ? patch.resellers : [])
+      .map((r) => ({
+        username: String(r.username || "").trim().replace(/^@/, "").toLowerCase().slice(0, 64),
+        telegramId: r.telegramId ? Number(r.telegramId) || null : null,
+        active: r.active !== false,
+        note: String(r.note || "").slice(0, 120),
+      }))
+      .filter((r) => r.username || r.telegramId)
+      .slice(0, 200);
+  }
+  if (patch.tgBotToken !== undefined) {
+    const tok = String(patch.tgBotToken || "").trim().slice(0, 200);
+    // empty string would wipe a previously saved token on accidental re-save
+    if (!tok) delete patch.tgBotToken;
+    else patch.tgBotToken = tok;
+  }
+  if (patch.tgChannelId !== undefined) {
+    patch.tgChannelId = String(patch.tgChannelId || "").trim().slice(0, 64);
+  }
+  if (patch.tgBotUsername !== undefined) {
+    patch.tgBotUsername = String(patch.tgBotUsername || "").trim().replace(/^@/, "").replace(/[^A-Za-z0-9_]/g, "").slice(0, 64);
+  }
+  if (patch.resellerPrices !== undefined) {
+    const src = patch.resellerPrices && typeof patch.resellerPrices === "object" ? patch.resellerPrices : {};
+    const out = {};
+    for (const [k, v] of Object.entries(src)) {
+      const id = String(k).trim().slice(0, 80);
+      const n = Number(v);
+      if (!id || !Number.isFinite(n) || n <= 0) continue;
+      out[id] = Math.round(n * 100) / 100;
+    }
+    patch.resellerPrices = out;
+  }
+  res.json(updateSettings(patch));
+});
+
+app.get("/api/admin/payment-test", adminAuth, async (_req, res) => {
+  res.json(await khmerSystem.diagnose());
+});
+
+app.get("/api/admin/integrations", adminAuth, async (_req, res) => {
+  const out = {
+    paymentReady: khmerSystem.isPaymentReady(),
+    topupReady: khmerTopup.isTopupReady(),
+    balance: null,
+    gamesCount: null,
+    error: null,
+  };
+  if (khmerTopup.isTopupReady()) {
+    try {
+      const me = await khmerTopup.getBalance();
+      out.balance = me.balance;
+      out.username = me.username;
+      const g = await khmerTopup.listGames();
+      out.gamesCount = (g.games || []).length;
+    } catch (e) {
+      out.error = e.message;
+    }
+  }
+  res.json(out);
+});
+
+
+
+app.get("/api/admin/gift-stock", adminAuth, (_req, res) => {
+  res.json({ stock: getGiftStock(), counts: stockSummary() });
+});
+
+app.put("/api/admin/gift-stock/:packId", adminAuth, (req, res) => {
+  const packId = String(req.params.packId || "").trim();
+  if (!packId) return res.status(400).json({ error: "bad_pack" });
+  const mode = String(req.body?.mode || "replace");
+  const raw = req.body?.codes;
+  let codes = [];
+  if (typeof raw === "string") {
+    codes = raw.split(/[\n,;]+/);
+  } else if (Array.isArray(raw)) {
+    codes = raw;
+  }
+  const count = mode === "append" ? addPackStock(packId, codes) : setPackStock(packId, codes);
+  res.json({ packId, count, stock: getGiftStock()[packId] || [] });
+});
+
+app.get("/api/admin/local-products", adminAuth, (_req, res) => {
+  const s = getSettings();
+  const products = Array.isArray(s.localProducts) && s.localProducts.length
+    ? s.localProducts
+    : DEFAULT_LOCAL_PRODUCTS;
+  res.json({
+    products,
+    usingDefaults: !(Array.isArray(s.localProducts) && s.localProducts.length),
+    stockCounts: stockSummary(),
+  });
+});
+
+app.put("/api/admin/local-products", adminAuth, (req, res) => {
+  const body = req.body || {};
+  let list = Array.isArray(body.products) ? body.products : [];
+  // sanitize
+  list = list
+    .map((g) => {
+      if (!g || !g.id) return null;
+      const packs = (Array.isArray(g.packs) ? g.packs : [])
+        .map((p) => {
+          let img = String(p.image || "").trim();
+          if (!(/^\/uploads\/[\w.-]{1,100}$/.test(img) || /^https:\/\/[^\s"'<>]{1,490}$/.test(img))) img = "";
+          return {
+            id: String(p.id || "").trim(),
+            name: String(p.name || p.id || "").trim(),
+            nameKm: String(p.nameKm || p.name || p.id || "").trim(),
+            price: Number(p.price),
+            cost: Number(p.cost != null ? p.cost : p.price),
+            category: (String(p.category || "").trim().toLowerCase() === "gift card" ? "Roblox" : String(p.category || "Roblox")),
+            bonus: p.bonus ? String(p.bonus) : "",
+            image: img,
+          };
+        })
+        .filter((p) => p.id && Number.isFinite(p.price) && p.price > 0);
+      return {
+        id: String(g.id).trim().toLowerCase().replace(/[^a-z0-9-]/g, "-"),
+        name: String(g.name || g.id).trim(),
+        nameKm: String(g.nameKm || g.name || g.id).trim(),
+        region: String(g.region || ""),
+        blurbKm: String(g.blurbKm || ""),
+        blurbEn: String(g.blurbEn || ""),
+        famous: !!g.famous,
+        hot: !!g.hot,
+        open: g.open !== false,
+        showWhenOff: !!g.showWhenOff,
+        hue: Number(g.hue) || 210,
+        mark: String(g.mark || "GC").slice(0, 4),
+        image: (function () {
+          let u = String(g.image || "").trim();
+          if (/^\/uploads\/[\w.-]{1,100}$/.test(u) || /^https:\/\/[^\s"'<>]{1,490}$/.test(u)) return u;
+          return "";
+        })(),
+        banners: cleanBanners(g.banners, g.banner),
+        banner: cleanBanners(g.banners, g.banner)[0] || "",
+        deliveryType: ["stock", "live_chat", "robux_send", "gift_code", "topup"].includes(g.deliveryType)
+          ? (g.deliveryType === "gift_code" ? "stock" : g.deliveryType)
+          : "stock",
+        requireUsername: !!g.requireUsername,
+        hasZone: false,
+        servers: [],
+        idHintKm: String(g.idHintKm || ""),
+        idHintEn: String(g.idHintEn || ""),
+        safetyGuide: (() => {
+          const sg = g.safetyGuide && typeof g.safetyGuide === "object" ? g.safetyGuide : {};
+          const stepsKm = Array.isArray(sg.stepsKm)
+            ? sg.stepsKm.map((x) => String(x).slice(0, 200)).filter(Boolean).slice(0, 6)
+            : [];
+          const stepsEn = Array.isArray(sg.stepsEn)
+            ? sg.stepsEn.map((x) => String(x).slice(0, 200)).filter(Boolean).slice(0, 6)
+            : stepsKm;
+          return {
+            enabled: !!sg.enabled,
+            titleKm: String(sg.titleKm || "សូមអានមុនបន្ត").slice(0, 80),
+            titleEn: String(sg.titleEn || "Please read before continuing").slice(0, 80),
+            stepsKm,
+            stepsEn,
+          };
+        })(),
+        packs,
+      };
+    })
+    .filter(Boolean);
+  const updated = updateSettings({ localProducts: list });
+  res.json({ products: updated.localProducts || list });
+});
+
+app.get("/api/admin/kt-games", adminAuth, async (req, res) => {
+  if (!khmerTopup.isTopupReady()) {
+    return res.status(503).json({ error: "KHMER_TOPUP_API_KEY not set" });
+  }
+  try {
+    const games = await catalog.fetchSupplierGames(true);
+    const out = { games, selection: getSettings().ktSelection };
+    if (req.query.raw) out.raw = catalog.rawSupplierGames();
+    res.json(out);
+  } catch (e) {
+    res.status(502).json({ error: e.message });
+  }
+});
+
+app.put("/api/admin/kt-selection", adminAuth, (req, res) => {
+  const selection = catalog.sanitizeSelection(req.body);
+  updateSettings({ ktSelection: selection });
+  res.json({ selection });
+});
+
+/* ---------- Image uploads (game + package images) ---------- */
+fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+app.use(
+  "/uploads",
+  express.static(UPLOAD_DIR, {
+    index: false,
+    maxAge: "30d",
+    immutable: true,
+    setHeaders: (res) => res.setHeader("X-Content-Type-Options", "nosniff"),
+  }),
+);
+
+/** Identify the image from its real bytes (never trust the filename / content-type). SVG is rejected on purpose. */
+function sniffImage(b) {
+  if (!Buffer.isBuffer(b) || b.length < 12) return null;
+  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return "png";
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "jpg";
+  if (b.toString("ascii", 0, 4) === "GIF8") return "gif";
+  if (b.toString("ascii", 0, 4) === "RIFF" && b.toString("ascii", 8, 12) === "WEBP") return "webp";
+  return null;
+}
+
+app.post("/api/admin/upload", adminAuth, express.raw({ type: () => true, limit: "4mb" }), (req, res) => {
+  const ext = sniffImage(req.body);
+  if (!ext) return res.status(400).json({ error: "bad_image" });
+  const name = `${Date.now().toString(36)}-${crypto.randomBytes(6).toString("hex")}.${ext}`;
+  fs.writeFileSync(path.join(UPLOAD_DIR, name), req.body);
+  res.json({ url: `/uploads/${name}` });
+});
+
+/* ---------- Branding: favicon / app icon / manifest follow the logo uploaded in Admin ---------- */
+const ICON_CACHE = "public, max-age=3600"; // links carry ?v=<logo hash>, so a new logo is picked up immediately
+function defaultIconPath(file) {
+  for (const base of [path.join(DIST, "icons"), path.join(ROOT, "public", "icons")]) {
+    const p = path.join(base, file);
+    if (fs.existsSync(p)) return p;
+  }
+  return null;
+}
+async function sendIcon(res, size, kind, fallbackFile) {
+  const r = await branding.renderLogo(size, kind).catch(() => null);
+  res.setHeader("Cache-Control", ICON_CACHE);
+  if (r) return res.type(r.type).send(r.buf);
+  const p = defaultIconPath(fallbackFile);
+  return p ? res.sendFile(p) : res.status(404).end();
+}
+const ICON_ROUTES = [
+  ["/favicon-48.png", 48, "any", "icon-192.png"],
+  ["/favicon.ico", 48, "any", "icon-192.png"],
+  ["/apple-touch-icon.png", 180, "apple", "apple-touch-icon.png"],
+  ["/icons/app-192.png", 192, "any", "icon-192.png"],
+  ["/icons/app-512.png", 512, "any", "icon-512.png"],
+  ["/icons/app-maskable-192.png", 192, "maskable", "maskable-192.png"],
+  ["/icons/app-maskable-512.png", 512, "maskable", "maskable-512.png"],
+];
+for (const [route, size, kind, fallback] of ICON_ROUTES) {
+  app.get(route, (_req, res) => sendIcon(res, size, kind, fallback));
+}
+app.get("/manifest.webmanifest", (_req, res) => {
+  let base = {};
+  for (const p of [path.join(DIST, "manifest.webmanifest"), path.join(ROOT, "public", "manifest.webmanifest")]) {
+    try {
+      base = JSON.parse(fs.readFileSync(p, "utf8"));
+      break;
+    } catch {}
+  }
+  res.setHeader("Cache-Control", "no-cache");
+  res.type("application/manifest+json").send(JSON.stringify(branding.buildManifest(base)));
+});
+
+if (fs.existsSync(DIST)) {
+  // Serve assets but NEVER auto-serve index.html (we inject ADMIN_PATH ourselves)
+  app.use(
+    express.static(DIST, {
+      index: false,
+      maxAge: isProd ? "7d" : 0,
+      setHeaders: (res, filePath) => {
+        const f = path.basename(filePath);
+        // The service worker + manifest must always be revalidated so app updates reach installed users.
+        if (f === "sw.js" || f === "manifest.webmanifest" || f === "offline.html") {
+          res.setHeader("Cache-Control", "no-cache");
+        }
+        if (f === "sw.js") res.setHeader("Service-Worker-Allowed", "/");
+        if (f === "manifest.webmanifest") res.setHeader("Content-Type", "application/manifest+json; charset=utf-8");
+      },
+    }),
+  );
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api")) return next();
+    const htmlPath = path.join(DIST, "index.html");
+    try {
+      let html = fs.readFileSync(htmlPath, "utf8");
+      if (branding.hasLogo()) {
+        // Replace the default favicon / manifest links with ones that point to the admin logo
+        html = html
+          .replace(/<link[^>]+rel="(?:icon|shortcut icon|apple-touch-icon|manifest)"[^>]*>\s*/g, "")
+          .replace("</head>", `    ${branding.headTags(`${req.protocol}://${req.get("host")}`)}\n  </head>`);
+      }
+      const inj = `<script>window.__ADMIN_PATH__=${JSON.stringify(ADMIN_PATH)};</script>`;
+      if (html.includes("window.__ADMIN_PATH__")) {
+        html = html.replace(/<script>window\.__ADMIN_PATH__=.*?<\/script>/, inj);
+      } else if (html.includes("</head>")) {
+        html = html.replace("</head>", inj + "</head>");
+      } else {
+        html = inj + html;
+      }
+      res.type("html").send(html);
+    } catch {
+      res.sendFile(htmlPath);
+    }
+  });
+} else {
+  app.get("/", (_req, res) => {
+    res.type("html").send(
+      `<h1>Porpor TOPUP API</h1><p>payment=${khmerSystem.isPaymentReady()} topup=${khmerTopup.isTopupReady()}</p>`,
+    );
+  });
+}
+
+app.use((err, _req, res, next) => {
+  if (err?.type === "entity.too.large") return res.status(413).json({ error: "too_large" });
+  if (res.headersSent) return next(err);
+  console.error(err);
+  res.status(500).json({ error: "server_error" });
+});
+
+// Auto backup every 5 hours → disk + Telegram bot/channel
+async function backupAndSendTelegram() {
+  try {
+    const dest = runAutoBackup();
+    if (dest) auditLog("backup_auto", { dest });
+  } catch (e) {
+    console.error("[backup]", e.message);
+  }
+  try {
+    const payload = exportFullBackup();
+    const r = await tg.sendBackupToTelegram(payload);
+    auditLog("backup_telegram", { ok: !!r?.ok, error: r?.error || null });
+  } catch (e) {
+    console.error("[backup-telegram]", e.message);
+  }
+}
+setInterval(() => {
+  backupAndSendTelegram();
+}, 5 * 60 * 60 * 1000).unref?.();
+// first run ~2 min after boot (avoid cold-start race)
+setTimeout(() => {
+  backupAndSendTelegram();
+}, 2 * 60 * 1000).unref?.();
+
+
+/** OPEN ABA Mobile — same as Kai- bot */
+app.get("/open-aba", (req, res) => khmerSystemPay.openAbaRoute(req, res));
+
+
+/** Worker / admin helper: list Robux Send queue (secret or admin session). */
+function robuxWorkerAuth(req) {
+  const secret = (process.env.ROBUX_WORKER_SECRET || process.env.ADMIN_TOKEN || "").trim();
+  const h = String(req.headers["x-robux-secret"] || req.headers["x-admin-token"] || "").trim();
+  if (secret && h && h === secret) return true;
+  return false;
+}
+
+app.get("/api/robux/pending", (req, res) => {
+  if (!robuxWorkerAuth(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  const all = listOrders();
+  const pending = (all || []).filter(
+    (o) =>
+      o &&
+      (o.status === "queued" || o.status === "paid" || o.status === "processing") &&
+      (o.deliveryType === "robux_send" || o.deliveryType === "live_chat") &&
+      o.needsManual
+  );
+  res.json({
+    ok: true,
+    orders: pending.map((o) => ({
+      id: o.id,
+      userId: o.userId,
+      gameName: o.gameName,
+      packName: o.packName,
+      qty: o.qty,
+      total: o.total,
+      status: o.status,
+      paidAt: o.paidAt,
+      note: o.note,
+    })),
+  });
+});
+
+app.post("/api/robux/complete", express.json(), (req, res) => {
+  if (!robuxWorkerAuth(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  const id = String(req.body?.orderId || "").trim();
+  const receipt = String(req.body?.receipt || "").trim().slice(0, 200);
+  if (!id) return res.status(400).json({ ok: false, error: "orderId required" });
+  const o = getOrder(id);
+  if (!o) return res.status(404).json({ ok: false, error: "not_found" });
+  if (!["queued", "paid", "processing"].includes(o.status)) {
+    return res.status(400).json({ ok: false, error: "bad_status", status: o.status });
+  }
+  const updated = updateOrder(id, {
+    status: "delivered",
+    needsManual: false,
+    deliveredAt: Date.now(),
+    transferReceipt: receipt || o.transferReceipt || "",
+    note: (o.note || "") + (receipt ? ` | receipt ${receipt}` : " | marked delivered"),
+  });
+  try { tg.notifyChannel(tg.formatOrderMsg("delivered", updated)).catch(() => {}); } catch {}
+  res.json({ ok: true, order: publicOrder(updated) });
+});
+
+
+
+app.listen(PORT, () => {
+  console.log(`Porpor TOPUP on :${PORT}`);
+  catalog.warmCatalog();
+  if (isWeakAdminPassword(ADMIN_PASSWORD)) {
+    console.warn("[security] ADMIN_PASSWORD is weak or default — set a strong password in Render env (12+ chars, letters+numbers)");
+  }
+  if (isProd) {
+    console.log("[security] HSTS + CSP headers enabled; use Cloudflare WAF in front of the domain");
+  }
+  console.log(`  ABA PayWay payment: ${khmerSystem.isPaymentReady() ? "READY" : "NOT CONFIGURED"}`);
+  console.log(`  Khmer TopUp auto:     ${khmerTopup.isTopupReady() ? "READY" : "NOT CONFIGURED"}`);
+});
