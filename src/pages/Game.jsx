@@ -576,27 +576,32 @@ export default function Game({ lang, addOrder, settings }) {
                 </div>
                 <h2 id="safety-title">
                   {lang === "km"
-                    ? safetyGuide?.titleKm || "សូមអានមុនបន្ត"
+                    ? safetyGuide?.titleKm || "សូមអានមុនអនុវត្ត"
                     : safetyGuide?.titleEn || "Please read before continuing"}
                 </h2>
                 <p className="safety-modal-lead">
                   {lang === "km"
-                    ? "សូមអនុវត្តតាមជំហានខាងក្រោមដើម្បីសុវត្ថិភាពគណនី"
-                    : "Follow the steps below to keep your account safe"}
+                    ? "ដើម្បីការពារគណនី និងជៀសវាងបញ្ហា Robux"
+                    : "Protect your account and avoid Robux issues"}
                 </p>
+                <div className="safety-chips" aria-hidden="true">
+                  <span className="safety-chip">Select</span>
+                  <span className="safety-chip">Uncheck</span>
+                  <span className="safety-chip">Kid</span>
+                </div>
                 <ol className="safety-steps">
                   {(safetySteps.length
                     ? safetySteps
                     : lang === "km"
                       ? [
-                          "បើក Settings ក្នុង Roblox → បិទ Select / Unselect និង Kid",
-                          "កុំផ្តល់ Password ឲ្យអ្នកណា — Admin មិនសុំ Password",
-                          "បង់រួចផ្ញើ Order ID តាម Live Chat ដើម្បីទទួលសេវា",
+                          "គណនី Roblox ត្រូវតែ Select, Uncheck ពី Kid មិនអាចទទួល Robux បានទេ។",
+                          "កុំឲ្យនរណាម្នាក់សុំពាក្យសម្ងាត់ ឬលេខកូដ 2FA។",
+                          "បន្ទាប់ពីបាន Robux រួច មិនអាចស្នើសុំសងប្រាក់ (Refund) បានទេ។",
                         ]
                       : [
-                          "Open Roblox Settings → turn off Select / Unselect and Kid",
-                          "Never share your password — Admin will never ask for it",
-                          "After payment, send Order ID via Live Chat for delivery",
+                          "Roblox account must Select and Uncheck Kid, or Robux cannot be received.",
+                          "Never share your password or 2FA codes with anyone.",
+                          "After Robux is delivered, refunds are not available.",
                         ]
                   ).map((step, i) => (
                     <li key={i}>
@@ -614,6 +619,55 @@ export default function Game({ lang, addOrder, settings }) {
                 </button>
               </div>
             </div>
+          ) : null}
+
+          {game?.deliveryType === "robux_send" ? (
+            <section className="card robux-quick-guide">
+              <div className="robux-qg-head">
+                <span className="robux-qg-pin">📌</span>
+                <div>
+                  <strong>{lang === "km" ? "PINNED GUIDE · របៀបធ្វើ Quick Sign-in" : "PINNED GUIDE · Quick Sign-in"}</strong>
+                  <p>{lang === "km" ? "អនុវត្តតាម ៥ ជំហាន បន្ទាប់ពីទទួលកូដពី Porpor" : "Follow 5 steps after you receive the code from Porpor"}</p>
+                </div>
+              </div>
+              <ol className="robux-qg-steps">
+                <li>
+                  <span>1</span>
+                  <div>
+                    <b>{lang === "km" ? "ចូលម៉ឺនុយ" : "Open menu"}</b>
+                    <p>{lang === "km" ? "ចុចរូប profile នៅជ្រុងឆ្វេងលើក្នុង Roblox។" : "Tap your profile icon at the top left in Roblox."}</p>
+                  </div>
+                </li>
+                <li>
+                  <span>2</span>
+                  <div>
+                    <b>Quick Sign-in</b>
+                    <p>{lang === "km" ? "រក និងចុច “Quick Sign-in”។" : "Find and tap “Quick Sign-in”."}</p>
+                  </div>
+                </li>
+                <li>
+                  <span>3</span>
+                  <div>
+                    <b>{lang === "km" ? "បញ្ចូលកូដ ៦ខ្ទង់" : "Enter 6-digit code"}</b>
+                    <p>{lang === "km" ? "យកកូដពី Porpor / Live Chat រួចបញ្ចូល។" : "Enter the code from Porpor / Live Chat."}</p>
+                  </div>
+                </li>
+                <li>
+                  <span>4</span>
+                  <div>
+                    <b>Confirm</b>
+                    <p>{lang === "km" ? "ចុច Confirm ដើម្បីបញ្ជាក់ការចូល។" : "Tap Confirm to approve the sign-in."}</p>
+                  </div>
+                </li>
+                <li>
+                  <span>5</span>
+                  <div>
+                    <b>{lang === "km" ? "រួចរាល់" : "Done"}</b>
+                    <p>{lang === "km" ? "ឃើញ “Log in Successful” — រង់ចាំ Robux (ស្តង់ដារ ≤ ៣ នាទី)។" : "See “Log in Successful” — wait for Robux (usually ≤ 3 min)."}</p>
+                  </div>
+                </li>
+              </ol>
+            </section>
           ) : null}
 
           {!isGift && (

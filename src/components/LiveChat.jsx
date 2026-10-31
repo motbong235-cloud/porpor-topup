@@ -273,8 +273,9 @@ export function LiveChat({ lang = "km", openSignal = 0, logoUrl = "" }) {
                 {lang === "km" ? (
                   <>
                     <p><b>1.</b> បន្ទាប់ពីបង់ប្រាក់រួច សូមផ្ញើ Order ID មកក្នុង chat នេះ</p>
-                    <p><b>2.</b> បើ service ត្រូវ Login (Roblox/Robux…) ផ្ញើ Username + ព័ត៌មានតាមសំណើ admin</p>
-                    <p><b>3.</b> Admin នឹងដំណើរការ និង update ស្ថានភាព order</p>
+                    <p><b>2.</b> Robux / Roblox: ធ្វើ <b>Quick Sign-in</b> (ម៉ឺនុយ → Quick Sign-in → កូដ ៦ខ្ទង់ → Confirm)</p>
+                    <p><b>3.</b> គណនីត្រូវ Uncheck Kid · កុំផ្ញើ Password</p>
+                    <p><b>4.</b> Admin ដំណើរការ និង update ស្ថានភាព order</p>
                     <p className="msgr-pin-note">កុំផ្ញើពាក្យសម្ងាត់ក្នុង chat បើមិនចាំបាច់</p>
                   </>
                 ) : (

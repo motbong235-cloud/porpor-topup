@@ -5586,12 +5586,12 @@ html.dark .enter-info-field input {
   width: 56px;
   height: 56px;
   margin: 0 auto 14px;
-  border-radius: 16px;
+  border-radius: 50%;
   display: grid;
   place-items: center;
-  color: #1d6adf;
-  background: rgba(29, 106, 223, 0.15);
-  border: 1px solid rgba(29, 106, 223, 0.35);
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+  border: 2px solid rgba(245, 158, 11, 0.45);
 }
 .safety-modal-card h2 {
   margin: 0 0 8px;
@@ -5654,6 +5654,98 @@ html.dark .enter-info-field input {
   box-shadow: 0 8px 20px rgba(29, 106, 223, 0.35);
 }
 .safety-modal-btn:active { transform: scale(0.98); }
+
+.safety-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin: 0 0 14px;
+}
+.safety-chip {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #cfe0ff;
+  background: rgba(29, 106, 223, 0.22);
+  border: 1px solid rgba(29, 106, 223, 0.4);
+}
+
+/* Robux Quick Sign-in pinned guide */
+.robux-quick-guide {
+  border: 1px solid rgba(29, 106, 223, 0.25) !important;
+  background: linear-gradient(180deg, rgba(29, 106, 223, 0.08), rgba(8, 32, 68, 0.4)) !important;
+}
+.robux-qg-head {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+.robux-qg-pin {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(29, 106, 223, 0.2);
+  border: 1px solid rgba(29, 106, 223, 0.35);
+  flex: none;
+}
+.robux-qg-head strong {
+  display: block;
+  font-size: 14px;
+  color: #e8f1ff;
+  margin-bottom: 4px;
+}
+.robux-qg-head p {
+  margin: 0;
+  font-size: 12px;
+  color: #8ea3bf;
+  line-height: 1.4;
+}
+.robux-qg-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.robux-qg-steps li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(15, 32, 51, 0.55);
+  border: 1px solid rgba(29, 106, 223, 0.15);
+}
+.robux-qg-steps li > span {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(135deg, #1d6adf, #0ea5e9);
+}
+.robux-qg-steps b {
+  display: block;
+  font-size: 13px;
+  color: #e8f1ff;
+  margin-bottom: 2px;
+}
+.robux-qg-steps p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #8ea3bf;
+}
+
 
 
 /* ===== Header Telegram user icon (Dino-style, Porpor blue) ===== */

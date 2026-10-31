@@ -63,6 +63,21 @@ export const DEFAULT_LOCAL_PRODUCTS = [
     image: "/icons/robux.svg",
     banner: "",
     deliveryType: "robux_send",
+    safetyGuide: {
+      enabled: true,
+      titleKm: "សូមអានមុនអនុវត្ត",
+      titleEn: "Please read before continuing",
+      stepsKm: [
+        "គណនី Roblox ត្រូវតែ Select, Uncheck ពី Kid មិនអាចទទួល Robux បានទេ។",
+        "កុំឲ្យនរណាម្នាក់សុំពាក្យសម្ងាត់ ឬលេខកូដ 2FA។",
+        "បន្ទាប់ពីបាន Robux រួច មិនអាចស្នើសុំសងប្រាក់ (Refund) បានទេ។",
+      ],
+      stepsEn: [
+        "Roblox account must use Select and Uncheck Kid, or Robux cannot be received.",
+        "Never share your password or 2FA codes with anyone.",
+        "After Robux is delivered, refunds are not available.",
+      ],
+    },
     requireUsername: true,
     hasZone: false,
     servers: [],
@@ -229,7 +244,12 @@ export function localCatalog() {
         ),
         safetyGuide: (() => {
           const sg = g.safetyGuide && typeof g.safetyGuide === "object" ? g.safetyGuide : {};
-          const enabled = sg.enabled === true || sg.enabled === "true";
+          const enabled =
+            sg.enabled === true ||
+            sg.enabled === "true" ||
+            (sg.enabled !== false &&
+              sg.enabled !== "false" &&
+              (dt === "robux_send" || String(g.id || "").includes("robux")));
           const stepsKm = Array.isArray(sg.stepsKm)
             ? sg.stepsKm.map((x) => String(x).slice(0, 200)).filter(Boolean).slice(0, 6)
             : String(sg.bodyKm || "")
