@@ -6452,3 +6452,217 @@ html.dark .rbx-hint-warn {
   font-weight: 850;
   flex: none;
 }
+
+
+/* ============================================================
+   Package grid — Dino-style readable cards (full name, clear price)
+   ============================================================ */
+.game-page .packs,
+.packs {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 10px !important;
+  margin-top: 12px;
+  align-items: stretch;
+}
+@media (min-width: 640px) {
+  .game-page .packs,
+  .packs {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+@media (min-width: 960px) {
+  .game-page .packs,
+  .packs {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+.game-page .pack,
+.packs .pack {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left !important;
+  padding: 14px 14px 12px !important;
+  min-height: 92px;
+  height: auto !important;
+  border-radius: 16px !important;
+  border: 1.5px solid #e3ebf5 !important;
+  background: #fff !important;
+  color: #0b1b33 !important;
+  box-shadow: 0 1px 2px rgba(11, 27, 51, 0.03);
+  position: relative;
+  overflow: visible !important;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s, transform 0.12s;
+}
+html.dark .game-page .pack,
+html.dark .packs .pack {
+  background: var(--surface, #121c2e) !important;
+  border-color: var(--line, #1e3352) !important;
+  color: var(--ink, #e8eefc) !important;
+}
+
+.game-page .pack:hover:not(:disabled),
+.packs .pack:hover:not(:disabled) {
+  border-color: #9bb8e8 !important;
+  box-shadow: 0 6px 18px rgba(29, 106, 223, 0.1);
+}
+
+.game-page .pack.active,
+.packs .pack.active {
+  border-color: #1d6adf !important;
+  background: #f3f8ff !important;
+  box-shadow: 0 0 0 1px #1d6adf, 0 8px 20px rgba(29, 106, 223, 0.14) !important;
+}
+html.dark .game-page .pack.active,
+html.dark .packs .pack.active {
+  background: rgba(29, 106, 223, 0.12) !important;
+}
+
+.game-page .pack.has-img,
+.packs .pack.has-img {
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px;
+}
+.game-page .pack .pack-img,
+.packs .pack .pack-img {
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 12px !important;
+  object-fit: cover;
+  flex: none;
+  background: #eef4fb;
+}
+
+.game-page .pack-body,
+.packs .pack-body {
+  flex: 1 !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  overflow: visible !important;
+}
+
+/* Full package name — no ellipsis cut-off */
+.game-page .pack .pack-name,
+.packs .pack .pack-name,
+.game-page .pack .name,
+.packs .pack .name {
+  font-size: 13.5px !important;
+  font-weight: 750 !important;
+  line-height: 1.35 !important;
+  color: inherit !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  display: block !important;
+  -webkit-line-clamp: unset !important;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+.game-page .pack .pack-bonus,
+.packs .pack .pack-bonus {
+  font-size: 11px;
+  font-weight: 700;
+  color: #1d6adf;
+}
+
+.game-page .pack .pack-stock,
+.packs .pack .pack-stock {
+  font-size: 11px;
+  font-weight: 650;
+  color: #5a6b82;
+}
+.game-page .pack .pack-stock.out,
+.packs .pack .pack-stock.out {
+  color: #e5484d;
+}
+
+.game-page .pack-price-row,
+.packs .pack-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+.game-page .pack .pack-price,
+.packs .pack .pack-price,
+.game-page .pack .price,
+.packs .pack .price {
+  font-size: 15px !important;
+  font-weight: 850 !important;
+  color: #1d6adf !important;
+  margin-top: 0 !important;
+  font-variant-numeric: tabular-nums;
+}
+.game-page .pack .pack-res,
+.packs .pack .pack-res {
+  font-size: 10px;
+  font-weight: 800;
+  color: #0fa77b;
+  background: #dcf5ec;
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+
+.game-page .pack .cat-label,
+.packs .pack .cat-label {
+  display: none !important;
+}
+
+.game-page .pack-tick,
+.packs .pack-tick {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #1d6adf;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 6px rgba(29, 106, 223, 0.35);
+}
+
+.game-page .pack.sold-out,
+.packs .pack.sold-out {
+  opacity: 0.55;
+  filter: grayscale(0.15);
+}
+
+/* Category chips row */
+.game-page .cats,
+.cats {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.cats::-webkit-scrollbar { display: none; }
+.cats .cat {
+  flex: none;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 750;
+  background: #eef3fa;
+  color: #44546d;
+  cursor: pointer;
+}
+.cats .cat.active {
+  background: linear-gradient(100deg, #4aa2ff, #1d6adf);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(29, 106, 223, 0.25);
+}
+

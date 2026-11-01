@@ -953,17 +953,19 @@ export default function Game({ lang, addOrder, settings }) {
                       <span className="pack-tick" aria-hidden><Icon name="check" size={12} /></span>
                     ) : null}
                     <div className="pack-body">
-                      <div className="cat-label">{catLabel(p.category)}</div>
-                      <div className="name">{lang === "km" ? p.nameKm : p.name}</div>
-                      {p.bonus ? <div className="bonus">{p.bonus}</div> : null}
-                      <div className="price">{money(p.price)}{p.resellerPrice ? " · Reseller" : ""}</div>
+                      <div className="pack-name">{lang === "km" ? (p.nameKm || p.name) : p.name}</div>
+                      {p.bonus ? <div className="pack-bonus">{p.bonus}</div> : null}
                       {isStock ? (
-                        <div className="bonus" style={{ opacity: soldOut ? 1 : 0.8 }}>
+                        <div className={`pack-stock${soldOut ? " out" : ""}`}>
                           {soldOut
                             ? (lang === "km" ? "អស់ស្តុក" : "Out of stock")
                             : (lang === "km" ? `នៅសល់ ${p.stock ?? "—"}` : `Stock ${p.stock ?? "—"}`)}
                         </div>
                       ) : null}
+                      <div className="pack-price-row">
+                        <span className="pack-price">{money(p.price)}</span>
+                        {p.resellerPrice ? <span className="pack-res">Reseller</span> : null}
+                      </div>
                     </div>
                   </button>
                   );
