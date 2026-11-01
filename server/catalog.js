@@ -4,6 +4,7 @@
  */
 import { getSettings } from "./store.js";
 import * as khmerTopup from "./khmerTopup.js";
+import * as dinoTopup from "./dinoTopup.js";
 import { localCatalog, findLocalPack, cleanBanners } from "./localProducts.js";
 
 const TTL = 60_000;
@@ -187,32 +188,137 @@ export async function storefront() {
   return out;
 }
 
+
+/** Dino games the admin enabled (dinoSelection) — for storefront */
+export async function dinoStorefront() {
+  if (!dinoTopup.isDinoReady()) return [];
+  const settings = getSettings();
+  const sel = settings.dinoSelection || {};
+  const globalMarkup = Number(sel.markupPercent) || 0;
+  // Always list enabled Dino games on Home when API key is set.
+  // topupProvider only controls which API is used for auto-fulfill after pay.
+  let supplier = [];
+  try {
+    const data = await dinoTopup.listProducts();
+    supplier = dinoTopup.normalizeGamesPayload(data);
+  } catch (e) {
+    console.warn("[catalog] dino list failed:", e.message);
+    return [];
+  }
+
+  const out = [];
+  for (const g of supplier) {
+    const s = sel.games?.[g.slug] || sel.games?.[String(g.slug).toLowerCase()];
+    const isOpen = !!s?.enabled;
+    if (!isOpen && !s?.showWhenOff) continue;
+
+    const hasOwn = s && s.markup !== undefined && s.markup !== null && s.markup !== "" && Number.isFinite(Number(s.markup));
+    const markup = hasOwn ? Number(s.markup) : globalMarkup;
+    const allowed = Array.isArray(s?.packages) ? new Set(s.packages.map(String)) : null;
+
+    const packs = (g.packs || [])
+      .filter((p) => p.inStock !== false && (!allowed || allowed.has(String(p.id))))
+      .map((p) => ({
+        id: String(p.id),
+        name: p.name,
+        nameKm: p.name,
+        price: sellPrice(Number(p.cost) || 0, markup),
+        cost: Number(p.cost) || 0,
+        category: p.category || "Diamonds",
+        image: (s && (s.packImages?.[p.id] || s.packIcon)) || p.image || "",
+      }));
+
+    if (isOpen && !packs.length) continue;
+
+    out.push({
+      id: g.slug,
+      name: g.name,
+      nameKm: g.name,
+      image: (s && s.image) || g.image || "",
+      banners: cleanBanners(s?.banners, s?.banner),
+      banner: cleanBanners(s?.banners, s?.banner)[0] || "",
+      mark: markOf(g.name),
+      hue: hueOf(g.slug),
+      famous: !!(s && s.featured),
+      hot: !!(s && s.featured),
+      open: isOpen,
+      showWhenOff: !!s?.showWhenOff,
+      hasZone: !!g.needsZone,
+      zoneLabelKm: "Zone ID",
+      zoneLabelEn: "Zone ID",
+      servers: [],
+      idHintKm: "",
+      idHintEn: "",
+      provider: "dino",
+      dinoId: g.slug,
+      packs: packs,
+    });
+  }
+  return out;
+}
+
+
 export async function publicCatalog() {
-  const games = await storefront();
-  // OFF local products are hidden unless the admin chose "show as OFF"
+  const [khmerGames, dinoGames] = await Promise.all([
+    storefront().catch(() => []),
+    dinoStorefront().catch(() => []),
+  ]);
+
   const local = localCatalog()
     .filter((g) => g.open !== false || g.showWhenOff)
     .map((g) => ({
       ...g,
       packs: g.packs.map(({ cost, ...p }) => p),
     }));
-  // local gift cards first (featured)
-  return [...local, ...games.map((g) => ({ ...g, packs: g.packs.map(({ cost, ...p }) => p) }))];
+
+  // Merge: local first, then Khmer, then Dino (skip dino slug already present from Khmer)
+  const seen = new Set(local.map((g) => String(g.id)));
+  const merged = [];
+  for (const g of khmerGames) {
+    const id = String(g.id);
+    if (seen.has(id)) continue;
+    seen.add(id);
+    merged.push({ ...g, packs: g.packs.map(({ cost, ...p }) => p), provider: g.provider || "khmer" });
+  }
+  for (const g of dinoGames) {
+    const id = String(g.id);
+    // Both mode: if same slug enabled on both, prefer Dino when dino open
+    if (seen.has(id)) {
+      const idx = merged.findIndex((x) => String(x.id) === id);
+      if (idx >= 0 && g.open) {
+        merged[idx] = { ...g, packs: g.packs.map(({ cost, ...p }) => p) };
+      }
+      continue;
+    }
+    seen.add(id);
+    merged.push({ ...g, packs: g.packs.map(({ cost, ...p }) => p) });
+  }
+  return [...local, ...merged];
 }
 
 export async function findPack(gameId, packId) {
   const local = findLocalPack(gameId, packId);
   if (local) return local;
-  const game = (await storefront()).find((g) => g.id === String(gameId));
+  // Prefer full public catalog (Khmer + Dino)
+  const all = await publicCatalog();
+  const game = all.find((g) => String(g.id) === String(gameId));
   if (!game) return null;
-  const pack = game.packs.find((p) => p.id === String(packId));
-  return pack ? { game, pack } : null;
+  // re-fetch with cost for checkout: try storefronts that keep cost
+  const withCost =
+    (await storefront()).find((g) => String(g.id) === String(gameId)) ||
+    (await dinoStorefront()).find((g) => String(g.id) === String(gameId));
+  const g = withCost || game;
+  const pack = (g.packs || []).find((p) => String(p.id) === String(packId));
+  return pack ? { game: g, pack } : null;
 }
 
 export async function findGame(gameId) {
   const local = localCatalog().find((g) => g.id === String(gameId));
   if (local) return local;
-  return (await storefront()).find((g) => g.id === String(gameId)) || null;
+  const fromKt = (await storefront()).find((g) => String(g.id) === String(gameId));
+  if (fromKt) return fromKt;
+  const fromDino = (await dinoStorefront()).find((g) => String(g.id) === String(gameId));
+  return fromDino || null;
 }
 
 /** Only allow our own uploads or https URLs as image sources. */

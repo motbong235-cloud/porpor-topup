@@ -900,7 +900,13 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
     ktPackageId: giftCode ? null : Number(found.pack.id) || null,
     dinoGame: giftCode ? null : (found.game.dinoId || found.game.id || null),
     dinoProduct: giftCode ? null : (found.pack.dinoId || found.pack.id || null),
-    topupProvider: giftCode ? null : (String(settings.topupProvider || "auto").toLowerCase() === "dino" ? "dino" : null),
+    topupProvider: giftCode
+      ? null
+      : (found.game.provider === "dino" || String(settings.topupProvider || "").toLowerCase() === "dino"
+          ? "dino"
+          : String(settings.topupProvider || "").toLowerCase() === "both" && found.game.provider === "dino"
+            ? "dino"
+            : null),
     deliveryType: giftCode ? (found.game.deliveryType === "live_chat" || found.game.deliveryType === "robux_send" ? found.game.deliveryType : "stock") : (found.game.deliveryType === "robux_send" ? "robux_send" : "topup"),
     giftCode: null,
     status: "pending",
