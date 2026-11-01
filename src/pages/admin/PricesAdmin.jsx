@@ -81,7 +81,8 @@ export default function PricesAdmin() {
       await load();
       toast(d.skipped ? "Snapshot ស្រដៀងគ្នា — រក្សាទុកមុន" : "បានរក្សា snapshot តម្លៃ");
     } catch (e) {
-      toast(e.message || "Snapshot មិនបាន", "bad");
+      const msg = e?.data?.error || e?.message || "Snapshot មិនបាន";
+      toast(String(msg), "bad");
     } finally {
       setBusy(false);
     }

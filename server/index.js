@@ -1407,8 +1407,10 @@ app.get("/api/admin/dino-games", adminAuth, async (req, res) => {
 app.put("/api/admin/dino-selection", adminAuth, (req, res) => {
   const selection = catalog.sanitizeSelection(req.body);
   updateSettings({ dinoSelection: selection });
+  res.json({ selection });
+});
 
-/* ---------- Khmer TopUp price watch ---------- */
+/* ---------- Price watch (Khmer + Dino) ---------- */
 app.get("/api/admin/kt-prices", adminAuth, async (req, res) => {
   const provider = String(req.query.provider || "khmer").toLowerCase() === "dino" ? "dino" : "khmer";
   if (provider === "khmer" && !khmerTopup.isTopupReady()) {
@@ -1421,7 +1423,8 @@ app.get("/api/admin/kt-prices", adminAuth, async (req, res) => {
     const data = await priceWatch.latestChanges(provider);
     res.json({ ok: true, ...data, snapshots: priceWatch.listSnapshots(provider, 15) });
   } catch (e) {
-    res.status(502).json({ ok: false, error: e.message });
+    console.error("[kt-prices]", e);
+    res.status(502).json({ ok: false, error: e.message || String(e) });
   }
 });
 
@@ -1435,14 +1438,20 @@ app.post("/api/admin/kt-prices/snapshot", adminAuth, async (req, res) => {
   }
   try {
     const r = await priceWatch.takeSnapshot(provider, { force: true });
-    res.json({ ok: true, ...r, snapshots: priceWatch.listSnapshots(provider, 15) });
+    // Don't serialize full prices map to client (huge)
+    res.json({
+      ok: true,
+      skipped: r.skipped,
+      provider: r.provider,
+      previousAt: r.previousAt || null,
+      snapshot: r.snapshot ? { at: r.snapshot.at, count: r.snapshot.count } : null,
+      changes: r.changes || [],
+      snapshots: priceWatch.listSnapshots(provider, 15),
+    });
   } catch (e) {
-    res.status(502).json({ ok: false, error: e.message });
+    console.error("[kt-prices/snapshot]", e);
+    res.status(502).json({ ok: false, error: e.message || String(e) });
   }
-});
-
-
-  res.json({ selection });
 });
 
 

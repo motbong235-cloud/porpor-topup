@@ -34,8 +34,18 @@ function write(provider, db) {
   ensure();
   const FILE = fileFor(provider);
   const tmp = FILE + ".tmp";
-  fs.writeFileSync(tmp, JSON.stringify(db, null, 0));
-  fs.renameSync(tmp, FILE);
+  const payload = JSON.stringify(db);
+  try {
+    fs.writeFileSync(tmp, payload);
+    fs.renameSync(tmp, FILE);
+  } catch (e) {
+    // fallback if rename not allowed
+    try {
+      fs.writeFileSync(FILE, payload);
+    } catch (e2) {
+      throw new Error("Cannot write price history: " + (e2.message || e.message));
+    }
+  }
 }
 
 function flatten(games) {
