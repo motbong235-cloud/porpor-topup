@@ -861,157 +861,219 @@ function LocalServicesPanel() {
 
 
 
-function DinoPanel() {
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState("");
-  const [balance, setBalance] = useState(null);
-  const [game, setGame] = useState("ml");
-  const [products, setProducts] = useState(null);
-  const [q, setQ] = useState("");
 
-  const load = useCallback(async () => {
-    setLoading(true);
+function DinoPanel() {
+  const blankD = { enabled: false, showWhenOff: false, featured: false, markup: null, packages: null, image: "", banner: "", banners: [], packIcon: "", packImages: {} };
+  const [games, setGames] = useState(null);
+  const [sel, setSel] = useState({ markupPercent: 0, games: {} });
+  const [err, setErr] = useState("");
+  const [open, setOpen] = useState("");
+  const [q, setQ] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [gameFilter, setGameFilter] = useState("");
+  const [balance, setBalance] = useState(null);
+
+  const [rev, setRev] = useState(0);
+  const [savedRev, setSavedRev] = useState(0);
+  const [saving, setSaving] = useState(false);
+  const [saveErr, setSaveErr] = useState(false);
+  const selRef = useRef(sel);
+  selRef.current = sel;
+  const revRef = useRef(0);
+
+  const load = useCallback(() => {
     setErr("");
-    try {
-      const b = await api("/api/admin/dino/balance");
-      setBalance(b);
-    } catch (e) {
-      setBalance(null);
-      setErr(e.message === "not_configured" || String(e.message || "").includes("not_configured")
-        ? "មិនទាន់កំណត់ DINO_TOPUP_API_KEY លើ Render"
-        : e.message || "មិនអាចភ្ជាប់ Dino");
-    }
-    try {
-      const d = await api(`/api/admin/dino/products?game=${encodeURIComponent(game)}`);
-      const games = d.games || d.data?.games || [];
-      setProducts(games);
-    } catch (e) {
-      setProducts([]);
-      setErr((prev) => prev || e.message || "ទាញ products មិនបាន");
-    } finally {
-      setLoading(false);
-    }
-  }, [game]);
+    setGames(null);
+    const qs = gameFilter ? `?game=${encodeURIComponent(gameFilter)}` : "";
+    api(`/api/admin/dino-games${qs}`)
+      .then((d) => {
+        setGames(d.games || []);
+        setSel({
+          markupPercent: d.selection?.markupPercent || 0,
+          games: d.selection?.games || {},
+        });
+        revRef.current = 0;
+        setRev(0);
+        setSavedRev(0);
+      })
+      .catch((e) => {
+        const m = e.message || "";
+        setErr(
+          m.includes("not set") || m.includes("not_configured")
+            ? "មិនទាន់កំណត់ DINO_TOPUP_API_KEY លើ Render"
+            : m || "មិនអាចទាញ Dino games",
+        );
+        setGames([]);
+      });
+    api("/api/admin/dino/balance")
+      .then((b) => setBalance(b))
+      .catch(() => setBalance(null));
+  }, [gameFilter]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  const rows = useMemo(() => {
-    const list = [];
-    (products || []).forEach((g) => {
-      (g.products || []).forEach((pk) => {
-        list.push({
-          gameId: g.id,
-          gameName: g.name,
-          id: pk.id,
-          name: pk.name,
-          price: pk.price,
-          normal: pk.normal_price,
-          category: pk.category,
-        });
+  const save = useCallback(async () => {
+    const myRev = revRef.current;
+    setSaving(true);
+    setSaveErr(false);
+    try {
+      await api("/api/admin/dino-selection", {
+        method: "PUT",
+        body: JSON.stringify(selRef.current),
       });
-    });
+      setSavedRev(myRev);
+    } catch {
+      setSaveErr(true);
+      toast("រក្សាទុក Dino មិនបាន", "bad");
+    } finally {
+      setSaving(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (rev === savedRev || saveErr) return;
+    const t = setTimeout(save, 700);
+    return () => clearTimeout(t);
+  }, [rev, savedRev, save, saveErr]);
+
+  function touch() {
+    revRef.current += 1;
+    setRev(revRef.current);
+    setSaveErr(false);
+  }
+
+  const patch = useCallback((slug, p) => {
+    setSel((s) => ({
+      ...s,
+      games: { ...s.games, [slug]: { ...blankD, ...(s.games[slug] || {}), ...p } },
+    }));
+    touch();
+  }, []);
+
+  const enabledCount = Object.values(sel.games).filter((g) => g.enabled).length;
+  const list = useMemo(() => {
     const s = q.trim().toLowerCase();
-    if (!s) return list;
-    return list.filter(
-      (x) =>
-        String(x.name).toLowerCase().includes(s) ||
-        String(x.id).toLowerCase().includes(s) ||
-        String(x.gameName).toLowerCase().includes(s),
-    );
-  }, [products, q]);
+    return (games || []).filter((g) => {
+      const on = !!sel.games[g.slug]?.enabled;
+      if (filter === "on" && !on) return false;
+      if (filter === "off" && on) return false;
+      return !s || g.name.toLowerCase().includes(s) || g.slug.toLowerCase().includes(s);
+    });
+  }, [games, q, filter, sel.games]);
+
+  const stateLabel = saveErr ? (
+    <button type="button" className="ad-save err" onClick={save}>
+      <AIcon name="alert" size={14} /> រក្សាទុកមិនបាន — ចុចម្តងទៀត
+    </button>
+  ) : saving ? (
+    <span className="ad-save"><span className="ad-spin" /> កំពុងរក្សាទុក…</span>
+  ) : rev !== savedRev ? (
+    <span className="ad-save wait">មានការផ្លាស់ប្តូរ…</span>
+  ) : (
+    <span className="ad-save ok"><AIcon name="check" size={14} /> បានរក្សាទុករួច</span>
+  );
 
   return (
-    <section className="ad-dino">
-      <header className="ad-dino-head">
-        <div>
-          <h2>
-            <span className="ad-dino-badge">DINO</span> Topups Reseller
-          </h2>
-          <p>API ដាច់ដោយឡែកពី Khmer TopUp · Order ចូល wallet Dino</p>
-        </div>
+    <>
+      <PageHead km="Dino Topups" en="Enable games · upload images · same controls as Khmer">
+        {stateLabel}
+      </PageHead>
+
+      <header className="ad-dino-head-bar">
         <div className="ad-dino-bal">
-          {balance?.ok || balance?.balance != null ? (
+          {balance?.balance != null || balance?.ok ? (
             <>
-              <small>Wallet</small>
-              <strong>${Number(balance.balance ?? balance.data?.balance ?? 0).toFixed(2)}</strong>
-              <span>{balance.currency || "USD"}</span>
+              <small>Wallet Dino</small>
+              <strong>${Number(balance.balance ?? 0).toFixed(2)}</strong>
             </>
           ) : (
-            <strong className="muted">—</strong>
+            <>
+              <small>Wallet</small>
+              <strong className="muted">—</strong>
+            </>
           )}
         </div>
+        <p className="ad-muted">
+          Provider ដាច់ពី Khmer · Settings ត្រូវជ្រើស <b>Dino</b> · Pack ID = product id Dino
+        </p>
       </header>
 
       {err ? <p className="ad-error">{err}</p> : null}
 
-      <div className="ad-dino-note">
-        <p>
-          <b>របៀបប្រើ:</b> Settings → Top-up provider = <code>dino</code> ·
-          Pack ID លើ website ត្រូវតែត្រូវនឹង product id Dino (ឧ. <code>86-diamonds</code>) ·
-          Game id ឧ. <code>ml</code>, <code>ff</code>
-        </p>
-        <p>
-          Webhook: <code>/api/webhook/dino</code> · Env: <code>DINO_TOPUP_API_KEY</code>
-        </p>
-      </div>
-
-      <div className="ad-dino-toolbar">
-        <label>
-          Game
-          <select value={game} onChange={(e) => setGame(e.target.value)}>
-            <option value="ml">Mobile Legends (ml)</option>
-            <option value="ff">Free Fire (ff)</option>
-            <option value="pubg">PUBG (pubg)</option>
-            <option value="hok">Honor of Kings (hok)</option>
-            <option value="genshin">Genshin (genshin)</option>
-            <option value="roblox">Roblox (roblox)</option>
-          </select>
-        </label>
+      <section className="ad-card ad-toolbar">
         <div className="ad-search grow">
           <AIcon name="search" size={16} />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ស្វែងរក product…" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ស្វែងរកហ្គេម Dino…" />
         </div>
-        <button type="button" className="ad-btn soft" onClick={load} disabled={loading}>
-          <AIcon name="refresh" size={16} /> ផ្ទុក
+        <label className="ad-inline big">
+          Filter game
+          <select value={gameFilter} onChange={(e) => setGameFilter(e.target.value)}>
+            <option value="">ទាំងអស់ (ml, ff…)</option>
+            <option value="ml">ml</option>
+            <option value="ff">ff</option>
+            <option value="pubg">pubg</option>
+            <option value="hok">hok</option>
+            <option value="genshin">genshin</option>
+            <option value="roblox">roblox</option>
+          </select>
+        </label>
+        <label className="ad-inline big">
+          បូកថែមទូទៅ %
+          <input
+            type="number"
+            min="0"
+            step="0.5"
+            value={sel.markupPercent}
+            onChange={(e) => {
+              setSel((s) => ({ ...s, markupPercent: e.target.value }));
+              touch();
+            }}
+          />
+        </label>
+      </section>
+
+      <div className="ad-chips">
+        {[
+          ["all", "ទាំងអស់", games?.length || 0],
+          ["on", "កំពុងលក់", enabledCount],
+          ["off", "មិនលក់", Math.max(0, (games?.length || 0) - enabledCount)],
+        ].map(([k, label, n]) => (
+          <button key={k} type="button" className={`ad-chip${filter === k ? " active" : ""}`} onClick={() => setFilter(k)}>
+            {label} <em>{n}</em>
+          </button>
+        ))}
+        <span className="grow" />
+        <button type="button" className="ad-btn soft sm" onClick={load}>
+          <AIcon name="refresh" size={14} /> ទាញពី Dino
         </button>
       </div>
 
-      {loading ? (
-        <div className="ad-loading"><span className="ad-spin" /> កំពុងទាញពី Dino…</div>
-      ) : rows.length === 0 ? (
-        <p className="ad-empty card">មិនមាន product — ពិនិត្យ API key ឬ game id</p>
-      ) : (
-        <div className="ad-dino-table-wrap">
-          <table className="ad-dino-table">
-            <thead>
-              <tr>
-                <th>Product ID</th>
-                <th>Name</th>
-                <th>Game</th>
-                <th>Price</th>
-                <th>Normal</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <tr key={`${r.gameId}-${r.id}`}>
-                  <td><code>{r.id}</code></td>
-                  <td>{r.name}</td>
-                  <td><span className="ad-tag">{r.gameId}</span></td>
-                  <td className="r">${Number(r.price || 0).toFixed(2)}</td>
-                  <td className="r muted">${Number(r.normal || r.price || 0).toFixed(2)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </section>
+      {!games ? (
+        <div className="ad-loading"><span className="ad-spin" /> កំពុងទាញបញ្ជី Dino…</div>
+      ) : null}
+      {games && !err && games.length === 0 ? (
+        <p className="ad-empty card">Dino មិនមានហ្គេម — ពិនិត្យ API key</p>
+      ) : null}
+      {games && games.length > 0 && list.length === 0 ? <p className="ad-empty card">រកមិនឃើញ</p> : null}
+
+      <div className="ad-games">
+        {list.map((g) => (
+          <GameCard
+            key={g.slug}
+            g={g}
+            s={{ ...blankD, ...(sel.games[g.slug] || {}) }}
+            defaultMarkup={sel.markupPercent}
+            isOpen={open === g.slug}
+            onToggleOpen={() => setOpen(open === g.slug ? "" : g.slug)}
+            patch={patch}
+          />
+        ))}
+      </div>
+    </>
   );
 }
-
 
 export default function ServicesAdmin() {
   const [tab, setTab] = useState("local"); // local | khmer | dino

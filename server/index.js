@@ -1349,6 +1349,68 @@ app.put("/api/admin/kt-selection", adminAuth, (req, res) => {
   res.json({ selection });
 });
 
+app.get("/api/admin/dino-games", adminAuth, async (req, res) => {
+  if (!dinoTopup.isDinoReady()) {
+    return res.status(503).json({ error: "DINO_TOPUP_API_KEY not set" });
+  }
+  try {
+    const want = String(req.query.game || "").trim();
+    const gameIds = want
+      ? [want]
+      : ["ml", "ff", "pubg", "hok", "genshin", "roblox"];
+    const games = [];
+    for (const gid of gameIds) {
+      try {
+        const data = await dinoTopup.listProducts(gid);
+        const list = data.games || data.data?.games || (Array.isArray(data) ? data : []);
+        // Dino may return { games: [{ id, name, products: [...] }] } or single game
+        const arr = list.length ? list : data.id ? [data] : [];
+        for (const g of arr) {
+          const id = String(g.id || gid);
+          const packs = (g.products || g.packs || []).map((p) => ({
+            id: String(p.id),
+            name: String(p.name || p.id),
+            cost: Number(p.price || p.cost || 0),
+            price: Number(p.price || 0),
+            category: String(p.category || "Diamonds"),
+            inStock: p.open !== false && p.unavailable !== true,
+            image: "",
+          }));
+          if (!packs.length) continue;
+          games.push({
+            slug: id,
+            name: String(g.name || id),
+            image: "",
+            packs,
+            provider: "dino",
+          });
+        }
+      } catch (e) {
+        // skip missing game catalogs
+      }
+    }
+    // de-dupe by slug
+    const seen = new Set();
+    const uniq = [];
+    for (const g of games) {
+      if (seen.has(g.slug)) continue;
+      seen.add(g.slug);
+      uniq.push(g);
+    }
+    res.json({ games: uniq, selection: getSettings().dinoSelection || { markupPercent: 0, games: {} } });
+  } catch (e) {
+    res.status(502).json({ error: e.message });
+  }
+});
+
+app.put("/api/admin/dino-selection", adminAuth, (req, res) => {
+  const selection = catalog.sanitizeSelection(req.body);
+  updateSettings({ dinoSelection: selection });
+  res.json({ selection });
+});
+
+
+
 /* ---------- Image uploads (game + package images) ---------- */
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 app.use(

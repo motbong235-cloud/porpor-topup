@@ -2637,3 +2637,15 @@ html.dark .ad-chat-bubble { background: var(--ad-card); }
 .ad-dino-table .r { text-align: right; font-variant-numeric: tabular-nums; }
 .ad-dino-table .muted { color: var(--ad-ink-3); }
 
+
+.ad-dino-head-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 4px;
+}
+.ad-dino-head-bar .ad-dino-bal {
+  text-align: left;
+  min-width: 100px;
+}
