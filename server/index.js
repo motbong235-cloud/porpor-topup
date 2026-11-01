@@ -34,6 +34,7 @@ import * as khmerSystemPay from "./khmerSystemPay.js";
 import * as liveChat from "./liveChat.js";
 import * as khmerTopup from "./khmerTopup.js";
 import * as dinoTopup from "./dinoTopup.js";
+import * as priceWatch from "./priceWatch.js";
 import * as catalog from "./catalog.js";
 import { isGiftCodeProduct, localCatalog, DEFAULT_LOCAL_PRODUCTS, cleanBanners } from "./localProducts.js";
 import {
@@ -1406,6 +1407,33 @@ app.get("/api/admin/dino-games", adminAuth, async (req, res) => {
 app.put("/api/admin/dino-selection", adminAuth, (req, res) => {
   const selection = catalog.sanitizeSelection(req.body);
   updateSettings({ dinoSelection: selection });
+
+/* ---------- Khmer TopUp price watch ---------- */
+app.get("/api/admin/kt-prices", adminAuth, async (req, res) => {
+  if (!khmerTopup.isTopupReady()) {
+    return res.status(503).json({ error: "KHMER_TOPUP_API_KEY not set" });
+  }
+  try {
+    const data = await priceWatch.latestChanges();
+    res.json({ ok: true, ...data, snapshots: priceWatch.listSnapshots(15) });
+  } catch (e) {
+    res.status(502).json({ ok: false, error: e.message });
+  }
+});
+
+app.post("/api/admin/kt-prices/snapshot", adminAuth, async (req, res) => {
+  if (!khmerTopup.isTopupReady()) {
+    return res.status(503).json({ error: "KHMER_TOPUP_API_KEY not set" });
+  }
+  try {
+    const r = await priceWatch.takeSnapshot({ force: true });
+    res.json({ ok: true, ...r, snapshots: priceWatch.listSnapshots(15) });
+  } catch (e) {
+    res.status(502).json({ ok: false, error: e.message });
+  }
+});
+
+
   res.json({ selection });
 });
 

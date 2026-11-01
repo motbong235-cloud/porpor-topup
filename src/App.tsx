@@ -15,6 +15,7 @@ import Dashboard from "./pages/admin/Dashboard";
 import OrdersAdmin from "./pages/admin/OrdersAdmin";
 import SettingsAdmin from "./pages/admin/SettingsAdmin";
 import ServicesAdmin from "./pages/admin/ServicesAdmin";
+import PricesAdmin from "./pages/admin/PricesAdmin";
 import ChatAdmin from "./pages/admin/ChatAdmin";
 
 function readBootAdminPath() {
@@ -169,6 +170,7 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route path="orders" element={<OrdersAdmin />} />
           <Route path="services" element={<ServicesAdmin />} />
+          <Route path="prices" element={<PricesAdmin />} />
           <Route path="chat" element={<ChatAdmin />} />
           <Route path="settings" element={<SettingsAdmin />} />
           <Route path="*" element={<Navigate to={`/${adminPath}`} replace />} />
