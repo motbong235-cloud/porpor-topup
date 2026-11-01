@@ -2209,3 +2209,261 @@ html.dark .ad-chat-bubble { background: var(--ad-card); }
   color: #d7e4f7;
   font-size: 11px;
 }
+
+
+/* ============================================================
+   Stock Admin — polished inventory UI
+   ============================================================ */
+
+.ad-stock-zone {
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid var(--ad-line);
+  background:
+    linear-gradient(165deg, rgba(47, 107, 255, 0.05) 0%, transparent 42%),
+    var(--ad-card);
+  box-shadow: 0 10px 28px rgba(11, 27, 51, 0.04);
+}
+.ad-stock-zone-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.ad-stock-zone-title {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.ad-stock-ico {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--ad-blue-soft);
+  color: var(--ad-blue);
+  flex: none;
+}
+.ad-stock-zone-title strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ad-ink);
+}
+.ad-stock-zone-title p {
+  margin: 3px 0 0;
+  font-size: 12.5px;
+  color: var(--ad-ink-3);
+  line-height: 1.4;
+  max-width: 420px;
+}
+.ad-stock-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ad-stock-pill {
+  font-size: 12px;
+  font-weight: 750;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--ad-paper);
+  color: var(--ad-ink-2);
+  border: 1px solid var(--ad-line);
+}
+.ad-stock-pill.ok {
+  background: var(--ad-jade-soft);
+  color: #08785a;
+  border-color: transparent;
+}
+.ad-stock-pill.empty {
+  background: var(--ad-rose-soft);
+  color: #b42328;
+  border-color: transparent;
+}
+
+.ad-stock-empty {
+  text-align: center;
+  padding: 36px 16px;
+  border: 1px dashed var(--ad-line);
+  border-radius: 16px;
+  background: var(--ad-paper);
+}
+.ad-stock-empty-ico {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 12px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: var(--ad-blue-soft);
+  color: var(--ad-blue);
+}
+.ad-stock-empty strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+.ad-stock-empty p {
+  font-size: 13px;
+  color: var(--ad-ink-3);
+}
+
+.ad-stock-list {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 900px) {
+  .ad-stock-list {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.ad-stock-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--ad-line);
+  background: var(--ad-paper);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.ad-stock-card.has {
+  border-color: rgba(15, 167, 123, 0.28);
+  background: linear-gradient(180deg, rgba(15, 167, 123, 0.06), var(--ad-paper));
+}
+.ad-stock-card.low {
+  border-color: rgba(229, 72, 77, 0.2);
+}
+.ad-stock-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.ad-stock-card-name {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ad-stock-card-name strong {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ad-ink);
+}
+.ad-stock-svc {
+  font-size: 12px;
+  color: var(--ad-ink-3);
+  font-weight: 600;
+}
+.ad-stock-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--ad-ink-2);
+}
+.ad-stock-card-meta code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--ad-card);
+  border: 1px solid var(--ad-line);
+  color: var(--ad-ink-2);
+}
+
+.ad-stock-badge {
+  min-width: 64px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  text-align: center;
+  flex: none;
+  border: 1px solid var(--ad-line);
+  background: var(--ad-card);
+}
+.ad-stock-badge.ok {
+  background: var(--ad-jade-soft);
+  border-color: transparent;
+}
+.ad-stock-badge.zero {
+  background: var(--ad-rose-soft);
+  border-color: transparent;
+}
+.ad-stock-badge-n {
+  display: block;
+  font-size: 18px;
+  font-weight: 850;
+  line-height: 1.1;
+  color: var(--ad-ink);
+}
+.ad-stock-badge.ok .ad-stock-badge-n { color: #08785a; }
+.ad-stock-badge.zero .ad-stock-badge-n { color: #b42328; }
+.ad-stock-badge-l {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ad-ink-3);
+  margin-top: 2px;
+}
+
+.ad-stock-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ad-ink-2);
+}
+.ad-stock-label em {
+  font-style: normal;
+  color: var(--ad-blue);
+  font-weight: 750;
+}
+
+.ad-stock-ta {
+  width: 100%;
+  min-height: 96px;
+  border: 1px solid var(--ad-line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font: inherit;
+  font-size: 13px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  line-height: 1.5;
+  background: var(--ad-card);
+  color: var(--ad-ink);
+  resize: vertical;
+}
+.ad-stock-ta:focus {
+  outline: none;
+  border-color: var(--ad-blue);
+  box-shadow: 0 0 0 3px rgba(47, 107, 255, 0.14);
+}
+.ad-stock-ta::placeholder {
+  color: var(--ad-ink-3);
+  opacity: 0.85;
+}
+
+.ad-stock-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 2px;
+}
+.ad-stock-actions .ad-btn.primary {
+  min-width: 140px;
+}
+
+@media (max-width: 640px) {
+  .ad-stock-zone { padding: 14px; }
+  .ad-stock-card { padding: 14px; }
+  .ad-stock-actions .ad-btn { flex: 1 1 auto; }
+}
+

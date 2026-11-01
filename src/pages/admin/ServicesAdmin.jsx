@@ -453,10 +453,24 @@ function LocalServicesPanel() {
       <div className="ad-local-body">
         {/* Stock zone */}
         <div className="ad-stock-zone">
-          <div className="ad-section-title">
-            <AIcon name="box" size={18} />
-            <strong>ដាក់ស្តុកកូដ</strong>
-            <span className="ad-muted">សម្រាប់ service ប្រភេទស្តុក</span>
+          <div className="ad-stock-zone-head">
+            <div className="ad-stock-zone-title">
+              <span className="ad-stock-ico" aria-hidden>
+                <AIcon name="box" size={18} />
+              </span>
+              <div>
+                <strong>ដាក់ស្តុកកូដ</strong>
+                <p>បិទកូដ ១ បន្ទាត់ = ១ កូដ · បន្ថែម = រក្សាចាស់ · ជំនួស = លុបចាស់</p>
+              </div>
+            </div>
+            <div className="ad-stock-summary">
+              <span className="ad-stock-pill">
+                {stockPacks.length} packs
+              </span>
+              <span className={`ad-stock-pill ${(Object.values(stockCounts).reduce((a, b) => a + (Number(b) || 0), 0)) > 0 ? "ok" : "empty"}`}>
+                សរុប {Object.values(stockCounts).reduce((a, b) => a + (Number(b) || 0), 0)} កូដ
+              </span>
+            </div>
           </div>
 
           {!stockOk ? (
@@ -469,50 +483,81 @@ function LocalServicesPanel() {
           {loading ? (
             <div className="ad-loading"><span className="ad-spin" /> កំពុងផ្ទុក…</div>
           ) : stockPacks.length === 0 ? (
-            <p className="ad-muted">មិនទាន់មាន pack ស្តុក — ចុច <b>+ ស្តុក</b> ខាងលើ</p>
+            <div className="ad-stock-empty">
+              <div className="ad-stock-empty-ico"><AIcon name="box" size={28} /></div>
+              <strong>មិនទាន់មាន pack ស្តុក</strong>
+              <p>ចុចប៊ូតុង <b>+ ស្តុក</b> ខាងលើ ដើម្បីបង្កើត service រួចបន្ថែម pack</p>
+            </div>
           ) : (
             <div className="ad-stock-list">
-              {stockPacks.map(({ service, pack: pk }) => (
-                <div key={pk.id} className="ad-stock-card">
-                  <div className="ad-stock-card-top">
-                    <div>
-                      <strong>{service}</strong>
-                      <span className="ad-muted"> · {pk.name || pk.id}</span>
-                      <div className="ad-mono-sm">
-                        <code>{pk.id}</code> · ${Number(pk.price || 0).toFixed(2)}
+              {stockPacks.map(({ service, pack: pk }) => {
+                const left = stockCounts[pk.id] || 0;
+                const busy = stockBusy === pk.id;
+                const lines = String(stockDraft[pk.id] ?? "")
+                  .split(/\n/)
+                  .map((x) => x.trim())
+                  .filter(Boolean).length;
+                return (
+                  <div key={pk.id} className={`ad-stock-card${left > 0 ? " has" : " low"}`}>
+                    <div className="ad-stock-card-top">
+                      <div className="ad-stock-card-info">
+                        <div className="ad-stock-card-name">
+                          <strong>{pk.name || pk.id}</strong>
+                          <span className="ad-stock-svc">{service}</span>
+                        </div>
+                        <div className="ad-stock-card-meta">
+                          <code>{pk.id}</code>
+                          <span>${Number(pk.price || 0).toFixed(2)}</span>
+                        </div>
+                      </div>
+                      <div className={`ad-stock-badge${left > 0 ? " ok" : " zero"}`}>
+                        <span className="ad-stock-badge-n">{left}</span>
+                        <span className="ad-stock-badge-l">នៅសល់</span>
                       </div>
                     </div>
-                    <span className={`ad-tag${(stockCounts[pk.id] || 0) > 0 ? " ok" : ""}`}>
-                      នៅសល់ {stockCounts[pk.id] || 0}
-                    </span>
+
+                    <label className="ad-stock-label">
+                      បិទកូដ (១ បន្ទាត់ ១ កូដ)
+                      {lines > 0 ? <em> · {lines} បន្ទាត់</em> : null}
+                    </label>
+                    <textarea
+                      className="ad-stock-ta"
+                      rows={4}
+                      placeholder={"CODE-001\nCODE-002\nCODE-003"}
+                      value={stockDraft[pk.id] ?? ""}
+                      onChange={(e) => setStockDraft((s) => ({ ...s, [pk.id]: e.target.value }))}
+                    />
+
+                    <div className="ad-stock-actions">
+                      <button
+                        type="button"
+                        className="ad-btn primary"
+                        disabled={busy}
+                        onClick={() => saveStock(pk.id, "append")}
+                      >
+                        {busy ? "…" : (<><AIcon name="box" size={15} /> បន្ថែមស្តុក</>)}
+                      </button>
+                      <button
+                        type="button"
+                        className="ad-btn soft"
+                        disabled={busy}
+                        onClick={() => confirm("ជំនួសស្តុកទាំងអស់? កូដចាស់នឹងត្រូវលុប។") && saveStock(pk.id, "replace")}
+                      >
+                        ជំនួសទាំងអស់
+                      </button>
+                      <button
+                        type="button"
+                        className="ad-btn soft sm"
+                        disabled={busy || !(stockDraft[pk.id] || "").trim()}
+                        onClick={() => setStockDraft((s) => ({ ...s, [pk.id]: "" }))}
+                        title="សម្អាត"
+                      >
+                        សម្អាត
+                      </button>
+                    </div>
                   </div>
-                  <textarea
-                    className="ad-stock-ta"
-                    rows={3}
-                    placeholder={"CODE-001\nCODE-002\nCODE-003"}
-                    value={stockDraft[pk.id] ?? ""}
-                    onChange={(e) => setStockDraft((s) => ({ ...s, [pk.id]: e.target.value }))}
-                  />
-                  <div className="ad-row-btns">
-                    <button
-                      type="button"
-                      className="ad-btn primary"
-                      disabled={stockBusy === pk.id}
-                      onClick={() => saveStock(pk.id, "append")}
-                    >
-                      <AIcon name="box" size={15} /> បន្ថែមស្តុក
-                    </button>
-                    <button
-                      type="button"
-                      className="ad-btn soft"
-                      disabled={stockBusy === pk.id}
-                      onClick={() => confirm("ជំនួសស្តុកទាំងអស់?") && saveStock(pk.id, "replace")}
-                    >
-                      ជំនួស
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
