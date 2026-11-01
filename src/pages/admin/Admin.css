@@ -2799,3 +2799,42 @@ html.dark .ad-chat-bubble { background: var(--ad-card); }
   border-bottom: 1px solid var(--ad-line);
 }
 .ad-px-history li:last-child { border-bottom: 0; }
+
+.ad-provider-cards.ad-provider-3 {
+  grid-template-columns: 1fr;
+}
+@media (min-width: 720px) {
+  .ad-provider-cards.ad-provider-3 {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+button.ad-provider-card {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+.ad-provider-radio {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--ad-line);
+  flex: none;
+  margin-top: 2px;
+  background: var(--ad-card);
+  position: relative;
+}
+.ad-provider-radio.on {
+  border-color: var(--ad-blue);
+  background: var(--ad-blue);
+  box-shadow: inset 0 0 0 3px #fff;
+}
+.ad-provider-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+

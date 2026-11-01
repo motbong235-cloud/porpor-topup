@@ -241,11 +241,23 @@ async function fulfillTopup(order) {
     return updateOrder(order.id, { status: "paid", note: "autoTopup disabled — fulfill manually" });
   }
 
-  // Provider: settings.topupProvider = "dino" | "khmer" | "auto" (default auto)
-  // Providers are separate — no silent mix. Default: khmer.
+  // Provider: "khmer" | "dino" | "both"
   const pref = String(settings.topupProvider || order.topupProvider || "khmer").toLowerCase();
-  const useDino = pref === "dino" && dinoTopup.isDinoReady();
-  const useKhmer = pref !== "dino" && khmerTopup.isTopupReady();
+  let useDino = false;
+  let useKhmer = false;
+  if (pref === "dino") {
+    useDino = dinoTopup.isDinoReady();
+  } else if (pref === "both") {
+    const dinoSel = settings.dinoSelection?.games || {};
+    const slug = String(order.gameId || order.dinoGame || "");
+    const dinoEnabled = !!(dinoSel[slug]?.enabled || dinoSel[order.dinoGame]?.enabled);
+    const forceDino = order.topupProvider === "dino" || dinoEnabled;
+    if (forceDino && dinoTopup.isDinoReady()) useDino = true;
+    else if (khmerTopup.isTopupReady()) useKhmer = true;
+    else if (dinoTopup.isDinoReady()) useDino = true;
+  } else {
+    useKhmer = khmerTopup.isTopupReady();
+  }
 
   if (useDino) {
     const product = order.dinoProduct || order.packId;
@@ -445,7 +457,7 @@ app.get("/api/integrations/status", (_req, res) => {
     topupReady: khmerTopup.isTopupReady() || dinoTopup.isDinoReady(),
     khmerTopupReady: khmerTopup.isTopupReady(),
     dinoTopupReady: dinoTopup.isDinoReady(),
-    topupProvider: s.topupProvider || "auto",
+    topupProvider: s.topupProvider || "khmer",
     autoTopup: !!s.autoTopup,
   });
 });
@@ -1216,13 +1228,17 @@ app.put("/api/admin/settings", adminAuth, (req, res) => {
   const body = req.body || {};
   const allowed = [
     "siteName", "taglineKm", "taglineEn", "telegram", "announcementKm", "announcementEn",
-    "supportEmail", "maintenance", "coupons", "autoTopup", "logoUrl", "bannerUrls", "localProducts",
+    "supportEmail", "maintenance", "coupons", "autoTopup", "topupProvider", "logoUrl", "bannerUrls", "localProducts",
     "deliveryHours", "tickerSoldBase", "tickerSoldLabel", "resellers", "resellerPrices",
     "tgBotToken", "tgBotUsername", "tgChannelId",
   ];
   const patch = {};
   for (const k of allowed) {
     if (body[k] !== undefined) patch[k] = body[k];
+  }
+  if (patch.topupProvider !== undefined) {
+    const v = String(patch.topupProvider || "khmer").toLowerCase();
+    patch.topupProvider = ["khmer", "dino", "both"].includes(v) ? v : "khmer";
   }
   if (patch.logoUrl !== undefined) patch.logoUrl = cleanImageUrl(patch.logoUrl);
   if (patch.logoUrl !== undefined) branding.clearBrandingCache();

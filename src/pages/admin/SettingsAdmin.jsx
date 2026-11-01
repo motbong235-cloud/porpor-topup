@@ -232,35 +232,46 @@ export default function SettingsAdmin() {
         </div>
 
         <div className="ad-provider-split">
-          <p className="ad-provider-title">ជ្រើស Top-up provider (បែងចែកដាច់ពីគ្នា)</p>
-          <div className="ad-provider-cards">
-            <label className={`ad-provider-card${(form.topupProvider || "khmer") === "khmer" ? " on" : ""}`}>
-              <input
-                type="radio"
-                name="topupProvider"
-                checked={(form.topupProvider || "khmer") === "khmer"}
-                onChange={() => set("topupProvider", "khmer")}
-              />
-              <div>
-                <strong>Khmer TopUp</strong>
-                <small>Env: <code>KHMER_TOPUP_API_KEY</code> · Catalog ក្នុង tab Khmer TopUp</small>
-              </div>
-            </label>
-            <label className={`ad-provider-card${form.topupProvider === "dino" ? " on" : ""}`}>
-              <input
-                type="radio"
-                name="topupProvider"
-                checked={form.topupProvider === "dino"}
-                onChange={() => set("topupProvider", "dino")}
-              />
-              <div>
-                <strong>Dino Topups</strong>
-                <small>Env: <code>DINO_TOPUP_API_KEY</code> · Catalog ក្នុង tab Dino · Webhook <code>/api/webhook/dino</code></small>
-              </div>
-            </label>
+          <p className="ad-provider-title">ជ្រើស Top-up provider</p>
+          <div className="ad-provider-cards ad-provider-3">
+            {[
+              {
+                id: "khmer",
+                title: "Khmer TopUp",
+                desc: "Env: KHMER_TOPUP_API_KEY · Catalog tab Khmer TopUp",
+              },
+              {
+                id: "dino",
+                title: "Dino Topups",
+                desc: "Env: DINO_TOPUP_API_KEY · Catalog tab Dino",
+              },
+              {
+                id: "both",
+                title: "Khmer + Dino",
+                desc: "រួមគ្នា — game បើកក្នុង tab Dino ប្រើ Dino, ផ្សេងទៀតប្រើ Khmer",
+              },
+            ].map((opt) => {
+              const cur = form.topupProvider || "khmer";
+              const on = cur === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  className={`ad-provider-card${on ? " on" : ""}`}
+                  onClick={() => set("topupProvider", opt.id)}
+                  aria-pressed={on}
+                >
+                  <span className={`ad-provider-radio${on ? " on" : ""}`} aria-hidden />
+                  <span className="ad-provider-text">
+                    <strong>{opt.title}</strong>
+                    <small>{opt.desc}</small>
+                  </span>
+                </button>
+              );
+            })}
           </div>
           <p className="ad-muted" style={{ marginTop: 8 }}>
-            មិនលាយ — ជ្រើសមួយ។ Pack/Game ID ត្រូវតែត្រូវនឹង provider នោះ។
+            ចុចជ្រើស → រួចចុច <b>រក្សាទុកការកំណត់</b>។ Both = Dino សម្រាប់ game ដែល enable ក្នុង tab Dino។
           </p>
         </div>
         <div className="ad-toggle-row">
