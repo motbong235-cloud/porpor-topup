@@ -240,14 +240,10 @@ async function fulfillTopup(order) {
   }
 
   // Provider: settings.topupProvider = "dino" | "khmer" | "auto" (default auto)
-  const pref = String(settings.topupProvider || "auto").toLowerCase();
-  const useDino =
-    dinoTopup.isDinoReady() &&
-    (pref === "dino" || (pref === "auto" && !khmerTopup.isTopupReady()) || order.topupProvider === "dino");
-  const useKhmer =
-    !useDino &&
-    khmerTopup.isTopupReady() &&
-    (pref === "khmer" || pref === "auto" || !pref);
+  // Providers are separate — no silent mix. Default: khmer.
+  const pref = String(settings.topupProvider || order.topupProvider || "khmer").toLowerCase();
+  const useDino = pref === "dino" && dinoTopup.isDinoReady();
+  const useKhmer = pref !== "dino" && khmerTopup.isTopupReady();
 
   if (useDino) {
     const product = order.dinoProduct || order.packId;
@@ -627,8 +623,8 @@ app.post("/api/verify", limit("verify", { limit: 30, windowMs: 60_000 }), async 
   try {
     const game = await catalog.findGame(slug);
     if (!game || game.open === false) return res.status(404).json({ result: "unknown", error: "game_unavailable" });
-    const pref = String(getSettings().topupProvider || "auto").toLowerCase();
-    if (dinoTopup.isDinoReady() && (pref === "dino" || (pref === "auto" && !khmerTopup.isTopupReady()))) {
+    const pref = String(getSettings().topupProvider || "khmer").toLowerCase();
+    if (dinoTopup.isDinoReady() && pref === "dino") {
       const data = await dinoTopup.checkId(game.dinoId || slug, playerId, serverId);
       return res.json({
         result: data.valid ? "ok" : "invalid",

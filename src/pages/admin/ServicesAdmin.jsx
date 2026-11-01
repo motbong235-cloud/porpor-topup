@@ -860,8 +860,161 @@ function LocalServicesPanel() {
 }
 
 
+
+function DinoPanel() {
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
+  const [balance, setBalance] = useState(null);
+  const [game, setGame] = useState("ml");
+  const [products, setProducts] = useState(null);
+  const [q, setQ] = useState("");
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setErr("");
+    try {
+      const b = await api("/api/admin/dino/balance");
+      setBalance(b);
+    } catch (e) {
+      setBalance(null);
+      setErr(e.message === "not_configured" || String(e.message || "").includes("not_configured")
+        ? "មិនទាន់កំណត់ DINO_TOPUP_API_KEY លើ Render"
+        : e.message || "មិនអាចភ្ជាប់ Dino");
+    }
+    try {
+      const d = await api(`/api/admin/dino/products?game=${encodeURIComponent(game)}`);
+      const games = d.games || d.data?.games || [];
+      setProducts(games);
+    } catch (e) {
+      setProducts([]);
+      setErr((prev) => prev || e.message || "ទាញ products មិនបាន");
+    } finally {
+      setLoading(false);
+    }
+  }, [game]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const rows = useMemo(() => {
+    const list = [];
+    (products || []).forEach((g) => {
+      (g.products || []).forEach((pk) => {
+        list.push({
+          gameId: g.id,
+          gameName: g.name,
+          id: pk.id,
+          name: pk.name,
+          price: pk.price,
+          normal: pk.normal_price,
+          category: pk.category,
+        });
+      });
+    });
+    const s = q.trim().toLowerCase();
+    if (!s) return list;
+    return list.filter(
+      (x) =>
+        String(x.name).toLowerCase().includes(s) ||
+        String(x.id).toLowerCase().includes(s) ||
+        String(x.gameName).toLowerCase().includes(s),
+    );
+  }, [products, q]);
+
+  return (
+    <section className="ad-dino">
+      <header className="ad-dino-head">
+        <div>
+          <h2>
+            <span className="ad-dino-badge">DINO</span> Topups Reseller
+          </h2>
+          <p>API ដាច់ដោយឡែកពី Khmer TopUp · Order ចូល wallet Dino</p>
+        </div>
+        <div className="ad-dino-bal">
+          {balance?.ok || balance?.balance != null ? (
+            <>
+              <small>Wallet</small>
+              <strong>${Number(balance.balance ?? balance.data?.balance ?? 0).toFixed(2)}</strong>
+              <span>{balance.currency || "USD"}</span>
+            </>
+          ) : (
+            <strong className="muted">—</strong>
+          )}
+        </div>
+      </header>
+
+      {err ? <p className="ad-error">{err}</p> : null}
+
+      <div className="ad-dino-note">
+        <p>
+          <b>របៀបប្រើ:</b> Settings → Top-up provider = <code>dino</code> ·
+          Pack ID លើ website ត្រូវតែត្រូវនឹង product id Dino (ឧ. <code>86-diamonds</code>) ·
+          Game id ឧ. <code>ml</code>, <code>ff</code>
+        </p>
+        <p>
+          Webhook: <code>/api/webhook/dino</code> · Env: <code>DINO_TOPUP_API_KEY</code>
+        </p>
+      </div>
+
+      <div className="ad-dino-toolbar">
+        <label>
+          Game
+          <select value={game} onChange={(e) => setGame(e.target.value)}>
+            <option value="ml">Mobile Legends (ml)</option>
+            <option value="ff">Free Fire (ff)</option>
+            <option value="pubg">PUBG (pubg)</option>
+            <option value="hok">Honor of Kings (hok)</option>
+            <option value="genshin">Genshin (genshin)</option>
+            <option value="roblox">Roblox (roblox)</option>
+          </select>
+        </label>
+        <div className="ad-search grow">
+          <AIcon name="search" size={16} />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ស្វែងរក product…" />
+        </div>
+        <button type="button" className="ad-btn soft" onClick={load} disabled={loading}>
+          <AIcon name="refresh" size={16} /> ផ្ទុក
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="ad-loading"><span className="ad-spin" /> កំពុងទាញពី Dino…</div>
+      ) : rows.length === 0 ? (
+        <p className="ad-empty card">មិនមាន product — ពិនិត្យ API key ឬ game id</p>
+      ) : (
+        <div className="ad-dino-table-wrap">
+          <table className="ad-dino-table">
+            <thead>
+              <tr>
+                <th>Product ID</th>
+                <th>Name</th>
+                <th>Game</th>
+                <th>Price</th>
+                <th>Normal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={`${r.gameId}-${r.id}`}>
+                  <td><code>{r.id}</code></td>
+                  <td>{r.name}</td>
+                  <td><span className="ad-tag">{r.gameId}</span></td>
+                  <td className="r">${Number(r.price || 0).toFixed(2)}</td>
+                  <td className="r muted">${Number(r.normal || r.price || 0).toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
+
+
 export default function ServicesAdmin() {
-  const [tab, setTab] = useState("local"); // local | topup
+  const [tab, setTab] = useState("local"); // local | khmer | dino
   const [games, setGames] = useState(null);
   const [sel, setSel] = useState({ markupPercent: 0, games: {} });
   const [err, setErr] = useState("");
@@ -980,22 +1133,27 @@ export default function ServicesAdmin() {
 
   return (
     <div className="ad-page-services">
-      <PageHead km="សេវាកម្ម" en="Local stock / Live Chat · Khmer TopUp games" />
+      <PageHead km="សេវាកម្ម" en="Local · Khmer TopUp · Dino — separated" />
 
       <div className="ad-seg" role="tablist">
         <button type="button" role="tab" className={tab === "local" ? "on" : ""} onClick={() => setTab("local")}>
           ស្តុក / Live Chat
         </button>
-        <button type="button" role="tab" className={tab === "topup" ? "on" : ""} onClick={() => setTab("topup")}>
-          Auto TopUp (Khmer / Dino)
+        <button type="button" role="tab" className={tab === "khmer" ? "on" : ""} onClick={() => setTab("khmer")}>
+          Khmer TopUp
+        </button>
+        <button type="button" role="tab" className={tab === "dino" ? "on" : ""} onClick={() => setTab("dino")}>
+          Dino Topups
         </button>
       </div>
 
       {tab === "local" ? <LocalServicesPanel /> : null}
 
-      {tab === "topup" ? (
+      {tab === "dino" ? <DinoPanel /> : null}
+
+      {tab === "khmer" || tab === "topup" ? (
       <>
-      <PageHead km="សេវាហ្គេម Auto" en="Choose which Khmer TopUp games to sell · upload images">
+      <PageHead km="Khmer TopUp" en="Games from Khmer TopUp API only — separate from Dino">
         {stateLabel}
       </PageHead>
 

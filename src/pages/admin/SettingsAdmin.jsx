@@ -62,7 +62,7 @@ export default function SettingsAdmin() {
               min: Number(c.min) || 0,
             })),
           autoTopup: !!form.autoTopup,
-          topupProvider: form.topupProvider || "auto",
+          topupProvider: form.topupProvider || "khmer",
           logoUrl: form.logoUrl || "",
           bannerUrls: (form.bannerUrls || []).filter(Boolean).slice(0, 5),
           tgBotUsername: String(form.tgBotUsername || "").trim().replace(/^@/, ""),
@@ -226,23 +226,42 @@ export default function SettingsAdmin() {
         <div className="ad-toggle-row">
           <div>
             <strong>បញ្ចូលហ្គេមស្វ័យប្រវត្តិ</strong>
-            <small>បន្ទាប់ពីបង់ប្រាក់ — auto order ទៅ Khmer TopUp ឬ Dino Topups</small>
+            <small>បន្ទាប់ពីបង់ប្រាក់ — ប្រព័ន្ធបញ្ជាទិញទៅ provider ដែលជ្រើស (ខាងក្រោម)</small>
           </div>
           <Switch checked={!!form.autoTopup} onChange={(v) => set("autoTopup", v)} label="Auto top-up" />
         </div>
-        <div className="ad-field" style={{ marginTop: 12 }}>
-          <label>Top-up provider</label>
-          <select
-            value={form.topupProvider || "auto"}
-            onChange={(e) => set("topupProvider", e.target.value)}
-          >
-            <option value="auto">Auto (Dino បើមាន key, បើមិនមាន → Khmer)</option>
-            <option value="dino">Dino Topups តែប៉ុណ្ណោះ</option>
-            <option value="khmer">Khmer TopUp តែប៉ុណ្ណោះ</option>
-          </select>
-          <small style={{ display: "block", marginTop: 6, opacity: 0.75 }}>
-            Dino: set env <code>DINO_TOPUP_API_KEY</code> លើ Render · Webhook: <code>/api/webhook/dino</code>
-          </small>
+
+        <div className="ad-provider-split">
+          <p className="ad-provider-title">ជ្រើស Top-up provider (បែងចែកដាច់ពីគ្នា)</p>
+          <div className="ad-provider-cards">
+            <label className={`ad-provider-card${(form.topupProvider || "khmer") === "khmer" ? " on" : ""}`}>
+              <input
+                type="radio"
+                name="topupProvider"
+                checked={(form.topupProvider || "khmer") === "khmer"}
+                onChange={() => set("topupProvider", "khmer")}
+              />
+              <div>
+                <strong>Khmer TopUp</strong>
+                <small>Env: <code>KHMER_TOPUP_API_KEY</code> · Catalog ក្នុង tab Khmer TopUp</small>
+              </div>
+            </label>
+            <label className={`ad-provider-card${form.topupProvider === "dino" ? " on" : ""}`}>
+              <input
+                type="radio"
+                name="topupProvider"
+                checked={form.topupProvider === "dino"}
+                onChange={() => set("topupProvider", "dino")}
+              />
+              <div>
+                <strong>Dino Topups</strong>
+                <small>Env: <code>DINO_TOPUP_API_KEY</code> · Catalog ក្នុង tab Dino · Webhook <code>/api/webhook/dino</code></small>
+              </div>
+            </label>
+          </div>
+          <p className="ad-muted" style={{ marginTop: 8 }}>
+            មិនលាយ — ជ្រើសមួយ។ Pack/Game ID ត្រូវតែត្រូវនឹង provider នោះ។
+          </p>
         </div>
         <div className="ad-toggle-row">
           <div>
