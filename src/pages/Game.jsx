@@ -688,28 +688,54 @@ export default function Game({ lang, addOrder, settings }) {
           ) : null}
 
           {!isGift && (
-          <section className="card">
-            <h2 className="sec-title"><span className="step-no">1</span> {t(lang, "account")}</h2>
-            {(lang === "km" ? game.idHintKm : game.idHintEn) ? (
-              <p className="hint">{lang === "km" ? game.idHintKm : game.idHintEn}</p>
-            ) : null}
-            <div className="form-grid">
-              <label className="field">
-                {t(lang, "playerId")}
-                <input
-                  value={userId}
-                  inputMode={game.numericId ? "numeric" : "text"}
-                  placeholder={game.numericId ? "12345678" : "Name#TAG"}
-                  onChange={(e) => {
-                    setUserId(e.target.value);
-                    setNick("");
-                    setCheckedFor("");
-                  }}
-                />
-              </label>
-              {game.hasZone && (
-                <label className="field">
-                  {lang === "km" ? game.zoneLabelKm : game.zoneLabelEn}
+          <section className="card dino-info-card">
+            <div className="dino-info-head">
+              <span className="dino-info-step">1</span>
+              <h2 className="dino-info-title">{lang === "km" ? "បញ្ចូលព័ត៌មាន" : "Enter Information"}</h2>
+            </div>
+
+            <label className="dino-field">
+              <span className="dino-field-label">{String(t(lang, "playerId") || "User ID").toUpperCase()}</span>
+              <div className="dino-check-row">
+                <div className="dino-input-wrap">
+                  <span className="dino-input-ico" aria-hidden>
+                    <Icon name="user" size={16} />
+                  </span>
+                  <input
+                    value={userId}
+                    inputMode={game.numericId ? "numeric" : "text"}
+                    placeholder={game.numericId ? "User ID" : (lang === "km" ? "User ID / Username" : "User ID")}
+                    autoComplete="off"
+                    onChange={(e) => {
+                      setUserId(e.target.value);
+                      setNick("");
+                      setCheckedFor("");
+                      setRbxProfile(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        verify();
+                      }
+                    }}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="dino-check-btn"
+                  disabled={checking || userId.trim().length < 3}
+                  onClick={verify}
+                >
+                  {checking ? "…" : (lang === "km" ? "ពិនិត្យ ID" : "Check ID")}
+                  <span aria-hidden> ›</span>
+                </button>
+              </div>
+            </label>
+
+            {game.hasZone ? (
+              <label className="dino-field" style={{ marginTop: 12 }}>
+                <span className="dino-field-label">{(lang === "km" ? game.zoneLabelKm : game.zoneLabelEn) || "ZONE ID"}</span>
+                <div className="dino-input-wrap solo">
                   <input
                     value={zoneId}
                     inputMode="numeric"
@@ -720,11 +746,14 @@ export default function Game({ lang, addOrder, settings }) {
                       setCheckedFor("");
                     }}
                   />
-                </label>
-              )}
-              {game.servers.length > 0 && (
-                <label className="field">
-                  {t(lang, "server")}
+                </div>
+              </label>
+            ) : null}
+
+            {game.servers?.length > 0 ? (
+              <label className="dino-field" style={{ marginTop: 12 }}>
+                <span className="dino-field-label">{t(lang, "server")}</span>
+                <div className="dino-input-wrap solo">
                   <select
                     value={server}
                     onChange={(e) => {
@@ -735,21 +764,31 @@ export default function Game({ lang, addOrder, settings }) {
                   >
                     <option value="">{t(lang, "selectServer")}</option>
                     {game.servers.map((s) => (
-                      <option key={s.value} value={s.value}>
-                        {s.label}
-                      </option>
+                      <option key={s.value} value={s.value}>{s.label}</option>
                     ))}
                   </select>
-                </label>
-              )}
-            </div>
-            <div className="row-actions">
-              <button type="button" className="btn-soft" onClick={verify}>
-                {t(lang, "verify")}
-              </button>
-              <span className={`verify-status${nick ? " ok" : ""}`}>
-                <Icon name={nick ? "check" : "badge"} size={16} /> {statusText}
-              </span>
+                </div>
+              </label>
+            ) : null}
+
+            {nick ? (
+              <div className="dino-verify-ok">
+                <span className="dino-verify-ok-dot">✓</span>
+                <div>
+                  <strong>{nick}</strong>
+                  <span>{lang === "km" ? "ID ត្រឹមត្រូវ" : "ID verified"}</span>
+                </div>
+              </div>
+            ) : null}
+
+            <div className="dino-info-note">
+              <span className="dino-info-note-ico" aria-hidden>i</span>
+              <p>
+                {(lang === "km" ? game.idHintKm : game.idHintEn) ||
+                  (lang === "km"
+                    ? "សូមបញ្ចូល User ID ត្រឹមត្រូវ មុនពេលទូទាត់"
+                    : "Available for all users — enter a valid User ID before payment")}
+              </p>
             </div>
           </section>
           )}
