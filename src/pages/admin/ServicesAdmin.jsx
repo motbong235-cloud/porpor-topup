@@ -934,7 +934,7 @@ export default function ServicesAdmin() {
   );
 
   return (
-    <div>
+    <div className="ad-page-services">
       <PageHead km="សេវាកម្ម" en="Local stock / Live Chat · Khmer TopUp games" />
 
       <div className="ad-seg" role="tablist">
@@ -942,7 +942,7 @@ export default function ServicesAdmin() {
           ស្តុក / Live Chat
         </button>
         <button type="button" role="tab" className={tab === "topup" ? "on" : ""} onClick={() => setTab("topup")}>
-          Auto TopUp (Khmer)
+          Auto TopUp (Khmer / Dino)
         </button>
       </div>
 
