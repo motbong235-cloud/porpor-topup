@@ -238,6 +238,7 @@ export default function Game({ lang, addOrder, settings }) {
   const [nick, setNick] = useState("");
   const [checkedFor, setCheckedFor] = useState("");
   const [checking, setChecking] = useState(false);
+  const [rbxProfile, setRbxProfile] = useState(null);
   const [packId, setPackId] = useState(null);
   const [qty, setQty] = useState(1);
   const [cat, setCat] = useState("all");
@@ -343,40 +344,56 @@ export default function Game({ lang, addOrder, settings }) {
     );
   }
 
+  const isRobloxGame =
+    !!game &&
+    (game.deliveryType === "robux_send" ||
+      /roblox|robux/i.test(String(game.id || "")) ||
+      /roblox|robux/i.test(String(game.name || "")));
+
   function verify() {
     if (userId.trim().length < 3) {
       setNick("");
       setCheckedFor("");
+      setRbxProfile(null);
       return;
     }
-    if (game.hasZone && !zoneId.trim()) return;
-    if (game.servers.length && !server) return;
+    if (game.hasZone && !zoneId.trim() && !isRobloxGame) return;
+    if (game.servers?.length && !server && !isRobloxGame) return;
     const key = `${userId.trim()}|${zoneId.trim()}|${server}`;
     setChecking(true);
     setUnverified(false);
+    setPayErr("");
+    setRbxProfile(null);
     fetch("/api/verify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         slug: game.id,
-        playerId: userId.trim(),
+        playerId: userId.trim().replace(/^@/, ""),
         serverId: zoneId.trim() || server || undefined,
       }),
     })
       .then((r) => r.json())
       .then((data) => {
-        if (data.result === "valid") {
-          setNick(data.nickname || "OK");
+        const ok = data.result === "valid" || data.result === "ok" || data.valid === true;
+        if (ok) {
+          setNick(data.nickname || data.roblox?.displayName || data.roblox?.username || "OK");
           setCheckedFor(key);
-        } else if (data.result === "invalid") {
+          if (data.roblox) setRbxProfile(data.roblox);
+        } else if (data.result === "invalid" || data.valid === false) {
           setNick("");
           setCheckedFor("");
-          setPayErr(t(lang, "idInvalid"));
+          setRbxProfile(null);
+          setPayErr(
+            lang === "km"
+              ? "Username Roblox មិនត្រឹមត្រូវ (ប្រើ Username មិនមែន Display Name)"
+              : "Invalid Roblox username (use Username, not Display Name)",
+          );
         } else {
-          // supplier could not check this game — let the customer continue, flagged as unverified
           setNick("");
           setUnverified(true);
           setCheckedFor(key);
+          if (data.roblox) setRbxProfile(data.roblox);
         }
       })
       .catch(() => {
@@ -741,31 +758,106 @@ export default function Game({ lang, addOrder, settings }) {
           {isGift && ((game.deliveryType === "live_chat" || game.deliveryType === "robux_send")) ? (
             <section className="card enter-info-card">
               <div className="enter-info-head">
-                <span className="enter-info-ico" aria-hidden><Icon name="shield" size={16} /></span>
+                <span className="enter-info-step">1</span>
                 <h2 className="sec-title">{lang === "km" ? "បញ្ចូលព័ត៌មាន" : "Enter Information"}</h2>
               </div>
               {needUsername ? (
-                <label className="field enter-info-field">
-                  <span className="enter-info-label">Username</span>
-                  <input
-                    value={userId}
-                    inputMode="text"
-                    placeholder={lang === "km" ? "បញ្ចូល Username (ឧ. @user123)" : "Enter Username (e.g. @user123)"}
-                    autoComplete="username"
-                    onChange={(e) => setUserId(e.target.value)}
-                  />
-                </label>
+                <>
+                  <label className="field enter-info-field">
+                    <span className="enter-info-label">
+                      {game.deliveryType === "robux_send" || isRobloxGame
+                        ? "ROBLOX USERNAME"
+                        : "Username"}
+                    </span>
+                    <div className="rbx-check-row">
+                      <input
+                        value={userId}
+                        inputMode="text"
+                        placeholder={
+                          game.deliveryType === "robux_send" || isRobloxGame
+                            ? "BrendaHuang2848"
+                            : lang === "km"
+                              ? "បញ្ចូល Username"
+                              : "Enter Username"
+                        }
+                        autoComplete="username"
+                        onChange={(e) => {
+                          setUserId(e.target.value);
+                          setCheckedFor("");
+                          setNick("");
+                          setRbxProfile(null);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            verify();
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="rbx-check-btn"
+                        disabled={checking || userId.trim().length < 3}
+                        onClick={verify}
+                      >
+                        {checking ? "…" : (lang === "km" ? "ពិនិត្យ" : "Check")}
+                      </button>
+                    </div>
+                  </label>
+
+                  {rbxProfile ? (
+                    <div className="rbx-profile-card">
+                      <img
+                        className="rbx-avatar"
+                        src={rbxProfile.avatarUrl || ""}
+                        alt=""
+                        width={48}
+                        height={48}
+                        onError={(e) => {
+                          e.currentTarget.style.visibility = "hidden";
+                        }}
+                      />
+                      <div className="rbx-profile-info">
+                        <div className="rbx-display">
+                          <span className="rbx-ok" aria-hidden>✓</span>
+                          {rbxProfile.displayName || rbxProfile.username}
+                        </div>
+                        <div className="rbx-user">@{rbxProfile.username}</div>
+                        <div className="rbx-meta">
+                          ID {rbxProfile.userId}
+                          {rbxProfile.created
+                            ? ` · Joined ${new Date(rbxProfile.created).toLocaleString("en", { month: "short", year: "numeric" })}`
+                            : ""}
+                        </div>
+                      </div>
+                      {rbxProfile.profileUrl ? (
+                        <a className="rbx-profile-link" href={rbxProfile.profileUrl} target="_blank" rel="noreferrer">
+                          Profile ↗
+                        </a>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  <div className="rbx-hint-warn">
+                    <span className="rbx-hint-ico" aria-hidden>!</span>
+                    <p>
+                      {lang === "km"
+                        ? "សូមបញ្ចូល Roblox Username ពិតប្រាកដ (មិនមែន Display Name)។ Robux នឹងចូលក្នុង 1–2 នាទី (មិនសុំ Password)។"
+                        : "Enter the real Roblox Username (not Display Name). Robux arrives in 1–2 minutes (we never ask for Password)."}
+                    </p>
+                  </div>
+                </>
               ) : null}
-              <div className="enter-info-note">
-                <span className="enter-info-note-tag">{lang === "km" ? "កំណត់សម្គាល់" : "Note"}</span>
-                <p>
-                  {lang === "km"
-                    ? (game.idHintKm ||
-                        "យើងខ្ញុំមិនទាមទារ Password គណនីរបស់អ្នកឡើយ។ បន្ទាប់ពីទូទាត់ប្រាក់រួច លោកអ្នកនឹងទទួលបាន Order ID មួយ។ សូមផ្ញើលេខ Order ID នោះមកកាន់ក្រុមការងារយើងខ្ញុំតាម Live Chat ដើម្បីឱ្យយើងរៀបចំបញ្ចូល Robux ជូនលោកអ្នកភ្លាមៗ។")
-                    : (game.idHintEn ||
-                        "We never ask for your account password. After payment you get an Order ID — send it via Live Chat so our team can deliver for you.")}
-                </p>
-              </div>
+              {game.deliveryType === "live_chat" && !isRobloxGame ? (
+                <div className="enter-info-note">
+                  <span className="enter-info-note-tag">{lang === "km" ? "កំណត់សម្គាល់" : "Note"}</span>
+                  <p>
+                    {lang === "km"
+                      ? (game.idHintKm || "បន្ទាប់ពីទូទាត់ សូមផ្ញើ Order ID តាម Live Chat។")
+                      : (game.idHintEn || "After payment, send Order ID via Live Chat.")}
+                  </p>
+                </div>
+              ) : null}
             </section>
           ) : null}
 

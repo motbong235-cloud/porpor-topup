@@ -6316,3 +6316,139 @@ html.dark .pack {
   display: grid;
   place-items: center;
 }
+
+/* Roblox check + profile card */
+.rbx-check-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.rbx-check-row input {
+  flex: 1;
+  min-width: 0;
+}
+.rbx-check-btn {
+  flex: none;
+  border: none;
+  border-radius: 12px;
+  padding: 0 16px;
+  font-weight: 800;
+  font-size: 13px;
+  background: #0fa77b;
+  color: #fff;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.rbx-check-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.rbx-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #f3faf6;
+  border: 1px solid #c6e9d8;
+}
+html.dark .rbx-profile-card {
+  background: #0f2a22;
+  border-color: #1a4a3a;
+}
+.rbx-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: #e8f1ff;
+  flex: none;
+}
+.rbx-profile-info { flex: 1; min-width: 0; }
+.rbx-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--ink, #0b1b33);
+}
+.rbx-ok {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #0fa77b;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+}
+.rbx-user {
+  font-size: 12.5px;
+  color: #5a6b82;
+  margin-top: 1px;
+}
+.rbx-meta {
+  font-size: 11px;
+  color: #8392aa;
+  margin-top: 2px;
+}
+.rbx-profile-link {
+  flex: none;
+  font-size: 12px;
+  font-weight: 750;
+  color: #0fa77b;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid #b7e4cf;
+  background: #fff;
+}
+html.dark .rbx-profile-link {
+  background: #0a1a14;
+  border-color: #1a4a3a;
+}
+.rbx-hint-warn {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff5f5;
+  border: 1px solid #f5c2c2;
+  color: #9b1c1c;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+html.dark .rbx-hint-warn {
+  background: #2a1215;
+  border-color: #5c2430;
+  color: #f5b5b5;
+}
+.rbx-hint-ico {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #e5484d;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+}
+.enter-info-step {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #0fa77b;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 850;
+  flex: none;
+}

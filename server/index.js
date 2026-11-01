@@ -35,6 +35,7 @@ import * as liveChat from "./liveChat.js";
 import * as khmerTopup from "./khmerTopup.js";
 import * as dinoTopup from "./dinoTopup.js";
 import * as priceWatch from "./priceWatch.js";
+import * as robloxLookup from "./robloxLookup.js";
 import * as catalog from "./catalog.js";
 import { isGiftCodeProduct, localCatalog, DEFAULT_LOCAL_PRODUCTS, cleanBanners } from "./localProducts.js";
 import {
@@ -618,30 +619,103 @@ app.get("/api/catalog", async (req, res) => {
 app.post("/api/verify", limit("verify", { limit: 30, windowMs: 60_000 }), async (req, res) => {
   const { slug, playerId, serverId } = req.body || {};
   if (!slug || !playerId) return res.status(400).json({ result: "incomplete", message: "slug and playerId required" });
-  if (!khmerTopup.isTopupReady() && !dinoTopup.isDinoReady()) {
-    return res.status(503).json({ result: "unknown", error: "topup_not_configured" });
-  }
   try {
     const game = await catalog.findGame(slug);
     if (!game || game.open === false) return res.status(404).json({ result: "unknown", error: "game_unavailable" });
+
+    const slugL = String(game.id || slug).toLowerCase();
+    const nameL = String(game.name || "").toLowerCase();
+    const isRoblox =
+      game.deliveryType === "robux_send" ||
+      slugL.includes("roblox") ||
+      slugL.includes("robux") ||
+      nameL.includes("roblox") ||
+      nameL.includes("robux");
+
+    // Roblox: always enrich with public profile (avatar + display name)
+    let rbx = null;
+    if (isRoblox) {
+      try {
+        rbx = await robloxLookup.lookupRobloxUsername(playerId);
+      } catch (e) {
+        rbx = { valid: false, message: e.message };
+      }
+    }
+
     const pref = String(getSettings().topupProvider || "khmer").toLowerCase();
-    if (dinoTopup.isDinoReady() && pref === "dino") {
-      const data = await dinoTopup.checkId(game.dinoId || slug, playerId, serverId);
+    let supplier = null;
+    try {
+      if (dinoTopup.isDinoReady() && (pref === "dino" || isRoblox)) {
+        // Prefer Dino check-id for roblox when key exists
+        const gameKey = isRoblox ? "roblox" : game.dinoId || slug;
+        try {
+          const data = await dinoTopup.checkId(gameKey, playerId, serverId);
+          supplier = {
+            provider: "dino",
+            valid: !!data.valid,
+            nickname: data.nickname || null,
+            region: data.region || null,
+            message: data.message || null,
+            unavailable: !!data.unavailable,
+          };
+        } catch (e) {
+          if (pref === "dino" && !isRoblox) throw e;
+          // roblox can continue with public lookup only
+        }
+      }
+      if (!supplier && khmerTopup.isTopupReady() && !isRoblox) {
+        const data = await khmerTopup.verifyAccount(slug, playerId, serverId);
+        // normalize Khmer response
+        const result = data.result || (data.valid ? "valid" : data.valid === false ? "invalid" : "unknown");
+        return res.json({ ...data, result: result === "ok" ? "valid" : result });
+      }
+    } catch (e) {
+      if (!isRoblox) return res.json({ result: "unknown", error: e.message });
+    }
+
+    if (isRoblox) {
+      const ok = rbx?.valid === true && (supplier ? supplier.valid !== false : true);
+      if (!rbx?.valid) {
+        return res.json({
+          result: "invalid",
+          valid: false,
+          message: rbx?.message || "Invalid Roblox username",
+          provider: supplier?.provider || "roblox",
+        });
+      }
       return res.json({
-        result: data.valid ? "ok" : "invalid",
-        valid: !!data.valid,
-        nickname: data.nickname || null,
-        region: data.region || null,
-        message: data.message || null,
-        provider: "dino",
-        raw: data,
+        result: "valid",
+        valid: true,
+        nickname: supplier?.nickname || rbx.displayName || rbx.username,
+        region: supplier?.region || null,
+        message: supplier?.message || null,
+        provider: supplier?.provider || "roblox",
+        roblox: {
+          userId: rbx.userId,
+          username: rbx.username,
+          displayName: rbx.displayName,
+          avatarUrl: rbx.avatarUrl,
+          profileUrl: rbx.profileUrl,
+          created: rbx.created,
+        },
       });
     }
-    if (khmerTopup.isTopupReady()) {
-      const data = await khmerTopup.verifyAccount(slug, playerId, serverId);
-      return res.json(data);
+
+    if (supplier) {
+      return res.json({
+        result: supplier.valid ? "valid" : "invalid",
+        valid: supplier.valid,
+        nickname: supplier.nickname,
+        region: supplier.region,
+        message: supplier.message,
+        provider: supplier.provider,
+      });
     }
-    return res.status(503).json({ result: "unknown", error: "topup_not_configured" });
+
+    if (!khmerTopup.isTopupReady() && !dinoTopup.isDinoReady()) {
+      return res.status(503).json({ result: "unknown", error: "topup_not_configured" });
+    }
+    return res.json({ result: "unknown", message: "no_check" });
   } catch (e) {
     return res.json({ result: "unknown", error: e.message });
   }
