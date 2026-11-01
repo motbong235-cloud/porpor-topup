@@ -880,97 +880,102 @@ export default function Game({ lang, addOrder, settings }) {
             </section>
           ) : null}
 
-          <section className="card packs-section">
+          <section className="card packs-section dino-packs">
             <div className="pack-head">
-              <h2 className="sec-title"><span className="step-no">2</span> {t(lang, "packs")}</h2>
+              <h2 className="sec-title"><span className="step-no">2</span> {lang === "km" ? "ជ្រើសកញ្ចប់" : "Select Package"}</h2>
               <div className="qty">
                 <span>{t(lang, "qty")}</span>
-                <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))}>
-                  −
-                </button>
+                <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))}>−</button>
                 <span>{qty}</span>
-                <button type="button" onClick={() => setQty((q) => Math.min(10, q + 1))}>
-                  +
-                </button>
+                <button type="button" onClick={() => setQty((q) => Math.min(10, q + 1))}>+</button>
               </div>
             </div>
             {cats.length > 2 ? (
-            <div className="cats">
-              {cats.map((c) => (
-                <button key={c} type="button" className={`cat${cat === c ? " active" : ""}`} onClick={() => setCat(c)}>
-                  {c === "all" ? t(lang, "allCats") : c}
-                </button>
-              ))}
-            </div>
-            ) : null}
-            <div className="packs">
-              {game.packs
-                .filter((p) => cat === "all" || catLabel(p.category) === cat)
-                .map((p) => {
-                  const soldOut = isStock && p.inStock === false;
-                  return (
-                  <button
-                    key={p.id}
-                    type="button"
-                    disabled={soldOut}
-                    aria-pressed={packId === p.id}
-                    className={`pack${p.image ? " has-img" : ""}${packId === p.id ? " active" : ""}${soldOut ? " sold-out" : ""}`}
-                    onClick={() => {
-                      if (soldOut) return;
-                      setPackId(p.id);
-                      const nextSub = Math.round(p.price * qty * 100) / 100;
-                      const codeTry = String(coupon || appliedCode || "").trim();
-                      if (codeTry) {
-                        fetch("/api/coupon/preview", {
-                          method: "POST",
-                          credentials: "include",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ code: codeTry, subtotal: nextSub || 1 }),
-                        })
-                          .then((r) => r.json())
-                          .then((data) => {
-                            if (data?.ok && data.code) {
-                              setApplied(nextSub ? Number(data.discount) || 0 : 0);
-                              setAppliedCode(data.code);
-                            } else setApplied(0);
-                          })
-                          .catch(() => setApplied(0));
-                      } else setApplied(0);
-                    }}
-                  >
-                    {p.image ? (
-                      <img
-                        className="pack-img"
-                        src={p.image}
-                        alt=""
-                        loading="lazy"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                        }}
-                      />
-                    ) : null}
-                    {packId === p.id ? (
-                      <span className="pack-tick" aria-hidden><Icon name="check" size={12} /></span>
-                    ) : null}
-                    <div className="pack-body">
-                      <div className="pack-name">{lang === "km" ? (p.nameKm || p.name) : p.name}</div>
-                      {p.bonus ? <div className="pack-bonus">{p.bonus}</div> : null}
-                      {isStock ? (
-                        <div className={`pack-stock${soldOut ? " out" : ""}`}>
-                          {soldOut
-                            ? (lang === "km" ? "អស់ស្តុក" : "Out of stock")
-                            : (lang === "km" ? `នៅសល់ ${p.stock ?? "—"}` : `Stock ${p.stock ?? "—"}`)}
-                        </div>
-                      ) : null}
-                      <div className="pack-price-row">
-                        <span className="pack-price">{money(p.price)}</span>
-                        {p.resellerPrice ? <span className="pack-res">Reseller</span> : null}
-                      </div>
-                    </div>
+              <div className="cats">
+                {cats.map((c) => (
+                  <button key={c} type="button" className={`cat${cat === c ? " active" : ""}`} onClick={() => setCat(c)}>
+                    {c === "all" ? t(lang, "allCats") : c}
                   </button>
-                  );
-                })}
-            </div>
+                ))}
+              </div>
+            ) : null}
+            {(() => {
+              const list = game.packs.filter((p) => cat === "all" || catLabel(p.category) === cat);
+              // group by category like Dino
+              const groups = [];
+              const map = new Map();
+              for (const p of list) {
+                const key = catLabel(p.category) || "Packs";
+                if (!map.has(key)) {
+                  const g = { key, items: [] };
+                  map.set(key, g);
+                  groups.push(g);
+                }
+                map.get(key).items.push(p);
+              }
+              const tones = ["tone-cream", "tone-lilac", "tone-mint", "tone-sky"];
+              return groups.map((g) => (
+                <div className="dino-pack-group" key={g.key}>
+                  {cat === "all" && groups.length > 1 ? (
+                    <div className="dino-pack-group-head">
+                      <span className="dino-pack-group-title">{g.key}</span>
+                      <span className="dino-pack-group-line" />
+                      <span className="dino-pack-group-count">{g.items.length}</span>
+                    </div>
+                  ) : null}
+                  <div className="packs dino-pack-grid">
+                    {g.items.map((p, i) => {
+                      const soldOut = isStock && p.inStock === false;
+                      const tone = tones[i % tones.length];
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          disabled={soldOut}
+                          aria-pressed={packId === p.id}
+                          className={`pack dino-pack ${tone}${p.image ? " has-img" : ""}${packId === p.id ? " active" : ""}${soldOut ? " sold-out" : ""}`}
+                          onClick={() => {
+                            if (soldOut) return;
+                            setPackId(p.id);
+                            const nextSub = Math.round(p.price * qty * 100) / 100;
+                            const codeTry = String(coupon || appliedCode || "").trim();
+                            if (codeTry) {
+                              fetch("/api/coupon/preview", {
+                                method: "POST",
+                                credentials: "include",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ code: codeTry, subtotal: nextSub || 1 }),
+                              })
+                                .then((r) => r.json())
+                                .then((data) => {
+                                  if (data?.ok && data.code) {
+                                    setApplied(nextSub ? Number(data.discount) || 0 : 0);
+                                    setAppliedCode(data.code);
+                                  } else setApplied(0);
+                                })
+                                .catch(() => setApplied(0));
+                            } else setApplied(0);
+                          }}
+                        >
+                          <span className="dino-pack-icon" aria-hidden>
+                            {p.image ? (
+                              <img src={p.image} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                            ) : (
+                              <span className="dino-pack-glyph">◆</span>
+                            )}
+                          </span>
+                          <span className="dino-pack-meta">
+                            <span className="dino-pack-name">{lang === "km" ? (p.nameKm || p.name) : p.name}</span>
+                            <span className="dino-pack-price">{money(p.price)}</span>
+                          </span>
+                          {packId === p.id ? <span className="pack-tick" aria-hidden>✓</span> : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ));
+            })()}
           </section>
 
           
