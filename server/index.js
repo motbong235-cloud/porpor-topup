@@ -1356,49 +1356,67 @@ app.get("/api/admin/dino-games", adminAuth, async (req, res) => {
   }
   try {
     const want = String(req.query.game || "").trim();
-    const gameIds = want
-      ? [want]
-      : ["ml", "ff", "pubg", "hok", "genshin", "roblox"];
-    const games = [];
-    for (const gid of gameIds) {
+    const skipped = [];
+    let games = [];
+
+    if (want) {
       try {
-        const data = await dinoTopup.listProducts(gid);
-        const list = data.games || data.data?.games || (Array.isArray(data) ? data : []);
-        // Dino may return { games: [{ id, name, products: [...] }] } or single game
-        const arr = list.length ? list : data.id ? [data] : [];
-        for (const g of arr) {
-          const id = String(g.id || gid);
-          const packs = (g.products || g.packs || []).map((p) => ({
-            id: String(p.id),
-            name: String(p.name || p.id),
-            cost: Number(p.price || p.cost || 0),
-            price: Number(p.price || 0),
-            category: String(p.category || "Diamonds"),
-            inStock: p.open !== false && p.unavailable !== true,
-            image: "",
-          }));
-          if (!packs.length) continue;
-          games.push({
-            slug: id,
-            name: String(g.name || id),
-            image: "",
-            packs,
-            provider: "dino",
-          });
-        }
+        const data = await dinoTopup.listProducts(want);
+        games = dinoTopup.normalizeGamesPayload(data);
       } catch (e) {
-        // skip missing game catalogs
+        skipped.push({ game: want, error: e.message });
+      }
+    } else {
+      // 1) Full catalog without filter (docs: game optional)
+      try {
+        const data = await dinoTopup.listProducts();
+        games = dinoTopup.normalizeGamesPayload(data);
+      } catch (e) {
+        skipped.push({ game: "*", error: e.message });
+      }
+
+      // 2) If API returned few games, merge common ids individually
+      const known = [
+        "ml", "ff", "pubg", "hok", "genshin", "roblox",
+        "valorant", "codm", "aov", "wildrift", "lol",
+        "steam", "itunes", "google-play", "delta", "blood-strike",
+        "honor", "zepeto", "magic-chess", "lifeafter", "identity-v",
+      ];
+      const have = new Set(games.map((g) => String(g.slug).toLowerCase()));
+      if (games.length < 8) {
+        for (const gid of known) {
+          if (have.has(gid)) continue;
+          try {
+            const data = await dinoTopup.listProducts(gid);
+            for (const g of dinoTopup.normalizeGamesPayload(data)) {
+              const key = String(g.slug).toLowerCase();
+              if (have.has(key)) continue;
+              have.add(key);
+              games.push(g);
+            }
+          } catch (e) {
+            skipped.push({ game: gid, error: e.message || e.code || "fail" });
+          }
+        }
       }
     }
+
     // de-dupe by slug
     const seen = new Set();
     const uniq = [];
     for (const g of games) {
-      if (seen.has(g.slug)) continue;
-      seen.add(g.slug);
+      const k = String(g.slug).toLowerCase();
+      if (seen.has(k)) continue;
+      seen.add(k);
       uniq.push(g);
     }
-    res.json({ games: uniq, selection: getSettings().dinoSelection || { markupPercent: 0, games: {} } });
+
+    res.json({
+      games: uniq,
+      count: uniq.length,
+      skipped: skipped.slice(0, 30),
+      selection: getSettings().dinoSelection || { markupPercent: 0, games: {} },
+    });
   } catch (e) {
     res.status(502).json({ error: e.message });
   }

@@ -872,6 +872,8 @@ function DinoPanel() {
   const [filter, setFilter] = useState("all");
   const [gameFilter, setGameFilter] = useState("");
   const [balance, setBalance] = useState(null);
+  const [skipped, setSkipped] = useState([]);
+  const [gameCount, setGameCount] = useState(0);
 
   const [rev, setRev] = useState(0);
   const [savedRev, setSavedRev] = useState(0);
@@ -888,6 +890,8 @@ function DinoPanel() {
     api(`/api/admin/dino-games${qs}`)
       .then((d) => {
         setGames(d.games || []);
+        setGameCount(d.count || (d.games || []).length);
+        setSkipped(Array.isArray(d.skipped) ? d.skipped : []);
         setSel({
           markupPercent: d.selection?.markupPercent || 0,
           games: d.selection?.games || {},
@@ -1001,6 +1005,14 @@ function DinoPanel() {
       </header>
 
       {err ? <p className="ad-error">{err}</p> : null}
+      {!err && gameCount > 0 ? (
+        <p className="ad-muted">រកឃើញ <b>{gameCount}</b> ហ្គេមពី Dino API{skipped.length ? ` · skip ${skipped.length}` : ""}</p>
+      ) : null}
+      {skipped.length > 0 && gameCount < 5 ? (
+        <p className="ad-error" style={{ fontSize: 12 }}>
+          game ids មួយចំនួន fail — ពិនិត្យ key ឬ Dino catalog: {skipped.slice(0, 5).map((x) => x.game).join(", ")}
+        </p>
+      ) : null}
 
       <section className="ad-card ad-toolbar">
         <div className="ad-search grow">

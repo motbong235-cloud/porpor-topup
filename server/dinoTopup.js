@@ -65,6 +65,23 @@ export function mapGameId(gameId) {
     gi: "genshin",
     roblox: "roblox",
     robux: "roblox",
+    valorant: "valorant",
+    valo: "valorant",
+    codm: "codm",
+    cod: "codm",
+    "call-of-duty": "codm",
+    mlbb_ph: "ml",
+    mlbb_id: "ml",
+    "arena-of-valor": "aov",
+    aov: "aov",
+    wildrift: "wildrift",
+    wr: "wildrift",
+    "league-of-legends": "lol",
+    lol: "lol",
+    steam: "steam",
+    itunes: "itunes",
+    google: "google-play",
+    "google-play": "google-play",
   };
   return map[g] || g;
 }
@@ -74,9 +91,65 @@ export async function getBalance() {
 }
 
 export async function listProducts(game) {
+  // No game param → full catalog (all games the key can order)
   const q = game ? `?game=${encodeURIComponent(mapGameId(game))}` : "";
   return api(`/products${q}`);
 }
+
+/** Normalize API payload → [{ id, name, packs: [...] }] */
+export function normalizeGamesPayload(data) {
+  const out = [];
+  if (!data || typeof data !== "object") return out;
+
+  let list =
+    data.games ||
+    data.data?.games ||
+    (Array.isArray(data.data) ? data.data : null) ||
+    (Array.isArray(data) ? data : null);
+
+  // Single game object
+  if (!list && (data.id || data.products || data.packs)) {
+    list = [data];
+  }
+  if (!Array.isArray(list)) list = [];
+
+  for (const g of list) {
+    if (!g || typeof g !== "object") continue;
+    // Sometimes products are nested under categories
+    let products = g.products || g.packs || g.items || [];
+    if (!Array.isArray(products) && g.categories) {
+      products = [];
+      for (const cat of g.categories) {
+        for (const p of cat.products || cat.packs || []) products.push(p);
+      }
+    }
+    if (!Array.isArray(products)) products = [];
+    const packs = products
+      .map((p) => ({
+        id: String(p.id ?? p.product_id ?? ""),
+        name: String(p.name || p.title || p.id || ""),
+        cost: Number(p.price ?? p.cost ?? p.amount ?? 0),
+        price: Number(p.price ?? p.cost ?? 0),
+        category: String(p.category || p.group || "Diamonds"),
+        inStock: p.open !== false && p.unavailable !== true && p.in_stock !== false,
+        image: String(p.image || p.icon || ""),
+      }))
+      .filter((p) => p.id && Number.isFinite(p.cost));
+    const id = String(g.id || g.slug || g.code || "").trim();
+    if (!id && !packs.length) continue;
+    out.push({
+      slug: id || packs[0]?.id?.split("-")[0] || "unknown",
+      name: String(g.name || g.title || id || "Game"),
+      open: g.open !== false,
+      needsZone: !!(g.needs_zone_id || g.needsZone),
+      packs,
+      provider: "dino",
+      image: String(g.image || g.icon || ""),
+    });
+  }
+  return out.filter((g) => g.packs.length > 0);
+}
+
 
 export async function checkId(game, playerId, zoneId) {
   const q = new URLSearchParams({

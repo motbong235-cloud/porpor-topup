@@ -10,7 +10,7 @@ import * as dinoTopup from "./dinoTopup.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "..", "data");
 const MAX_SNAPS = 60;
-const GAMES_DINO = ["ml", "ff", "pubg", "hok", "genshin", "roblox"];
+const GAMES_DINO = ["ml", "ff", "pubg", "hok", "genshin", "roblox", "valorant", "codm", "aov", "wildrift", "lol", "steam", "delta", "blood-strike"];
 
 function ensure() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -75,33 +75,31 @@ async function fetchDinoGames() {
   if (!dinoTopup.isDinoReady()) {
     throw Object.assign(new Error("DINO_TOPUP_API_KEY not set"), { code: "not_configured" });
   }
-  const games = [];
-  for (const gid of GAMES_DINO) {
-    try {
-      const data = await dinoTopup.listProducts(gid);
-      const list = data.games || data.data?.games || (Array.isArray(data) ? data : []);
-      const arr = list.length ? list : data.id ? [data] : [];
-      for (const g of arr) {
-        const id = String(g.id || gid);
-        const packs = (g.products || g.packs || []).map((p) => ({
-          id: String(p.id),
-          name: String(p.name || p.id),
-          cost: Number(p.price || p.cost || 0),
-          price: Number(p.price || 0),
-        }));
-        if (!packs.length) continue;
-        games.push({ slug: id, name: String(g.name || id), packs });
+  let games = [];
+  try {
+    const data = await dinoTopup.listProducts();
+    games = dinoTopup.normalizeGamesPayload(data);
+  } catch {
+    games = [];
+  }
+  if (games.length < 8) {
+    const have = new Set(games.map((g) => String(g.slug).toLowerCase()));
+    for (const gid of GAMES_DINO) {
+      if (have.has(gid)) continue;
+      try {
+        const data = await dinoTopup.listProducts(gid);
+        for (const g of dinoTopup.normalizeGamesPayload(data)) {
+          const k = String(g.slug).toLowerCase();
+          if (have.has(k)) continue;
+          have.add(k);
+          games.push(g);
+        }
+      } catch {
+        /* skip */
       }
-    } catch {
-      /* skip */
     }
   }
-  const seen = new Set();
-  return games.filter((g) => {
-    if (seen.has(g.slug)) return false;
-    seen.add(g.slug);
-    return true;
-  });
+  return games;
 }
 
 async function fetchGames(provider) {
