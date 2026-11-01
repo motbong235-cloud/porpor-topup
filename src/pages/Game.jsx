@@ -880,7 +880,7 @@ export default function Game({ lang, addOrder, settings }) {
             </section>
           ) : null}
 
-          <section className="card">
+          <section className="card packs-section">
             <div className="pack-head">
               <h2 className="sec-title"><span className="step-no">2</span> {t(lang, "packs")}</h2>
               <div className="qty">
