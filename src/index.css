@@ -6666,3 +6666,80 @@ html.dark .packs .pack.active {
   box-shadow: 0 4px 12px rgba(29, 106, 223, 0.25);
 }
 
+
+/* ============================================================
+   Packs equal grid — phone + desktop (last wins)
+   ============================================================ */
+.packs {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  align-items: stretch !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+@media (min-width: 640px) {
+  .packs {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+@media (min-width: 900px) {
+  .packs {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+.packs .pack,
+button.pack {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  min-height: 88px !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  padding: 12px 14px !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+}
+
+.packs .pack-body {
+  width: 100% !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+
+.packs .pack-name,
+.packs .pack .name {
+  width: 100% !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+  line-height: 1.3 !important;
+  font-size: 13px !important;
+  font-weight: 750 !important;
+}
+
+.packs .pack-price,
+.packs .pack .price {
+  font-size: 15px !important;
+  font-weight: 850 !important;
+  color: #1d6adf !important;
+}
+
+/* Prevent parent from clipping the right column */
+.card .packs,
+section.card .packs {
+  overflow: visible !important;
+}
+section.card {
+  overflow: visible !important;
+}
+
