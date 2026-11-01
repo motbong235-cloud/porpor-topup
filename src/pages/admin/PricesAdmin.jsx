@@ -34,6 +34,7 @@ export default function PricesAdmin() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [data, setData] = useState(null);
+  const [provider, setProvider] = useState("khmer"); // khmer | dino
   const [filter, setFilter] = useState("all"); // all | up | down | new
   const [q, setQ] = useState("");
 
@@ -41,19 +42,22 @@ export default function PricesAdmin() {
     setLoading(true);
     setErr("");
     try {
-      const d = await api("/api/admin/kt-prices");
+      const d = await api(`/api/admin/kt-prices?provider=${encodeURIComponent(provider)}`);
       setData(d);
     } catch (e) {
+      const msg = String(e.message || "");
       setErr(
-        String(e.message || "").includes("not set")
+        msg.includes("KHMER")
           ? "មិនទាន់កំណត់ KHMER_TOPUP_API_KEY"
-          : e.message || "ទាញតម្លៃមិនបាន",
+          : msg.includes("DINO")
+            ? "មិនទាន់កំណត់ DINO_TOPUP_API_KEY"
+            : msg || "ទាញតម្លៃមិនបាន",
       );
       setData(null);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [provider]);
 
   useEffect(() => {
     load();
@@ -62,7 +66,10 @@ export default function PricesAdmin() {
   async function snapshot() {
     setBusy(true);
     try {
-      const d = await api("/api/admin/kt-prices/snapshot", { method: "POST", body: "{}" });
+      const d = await api("/api/admin/kt-prices/snapshot", {
+        method: "POST",
+        body: JSON.stringify({ provider }),
+      });
       setData((prev) => ({
         ...(prev || {}),
         ...d,
@@ -112,7 +119,7 @@ export default function PricesAdmin() {
 
   return (
     <div className="ad-page-prices">
-      <PageHead km="តាមដានតម្លៃ" en="Khmer TopUp cost watch — up / down">
+      <PageHead km="តាមដានតម្លៃ" en="Khmer TopUp & Dino cost watch — up / down">
         <div className="ad-row-btns">
           <button type="button" className="ad-btn soft" onClick={load} disabled={loading}>
             <AIcon name="refresh" size={15} /> ផ្ទុកឡើងវិញ
@@ -123,8 +130,19 @@ export default function PricesAdmin() {
         </div>
       </PageHead>
 
+      <div className="ad-seg" role="tablist">
+        <button type="button" role="tab" className={provider === "khmer" ? "on" : ""} onClick={() => setProvider("khmer")}>
+          Khmer TopUp
+        </button>
+        <button type="button" role="tab" className={provider === "dino" ? "on" : ""} onClick={() => setProvider("dino")}>
+          Dino Topups
+        </button>
+      </div>
+
       <p className="ad-px-lead">
-        ប្រៀបធៀប <b>តម្លៃដើម (cost)</b> ពី Khmer TopUp នឹង snapshot មុន — ឃើញថ្លៃឡើង / ធ្លាក់ មុនកែ markup
+        ប្រៀបធៀប <b>តម្លៃដើម (cost)</b> ពី{" "}
+        <b>{provider === "dino" ? "Dino Topups" : "Khmer TopUp"}</b> នឹង snapshot មុន — ឃើញថ្លៃឡើង / ធ្លាក់
+        (ប្រវត្តិដាច់ពីគ្នា)
       </p>
 
       {err ? <p className="ad-error">{err}</p> : null}
@@ -183,7 +201,7 @@ export default function PricesAdmin() {
 
       {loading ? (
         <div className="ad-loading">
-          <span className="ad-spin" /> កំពុងទាញតម្លៃពី Khmer TopUp…
+          <span className="ad-spin" /> {provider === "dino" ? "កំពុងទាញតម្លៃពី Dino…" : "កំពុងទាញតម្លៃពី Khmer TopUp…"}
         </div>
       ) : list.length === 0 ? (
         <div className="ad-px-empty">

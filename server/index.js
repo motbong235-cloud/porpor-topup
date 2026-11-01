@@ -1410,24 +1410,32 @@ app.put("/api/admin/dino-selection", adminAuth, (req, res) => {
 
 /* ---------- Khmer TopUp price watch ---------- */
 app.get("/api/admin/kt-prices", adminAuth, async (req, res) => {
-  if (!khmerTopup.isTopupReady()) {
+  const provider = String(req.query.provider || "khmer").toLowerCase() === "dino" ? "dino" : "khmer";
+  if (provider === "khmer" && !khmerTopup.isTopupReady()) {
     return res.status(503).json({ error: "KHMER_TOPUP_API_KEY not set" });
   }
+  if (provider === "dino" && !dinoTopup.isDinoReady()) {
+    return res.status(503).json({ error: "DINO_TOPUP_API_KEY not set" });
+  }
   try {
-    const data = await priceWatch.latestChanges();
-    res.json({ ok: true, ...data, snapshots: priceWatch.listSnapshots(15) });
+    const data = await priceWatch.latestChanges(provider);
+    res.json({ ok: true, ...data, snapshots: priceWatch.listSnapshots(provider, 15) });
   } catch (e) {
     res.status(502).json({ ok: false, error: e.message });
   }
 });
 
 app.post("/api/admin/kt-prices/snapshot", adminAuth, async (req, res) => {
-  if (!khmerTopup.isTopupReady()) {
+  const provider = String(req.body?.provider || req.query.provider || "khmer").toLowerCase() === "dino" ? "dino" : "khmer";
+  if (provider === "khmer" && !khmerTopup.isTopupReady()) {
     return res.status(503).json({ error: "KHMER_TOPUP_API_KEY not set" });
   }
+  if (provider === "dino" && !dinoTopup.isDinoReady()) {
+    return res.status(503).json({ error: "DINO_TOPUP_API_KEY not set" });
+  }
   try {
-    const r = await priceWatch.takeSnapshot({ force: true });
-    res.json({ ok: true, ...r, snapshots: priceWatch.listSnapshots(15) });
+    const r = await priceWatch.takeSnapshot(provider, { force: true });
+    res.json({ ok: true, ...r, snapshots: priceWatch.listSnapshots(provider, 15) });
   } catch (e) {
     res.status(502).json({ ok: false, error: e.message });
   }
