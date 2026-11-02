@@ -442,6 +442,13 @@ export default function Game({ lang, addOrder, settings }) {
       if (needUsername && userId.trim().length < 3) {
         return lang === "km" ? "សូមបញ្ចូល Username" : "Please enter username";
       }
+      // Robux Send: require Check ID / profile before pay
+      if (game.deliveryType === "robux_send" && needUsername) {
+        const key = `${userId.trim()}|${zoneId.trim()}|${server}`;
+        if (!checkedFor || checkedFor !== key) {
+          return lang === "km" ? "សូមចុច Check ID ដើម្បីពិនិត្យ profile" : "Please tap Check ID to verify profile";
+        }
+      }
       return "";
     }
     if (userId.trim().length < 3) return t(lang, "needId");
@@ -801,22 +808,95 @@ export default function Game({ lang, addOrder, settings }) {
                 <h2 className="sec-title">{lang === "km" ? "បញ្ចូលព័ត៌មាន" : "Enter Information"}</h2>
               </div>
               {needUsername ? (
-                <label className="field enter-info-field">
-                  <span className="enter-info-label">
-                    {game.deliveryType === "robux_send" ? "ROBLOX USERNAME" : "Username"}
-                  </span>
-                  <input
-                    value={userId}
-                    inputMode="text"
-                    placeholder={
-                      game.deliveryType === "robux_send"
-                        ? (lang === "km" ? "ឧ. PlayerName123" : "e.g. PlayerName123")
-                        : (lang === "km" ? "បញ្ចូល Username" : "Enter Username")
-                    }
-                    autoComplete="username"
-                    onChange={(e) => setUserId(e.target.value)}
-                  />
-                </label>
+                <>
+                  <label className="field enter-info-field">
+                    <span className="enter-info-label">
+                      {game.deliveryType === "robux_send" || isRobloxGame
+                        ? "ROBLOX USERNAME"
+                        : "USERNAME"}
+                    </span>
+                    <div className="rbx-check-row">
+                      <div className="dino-input-wrap" style={{ flex: 1 }}>
+                        <span className="dino-input-ico" aria-hidden>
+                          <Icon name="user" size={16} />
+                        </span>
+                        <input
+                          value={userId}
+                          inputMode="text"
+                          placeholder={
+                            game.deliveryType === "robux_send" || isRobloxGame
+                              ? (lang === "km" ? "ឧ. PlayerName123" : "e.g. PlayerName123")
+                              : (lang === "km" ? "បញ្ចូល Username" : "Enter Username")
+                          }
+                          autoComplete="username"
+                          onChange={(e) => {
+                            setUserId(e.target.value);
+                            setNick("");
+                            setCheckedFor("");
+                            setRbxProfile(null);
+                            setPayErr("");
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              verify();
+                            }
+                          }}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        className="dino-check-btn"
+                        disabled={checking || userId.trim().length < 3}
+                        onClick={verify}
+                      >
+                        {checking ? "…" : (lang === "km" ? "ពិនិត្យ ID" : "Check ID")}
+                        <span aria-hidden> ›</span>
+                      </button>
+                    </div>
+                  </label>
+
+                  {rbxProfile ? (
+                    <div className="rbx-profile-card">
+                      <img
+                        className="rbx-avatar"
+                        src={rbxProfile.avatarUrl || ""}
+                        alt=""
+                        width={48}
+                        height={48}
+                        onError={(e) => {
+                          e.currentTarget.style.visibility = "hidden";
+                        }}
+                      />
+                      <div className="rbx-profile-info">
+                        <div className="rbx-display">
+                          {rbxProfile.displayName || rbxProfile.username || nick}
+                        </div>
+                        <div className="rbx-meta">
+                          @{rbxProfile.username || userId.trim()}
+                          {rbxProfile.userId ? ` · ID ${rbxProfile.userId}` : ""}
+                          {rbxProfile.created
+                            ? ` · Joined ${new Date(rbxProfile.created).toLocaleString("en", {
+                                month: "short",
+                                year: "numeric",
+                              })}`
+                            : ""}
+                        </div>
+                      </div>
+                      {nick ? (
+                        <span className="rbx-ok-badge" aria-hidden>✓</span>
+                      ) : null}
+                    </div>
+                  ) : nick ? (
+                    <div className="dino-verify-ok">
+                      <span className="dino-verify-ok-dot">✓</span>
+                      <div>
+                        <strong>{nick}</strong>
+                        <span>{lang === "km" ? "ID ត្រឹមត្រូវ" : "ID verified"}</span>
+                      </div>
+                    </div>
+                  ) : null}
+                </>
               ) : null}
               <div className="enter-info-note">
                 <span className="enter-info-note-tag">{lang === "km" ? "កំណត់សម្គាល់" : "Note"}</span>
@@ -824,11 +904,11 @@ export default function Game({ lang, addOrder, settings }) {
                   {lang === "km"
                     ? (game.idHintKm ||
                         (game.deliveryType === "robux_send"
-                          ? "យើងមិនសុំ Password ទេ។ បង់រួចអ្នកទទួល Order ID — ផ្ញើ Order ID តាម Live Chat ដើម្បី Admin ផ្ញើ Robux ជូន (មិន auto)។"
+                          ? "ពិនិត្យ Username មុនបង់។ បង់រួចទទួល Order ID → ផ្ញើ Live Chat → Admin ផ្ញើ Robux (មិន auto)។ មិនសុំ Password ទេ។"
                           : "បន្ទាប់ពីទូទាត់ សូមផ្ញើ Order ID តាម Live Chat។"))
                     : (game.idHintEn ||
                         (game.deliveryType === "robux_send"
-                          ? "We never ask for your password. After payment you get an Order ID — send it via Live Chat so admin can send Robux manually (not auto)."
+                          ? "Check username before pay. After pay: Order ID → Live Chat → Admin sends Robux (not auto). We never ask for password."
                           : "After payment, send Order ID via Live Chat."))}
                 </p>
               </div>
