@@ -303,8 +303,7 @@ export function formatKaiOrderMsg(o, { forChannel = false } = {}) {
     lines.push("<i>ពី Porpor Topup · TikTok Khmer</i>");
     if (o.clientIp) lines.push(`IP: <code>${esc(o.clientIp)}</code>`);
   }
-  return lines.join("
-");
+  return lines.join("\n");
 }
 
 /**
