@@ -197,7 +197,28 @@ async function fulfillTopup(order) {
     });
     // Telegram already notified on paid via formatOrderMsg → formatRobuxSendMsg
     try {
-      if (dt === "robux_send" || dt === "live_chat") {
+      if (dt === "robux_send") {
+        // Re-lookup profile so channel always has avatar + correct username
+        (async () => {
+          let o = queued;
+          try {
+            const prof = await robloxLookup.lookupRobloxUsername(o.userId);
+            if (prof && prof.valid) {
+              o = updateOrder(o.id, {
+                rbxUsername: prof.username || o.userId,
+                rbxDisplayName: prof.displayName || o.nickname || "",
+                rbxUserId: prof.userId != null ? String(prof.userId) : o.rbxUserId,
+                rbxAvatarUrl: prof.avatarUrl || o.rbxAvatarUrl,
+                rbxProfileUrl: prof.profileUrl || o.rbxProfileUrl,
+                nickname: prof.displayName || o.nickname || "",
+              }) || o;
+            }
+          } catch (e) {
+            console.warn("[robux] profile enrich failed", e.message);
+          }
+          await tg.notifyRobuxSend(o);
+        })().catch(() => {});
+      } else if (dt === "live_chat" && !tg.isKaiRouteOrder(queued)) {
         tg.notifyChannel(tg.formatRobuxSendMsg(queued)).catch(() => {});
       }
     } catch {}
@@ -905,7 +926,20 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
     userId: giftCode ? (needUser ? userId : userId || "gift") : userId,
     zoneId,
     server,
-    nickname: String(body.nickname || ""),
+    nickname: String(body.nickname || body.rbxDisplayName || ""),
+    rbxUsername: String(body.rbxUsername || body.userId || "").trim().slice(0, 64) || null,
+    rbxDisplayName: String(body.rbxDisplayName || body.nickname || "").trim().slice(0, 64) || null,
+    rbxUserId: body.rbxUserId != null && body.rbxUserId !== "" ? String(body.rbxUserId).slice(0, 32) : null,
+    rbxAvatarUrl: (() => {
+      const u = String(body.rbxAvatarUrl || "").trim();
+      if (/^https:\/\/[^\s"'<>]{1,500}$/.test(u)) return u;
+      return null;
+    })(),
+    rbxProfileUrl: (() => {
+      const u = String(body.rbxProfileUrl || "").trim();
+      if (/^https:\/\/(www\.)?roblox\.com\/[^\s"'<>]{1,200}$/.test(u)) return u;
+      return null;
+    })(),
     method: "khqr",
     coupon: cp.code,
     ktPackageId: giftCode ? null : Number(found.pack.id) || null,

@@ -241,7 +241,7 @@ function isRobuxSendOrder(o) {
   return false;
 }
 
-/** Bot alert when Robux order is paid — admin fulfills manually. */
+/** Bot alert when Robux order is paid — include Roblox profile so admin does not mis-send. */
 export function formatRobuxSendMsg(o) {
   const st = String(o.status || "").toLowerCase();
   const statusLabel =
@@ -250,18 +250,68 @@ export function formatRobuxSendMsg(o) {
       : st === "delivered" || st === "done"
         ? "complete"
         : (o.status || "complete");
+  const uname = o.rbxUsername || o.userId || "—";
   const lines = [
     "<b>🔔 ROBUX SEND — ត្រូវផ្ញើ</b>",
     "",
     "Order: <code>" + esc(o.id) + "</code>",
-    "Username: <code>" + esc(o.userId || "—") + "</code>",
+    "Username: <code>" + esc(uname) + "</code>",
+  ];
+  if (o.rbxDisplayName) lines.push("Display: <b>" + esc(o.rbxDisplayName) + "</b>");
+  if (o.rbxUserId) lines.push("Roblox ID: <code>" + esc(o.rbxUserId) + "</code>");
+  if (o.rbxProfileUrl) lines.push('Profile: <a href="' + esc(o.rbxProfileUrl) + '">' + esc(o.rbxProfileUrl) + "</a>");
+  lines.push(
     "Pack: <b>" + esc(o.packName) + "</b> ×" + esc(o.qty || 1),
     "Amount: <b>$" + Number(o.total || 0).toFixed(2) + "</b>",
     "Game: " + esc(o.gameName || "Robux Send"),
     "Status: <b>" + esc(statusLabel) + "</b>",
-  ];
+  );
   if (o.telegramId) lines.push("Customer TG: <code>" + esc(o.telegramId) + "</code>");
   return lines.join("\n");
+}
+
+/** Send photo+caption to channel (Roblox avatar). Falls back to text. */
+export async function sendTelegramPhoto(chatId, photoUrl, caption) {
+  const token = botToken();
+  if (!token || !chatId || !photoUrl) return { ok: false, error: "not_configured" };
+  try {
+    const r = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        photo: String(photoUrl),
+        caption: String(caption || "").slice(0, 1024),
+        parse_mode: "HTML",
+      }),
+      signal: AbortSignal.timeout(20000),
+    });
+    const data = await r.json().catch(() => ({}));
+    return { ok: !!data.ok, raw: data, error: data.description };
+  } catch (e) {
+    return { ok: false, error: e.message || String(e) };
+  }
+}
+
+/** Robux paid notify → Porpor channel with profile photo when possible */
+export async function notifyRobuxSend(o) {
+  const text = formatRobuxSendMsg(o);
+  const chat = (() => {
+    try {
+      const env = (process.env.TELEGRAM_CHANNEL_ID || process.env.TG_CHANNEL_ID || "").trim();
+      if (env) return env;
+      return String(getSettings().tgChannelId || "").trim() || channelId();
+    } catch {
+      return channelId();
+    }
+  })();
+  if (!isNotifyReady()) return { ok: false, error: "not_configured" };
+  if (o.rbxAvatarUrl) {
+    const r = await sendTelegramPhoto(chat, o.rbxAvatarUrl, text);
+    if (r.ok) return r;
+    console.warn("[telegram] robux photo failed, fallback text", r.error || r.raw);
+  }
+  return notifyChannel(text);
 }
 
 

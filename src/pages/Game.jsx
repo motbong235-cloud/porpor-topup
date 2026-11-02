@@ -508,7 +508,12 @@ export default function Game({ lang, addOrder, settings }) {
           userId: isGift ? (needUsername ? userId.trim() : "gift") : userId.trim(),
           zoneId: zoneId.trim(),
           server,
-          nickname: nick,
+          nickname: nick || rbxProfile?.displayName || "",
+          rbxUsername: rbxProfile?.username || (needCheckId ? userId.trim().replace(/^@/, "") : undefined),
+          rbxDisplayName: rbxProfile?.displayName || nick || undefined,
+          rbxUserId: rbxProfile?.userId != null ? rbxProfile.userId : undefined,
+          rbxAvatarUrl: rbxProfile?.avatarUrl || undefined,
+          rbxProfileUrl: rbxProfile?.profileUrl || undefined,
           coupon: appliedCode,
           idempotencyKey: `pp-${game.id}-${p.id}-${qty}-${isGift ? (needUsername ? userId.trim() : "gift") : userId.trim()}-${zoneId.trim()}-${Math.floor(Date.now() / 120000)}`,
         }),
@@ -878,8 +883,7 @@ export default function Game({ lang, addOrder, settings }) {
                         disabled={checking || userId.trim().length < 3}
                         onClick={verify}
                       >
-                        {checking ? "…" : (lang === "km" ? "ពិនិត្យ ID" : "Check ID")}
-                        <span aria-hidden> ›</span>
+                        {checking ? "…" : (lang === "km" ? "Check" : "Check")}
                       </button>
                       ) : null}
                     </div>
@@ -914,6 +918,17 @@ export default function Game({ lang, addOrder, settings }) {
                       </div>
                       {nick ? (
                         <span className="rbx-ok-badge" aria-hidden>✓</span>
+                      ) : null}
+                      {rbxProfile.profileUrl ? (
+                        <a
+                          className="btn btn-soft"
+                          href={rbxProfile.profileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ marginLeft: "auto", fontSize: 12, padding: "6px 10px" }}
+                        >
+                          Profile ↗
+                        </a>
                       ) : null}
                     </div>
                   ) : nick ? (
