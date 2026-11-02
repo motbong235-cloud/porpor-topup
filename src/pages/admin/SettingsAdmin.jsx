@@ -170,11 +170,19 @@ export default function SettingsAdmin() {
               autoComplete="new-password"
             />
           </Field>
-          <Field label="Kai Chat ID" hint="Admin ID ឬ Group/Channel ID ដែល bot Kai អាចផ្ញើ">
+          <Field label="Kai Order Chat ID" hint="Admin / Order Bot chat — ទទួល Link ពេញ">
             <input
               value={form.kaiChatId || ""}
               onChange={(e) => set("kaiChatId", e.target.value)}
-              placeholder="1784262198 ឬ -100…"
+              placeholder="1784262198"
+              autoComplete="off"
+            />
+          </Field>
+          <Field label="Kai Channel ID" hint="Channel Kai- — សារសាធារណៈ (Link: Private)">
+            <input
+              value={form.kaiChannelId || ""}
+              onChange={(e) => set("kaiChannelId", e.target.value)}
+              placeholder="-100…"
               autoComplete="off"
             />
           </Field>

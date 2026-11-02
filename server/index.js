@@ -1245,7 +1245,7 @@ app.get("/api/admin/settings", adminAuth, (_req, res) => {
 app.put("/api/admin/settings", adminAuth, (req, res) => {
   const body = req.body || {};
   const allowed = [
-    "siteName", "taglineKm", "taglineEn", "telegram", "announcementKm", "announcementEn", "kaiBotToken", "kaiChatId", "kaiRouteGames",
+    "siteName", "taglineKm", "taglineEn", "telegram", "announcementKm", "announcementEn", "kaiBotToken", "kaiChatId", "kaiChannelId", "kaiRouteGames",
     "supportEmail", "maintenance", "coupons", "autoTopup", "topupProvider", "logoUrl", "bannerUrls", "localProducts",
     "deliveryHours", "tickerSoldBase", "tickerSoldLabel", "resellers", "resellerPrices",
     "tgBotToken", "tgBotUsername", "tgChannelId",

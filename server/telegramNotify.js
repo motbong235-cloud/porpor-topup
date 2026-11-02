@@ -70,8 +70,17 @@ export function isKaiRouteOrder(o) {
   const blob = `${gid} ${gname} ${pack}`;
   return rules.some((r) => r && (gid === r || gid.includes(r) || gname.includes(r) || blob.includes(r)));
 }
+function kaiChannelId() {
+  const env = (process.env.KAI_CHANNEL_ID || "").trim();
+  if (env) return env;
+  try {
+    const s = String(getSettings().kaiChannelId || "").trim();
+    if (s) return s;
+  } catch {}
+  return "";
+}
 export function isKaiNotifyReady() {
-  return Boolean(kaiBotToken() && kaiChatId());
+  return Boolean(kaiBotToken() && (kaiChatId() || kaiChannelId()));
 }
 
 export function isNotifyReady() {
@@ -257,9 +266,9 @@ function khNow() {
   }
 }
 
-/** Same style as Kai- channel order message */
-export function formatKaiOrderMsg(o) {
-  const uid = o.telegramId || o.userId || "—";
+/** Same style as Kai- channel / order bot message */
+export function formatKaiOrderMsg(o, { forChannel = false } = {}) {
+  const buyer = o.telegramId || o.clientIp || o.userId || "—";
   const label = o.packName || o.gameName || "TikTok Khmer";
   const qty = o.qty || 1;
   const price = Number(o.total || 0);
@@ -270,12 +279,17 @@ export function formatKaiOrderMsg(o) {
         ? "ជោគជ័យ ✅"
         : String(o.status || "កំពុងដំណើរការ ⏳");
   const svc = qty > 1 ? `${label} x${qty} - $${price.toFixed(2)}` : `${label} - $${price.toFixed(2)}`;
+  // Channel: hide full link. Order bot: show real TikTok link / username
+  const rawLink = String(o.userId || o.link || "").trim();
+  const linkDisp = forChannel
+    ? "Private"
+    : (rawLink && rawLink !== "gift" ? rawLink : "—");
   const lines = [
     "📦 <b>ការបញ្ជាទិញថ្មី!</b>",
     "",
-    `Buyer ID: <code>${esc(maskUid(uid))}</code>`,
+    `Buyer ID: <code>${esc(forChannel ? maskUid(buyer) : String(buyer))}</code>`,
     "",
-    "🔗 Link: Private",
+    `🔗 Link: ${forChannel ? linkDisp : `<code>${esc(linkDisp)}</code>`}`,
     `🎯 សេវាកម្ម: ${esc(svc)}`,
     `📋 Order ID: <code>${esc(o.id)}</code>`,
     `💵 តម្លៃសរុប: <b>$${price.toFixed(2)}</b>`,
@@ -283,29 +297,47 @@ export function formatKaiOrderMsg(o) {
     `📅 Date: ${khNow()}`,
     "",
     "អរគុណចំពោះការប្រើប្រាស់ ❤️",
-    "",
-    `<i>ពី Porpor Topup · ${esc(o.gameName || o.gameId || "")}</i>`,
   ];
-  if (o.userId && o.userId !== "gift") lines.splice(5, 0, `👤 Target: <code>${esc(o.userId)}</code>`);
-  return lines.join("\n");
+  if (!forChannel) {
+    lines.push("");
+    lines.push("<i>ពី Porpor Topup · TikTok Khmer</i>");
+    if (o.clientIp) lines.push(`IP: <code>${esc(o.clientIp)}</code>`);
+  }
+  return lines.join("
+");
 }
 
 /**
- * Smart notify:
- * - TikTok Khmer (kai route) → Kai- bot chat only
- * - everything else → Porpor channel
+ * TikTok Khmer → Kai Order Bot (full link) + Kai Channel (Private link)
+ * Other products → Porpor channel
  */
 export async function notifyOrder(kind, o) {
   if (isKaiRouteOrder(o)) {
     if (!isKaiNotifyReady()) {
-      console.warn("[telegram] Kai route order but kaiBotToken/kaiChatId not set — fallback Porpor channel");
+      console.warn("[telegram] Kai route order but kai settings incomplete — fallback Porpor");
       return notifyChannel(formatOrderMsg(kind, o));
     }
-    const text = formatKaiOrderMsg(o);
-    const r = await sendTelegramWithToken(kaiBotToken(), kaiChatId(), text);
-    if (!r.ok) console.warn("[telegram] Kai notify failed", r.error || r.raw);
-    else console.log("[telegram] Kai route →", kaiChatId(), o.id);
-    return r;
+    const token = kaiBotToken();
+    const results = [];
+    // 1) Order bot / admin chat — full link
+    const orderChat = kaiChatId();
+    if (orderChat) {
+      const textBot = formatKaiOrderMsg(o, { forChannel: false });
+      const r1 = await sendTelegramWithToken(token, orderChat, textBot);
+      results.push(r1);
+      if (!r1.ok) console.warn("[telegram] Kai order-bot failed", r1.error || r1.raw);
+      else console.log("[telegram] Kai order-bot →", orderChat, o.id);
+    }
+    // 2) Kai channel — same style, link Private
+    const ch = kaiChannelId();
+    if (ch) {
+      const textCh = formatKaiOrderMsg(o, { forChannel: true });
+      const r2 = await sendTelegramWithToken(token, ch, textCh);
+      results.push(r2);
+      if (!r2.ok) console.warn("[telegram] Kai channel failed", r2.error || r2.raw);
+      else console.log("[telegram] Kai channel →", ch, o.id);
+    }
+    return results.find((r) => r.ok) || results[0] || { ok: false, error: "no_target" };
   }
   return notifyChannel(formatOrderMsg(kind, o));
 }
