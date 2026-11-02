@@ -926,7 +926,12 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
     createdAt: Date.now(),
   });
 
-  const qr = await khmerSystem.createQr(order.total, order.id, `p${order.id}`);
+  const kaiRoute = tg.isKaiRouteOrder({
+    gameId: order.gameId,
+    gameName: order.gameName,
+    packName: order.packName,
+  });
+  const qr = await khmerSystem.createQr(order.total, order.id, `p${order.id}`, { useKai: kaiRoute });
   if (!qr.success) {
     console.error("[checkout] ABA PayWay QR failed:", qr.error, JSON.stringify(qr.raw || {}));
     updateOrder(order.id, { status: "failed", note: `QR error: ${qr.error}` });
@@ -954,6 +959,8 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
     deeplink: qr.deeplink || qr.pay_url || "",
     openAbaUrl: openAba,
     expiresAt,
+    payViaKai: !!kaiRoute,
+    method: kaiRoute ? "khqr_kai" : (order.method || "khqr"),
   });
   auditLog("checkout_create", { orderId: updated.id, total: updated.total, ip: clientIp(req) });
   try { tg.notifyOrder("new", updated).catch(() => {}); } catch {}
@@ -996,7 +1003,7 @@ app.get("/api/checkout/:id/status", limit("paystatus", { limit: 40, windowMs: 60
     (order.status === "pending" || (order.status === "failed" && !order.providerPaid));
 
   if (canCheckPay) {
-    const pay = await khmerSystem.checkPayment(order.transactionId);
+    const pay = await khmerSystem.checkPayment(order.transactionId, { useKai: !!order.payViaKai });
     console.log("[pay-check]", order.id, pay.status, pay.paid, pay.error || "");
     // Strict: only explicit provider paid (never trust ok/success alone)
     if (assertPaymentProviderPaid(pay) && pay.paid === true && !pay.simulation && !pay.error) {
@@ -1244,7 +1251,7 @@ app.get("/api/admin/settings", adminAuth, (_req, res) => {
 app.put("/api/admin/settings", adminAuth, (req, res) => {
   const body = req.body || {};
   const allowed = [
-    "siteName", "taglineKm", "taglineEn", "telegram", "announcementKm", "announcementEn", "kaiBotToken", "kaiChatId", "kaiChannelId", "kaiRouteGames",
+    "siteName", "taglineKm", "taglineEn", "telegram", "announcementKm", "announcementEn", "kaiBotToken", "kaiBotUsername", "kaiChatId", "kaiChannelId", "kaiRouteGames", "kaiAbaKey", "kaiAbaMerchant",
     "supportEmail", "maintenance", "coupons", "autoTopup", "topupProvider", "logoUrl", "bannerUrls", "localProducts",
     "deliveryHours", "tickerSoldBase", "tickerSoldLabel", "resellers", "resellerPrices",
     "tgBotToken", "tgBotUsername", "tgChannelId",

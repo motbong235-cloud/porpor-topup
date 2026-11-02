@@ -16,6 +16,8 @@
  * Optional: KHMER_SYSTEM_URL (default https://khmer-system.com)
  *           QR_EXPIRE_SEC (default 3600 = 1h), PUBLIC_BASE_URL (for /open-aba)
  */
+import { getSettings } from "./store.js";
+
 const BASE_URL = process.env.KHMER_SYSTEM_URL || "https://khmer-system.com";
 const CREATE_URL = `${BASE_URL}/aba-api/generate-qr`;
 const CHECK_URL = `${BASE_URL}/aba-api/check-payment`;
@@ -26,10 +28,35 @@ function clean(v) {
     .replace(/[\s\u200b\ufeff]+/g, "")
     .replace(/^["'`]+|["'`]+$/g, "");
 }
-function apiKey() {
+function apiKey(opts = {}) {
+  // TikTok / Kai route: prefer Kai merchant credentials (same wallet as bot Kai-)
+  if (opts.useKai) {
+    try {
+      const s = getSettings() || {};
+      const k = clean(s.kaiAbaKey || process.env.KAI_ABA_API_KEY || process.env.ABA_API_KEY);
+      if (k) return k;
+    } catch {}
+  }
+  try {
+    const s = getSettings() || {};
+    const k = clean(s.abaApiKey || "");
+    if (k) return k;
+  } catch {}
   return clean(process.env.ABA_API_KEY);
 }
-function merchantId() {
+function merchantId(opts = {}) {
+  if (opts.useKai) {
+    try {
+      const s = getSettings() || {};
+      const m = clean(s.kaiAbaMerchant || process.env.KAI_ABA_MERCHANT_ID || process.env.ABA_MERCHANT_ID);
+      if (m) return m;
+    } catch {}
+  }
+  try {
+    const s = getSettings() || {};
+    const m = clean(s.abaMerchantId || "");
+    if (m) return m;
+  } catch {}
   return clean(process.env.ABA_MERCHANT_ID);
 }
 
@@ -97,19 +124,23 @@ const HEADERS = {
  *   POST /aba-api/generate-qr  { api_key, merchant_id, username, amount }
  *   → { ok: true, payment_id, qr_image, card_image, pay_url, expires_at }
  */
-export async function createQr(amount, billNumber, username) {
-  if (!isPaymentReady()) {
+export async function createQr(amount, billNumber, username, opts = {}) {
+  const useKai = !!(opts && opts.useKai);
+  const keyOpts = { useKai };
+  if (!apiKey(keyOpts) || !merchantId(keyOpts)) {
     return {
       success: false,
-      error: "ABA_API_KEY or ABA_MERCHANT_ID not set",
+      error: useKai
+        ? "Kai ABA key/merchant not set (Admin → Kai ABA, same as bot Kai-)"
+        : "ABA_API_KEY or ABA_MERCHANT_ID not set",
       simulation: true,
     };
   }
 
   const QR_EXPIRE_SEC = Math.max(3600, Number(process.env.QR_EXPIRE_SEC || 3600) || 3600); // min 1 hour
   const payload = {
-    api_key: apiKey(),
-    merchant_id: merchantId(),
+    api_key: apiKey(keyOpts),
+    merchant_id: merchantId(keyOpts),
     username: makeUsername(username || `p${billNumber}`),
     amount: Math.round(Number(amount) * 100) / 100,
     // Request longer QR lifetime when the provider supports it
@@ -195,8 +226,9 @@ export async function createQr(amount, billNumber, username) {
  * CRITICAL: never treat response.ok / success / HTTP 200 as "customer paid".
  * Those only mean the API call worked. Paid requires explicit status/paid flag.
  */
-export async function checkPayment(paymentId) {
-  if (!isPaymentReady()) {
+export async function checkPayment(paymentId, opts = {}) {
+  const keyOpts = { useKai: !!(opts && opts.useKai) };
+  if (!apiKey(keyOpts) || !merchantId(keyOpts)) {
     return { paid: false, error: "Keys not set", simulation: true };
   }
   if (!paymentId) {
@@ -204,8 +236,8 @@ export async function checkPayment(paymentId) {
   }
 
   const payload = {
-    api_key: apiKey(),
-    merchant_id: merchantId(),
+    api_key: apiKey(keyOpts),
+    merchant_id: merchantId(keyOpts),
     payment_id: String(paymentId),
   };
 

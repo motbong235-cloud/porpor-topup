@@ -202,6 +202,27 @@ export default function SettingsAdmin() {
             placeholder="tiktok-khmer,tiktok khmer"
           />
         </Field>
+        <h3 style={{ marginTop: 16, fontSize: 14 }}>QR ABA តែមួយជាមួយ Kai- (TikTok)</h3>
+        <p className="ad-hint">ដាក់ <b>Profile Key + Merchant ID</b> ដូចក្នុង bot Kai- → QR លើ website ចេញពី wallet/merchant តែមួយនឹង Kai-</p>
+        <div className="ad-grid-2">
+          <Field label="Kai ABA Profile Key">
+            <input
+              type="password"
+              value={form.kaiAbaKey || ""}
+              onChange={(e) => set("kaiAbaKey", e.target.value)}
+              placeholder={form.kaiAbaKey ? "••••••••" : "PK_…"}
+              autoComplete="new-password"
+            />
+          </Field>
+          <Field label="Kai ABA Merchant ID">
+            <input
+              value={form.kaiAbaMerchant || ""}
+              onChange={(e) => set("kaiAbaMerchant", e.target.value)}
+              placeholder="ឧ. r72mCt"
+              autoComplete="off"
+            />
+          </Field>
+        </div>
       </section>
 
       <section className="ad-card">
