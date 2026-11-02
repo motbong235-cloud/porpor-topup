@@ -190,7 +190,7 @@ async function fulfillTopup(order) {
       needsManual: true,
       note:
         dt === "robux_send"
-          ? "Robux Send queued — admin must transfer Robux"
+          ? "Robux Send — MANUAL only (not auto). Admin transfer via Live Chat / bot."
           : "Live Chat / manual delivery — notify bot",
       paidAt: order.paidAt || Date.now(),
       queuedAt: Date.now(),
@@ -257,6 +257,18 @@ async function fulfillTopup(order) {
     else if (dinoTopup.isDinoReady()) useDino = true;
   } else {
     useKhmer = khmerTopup.isTopupReady();
+  }
+
+  // Never auto-API for manual delivery types
+  if (order.deliveryType === "robux_send" || order.deliveryType === "live_chat") {
+    return updateOrder(order.id, {
+      status: "queued",
+      needsManual: true,
+      note: order.deliveryType === "robux_send"
+        ? "Robux Send — MANUAL only (blocked auto topup path)"
+        : "Live Chat — manual only",
+      paidAt: order.paidAt || Date.now(),
+    });
   }
 
   if (useDino) {

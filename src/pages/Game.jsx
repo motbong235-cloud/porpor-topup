@@ -801,102 +801,37 @@ export default function Game({ lang, addOrder, settings }) {
                 <h2 className="sec-title">{lang === "km" ? "បញ្ចូលព័ត៌មាន" : "Enter Information"}</h2>
               </div>
               {needUsername ? (
-                <>
-                  <label className="field enter-info-field">
-                    <span className="enter-info-label">
-                      {game.deliveryType === "robux_send" || isRobloxGame
-                        ? "ROBLOX USERNAME"
-                        : "Username"}
-                    </span>
-                    <div className="rbx-check-row">
-                      <input
-                        value={userId}
-                        inputMode="text"
-                        placeholder={
-                          game.deliveryType === "robux_send" || isRobloxGame
-                            ? "BrendaHuang2848"
-                            : lang === "km"
-                              ? "បញ្ចូល Username"
-                              : "Enter Username"
-                        }
-                        autoComplete="username"
-                        onChange={(e) => {
-                          setUserId(e.target.value);
-                          setCheckedFor("");
-                          setNick("");
-                          setRbxProfile(null);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            verify();
-                          }
-                        }}
-                      />
-                      <button
-                        type="button"
-                        className="rbx-check-btn"
-                        disabled={checking || userId.trim().length < 3}
-                        onClick={verify}
-                      >
-                        {checking ? "…" : (lang === "km" ? "ពិនិត្យ" : "Check")}
-                      </button>
-                    </div>
-                  </label>
-
-                  {rbxProfile ? (
-                    <div className="rbx-profile-card">
-                      <img
-                        className="rbx-avatar"
-                        src={rbxProfile.avatarUrl || ""}
-                        alt=""
-                        width={48}
-                        height={48}
-                        onError={(e) => {
-                          e.currentTarget.style.visibility = "hidden";
-                        }}
-                      />
-                      <div className="rbx-profile-info">
-                        <div className="rbx-display">
-                          <span className="rbx-ok" aria-hidden>✓</span>
-                          {rbxProfile.displayName || rbxProfile.username}
-                        </div>
-                        <div className="rbx-user">@{rbxProfile.username}</div>
-                        <div className="rbx-meta">
-                          ID {rbxProfile.userId}
-                          {rbxProfile.created
-                            ? ` · Joined ${new Date(rbxProfile.created).toLocaleString("en", { month: "short", year: "numeric" })}`
-                            : ""}
-                        </div>
-                      </div>
-                      {rbxProfile.profileUrl ? (
-                        <a className="rbx-profile-link" href={rbxProfile.profileUrl} target="_blank" rel="noreferrer">
-                          Profile ↗
-                        </a>
-                      ) : null}
-                    </div>
-                  ) : null}
-
-                  <div className="rbx-hint-warn">
-                    <span className="rbx-hint-ico" aria-hidden>!</span>
-                    <p>
-                      {lang === "km"
-                        ? "សូមបញ្ចូល Roblox Username ពិតប្រាកដ (មិនមែន Display Name)។ Robux នឹងចូលក្នុង 1–2 នាទី (មិនសុំ Password)។"
-                        : "Enter the real Roblox Username (not Display Name). Robux arrives in 1–2 minutes (we never ask for Password)."}
-                    </p>
-                  </div>
-                </>
+                <label className="field enter-info-field">
+                  <span className="enter-info-label">
+                    {game.deliveryType === "robux_send" ? "ROBLOX USERNAME" : "Username"}
+                  </span>
+                  <input
+                    value={userId}
+                    inputMode="text"
+                    placeholder={
+                      game.deliveryType === "robux_send"
+                        ? (lang === "km" ? "ឧ. PlayerName123" : "e.g. PlayerName123")
+                        : (lang === "km" ? "បញ្ចូល Username" : "Enter Username")
+                    }
+                    autoComplete="username"
+                    onChange={(e) => setUserId(e.target.value)}
+                  />
+                </label>
               ) : null}
-              {game.deliveryType === "live_chat" && !isRobloxGame ? (
-                <div className="enter-info-note">
-                  <span className="enter-info-note-tag">{lang === "km" ? "កំណត់សម្គាល់" : "Note"}</span>
-                  <p>
-                    {lang === "km"
-                      ? (game.idHintKm || "បន្ទាប់ពីទូទាត់ សូមផ្ញើ Order ID តាម Live Chat។")
-                      : (game.idHintEn || "After payment, send Order ID via Live Chat.")}
-                  </p>
-                </div>
-              ) : null}
+              <div className="enter-info-note">
+                <span className="enter-info-note-tag">{lang === "km" ? "កំណត់សម្គាល់" : "Note"}</span>
+                <p>
+                  {lang === "km"
+                    ? (game.idHintKm ||
+                        (game.deliveryType === "robux_send"
+                          ? "យើងមិនសុំ Password ទេ។ បង់រួចអ្នកទទួល Order ID — ផ្ញើ Order ID តាម Live Chat ដើម្បី Admin ផ្ញើ Robux ជូន (មិន auto)។"
+                          : "បន្ទាប់ពីទូទាត់ សូមផ្ញើ Order ID តាម Live Chat។"))
+                    : (game.idHintEn ||
+                        (game.deliveryType === "robux_send"
+                          ? "We never ask for your password. After payment you get an Order ID — send it via Live Chat so admin can send Robux manually (not auto)."
+                          : "After payment, send Order ID via Live Chat."))}
+                </p>
+              </div>
             </section>
           ) : null}
 
