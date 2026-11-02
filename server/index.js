@@ -1359,12 +1359,20 @@ app.put("/api/admin/gift-stock/:packId", adminAuth, (req, res) => {
 
 app.get("/api/admin/local-products", adminAuth, (_req, res) => {
   const s = getSettings();
-  const products = Array.isArray(s.localProducts) && s.localProducts.length
-    ? s.localProducts
-    : DEFAULT_LOCAL_PRODUCTS;
+  let products;
+  const usingDefaults = !(Array.isArray(s.localProducts) && s.localProducts.length);
+  if (!usingDefaults) {
+    const byId = new Map(s.localProducts.map((g) => [String(g.id), g]));
+    for (const d of DEFAULT_LOCAL_PRODUCTS) {
+      if (!byId.has(String(d.id))) byId.set(String(d.id), d);
+    }
+    products = [...byId.values()];
+  } else {
+    products = DEFAULT_LOCAL_PRODUCTS;
+  }
   res.json({
     products,
-    usingDefaults: !(Array.isArray(s.localProducts) && s.localProducts.length),
+    usingDefaults,
     stockCounts: stockSummary(),
   });
 });
@@ -1407,7 +1415,7 @@ app.put("/api/admin/local-products", adminAuth, (req, res) => {
         mark: String(g.mark || "GC").slice(0, 4),
         image: (function () {
           let u = String(g.image || "").trim();
-          if (/^\/uploads\/[\w.-]{1,100}$/.test(u) || /^https:\/\/[^\s"'<>]{1,490}$/.test(u)) return u;
+          if (/^\/uploads\/[\w.-]{1,100}$/.test(u) || /^\/icons\/[\w.-]{1,100}$/.test(u) || /^https:\/\/[^\s"'<>]{1,490}$/.test(u)) return u;
           return "";
         })(),
         banners: cleanBanners(g.banners, g.banner),

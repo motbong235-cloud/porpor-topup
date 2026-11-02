@@ -125,8 +125,8 @@ export const DEFAULT_LOCAL_PRODUCTS = [
     name: "TikTok Khmer",
     nameKm: "TikTok Khmer",
     region: "Cambodia",
-    blurbKm: "សេវា TikTok Khmer — បង់រួច Admin ធ្វើដោយដៃ (ជូនដំណឹង bot Kai-)",
-    blurbEn: "TikTok Khmer service — manual after pay (notifies Kai- bot)",
+    blurbKm: "សេវា TikTok Khmer — បង់លើ website · order ចូល bot Kai-",
+    blurbEn: "TikTok Khmer — pay on site · order notifies Kai- bot",
     famous: true,
     hot: true,
     open: true,
@@ -244,7 +244,24 @@ function forcedUsernameIds() {
 export function localCatalog() {
   const s = getSettings();
   const overrides = Array.isArray(s.localProducts) ? s.localProducts : null;
-  const list = overrides && overrides.length ? overrides : DEFAULT_LOCAL_PRODUCTS;
+  let list;
+  if (overrides && overrides.length) {
+    // Always merge missing DEFAULT products (e.g. TikTok Khmer) onto Home
+    const byId = new Map(overrides.map((g) => [String(g.id), g]));
+    for (const d of DEFAULT_LOCAL_PRODUCTS) {
+      if (!byId.has(String(d.id))) byId.set(String(d.id), d);
+    }
+    // Prefer override data but keep default packs if override has empty packs
+    list = [...byId.values()].map((g) => {
+      const def = DEFAULT_LOCAL_PRODUCTS.find((x) => String(x.id) === String(g.id));
+      if (def && (!Array.isArray(g.packs) || !g.packs.length) && def.packs?.length) {
+        return { ...def, ...g, packs: def.packs };
+      }
+      return g;
+    });
+  } else {
+    list = DEFAULT_LOCAL_PRODUCTS;
+  }
   const forced = forcedUsernameIds();
   return list
     .filter((g) => g && g.id)

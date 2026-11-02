@@ -17,6 +17,7 @@ import SettingsAdmin from "./pages/admin/SettingsAdmin";
 import ServicesAdmin from "./pages/admin/ServicesAdmin";
 import PricesAdmin from "./pages/admin/PricesAdmin";
 import ChatAdmin from "./pages/admin/ChatAdmin";
+import TikTokKhmerAdmin from "./pages/admin/TikTokKhmerAdmin";
 
 function readBootAdminPath() {
   if (typeof window === "undefined") return "pp-console";
@@ -170,6 +171,7 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route path="orders" element={<OrdersAdmin />} />
           <Route path="services" element={<ServicesAdmin />} />
+          <Route path="tiktok-khmer" element={<TikTokKhmerAdmin />} />
           <Route path="prices" element={<PricesAdmin />} />
           <Route path="chat" element={<ChatAdmin />} />
           <Route path="settings" element={<SettingsAdmin />} />
