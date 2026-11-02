@@ -51,8 +51,12 @@ export default function TikTokKhmerAdmin() {
           idHintKm: "បញ្ចូល Link TikTok (https://…) ឬ @username",
           idHintEn: "Enter TikTok link (https://…) or @username",
           packs: [
-            { id: "ttk-500-1k", name: "500-1K Like + 1.8K Views", nameKm: "500-1K Like + 1.8K Views", price: 0.99, cost: 0.5, category: "TikTok Like", bonus: "" },
-            { id: "ttk-1k-2k", name: "1K-2K Like + 3K Views", nameKm: "1K-2K Like + 3K Views", price: 1.79, cost: 0.9, category: "TikTok Like", bonus: "" },
+            { id: "ttk-01", name: "500-1K Likes | 1.8K Views", nameKm: "500-1K Likes | 1.8K Views", price: 0.99, cost: 0.5, category: "TikTok Like", bonus: "" },
+            { id: "ttk-02", name: "1K-2K Likes | 3.5K Views", nameKm: "1K-2K Likes | 3.5K Views", price: 1.99, cost: 1.0, category: "TikTok Like", bonus: "" },
+            { id: "ttk-03", name: "2K-3K Likes | 10K Views", nameKm: "2K-3K Likes | 10K Views", price: 3.25, cost: 1.6, category: "TikTok Like", bonus: "" },
+            { id: "ttk-04", name: "3K-5K Likes | 20K Views", nameKm: "3K-5K Likes | 20K Views", price: 5.49, cost: 2.7, category: "TikTok Like", bonus: "" },
+            { id: "ttk-05", name: "2K-5K Views", nameKm: "2K-5K Views", price: 0.99, cost: 0.5, category: "TikTok Views", bonus: "" },
+            { id: "ttk-06", name: "100-200 Followers", nameKm: "100-200 Followers", price: 0.99, cost: 0.5, category: "TikTok Followers", bonus: "" },
           ],
         };
       }
