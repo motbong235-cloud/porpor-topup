@@ -1666,6 +1666,9 @@ app.get("/manifest.webmanifest", (_req, res) => {
   res.type("application/manifest+json").send(JSON.stringify(branding.buildManifest(base)));
 });
 
+/** OPEN ABA Mobile — MUST be before SPA catch-all or React treats /open-aba as admin */
+app.get("/open-aba", (req, res) => khmerSystemPay.openAbaRoute(req, res));
+
 if (fs.existsSync(DIST)) {
   // Serve assets but NEVER auto-serve index.html (we inject ADMIN_PATH ourselves)
   app.use(
@@ -1747,8 +1750,6 @@ setTimeout(() => {
 }, 2 * 60 * 1000).unref?.();
 
 
-/** OPEN ABA Mobile — same as Kai- bot */
-app.get("/open-aba", (req, res) => khmerSystemPay.openAbaRoute(req, res));
 
 
 /** Worker / admin helper: list Robux Send queue (secret or admin session). */

@@ -214,6 +214,13 @@ export default function Game({ lang, addOrder, settings }) {
   const { games, loading } = useCatalog();
   const game = games.find((g) => g.id === id) || null;
   const isGift = !!(game && ["stock", "live_chat", "robux_send", "gift_code"].includes(game.deliveryType));
+  const isTikTok =
+    !!(game && (
+      String(game.id || "").toLowerCase().includes("tiktok") ||
+      String(game.name || "").toLowerCase().includes("tiktok") ||
+      String(game.nameKm || "").toLowerCase().includes("tiktok")
+    ));
+  const needCheckId = !!(game && game.deliveryType === "robux_send");
   const isStock = !!(game && (game.deliveryType === "stock" || game.deliveryType === "gift_code"));
   const [showSafetyGuide, setShowSafetyGuide] = useState(false);
 
@@ -439,11 +446,21 @@ export default function Game({ lang, addOrder, settings }) {
   function validate() {
     if (!packId) return t(lang, "needPack");
     if (isGift) {
-      if (needUsername && userId.trim().length < 3) {
-        return lang === "km" ? "សូមបញ្ចូល Username" : "Please enter username";
+      if (needUsername) {
+        const v = userId.trim();
+        if (isTikTok) {
+          if (v.length < 8) {
+            return lang === "km" ? "សូមបញ្ចូល URL link video TikTok" : "Please enter TikTok video URL";
+          }
+          // accept https link or @user — no Check ID
+          return "";
+        }
+        if (v.length < 3) {
+          return lang === "km" ? "សូមបញ្ចូល Username" : "Please enter username";
+        }
       }
-      // Robux Send: require Check ID / profile before pay
-      if (game.deliveryType === "robux_send" && needUsername) {
+      // Robux Send only: require Check ID
+      if (needCheckId && needUsername) {
         const key = `${userId.trim()}|${zoneId.trim()}|${server}`;
         if (!checkedFor || checkedFor !== key) {
           return lang === "km" ? "សូមចុច Check ID ដើម្បីពិនិត្យ profile" : "Please tap Check ID to verify profile";
@@ -519,7 +536,13 @@ export default function Game({ lang, addOrder, settings }) {
         if (!expMs || expMs < Date.now() + 3600_000) expMs = Date.now() + 3600_000; // min 1 hour
         setQrExpiresAt(expMs);
       }
-      setPayDeeplink(data.payment.openAbaUrl || data.payment.deeplink || data.payment.payUrl || "");
+      // Prefer native ABA deeplink so we never hit SPA /open-aba → admin by mistake
+      setPayDeeplink(
+        data.payment.deeplink ||
+          data.payment.openAbaUrl ||
+          data.payment.payUrl ||
+          "",
+      );
       setPayPhase("qr");
       setCheckoutId(data.order.id);
       setQrOpen(true);
@@ -811,9 +834,11 @@ export default function Game({ lang, addOrder, settings }) {
                 <>
                   <label className="field enter-info-field">
                     <span className="enter-info-label">
-                      {game.deliveryType === "robux_send" || isRobloxGame
-                        ? "ROBLOX USERNAME"
-                        : "USERNAME"}
+                      {isTikTok
+                        ? (lang === "km" ? "URL LINK VIDEO TIKTOK" : "TIKTOK VIDEO URL")
+                        : game.deliveryType === "robux_send" || isRobloxGame
+                          ? "ROBLOX USERNAME"
+                          : "USERNAME"}
                     </span>
                     <div className="rbx-check-row">
                       <div className="dino-input-wrap" style={{ flex: 1 }}>
@@ -822,13 +847,15 @@ export default function Game({ lang, addOrder, settings }) {
                         </span>
                         <input
                           value={userId}
-                          inputMode="text"
+                          inputMode="url"
                           placeholder={
-                            game.deliveryType === "robux_send" || isRobloxGame
-                              ? (lang === "km" ? "ឧ. PlayerName123" : "e.g. PlayerName123")
-                              : (lang === "km" ? "បញ្ចូល Username" : "Enter Username")
+                            isTikTok
+                              ? (lang === "km" ? "https://www.tiktok.com/@user/video/…" : "https://www.tiktok.com/@user/video/…")
+                              : game.deliveryType === "robux_send" || isRobloxGame
+                                ? (lang === "km" ? "ឧ. PlayerName123" : "e.g. PlayerName123")
+                                : (lang === "km" ? "បញ្ចូល Username" : "Enter Username")
                           }
-                          autoComplete="username"
+                          autoComplete={isTikTok ? "url" : "username"}
                           onChange={(e) => {
                             setUserId(e.target.value);
                             setNick("");
@@ -839,11 +866,12 @@ export default function Game({ lang, addOrder, settings }) {
                           onKeyDown={(e) => {
                             if (e.key === "Enter") {
                               e.preventDefault();
-                              verify();
+                              if (needCheckId) verify();
                             }
                           }}
                         />
                       </div>
+                      {needCheckId ? (
                       <button
                         type="button"
                         className="dino-check-btn"
@@ -853,10 +881,11 @@ export default function Game({ lang, addOrder, settings }) {
                         {checking ? "…" : (lang === "km" ? "ពិនិត្យ ID" : "Check ID")}
                         <span aria-hidden> ›</span>
                       </button>
+                      ) : null}
                     </div>
                   </label>
 
-                  {rbxProfile ? (
+                  {needCheckId && rbxProfile ? (
                     <div className="rbx-profile-card">
                       <img
                         className="rbx-avatar"
@@ -1187,7 +1216,13 @@ export default function Game({ lang, addOrder, settings }) {
                   type="button"
                   className="btn bg-brand pw-aba-btn"
                   onClick={() => {
-                    window.location.href = payDeeplink;
+                    const u = String(payDeeplink || "");
+                    try {
+                      // Force top-level navigation (not React Router)
+                      window.location.assign(u);
+                    } catch {
+                      window.location.href = u;
+                    }
                     setPayPhase("scanned");
                   }}
                 >

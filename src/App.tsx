@@ -41,7 +41,7 @@ function PpConsoleRedirect({ adminPath }) {
   return <Navigate to={to} replace />;
 }
 
-const PUBLIC_FIRST = new Set(["", "game", "orders", "track", "success", "support", "reseller", "legal"]);
+const PUBLIC_FIRST = new Set(["", "game", "orders", "track", "success", "support", "reseller", "legal", "open-aba", "api", "uploads", "icons"]);
 
 function pathLooksAdmin(pathname) {
   const seg = String(pathname || "").split("/").filter(Boolean)[0] || "";

@@ -139,8 +139,8 @@ export const DEFAULT_LOCAL_PRODUCTS = [
     hasZone: false,
     servers: [],
     numericId: false,
-    idHintKm: "បញ្ចូល Link TikTok (https://…) ឬ @username — បង់រួច order ចូល bot Kai-",
-    idHintEn: "Enter TikTok link (https://…) or @username — order goes to Kai- bot",
+    idHintKm: "បញ្ចូល URL link video TikTok (គ្មាន Check ID) · បង់រួច order ចូល bot Kai-",
+    idHintEn: "Paste TikTok video URL only (no Check ID) · after pay order goes to Kai- bot",
     packs: [
       { id: "ttk-01", name: "500-1K Likes | 1.8K Views", nameKm: "500-1K Likes | 1.8K Views", price: 0.99, cost: 0.5, category: "TikTok Like", bonus: "" },
       { id: "ttk-02", name: "1K-2K Likes | 3.5K Views", nameKm: "1K-2K Likes | 3.5K Views", price: 1.99, cost: 1.0, category: "TikTok Like", bonus: "" },
