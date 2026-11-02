@@ -1228,6 +1228,15 @@ app.patch("/api/admin/orders/:id", adminAuth, async (req, res) => {
   if (req.body?.fulfill) {
     o = await fulfillTopup(o);
   }
+  // TikTok Khmer → Kai bot/channel on done or rejected (never Porpor channel)
+  try {
+    const st = String(o.status || "").toLowerCase();
+    if (st === "delivered" || st === "done") {
+      tg.notifyOrder("delivered", o).catch(() => {});
+    } else if (st === "rejected" || st === "cancelled" || st === "canceled") {
+      tg.notifyOrder("rejected", o).catch(() => {});
+    }
+  } catch {}
   res.json(o);
 });
 
@@ -1803,7 +1812,7 @@ app.post("/api/robux/complete", express.json(), (req, res) => {
     transferReceipt: receipt || o.transferReceipt || "",
     note: (o.note || "") + (receipt ? ` | receipt ${receipt}` : " | marked delivered"),
   });
-  try { tg.notifyChannel(tg.formatOrderMsg("delivered", updated)).catch(() => {}); } catch {}
+  try { tg.notifyOrder("delivered", updated).catch(() => {}); } catch {}
   res.json({ ok: true, order: publicOrder(updated) });
 });
 

@@ -279,25 +279,32 @@ function khNow() {
 }
 
 /** Same style as Kai- channel / order bot message */
-export function formatKaiOrderMsg(o, { forChannel = false } = {}) {
-  const buyer = o.telegramId || o.clientIp || o.userId || "—";
+export function formatKaiOrderMsg(o, { forChannel = false, kind = "paid" } = {}) {
+  const buyer = o.telegramId || o.userId || "—";
   const label = o.packName || o.gameName || "TikTok Khmer";
   const qty = o.qty || 1;
   const price = Number(o.total || 0);
-  const status =
-    o.status === "queued" || o.status === "paid" || o.status === "processing"
-      ? "កំពុងដំណើរការ ⏳"
-      : o.status === "delivered" || o.status === "done"
-        ? "ជោគជ័យ ✅"
-        : String(o.status || "កំពុងដំណើរការ ⏳");
+  const k = String(kind || o.status || "paid").toLowerCase();
+  let title = "📦 <b>ការបញ្ជាទិញថ្មី!</b>";
+  let status = "កំពុងដំណើរការ ⏳";
+  if (k === "delivered" || k === "done" || k === "success" || o.status === "delivered" || o.status === "done") {
+    title = "✅ <b>ការបញ្ជាទិញជោគជ័យ!</b>";
+    status = "ជោគជ័យ ✅";
+  } else if (k === "rejected" || k === "cancelled" || k === "canceled" || k === "failed" || o.status === "rejected" || o.status === "cancelled") {
+    title = "❌ <b>ការបញ្ជាទិញត្រូវបានបដិសេធ</b>";
+    status = "បដិសេធ ❌";
+  } else {
+    // paid / processing only (never unpaid "new")
+    title = "📦 <b>ការបញ្ជាទិញថ្មី!</b>";
+    status = "កំពុងដំណើរការ ⏳";
+  }
   const svc = qty > 1 ? `${label} x${qty} - $${price.toFixed(2)}` : `${label} - $${price.toFixed(2)}`;
-  // Channel: hide full link. Order bot: show real TikTok link / username
   const rawLink = String(o.userId || o.link || "").trim();
   const linkDisp = forChannel
     ? "Private"
     : (rawLink && rawLink !== "gift" ? rawLink : "—");
   const lines = [
-    "📦 <b>ការបញ្ជាទិញថ្មី!</b>",
+    title,
     "",
     `Buyer ID: <code>${esc(forChannel ? maskUid(buyer) : String(buyer))}</code>`,
     "",
@@ -313,42 +320,54 @@ export function formatKaiOrderMsg(o, { forChannel = false } = {}) {
   if (!forChannel) {
     lines.push("");
     lines.push("<i>ពី Porpor Topup · TikTok Khmer</i>");
-    if (o.clientIp) lines.push(`IP: <code>${esc(o.clientIp)}</code>`);
+    if (o.note && (k === "rejected" || o.status === "rejected")) {
+      lines.push(`Note: ${esc(String(o.note).slice(0, 200))}`);
+    }
   }
   return lines.join("\n");
 }
 
 /**
- * TikTok Khmer → Kai Order Bot (full link) + Kai Channel (Private link)
+ * TikTok Khmer → ONLY Kai Order Bot + Kai Channel (never Porpor channel)
+ * Notify only after payment (paid / delivered / rejected) — never on unpaid "new"
  * Other products → Porpor channel
  */
 export async function notifyOrder(kind, o) {
   if (isKaiRouteOrder(o)) {
+    const k = String(kind || "").toLowerCase();
+    // Do not notify until customer paid
+    if (k === "new" || k === "pending" || k === "created") {
+      console.log("[telegram] Kai route skip unpaid notify", o?.id, k);
+      return { ok: true, skipped: "await_payment" };
+    }
     if (!isKaiNotifyReady()) {
-      console.warn("[telegram] Kai route order but kai settings incomplete — fallback Porpor");
-      return notifyChannel(formatOrderMsg(kind, o));
+      console.warn("[telegram] Kai route order but kaiBotToken/kaiChatId/kaiChannelId not set — NOT sending to Porpor");
+      return { ok: false, error: "kai_not_configured" };
     }
     const token = kaiBotToken();
     const results = [];
-    // 1) Order bot / admin chat — full link
     const orderChat = kaiChatId();
     if (orderChat) {
-      const textBot = formatKaiOrderMsg(o, { forChannel: false });
+      const textBot = formatKaiOrderMsg(o, { forChannel: false, kind: k });
       const r1 = await sendTelegramWithToken(token, orderChat, textBot);
       results.push(r1);
       if (!r1.ok) console.warn("[telegram] Kai order-bot failed", r1.error || r1.raw);
-      else console.log("[telegram] Kai order-bot →", orderChat, o.id);
+      else console.log("[telegram] Kai order-bot →", orderChat, o.id, k);
     }
-    // 2) Kai channel — same style, link Private
     const ch = kaiChannelId();
     if (ch) {
-      const textCh = formatKaiOrderMsg(o, { forChannel: true });
+      const textCh = formatKaiOrderMsg(o, { forChannel: true, kind: k });
       const r2 = await sendTelegramWithToken(token, ch, textCh);
       results.push(r2);
       if (!r2.ok) console.warn("[telegram] Kai channel failed", r2.error || r2.raw);
-      else console.log("[telegram] Kai channel →", ch, o.id);
+      else console.log("[telegram] Kai channel →", ch, o.id, k);
     }
     return results.find((r) => r.ok) || results[0] || { ok: false, error: "no_target" };
+  }
+  // Porpor services only
+  if (String(kind).toLowerCase() === "new") {
+    // optional: still notify Porpor on new unpaid — keep previous behavior for non-TikTok
+    return notifyChannel(formatOrderMsg(kind, o));
   }
   return notifyChannel(formatOrderMsg(kind, o));
 }
