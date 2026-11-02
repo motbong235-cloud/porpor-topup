@@ -61,6 +61,14 @@ function kaiRouteRules() {
     return ["tiktok-khmer", "tiktok_khmer", "tiktok khmer"];
   }
 }
+export function isKaiRouteGame(game) {
+  if (!game) return false;
+  return isKaiRouteOrder({
+    gameId: game.id || game.gameId,
+    gameName: game.name || game.nameKm || game.gameName,
+    packName: "",
+  });
+}
 export function isKaiRouteOrder(o) {
   const rules = kaiRouteRules();
   if (!rules.length) return false;

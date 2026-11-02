@@ -807,10 +807,6 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
   if (settings.maintenance) {
     return res.status(503).json({ error: "maintenance" });
   }
-  if (!khmerSystem.isPaymentReady()) {
-    return res.status(503).json({ error: "not_configured" });
-  }
-
   if (!body.gameId || !body.packId) {
     return res.status(400).json({ error: "invalid" });
   }
@@ -926,6 +922,45 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
     userAgent: clientUa(req),
     createdAt: Date.now(),
   });
+
+  // TikTok Khmer (Kai route): NO Porpor KHQR — payment only on Kai- bot
+  const kaiRoute = tg.isKaiRouteOrder({
+    gameId: order.gameId,
+    gameName: order.gameName,
+    packName: order.packName,
+  });
+  if (kaiRoute) {
+    const updated = updateOrder(order.id, {
+      status: "pending",
+      method: "kai",
+      note: "Pay via Kai- bot only (no Porpor QR)",
+      payVia: "kai",
+    });
+    try { tg.notifyOrder("new", updated).catch(() => {}); } catch {}
+    const s = getSettings();
+    const botUser = String(s.kaiBotUsername || process.env.KAI_BOT_USERNAME || "").replace(/^@/, "").trim();
+    const botUrl = botUser ? `https://t.me/${botUser}` : (s.telegram || "https://t.me/");
+    auditLog("checkout_kai", { orderId: updated.id, total: updated.total, ip: clientIp(req) });
+    if (idemRaw) {
+      checkoutIdem.set(`${clientIp(req)}:${idemRaw}`, { orderId: updated.id, at: Date.now() });
+    }
+    return res.json({
+      order: publicOrder(updated),
+      payment: {
+        payVia: "kai",
+        qrImage: null,
+        botUrl,
+        botUsername: botUser || null,
+        messageKm: "សេវា TikTok Khmer បង់តែក្នុង bot Kai- ប៉ុណ្ណោះ (គ្មាន QR លើ Porpor)",
+        messageEn: "TikTok Khmer is paid only on Kai- bot (no Porpor QR)",
+      },
+    });
+  }
+
+  if (!khmerSystem.isPaymentReady()) {
+    updateOrder(order.id, { status: "failed", note: "payment not configured" });
+    return res.status(503).json({ error: "not_configured" });
+  }
 
   const qr = await khmerSystem.createQr(order.total, order.id, `p${order.id}`);
   if (!qr.success) {

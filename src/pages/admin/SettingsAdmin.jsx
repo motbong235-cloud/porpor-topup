@@ -170,6 +170,14 @@ export default function SettingsAdmin() {
               autoComplete="new-password"
             />
           </Field>
+          <Field label="Kai Bot Username" hint="សម្រាប់បើក t.me/… (គ្មាន @)">
+            <input
+              value={form.kaiBotUsername || ""}
+              onChange={(e) => set("kaiBotUsername", e.target.value)}
+              placeholder="KaiJakLikeBot"
+              autoComplete="off"
+            />
+          </Field>
           <Field label="Kai Order Chat ID" hint="Admin / Order Bot chat — ទទួល Link ពេញ">
             <input
               value={form.kaiChatId || ""}
