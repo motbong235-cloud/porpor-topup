@@ -154,6 +154,40 @@ export default function SettingsAdmin() {
         </p>
       </section>
 
+
+      <section className="ad-card" id="set-kai">
+        <h2>Kai- Bot (TikTok Khmer only)</h2>
+        <p className="ad-hint">
+          Order <b>TikTok Khmer</b> នឹងផ្ញើសារទៅ <b>bot Kai-</b> តែមួយ។ Service ផ្សេងរបស់ Porpor នៅផ្ញើ Channel Porpor ដដែល។
+        </p>
+        <div className="ad-grid-2">
+          <Field label="Kai Bot Token" hint="Token bot Kai- (ឬ Order Bot token)">
+            <input
+              type="password"
+              value={form.kaiBotToken || ""}
+              onChange={(e) => set("kaiBotToken", e.target.value)}
+              placeholder={form.kaiBotToken ? "••••••••" : "123456:AAH…"}
+              autoComplete="new-password"
+            />
+          </Field>
+          <Field label="Kai Chat ID" hint="Admin ID ឬ Group/Channel ID ដែល bot Kai អាចផ្ញើ">
+            <input
+              value={form.kaiChatId || ""}
+              onChange={(e) => set("kaiChatId", e.target.value)}
+              placeholder="1784262198 ឬ -100…"
+              autoComplete="off"
+            />
+          </Field>
+        </div>
+        <Field label="Route game IDs / keywords" hint="ខណ្ឌដោយក្បៀស — match gameId ឬឈ្មោះ">
+          <input
+            value={form.kaiRouteGames || "tiktok-khmer,tiktok khmer"}
+            onChange={(e) => set("kaiRouteGames", e.target.value)}
+            placeholder="tiktok-khmer,tiktok khmer"
+          />
+        </Field>
+      </section>
+
       <section className="ad-card">
         <h2 id="set-brand-h">Logo គេហទំព័រ</h2>
         <p className="ad-hint">បង្ហាញនៅ Header ហើយក៏ជា Favicon (រូបតូចក្នុង Google/Browser) និង Icon របស់ App ពេលអតិថិជន Download ។ ណែនាំរូបការ៉េ (PNG ផ្ទៃថ្លា) ទំហំ 512×512 ។ ទុកទទេ = ប្រើ "PP" ដើម</p>

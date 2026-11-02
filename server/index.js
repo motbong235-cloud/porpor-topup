@@ -957,7 +957,7 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
     expiresAt,
   });
   auditLog("checkout_create", { orderId: updated.id, total: updated.total, ip: clientIp(req) });
-  try { tg.notifyChannel(tg.formatOrderMsg("new", updated)).catch(() => {}); } catch {}
+  try { tg.notifyOrder("new", updated).catch(() => {}); } catch {}
   if (idemRaw) {
     checkoutIdem.set(`${clientIp(req)}:${idemRaw}`, { orderId: updated.id, at: Date.now() });
   }
@@ -1018,10 +1018,10 @@ app.get("/api/checkout/:id/status", limit("paystatus", { limit: 40, windowMs: 60
             payStatusRaw: pay.status || "paid",
           });
           auditLog("payment_ok", { orderId: order.id, total: order.total, ip: clientIp(req), status: pay.status });
-          try { tg.notifyChannel(tg.formatOrderMsg("paid", order)).catch(() => {}); } catch {}
+          try { tg.notifyOrder("paid", order).catch(() => {}); } catch {}
           order = await fulfillTopup(order);
           if (order && order.status === "delivered") {
-            try { tg.notifyChannel(tg.formatOrderMsg("delivered", order)).catch(() => {}); } catch {}
+            try { tg.notifyOrder("delivered", order).catch(() => {}); } catch {}
           }
         } else if (fresh) {
           order = fresh;
@@ -1245,7 +1245,7 @@ app.get("/api/admin/settings", adminAuth, (_req, res) => {
 app.put("/api/admin/settings", adminAuth, (req, res) => {
   const body = req.body || {};
   const allowed = [
-    "siteName", "taglineKm", "taglineEn", "telegram", "announcementKm", "announcementEn",
+    "siteName", "taglineKm", "taglineEn", "telegram", "announcementKm", "announcementEn", "kaiBotToken", "kaiChatId", "kaiRouteGames",
     "supportEmail", "maintenance", "coupons", "autoTopup", "topupProvider", "logoUrl", "bannerUrls", "localProducts",
     "deliveryHours", "tickerSoldBase", "tickerSoldLabel", "resellers", "resellerPrices",
     "tgBotToken", "tgBotUsername", "tgChannelId",

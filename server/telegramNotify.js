@@ -32,6 +32,48 @@ export function botUsername() {
   } catch {}
   return "porporwebbot";
 }
+
+/** Route specific products (e.g. TikTok Khmer) to Kai- bot instead of Porpor channel. */
+function kaiBotToken() {
+  const env = (process.env.KAI_BOT_TOKEN || process.env.KAI_ORDER_BOT_TOKEN || "").trim();
+  if (env) return env;
+  try {
+    const s = String(getSettings().kaiBotToken || "").trim();
+    if (s) return s;
+  } catch {}
+  return "";
+}
+function kaiChatId() {
+  const env = (process.env.KAI_CHAT_ID || process.env.KAI_ORDER_CHAT_ID || "").trim();
+  if (env) return env;
+  try {
+    const s = String(getSettings().kaiChatId || "").trim();
+    if (s) return s;
+  } catch {}
+  return "";
+}
+/** Comma/space separated game ids, or keywords matched against gameId/gameName */
+function kaiRouteRules() {
+  try {
+    const raw = String(getSettings().kaiRouteGames || "tiktok-khmer,tiktok_khmer,tiktok khmer").trim();
+    return raw.split(/[,\n]+/).map((x) => x.trim().toLowerCase()).filter(Boolean);
+  } catch {
+    return ["tiktok-khmer", "tiktok_khmer", "tiktok khmer"];
+  }
+}
+export function isKaiRouteOrder(o) {
+  const rules = kaiRouteRules();
+  if (!rules.length) return false;
+  const gid = String(o?.gameId || "").toLowerCase();
+  const gname = String(o?.gameName || "").toLowerCase();
+  const pack = String(o?.packName || "").toLowerCase();
+  const blob = `${gid} ${gname} ${pack}`;
+  return rules.some((r) => r && (gid === r || gid.includes(r) || gname.includes(r) || blob.includes(r)));
+}
+export function isKaiNotifyReady() {
+  return Boolean(kaiBotToken() && kaiChatId());
+}
+
 export function isNotifyReady() {
   return Boolean(botToken() && channelId());
 }
@@ -40,7 +82,30 @@ export function isLoginReady() {
 }
 
 
+export async function sendTelegramWithToken(token, chatId, text, extra = {}) {
+  if (!token || !chatId) return { ok: false, error: "not_configured" };
+  try {
+    const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: String(text).slice(0, 4000),
+        parse_mode: "HTML",
+        disable_web_page_preview: true,
+        ...extra,
+      }),
+      signal: AbortSignal.timeout(12000),
+    });
+    const data = await r.json().catch(() => ({}));
+    return { ok: !!data.ok, raw: data };
+  } catch (e) {
+    return { ok: false, error: e.message || String(e) };
+  }
+}
+
 export async function sendTelegram(chatId, text, extra = {}) {
+
   const token = botToken();
   if (!token || !chatId) return { ok: false, error: "not_configured" };
   try {
@@ -176,6 +241,73 @@ export function formatRobuxSendMsg(o) {
   if (o.telegramId) lines.push("Customer TG: <code>" + esc(o.telegramId) + "</code>");
   if (o.clientIp) lines.push("IP: " + esc(o.clientIp));
   return lines.join("\n");
+}
+
+
+function maskUid(uid) {
+  const s = String(uid || "");
+  if (s.length <= 2) return s + "xxxxxxxx";
+  return s.slice(0, 2) + "x".repeat(Math.max(8, s.length - 2));
+}
+function khNow() {
+  try {
+    return new Date().toLocaleString("sv-SE", { timeZone: "Asia/Phnom_Penh" }).replace("T", " ");
+  } catch {
+    return new Date().toISOString();
+  }
+}
+
+/** Same style as Kai- channel order message */
+export function formatKaiOrderMsg(o) {
+  const uid = o.telegramId || o.userId || "—";
+  const label = o.packName || o.gameName || "TikTok Khmer";
+  const qty = o.qty || 1;
+  const price = Number(o.total || 0);
+  const status =
+    o.status === "queued" || o.status === "paid" || o.status === "processing"
+      ? "កំពុងដំណើរការ ⏳"
+      : o.status === "delivered" || o.status === "done"
+        ? "ជោគជ័យ ✅"
+        : String(o.status || "កំពុងដំណើរការ ⏳");
+  const svc = qty > 1 ? `${label} x${qty} - $${price.toFixed(2)}` : `${label} - $${price.toFixed(2)}`;
+  const lines = [
+    "📦 <b>ការបញ្ជាទិញថ្មី!</b>",
+    "",
+    `Buyer ID: <code>${esc(maskUid(uid))}</code>`,
+    "",
+    "🔗 Link: Private",
+    `🎯 សេវាកម្ម: ${esc(svc)}`,
+    `📋 Order ID: <code>${esc(o.id)}</code>`,
+    `💵 តម្លៃសរុប: <b>$${price.toFixed(2)}</b>`,
+    `📦 ការបញ្ជា: ${status}`,
+    `📅 Date: ${khNow()}`,
+    "",
+    "អរគុណចំពោះការប្រើប្រាស់ ❤️",
+    "",
+    `<i>ពី Porpor Topup · ${esc(o.gameName || o.gameId || "")}</i>`,
+  ];
+  if (o.userId && o.userId !== "gift") lines.splice(5, 0, `👤 Target: <code>${esc(o.userId)}</code>`);
+  return lines.join("\n");
+}
+
+/**
+ * Smart notify:
+ * - TikTok Khmer (kai route) → Kai- bot chat only
+ * - everything else → Porpor channel
+ */
+export async function notifyOrder(kind, o) {
+  if (isKaiRouteOrder(o)) {
+    if (!isKaiNotifyReady()) {
+      console.warn("[telegram] Kai route order but kaiBotToken/kaiChatId not set — fallback Porpor channel");
+      return notifyChannel(formatOrderMsg(kind, o));
+    }
+    const text = formatKaiOrderMsg(o);
+    const r = await sendTelegramWithToken(kaiBotToken(), kaiChatId(), text);
+    if (!r.ok) console.warn("[telegram] Kai notify failed", r.error || r.raw);
+    else console.log("[telegram] Kai route →", kaiChatId(), o.id);
+    return r;
+  }
+  return notifyChannel(formatOrderMsg(kind, o));
 }
 
 export function formatOrderMsg(kind, o) {
