@@ -241,8 +241,15 @@ function isRobuxSendOrder(o) {
   return false;
 }
 
-/** Bot alert when Robux must be sent manually (no silent auto transfer). */
+/** Bot alert when Robux order is paid — admin fulfills manually. */
 export function formatRobuxSendMsg(o) {
+  const st = String(o.status || "").toLowerCase();
+  const statusLabel =
+    st === "paid" || st === "queued" || st === "processing"
+      ? "complete"
+      : st === "delivered" || st === "done"
+        ? "complete"
+        : (o.status || "complete");
   const lines = [
     "<b>🔔 ROBUX SEND — ត្រូវផ្ញើ</b>",
     "",
@@ -251,12 +258,9 @@ export function formatRobuxSendMsg(o) {
     "Pack: <b>" + esc(o.packName) + "</b> ×" + esc(o.qty || 1),
     "Amount: <b>$" + Number(o.total || 0).toFixed(2) + "</b>",
     "Game: " + esc(o.gameName || "Robux Send"),
-    "Status: <b>" + esc(o.status || "queued") + "</b>",
-    "",
-    "⚠️ ប្រព័ន្ធមិន auto ផ្ញើ Robux បានទេ — សូមផ្ញើពី account ហាង រួច mark Done ក្នុង Admin",
+    "Status: <b>" + esc(statusLabel) + "</b>",
   ];
   if (o.telegramId) lines.push("Customer TG: <code>" + esc(o.telegramId) + "</code>");
-  if (o.clientIp) lines.push("IP: " + esc(o.clientIp));
   return lines.join("\n");
 }
 
