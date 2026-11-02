@@ -182,8 +182,26 @@ export default function Home({ lang, settings }) {
   const [slide, setSlide] = useState(0);
   const [filter, setFilter] = useState("");
   const famous = useMemo(() => games.filter((g) => g.famous), [games]);
-  const spotlight = useMemo(() => (famous.length ? famous : games).slice(0, 3), [famous, games]); // top row 3
-  const firstTo = games[0] ? `/game/${games[0].id}` : "/";
+  // Special Events (top): always put TikTok Khmer first when present
+  const spotlight = useMemo(() => {
+    const isTikTok = (g) =>
+      String(g?.id || "").toLowerCase().includes("tiktok") ||
+      String(g?.name || "").toLowerCase().includes("tiktok");
+    const open = games.filter((g) => g.open !== false);
+    const tt = open.find(isTikTok);
+    const pool = (famous.length ? famous : open).filter((g) => !isTikTok(g));
+    const rest = pool.slice(0, tt ? 2 : 3);
+    return tt ? [tt, ...rest] : rest;
+  }, [games, famous]);
+  const firstTo = (() => {
+    const tt = games.find(
+      (g) =>
+        String(g?.id || "").toLowerCase().includes("tiktok") ||
+        String(g?.name || "").toLowerCase().includes("tiktok"),
+    );
+    if (tt) return `/game/${tt.id}`;
+    return games[0] ? `/game/${games[0].id}` : "/";
+  })();
   const filtered = useMemo(() => {
     const q = filter.trim().toLowerCase();
     if (!q) return games;
