@@ -251,7 +251,7 @@ export default function Game({ lang, addOrder, settings }) {
   const [liveQr, setLiveQr] = useState(null);
   const [qrExpiresAt, setQrExpiresAt] = useState(0);
   const [payDeeplink, setPayDeeplink] = useState("");
-  const [payPhase, setPayPhase] = useState("qr"); // qr | scanned | kai
+  const [payPhase, setPayPhase] = useState("qr"); // qr | scanned
   const [payLeft, setPayLeft] = useState(3600); // 1 hour
   const [checkoutId, setCheckoutId] = useState(null);
   const [paying, setPaying] = useState(false);
@@ -500,18 +500,6 @@ export default function Game({ lang, addOrder, settings }) {
       if (!res.ok) {
         const known = ERRORS[data.error];
         setPayErr(known ? known[lang] : (lang === "km" ? "បង់ប្រាក់មិនបាន សូមព្យាយាមម្តងទៀត" : "Checkout failed. Please try again.") + (data.error ? ` (${data.error})` : ""));
-        return;
-      }
-      // TikTok Khmer → pay only on Kai- (no Porpor QR)
-      if (data.payment?.payVia === "kai") {
-        addOrder(data.order);
-        setOrderTotal(data.order.total);
-        setCheckoutId(data.order.id);
-        setLiveQr("");
-        setPayDeeplink(data.payment.botUrl || "");
-        setPayPhase("kai");
-        setQrOpen(true);
-        setPayErr("");
         return;
       }
       if (!data.payment?.qrImage) {
@@ -1163,39 +1151,7 @@ export default function Game({ lang, addOrder, settings }) {
             </div>
           </div>
 
-          {payPhase === "kai" ? (
-            <>
-              <div className="pw-amount">{money(orderTotal || total)}</div>
-              <p className="pw-hint">
-                {lang === "km"
-                  ? "TikTok Khmer បង់តែក្នុង bot Kai- (គ្មាន QR លើ Porpor)"
-                  : "TikTok Khmer — pay only on Kai- bot (no Porpor QR)"}
-              </p>
-              <p className="pw-order">Order · {checkoutId}</p>
-              <div className="dino-info-note" style={{ textAlign: "left", margin: "12px 0" }}>
-                <span className="dino-info-note-ico" aria-hidden>i</span>
-                <p>
-                  {lang === "km"
-                    ? "សារបានផ្ញើទៅ bot Kai- រួច។ បើក bot → ដាក់លុយ/បញ្ជាទិញតាម Kai- ដោយប្រើ Order ID នេះ។"
-                    : "Order was sent to Kai- bot. Open the bot → deposit/order on Kai- using this Order ID."}
-                </p>
-              </div>
-              {payDeeplink ? (
-                <a
-                  className="btn bg-brand pw-aba-btn"
-                  href={payDeeplink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ display: "block", textAlign: "center", textDecoration: "none" }}
-                >
-                  {lang === "km" ? "បើក bot Kai-" : "Open Kai- bot"}
-                </a>
-              ) : null}
-              <button type="button" className="btn btn-soft pw-secondary" onClick={() => setQrOpen(false)}>
-                {lang === "km" ? "បិទ" : "Close"}
-              </button>
-            </>
-          ) : payPhase === "qr" ? (
+          {payPhase === "qr" ? (
             <>
               <div className="pw-amount">{money(orderTotal || total)}</div>
               <p className="pw-hint">
