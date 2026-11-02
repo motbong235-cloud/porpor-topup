@@ -4,6 +4,7 @@ import { useCatalog } from "../lib/catalog";
 import { t } from "../lib/i18n";
 import { applyCoupon, money } from "../lib/store";
 import { GameTile, Icon } from "../components/Icons";
+import RobuxRain from "../components/RobuxRain";
 
 
 function readCsrfCookie() {
@@ -674,6 +675,8 @@ export default function Game({ lang, addOrder, settings }) {
           ) : null}
 
           {game?.deliveryType === "robux_send" ? (
+            <>
+            <RobuxRain count={16} />
             <section className="card robux-quick-guide">
               <div className="robux-qg-head">
                 <span className="robux-qg-pin">📌</span>
@@ -720,6 +723,7 @@ export default function Game({ lang, addOrder, settings }) {
                 </li>
               </ol>
             </section>
+            </>
           ) : null}
 
           {!isGift && (

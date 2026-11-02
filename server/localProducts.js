@@ -43,6 +43,11 @@ export const DEFAULT_LOCAL_PRODUCTS = [
     numericId: false,
     idHintKm: "បញ្ចូល URL link video TikTok (គ្មាន Check ID) · បង់រួច order ចូល bot Kai-",
     idHintEn: "Paste TikTok video URL only (no Check ID) · after pay order goes to Kai- bot",
+    tutorialVideoUrl: "",
+    tutorialVideoTitle: "Tutorial · របៀបប្រើ TikTok Khmer",
+    customerNoteKm: "សួស្តី!\nអរគុណសម្រាប់ការបញ្ជាទិញ។ នេះជា video បង្រៀនរបៀបប្រើសេវា TikTok Khmer។\nបើមានសំណួរ សូមទាក់ទង Support។\n\nTikTok Khmer Team",
+    customerNoteEn: "Hello!\nThank you for your order. Here is your tutorial video on how to use our TikTok Khmer service.\nIf you have any questions, contact support.\n\nTikTok Khmer Team",
+    supportContact: "https://t.me/kairozen_support",
     packs: [
       { id: "ttk-01", name: "500-1K Likes | 1.8K Views", nameKm: "500-1K Likes | 1.8K Views", price: 0.99, cost: 0.5, category: "TikTok Like", bonus: "" },
       { id: "ttk-02", name: "1K-2K Likes | 3.5K Views", nameKm: "1K-2K Likes | 3.5K Views", price: 1.99, cost: 1.0, category: "TikTok Like", bonus: "" },
@@ -296,6 +301,11 @@ export function localCatalog() {
           g.idHintKm ||
             (requireUsername ? "បញ្ចូល Username របស់អ្នក" : "មិនចាំបាច់ username"),
         ),
+        tutorialVideoUrl: String(g.tutorialVideoUrl || "").trim().slice(0, 500),
+        tutorialVideoTitle: String(g.tutorialVideoTitle || "").trim().slice(0, 120),
+        customerNoteKm: String(g.customerNoteKm || "").trim().slice(0, 1000),
+        customerNoteEn: String(g.customerNoteEn || "").trim().slice(0, 1000),
+        supportContact: String(g.supportContact || "https://t.me/kairozen_support").trim().slice(0, 120),
         idHintEn: String(
           g.idHintEn ||
             (requireUsername ? "Enter your username" : "No username required"),

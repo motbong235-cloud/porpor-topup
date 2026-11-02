@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { t } from "../lib/i18n";
 import { money } from "../lib/store";
+import RobuxRain from "../components/RobuxRain";
 
 /**
  * Payment Successful page (like dinotopups):
@@ -15,8 +16,19 @@ export default function Success({ lang, settings }) {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(!!code);
   const [err, setErr] = useState("");
+  const [gameMeta, setGameMeta] = useState(null);
 
   const telegram = settings?.telegram || "https://t.me/porportopup";
+  const isTikTok = useMemo(() => {
+    const id = String(order?.gameId || "").toLowerCase();
+    const name = String(order?.gameName || "").toLowerCase();
+    return id.includes("tiktok") || name.includes("tiktok");
+  }, [order]);
+  const isRobux = useMemo(() => {
+    const dt = String(order?.deliveryType || "");
+    const name = String(order?.gameName || "").toLowerCase();
+    return dt === "robux_send" || name.includes("robux");
+  }, [order]);
 
   useEffect(() => {
     if (!code) {
@@ -43,6 +55,23 @@ export default function Success({ lang, settings }) {
       clearInterval(timer);
     };
   }, [code]);
+
+  useEffect(() => {
+    if (!order?.gameId) return;
+    let alive = true;
+    fetch("/api/catalog")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((list) => {
+        if (!alive) return;
+        const games = Array.isArray(list) ? list : list?.games || [];
+        const g = games.find((x) => String(x.id) === String(order.gameId));
+        setGameMeta(g || null);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [order?.gameId]);
 
   function openLiveChat(o) {
     const lines =
@@ -243,6 +272,61 @@ export default function Success({ lang, settings }) {
             </button>
           </div>
         )}
+
+
+        {isRobux ? <RobuxRain count={14} /> : null}
+
+        {isTikTok && paid ? (
+          <div className="tt-tutorial">
+            <h3>
+              {gameMeta?.tutorialVideoTitle ||
+                (lang === "km" ? "Video បង្រៀន · TikTok Khmer" : "Tutorial video · TikTok Khmer")}
+            </h3>
+            {gameMeta?.tutorialVideoUrl ? (
+              String(gameMeta.tutorialVideoUrl).includes("youtube.com") ||
+              String(gameMeta.tutorialVideoUrl).includes("youtu.be") ? (
+                <iframe
+                  title="tutorial"
+                  src={
+                    String(gameMeta.tutorialVideoUrl)
+                      .replace("watch?v=", "embed/")
+                      .replace("youtu.be/", "www.youtube.com/embed/")
+                  }
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <video src={gameMeta.tutorialVideoUrl} controls playsInline />
+              )
+            ) : (
+              <p className="tt-tutorial-note">
+                {lang === "km"
+                  ? "Admin នឹងដាក់ video បង្រៀនក្នុង Settings TikTok Khmer"
+                  : "Admin can set tutorial video in TikTok Khmer settings"}
+              </p>
+            )}
+            <div className="tt-tutorial-note">
+              {(lang === "km"
+                ? gameMeta?.customerNoteKm
+                : gameMeta?.customerNoteEn) ||
+                (lang === "km"
+                  ? "អរគុណសម្រាប់ការបញ្ជាទិញ! សូមមើល video បង្រៀនខាងលើ។ បើត្រូវការជំនួយ ទាក់ទង Support។"
+                  : "Thank you for your order! Watch the tutorial above. Contact support if you need help.")}
+            </div>
+            <a
+              className="btn bg-brand tt-support-btn"
+              href={
+                (gameMeta?.supportContact || "https://t.me/kairozen_support").startsWith("http")
+                  ? gameMeta?.supportContact || "https://t.me/kairozen_support"
+                  : `https://t.me/${String(gameMeta?.supportContact || "kairozen_support").replace(/^@/, "")}`
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {lang === "km" ? "ទាក់ទង Support @kairozen_support" : "Contact Support @kairozen_support"}
+            </a>
+          </div>
+        ) : null}
 
         <div className="success-actions">
           <Link to="/" className="btn btn-soft">

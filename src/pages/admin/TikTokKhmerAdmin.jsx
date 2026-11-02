@@ -186,6 +186,65 @@ export default function TikTokKhmerAdmin() {
         </div>
       </section>
 
+
+      <section className="ad-card" style={{ marginTop: 16 }}>
+        <h2 style={{ margin: "0 0 12px", fontSize: 16 }}>② Tutorial Video (បង់រួចបង្ហាញ)</h2>
+        <p className="ad-hint">ដាក់ URL video (YouTube / ផ្ទាល់ /uploads/…) · បង្ហាញលើទំព័រ Success បន្ទាប់ពីបង់</p>
+        <label className="ad-field">
+          <span>Video URL</span>
+          <input
+            value={product.tutorialVideoUrl || ""}
+            onChange={(e) => patch("tutorialVideoUrl", e.target.value)}
+            placeholder="https://… หรือ /uploads/tutorial.mp4"
+          />
+        </label>
+        <label className="ad-field">
+          <span>Video Title</span>
+          <input
+            value={product.tutorialVideoTitle || ""}
+            onChange={(e) => patch("tutorialVideoTitle", e.target.value)}
+            placeholder="Tutorial · របៀបប្រើ"
+          />
+        </label>
+      </section>
+
+      <section className="ad-card" style={{ marginTop: 16 }}>
+        <h2 style={{ margin: "0 0 12px", fontSize: 16 }}>③ Customer Note / Message Template</h2>
+        <label className="ad-field">
+          <span>Note (ខ្មែរ)</span>
+          <textarea
+            rows={5}
+            maxLength={1000}
+            value={product.customerNoteKm || ""}
+            onChange={(e) => patch("customerNoteKm", e.target.value)}
+            style={{ width: "100%", borderRadius: 10, padding: 10 }}
+          />
+        </label>
+        <label className="ad-field">
+          <span>Note (English)</span>
+          <textarea
+            rows={5}
+            maxLength={1000}
+            value={product.customerNoteEn || ""}
+            onChange={(e) => patch("customerNoteEn", e.target.value)}
+            style={{ width: "100%", borderRadius: 10, padding: 10 }}
+          />
+        </label>
+      </section>
+
+      <section className="ad-card" style={{ marginTop: 16 }}>
+        <h2 style={{ margin: "0 0 12px", fontSize: 16 }}>④ Support Contact</h2>
+        <label className="ad-field">
+          <span>Telegram Support</span>
+          <input
+            value={product.supportContact || "https://t.me/kairozen_support"}
+            onChange={(e) => patch("supportContact", e.target.value)}
+            placeholder="https://t.me/kairozen_support"
+          />
+        </label>
+        <p className="ad-hint">លំនាំដើម: @kairozen_support</p>
+      </section>
+
       <section className="ad-card" style={{ marginTop: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <h2 style={{ margin: 0, fontSize: 16 }}>កញ្ចប់ ({product.packs?.length || 0})</h2>

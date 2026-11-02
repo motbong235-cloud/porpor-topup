@@ -7222,3 +7222,74 @@ html.dark .dino-info-note {
   line-height: 1.4;
   font-weight: 600;
 }
+
+
+/* —— Robux falling coins —— */
+.robux-rain {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+}
+.robux-rain-coin {
+  position: absolute;
+  top: -48px;
+  display: block;
+  animation-name: robux-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.35)) drop-shadow(0 2px 3px rgba(180, 120, 20, 0.45));
+}
+.robux-rain-coin img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  border-radius: 20%;
+}
+@keyframes robux-fall {
+  0% {
+    transform: translate3d(0, -10vh, 0) rotate(0deg);
+  }
+  100% {
+    transform: translate3d(var(--drift, 12px), 110vh, 0) rotate(360deg);
+  }
+}
+
+/* TikTok success tutorial */
+.tt-tutorial {
+  margin-top: 18px;
+  text-align: left;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 14px;
+}
+.tt-tutorial h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+.tt-tutorial video,
+.tt-tutorial iframe {
+  width: 100%;
+  border-radius: 12px;
+  border: 0;
+  aspect-ratio: 16 / 9;
+  background: #0f172a;
+  max-height: 280px;
+}
+.tt-tutorial-note {
+  margin-top: 10px;
+  white-space: pre-wrap;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #334155;
+}
+.tt-support-btn {
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}

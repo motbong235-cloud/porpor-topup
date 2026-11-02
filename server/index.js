@@ -1471,6 +1471,16 @@ app.put("/api/admin/local-products", adminAuth, (req, res) => {
         servers: [],
         idHintKm: String(g.idHintKm || ""),
         idHintEn: String(g.idHintEn || ""),
+        tutorialVideoUrl: (() => {
+          const u = String(g.tutorialVideoUrl || "").trim();
+          if (/^\/uploads\/[\w.-]{1,120}$/.test(u)) return u;
+          if (/^https:\/\/[^\s"'<>]{1,490}$/.test(u)) return u;
+          return "";
+        })(),
+        tutorialVideoTitle: String(g.tutorialVideoTitle || "").trim().slice(0, 120),
+        customerNoteKm: String(g.customerNoteKm || "").trim().slice(0, 1000),
+        customerNoteEn: String(g.customerNoteEn || "").trim().slice(0, 1000),
+        supportContact: String(g.supportContact || "https://t.me/kairozen_support").trim().slice(0, 120),
         safetyGuide: (() => {
           const sg = g.safetyGuide && typeof g.safetyGuide === "object" ? g.safetyGuide : {};
           const stepsKm = Array.isArray(sg.stepsKm)
