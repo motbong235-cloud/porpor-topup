@@ -253,6 +253,12 @@ export function localCatalog() {
       if (def && (!Array.isArray(g.packs) || !g.packs.length) && def.packs?.length) {
         return { ...def, ...g, packs: def.packs };
       }
+      // Replace obsolete TikTok pack list (older defaults) with current promo packages
+      if (String(g.id) === "tiktok-khmer" && def?.packs?.length) {
+        const ids = (Array.isArray(g.packs) ? g.packs : []).map((x) => String(x.id || ""));
+        const stale = !ids.length || ids.some((id) => /ttk-100-like|ttk-5k-10k|ttk-view-|ttk-follow-500|ttk-500-1k|ttk-1k-2k|ttk-2k-5k/.test(id));
+        if (stale) return { ...def, ...g, packs: def.packs, famous: true, hot: true, open: g.open !== false };
+      }
       return g;
     });
   } else {
