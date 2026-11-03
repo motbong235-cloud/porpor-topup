@@ -37,8 +37,8 @@ export default function Track({ lang, settings }) {
     const base = String(telegram || "").trim();
     const msg = encodeURIComponent(
       lang === "km"
-        ? `សួស្តី បង! បង់ Roblox រួចហើយ លេខកម្មង់: ${orderId} សុំកូដផង`
-        : `Hi! I paid for Roblox. Order: ${orderId}. Please send my code.`,
+        ? `សួស្តី បង! បង់ប្រាក់រួចហើយ លេខកម្មង់: ${orderId} សុំជួយដំណើរការផង`
+        : `Hi! I have paid. Order: ${orderId}. Please process my order.`,
     );
     if (base.includes("t.me") || base.includes("telegram")) {
       const sep = base.includes("?") ? "&" : "?";
@@ -70,7 +70,23 @@ export default function Track({ lang, settings }) {
         <p className="empty">{t(lang, "noOrder")}</p>
       ) : (
         hits.map((o) => {
-          const isGift = o.deliveryType === "gift_code";
+          const isGift = ["gift_code", "stock", "live_chat", "robux_send"].includes(o.deliveryType);
+          const isManual = o.deliveryType === "live_chat" || o.deliveryType === "robux_send";
+          const openChat = () =>
+            window.dispatchEvent(
+              new CustomEvent("pp-open-livechat", {
+                detail: {
+                  orderId: o.id,
+                  prefill:
+                    lang === "km"
+                      ? `សួស្តី Admin! Order ID: ${o.id}\nផលិតផល: ${o.gameName} · ${o.packName} × ${o.qty}`
+                      : `Hi Admin! Order ID: ${o.id}\nProduct: ${o.gameName} · ${o.packName} × ${o.qty}`,
+                  item: `${o.gameName} · ${o.packName} × ${o.qty}`,
+                  amount: o.total,
+                  title: "Order",
+                },
+              }),
+            );
           return (
             <div key={o.id} className="detail">
               <div className="code-row">
@@ -121,9 +137,7 @@ export default function Track({ lang, settings }) {
 
               {isGift ? (
                 <div className="card" style={{ marginTop: 16, borderColor: "var(--primary)" }}>
-                  <h3 style={{ margin: "0 0 8px" }}>
-                    Roblox
-                  </h3>
+                  <h3 style={{ margin: "0 0 8px" }}>{o.gameName}</h3>
                   {o.giftCode ? (
                     <div>
                       <p style={{ margin: "0 0 8px", color: "var(--muted)" }}>
@@ -149,18 +163,19 @@ export default function Track({ lang, settings }) {
                   ) : (
                     <div>
                       <p style={{ margin: "0 0 12px" }}>
-                        {lang === "km"
-                          ? "បង់រួចហើយ! សូមចូល Live Chat / Telegram ដើម្បីទទួលកូដ។ ផ្ញើលេខកម្មង់របស់អ្នក។"
-                          : "Payment received! Open Live Chat / Telegram to get your code. Send your order number."}
+                        {isManual
+                          ? lang === "km"
+                            ? "សេវានេះមិន auto ទេ — សូមចូល Live Chat ហើយផ្ញើ Order ID ទៅ Admin ដើម្បីដំណើរការ។"
+                            : "This service is not automatic — open Live Chat and send your Order ID to Admin."
+                          : lang === "km"
+                            ? "បង់រួចហើយ! កូដនឹងបង្ហាញនៅទីនេះស្វ័យប្រវត្តិ។ បើយូរពេក សូមចូល Live Chat។"
+                            : "Payment received! Your code will appear here automatically. Open Live Chat if it takes too long."}
                       </p>
-                      <a
-                        className="btn bg-brand"
-                        href={chatUrl(o.id)}
-                        target="_blank"
-                        rel="noreferrer"
-                        style={{ display: "inline-flex", textDecoration: "none" }}
-                      >
+                      <button type="button" className="btn bg-brand" onClick={openChat}>
                         {lang === "km" ? "បើក Live Chat" : "Open Live Chat"}
+                      </button>
+                      <a className="btn-soft" href={chatUrl(o.id)} target="_blank" rel="noreferrer" style={{ marginLeft: 8, textDecoration: "none" }}>
+                        Telegram
                       </a>
                     </div>
                   )}

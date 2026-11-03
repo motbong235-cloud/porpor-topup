@@ -130,7 +130,7 @@ export default function TikTokKhmerAdmin() {
         </button>
       </PageHead>
 
-      <section className="ad-card ad-ttk-overview">
+      <section className="ad-card">
         <div className="ad-grid-2" style={{ alignItems: "start" }}>
           <div>
             <label className="ad-field">
@@ -183,17 +183,13 @@ export default function TikTokKhmerAdmin() {
       </section>
 
 
-      <section className="ad-card ad-ttk-banner-card" style={{ marginTop: 16 }}>
-        <div className="ad-section-title">
-          <span className="ad-section-number">①</span>
-          <div><h2>Banner ខាងលើ TikTok Khmer</h2><p>Upload រូប Banner ដែលអតិថិជនឃើញមុនពេលជ្រើសរើសកញ្ចប់</p></div>
-        </div>
+      <section className="ad-card" style={{ marginTop: 16 }}>
+        <h2 style={{ margin: "0 0 12px", fontSize: 16, display: "flex", alignItems: "center", gap: 8 }}><AIcon name="image" size={18} /> ① Banner (ទំព័រ TikTok Khmer)</h2>
         <BannerManager
           banners={product.banners}
           legacy={product.banner}
           onChange={(list) => setProduct((p) => (p ? { ...p, banners: list, banner: list[0] || "" } : p))}
         />
-        <p className="ad-save-reminder"><AIcon name="info" size={15} /> ក្រោយ Upload សូមចុច <b>រក្សាទុក</b> ខាងលើ ដើម្បីឲ្យ Banner បង្ហាញលើ Website។</p>
       </section>
 
       <section className="ad-card" style={{ marginTop: 16 }}>

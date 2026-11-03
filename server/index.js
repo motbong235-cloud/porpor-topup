@@ -861,6 +861,9 @@ app.post("/api/verify", limit("verify", { limit: 30, windowMs: 60_000 }), async 
 
     if (isRoblox) {
       const ok = rbx?.valid === true && (supplier ? supplier.valid !== false : true);
+      if (!rbx?.valid && rbx?.unavailable) {
+        return res.json({ result: "unknown", message: rbx.message, provider: "roblox" });
+      }
       if (!rbx?.valid) {
         return res.json({
           result: "invalid",
@@ -880,9 +883,14 @@ app.post("/api/verify", limit("verify", { limit: 30, windowMs: 60_000 }), async 
           userId: rbx.userId,
           username: rbx.username,
           displayName: rbx.displayName,
+          verified: !!rbx.verified,
           avatarUrl: rbx.avatarUrl,
           profileUrl: rbx.profileUrl,
           created: rbx.created,
+          about: rbx.about || "",
+          friends: rbx.friends ?? null,
+          followers: rbx.followers ?? null,
+          followings: rbx.followings ?? null,
         },
       });
     }

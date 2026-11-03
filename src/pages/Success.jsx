@@ -4,7 +4,6 @@ import { Link, useSearchParams } from "react-router-dom";
 import { t } from "../lib/i18n";
 import { money } from "../lib/store";
 import RobuxRain from "../components/RobuxRain";
-import "./PaymentBrand.css";
 
 /**
  * Payment Successful page (like dinotopups):
@@ -193,8 +192,28 @@ export default function Success({ lang, settings }) {
     );
   }
 
-  const isGift = ["stock", "live_chat", "gift_code"].includes(order.deliveryType);
-  const paid = order.providerPaid || order.paidAt || ["paid", "delivered", "processing", "done", "success", "completed"].includes(String(order.status || "").toLowerCase());
+  const isGift = ["stock", "live_chat", "robux_send", "gift_code"].includes(order.deliveryType);
+  // Manual service = Admin delivers by hand through Live Chat (not automatic)
+  const isManual = order.deliveryType === "live_chat" || order.deliveryType === "robux_send";
+  const isStockAuto = order.deliveryType === "stock" || order.deliveryType === "gift_code";
+  const st = String(order.status || "").toLowerCase();
+  const delivered = st === "delivered" || st === "completed" || st === "done";
+  const failed = st === "failed";
+  const paid = order.providerPaid || order.paidAt || ["paid", "delivered", "processing", "done", "success", "completed"].includes(st);
+  const showUser = order.userId && order.userId !== "gift";
+  const idLabel = isTikTok
+    ? lang === "km" ? "Link / Username" : "Link / Username"
+    : isRobux || /roblox/i.test(String(order.gameName || ""))
+      ? "Roblox Username"
+      : "ID";
+  const stepLabel = delivered
+    ? lang === "km" ? "បានដឹកជញ្ជូនរួចរាល់" : "Delivered"
+    : failed
+      ? lang === "km" ? "បរាជ័យ — សូមទាក់ទង Admin" : "Failed — contact Admin"
+      : isManual
+        ? lang === "km" ? "បានបង់ប្រាក់ · រង់ចាំ Admin" : "Paid · waiting for Admin"
+        : lang === "km" ? "បានបង់ប្រាក់ · កំពុងដំណើរការ" : "Paid · processing";
+  const statusTone = failed ? "bad" : delivered ? "ok" : "wait";
 
   return (
     <div className="container success-page">
@@ -238,27 +257,26 @@ export default function Success({ lang, settings }) {
             <span>{lang === "km" ? "ហ្គេម" : "Game"}</span>
             <strong>{order.gameName}</strong>
           </div>
-          {!isGift && order.userId && order.userId !== "gift" ? (
+          {showUser && (!isGift || isManual || order.deliveryType === "stock") ? (
             <div className="row">
-              <span>ID</span>
+              <span>{idLabel}</span>
               <strong>
                 {order.userId}
                 {order.zoneId ? ` (${order.zoneId})` : ""}
               </strong>
             </div>
           ) : null}
-          {order.nickname && String(order.nickname).trim() && order.nickname !== "OK" ? (
+          {order.nickname ? (
             <div className="row">
-              <span>{lang === "km" ? "អ្នកលេង" : "Player"}</span>
+              <span>{lang === "km" ? "ឈ្មោះគណនី" : "Account"}</span>
               <strong>{order.nickname}</strong>
             </div>
           ) : null}
           <div className="row">
             <span>{lang === "km" ? "វិធីទូទាត់" : "Payment Method"}</span>
-            <strong className="pay-method-logos pp-success-payment-logos" aria-label="ABA PayWay and KHQR">
-              <img src="/payments/aba-payway.png" alt="ABA PayWay" />
-              <img src="/payments/khqr-mark.png" alt="KHQR" />
-              <span>ABA KHQR</span>
+            <strong className="pay-method-logos">
+              <img src="/aba-logo.svg" alt="ABA" height={22} />
+              <img src="/khqr-logo.svg" alt="KHQR" height={22} />
             </strong>
           </div>
           <div className="row">
@@ -272,7 +290,13 @@ export default function Success({ lang, settings }) {
           </div>
           <div className="row">
             <span>{lang === "km" ? "កាលបរិច្ឆេទ" : "Date"}</span>
-            <strong>{new Date(order.createdAt).toLocaleString(lang === "km" ? "km-KH" : "en-US")}</strong>
+            <strong>{new Date(order.paidAt || order.createdAt).toLocaleString(lang === "km" ? "km-KH" : "en-GB", { timeZone: "Asia/Phnom_Penh" })}</strong>
+          </div>
+          <div className="row">
+            <span>{lang === "km" ? "ស្ថានភាព" : "Status"}</span>
+            <strong className={`success-status ${statusTone}`}>
+              <i aria-hidden /> {paid ? stepLabel : lang === "km" ? "រង់ចាំការបង់ប្រាក់" : "Awaiting payment"}
+            </strong>
           </div>
           {order.giftCode ? (
             <div className="row">
@@ -283,8 +307,8 @@ export default function Success({ lang, settings }) {
         </div>
 
         {order.giftCode ? (
-          <div className="success-chat-box" style={{ background: "#dcfce7", borderColor: "#86efac" }}>
-            <p style={{ color: "#14532d" }}>
+          <div className="success-chat-box ok">
+            <p>
               {lang === "km"
                 ? "កូដរបស់អ្នកត្រូវបានផ្តល់ស្វ័យប្រវត្តិ (copy ខាងលើ)។ បើមានបញ្ហា ចូល Live Chat។"
                 : "Your code was delivered automatically (copy above). Contact Live Chat if needed."}
@@ -293,19 +317,66 @@ export default function Success({ lang, settings }) {
               <Icon name="chat" size={17} /> Live Chat
             </button>
           </div>
-        ) : (
+        ) : isManual && !delivered ? (
+          <div className="success-chat-box manual">
+            <strong className="success-chat-title">
+              {lang === "km" ? "ជំហានបន្ទាប់ — ចូល Live Chat" : "Next step — open Live Chat"}
+            </strong>
+            <p>
+              {isRobux
+                ? lang === "km"
+                  ? "សេវានេះមិន auto ទេ។ ចុច Live Chat ដើម្បីផ្ញើ Order ID ទៅ Admin — Admin នឹងផ្ញើ Robux ឲ្យអ្នកដោយដៃ។ យើងមិនសុំ Password ទេ។"
+                  : "This service is not automatic. Tap Live Chat to send your Order ID — Admin will deliver your Robux by hand. We never ask for your password."
+                : lang === "km"
+                  ? "សេវានេះមិន auto ទេ។ ចុច Live Chat ដើម្បីផ្ញើ Order ID ទៅ Admin ហើយ Admin នឹងដំណើរការ Order ឲ្យអ្នក។"
+                  : "This service is not automatic. Tap Live Chat to send your Order ID — Admin will process your order."}
+            </p>
+            <button type="button" className="btn success-livechat" onClick={() => openLiveChat(order)}>
+              <Icon name="chat" size={17} /> Live Chat
+            </button>
+            <a className="success-tg-link" href={liveChatUrl(order)} target="_blank" rel="noopener noreferrer">
+              {lang === "km" ? "ឬទាក់ទងតាម Telegram" : "or message us on Telegram"} <Icon name="external" size={12} />
+            </a>
+          </div>
+        ) : isStockAuto && !order.giftCode && !failed ? (
           <div className="success-chat-box">
             <p>
               {lang === "km"
-                ? "សូមចូល Live Chat ជាមួយ Admin ដើម្បីទទួលកូដ។ Order ID នឹងភ្ជាប់ស្វ័យប្រវត្តិ។"
-                : "Open Live Chat with Admin to receive your code. Order ID is attached automatically."}
+                ? "កូដនឹងបង្ហាញនៅទីនេះស្វ័យប្រវត្តិភ្លាមៗ។ បើយូរពេក សូមចូល Live Chat។"
+                : "Your code will appear here automatically. If it takes too long, open Live Chat."}
             </p>
             <button type="button" className="btn success-livechat" onClick={() => openLiveChat(order)}>
               <Icon name="chat" size={17} /> Live Chat
             </button>
           </div>
+        ) : (
+          <div className={`success-chat-box ${delivered ? "ok" : ""}`}>
+            <p>
+              {delivered
+                ? lang === "km"
+                  ? "Order របស់អ្នកត្រូវបានដាក់ចូលស្វ័យប្រវត្តិរួចរាល់ ✅ សូមពិនិត្យក្នុងហ្គេម។"
+                  : "Your order was delivered automatically ✅ Please check in-game."
+                : failed
+                  ? lang === "km"
+                    ? "មានបញ្ហាក្នុងការដាក់ Order សូមទាក់ទង Admin ជាមួយ Order ID ខាងលើ។"
+                    : "Something went wrong delivering your order. Contact Admin with the Order ID above."
+                  : lang === "km"
+                    ? "កំពុងដាក់ចូលស្វ័យប្រវត្តិ ជាធម្មតាតិចជាង ១ នាទី។ ទំព័រនេះនឹងធ្វើបច្ចុប្បន្នភាពដោយខ្លួនឯង។"
+                    : "Delivering automatically — usually under a minute. This page updates by itself."}
+            </p>
+            {delivered && !failed ? null : (
+              <button type="button" className="btn success-livechat" onClick={() => openLiveChat(order)}>
+                <Icon name="chat" size={17} /> Live Chat
+              </button>
+            )}
+          </div>
         )}
 
+        <div className="success-note">
+          {lang === "km" ? "អ្នកអាចមើល Order នេះម្តងទៀតបានគ្រប់ពេលនៅ " : "You can view this order again anytime in "}
+          <Link to={`/track?code=${encodeURIComponent(order.id)}`}>{lang === "km" ? "តាមដាន Order" : "Track Order"}</Link>
+          {lang === "km" ? " ដោយប្រើ Order ID។" : " with your Order ID."}
+        </div>
 
         {isRobux ? <RobuxRain count={14} /> : null}
 
@@ -379,12 +450,20 @@ export default function Success({ lang, settings }) {
           </div>
         ) : null}
 
+        <div className="success-thanks">
+          <img src="/images/thank-you.svg" alt="" width={160} height={120} decoding="async" />
+          <p>
+            {lang === "km" ? "សូមអរគុណដែលបានទិញជាមួយ " : "Thank you for shopping with "}
+            <b>{settings?.siteName || "PORPOR TOPUP"}</b>
+          </p>
+        </div>
+
         <div className="success-actions">
-          <Link to="/" className="btn btn-soft">
-            {lang === "km" ? "បញ្ចូលម្តងទៀត" : "Top up another"}
+          <Link to={`/game/${encodeURIComponent(order.gameId || "")}`} className="btn bg-brand">
+            {lang === "km" ? "ទិញម្តងទៀត" : "Buy again"}
           </Link>
-          <Link to={`/track?code=${encodeURIComponent(order.id)}`} className="btn bg-brand">
-            {t(lang, "track")}
+          <Link to="/" className="btn success-home">
+            {lang === "km" ? "ទំព័រដើម" : "Home"}
           </Link>
         </div>
       </div>

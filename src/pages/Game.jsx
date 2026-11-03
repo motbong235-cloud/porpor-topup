@@ -5,7 +5,7 @@ import { t } from "../lib/i18n";
 import { applyCoupon, money } from "../lib/store";
 import { GameTile, Icon } from "../components/Icons";
 import RobuxRain from "../components/RobuxRain";
-import "./PaymentBrand.css";
+import RobloxProfileCard from "../components/RobloxProfileCard";
 
 const DEFAULT_BANNER = "/images/banner-topup.svg";
 
@@ -231,7 +231,6 @@ export default function Game({ lang, addOrder, settings }) {
       String(game.name || "").toLowerCase().includes("tiktok") ||
       String(game.nameKm || "").toLowerCase().includes("tiktok")
     ));
-  const needCheckId = !!(game && game.deliveryType === "robux_send");
   const isStock = !!(game && (game.deliveryType === "stock" || game.deliveryType === "gift_code"));
   const [showSafetyGuide, setShowSafetyGuide] = useState(false);
 
@@ -367,6 +366,8 @@ export default function Game({ lang, addOrder, settings }) {
     (game.deliveryType === "robux_send" ||
       /roblox|robux/i.test(String(game.id || "")) ||
       /roblox|robux/i.test(String(game.name || "")));
+  // Check ID is required for Robux Send and for any Roblox service that asks for a username
+  const needCheckId = !!(game && (game.deliveryType === "robux_send" || (isRobloxGame && needUsername)));
 
   function verify() {
     if (userId.trim().length < 3) {
@@ -375,8 +376,14 @@ export default function Game({ lang, addOrder, settings }) {
       setRbxProfile(null);
       return;
     }
-    if (game.hasZone && !zoneId.trim() && !isRobloxGame) return;
-    if (game.servers?.length && !server && !isRobloxGame) return;
+    if (game.hasZone && !zoneId.trim() && !isRobloxGame) {
+      setPayErr(t(lang, "needZone"));
+      return;
+    }
+    if (game.servers?.length && !server && !isRobloxGame) {
+      setPayErr(t(lang, "needServer"));
+      return;
+    }
     const key = `${userId.trim()}|${zoneId.trim()}|${server}`;
     setChecking(true);
     setUnverified(false);
@@ -396,16 +403,29 @@ export default function Game({ lang, addOrder, settings }) {
         const ok = data.result === "valid" || data.result === "ok" || data.valid === true;
         if (ok) {
           setNick(data.nickname || data.roblox?.displayName || data.roblox?.username || "OK");
+          if (data.roblox) {
+            setRbxProfile(data.roblox);
+            // fix letter-case / @ so the order uses the real Roblox username
+            const real = data.roblox.username;
+            if (real && real !== userId.trim()) {
+              setUserId(real);
+              setCheckedFor(`${real}|${zoneId.trim()}|${server}`);
+              return;
+            }
+          }
           setCheckedFor(key);
-          if (data.roblox) setRbxProfile(data.roblox);
         } else if (data.result === "invalid" || data.valid === false) {
           setNick("");
           setCheckedFor("");
           setRbxProfile(null);
           setPayErr(
-            lang === "km"
-              ? "Username Roblox មិនត្រឹមត្រូវ (ប្រើ Username មិនមែន Display Name)"
-              : "Invalid Roblox username (use Username, not Display Name)",
+            isRobloxGame
+              ? lang === "km"
+                ? "Username Roblox មិនត្រឹមត្រូវ (ប្រើ Username មិនមែន Display Name)"
+                : "Invalid Roblox username (use Username, not Display Name)"
+              : lang === "km"
+                ? "ID នេះមិនត្រឹមត្រូវ សូមពិនិត្យ User ID / Zone / Server ម្តងទៀត"
+                : "This ID is not valid. Please check your User ID / Zone / Server and try again.",
           );
         } else {
           setNick("");
@@ -821,7 +841,9 @@ export default function Game({ lang, addOrder, settings }) {
               </label>
             ) : null}
 
-            {nick ? (
+            {rbxProfile ? (
+              <RobloxProfileCard profile={rbxProfile} lang={lang} />
+            ) : nick ? (
               <div className="dino-verify-ok">
                 <span className="dino-verify-ok-dot"><Icon name="check" size={12} /></span>
                 <div>
@@ -830,6 +852,14 @@ export default function Game({ lang, addOrder, settings }) {
                 </div>
               </div>
             ) : null}
+            {unverified && !nick ? (
+              <div className="dino-verify-warn">
+                {lang === "km"
+                  ? "មិនអាចពិនិត្យ ID ឥឡូវនេះបានទេ — អ្នកនៅតែអាចបន្តបាន សូមប្រាកដថា ID ត្រឹមត្រូវ។"
+                  : "ID check is unavailable right now — you can still continue, just make sure the ID is correct."}
+              </div>
+            ) : null}
+            {payErr && !paying ? <div className="dino-verify-err">{payErr}</div> : null}
 
             <div className="dino-info-note">
               <span className="dino-info-note-ico" aria-hidden>i</span>
@@ -905,47 +935,7 @@ export default function Game({ lang, addOrder, settings }) {
                   </label>
 
                   {needCheckId && rbxProfile ? (
-                    <div className="rbx-profile-card">
-                      <img
-                        className="rbx-avatar"
-                        src={rbxProfile.avatarUrl || ""}
-                        alt=""
-                        width={48}
-                        height={48}
-                        onError={(e) => {
-                          e.currentTarget.style.visibility = "hidden";
-                        }}
-                      />
-                      <div className="rbx-profile-info">
-                        <div className="rbx-display">
-                          {rbxProfile.displayName || rbxProfile.username || nick}
-                        </div>
-                        <div className="rbx-meta">
-                          @{rbxProfile.username || userId.trim()}
-                          {rbxProfile.userId ? ` · ID ${rbxProfile.userId}` : ""}
-                          {rbxProfile.created
-                            ? ` · Joined ${new Date(rbxProfile.created).toLocaleString("en", {
-                                month: "short",
-                                year: "numeric",
-                              })}`
-                            : ""}
-                        </div>
-                      </div>
-                      {nick ? (
-                        <span className="rbx-ok-badge" aria-hidden><Icon name="check" size={13} /></span>
-                      ) : null}
-                      {rbxProfile.profileUrl ? (
-                        <a
-                          className="btn btn-soft"
-                          href={rbxProfile.profileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ marginLeft: "auto", fontSize: 12, padding: "6px 10px" }}
-                        >
-                          Profile <Icon name="external" size={13} />
-                        </a>
-                      ) : null}
-                    </div>
+                    <RobloxProfileCard profile={rbxProfile} lang={lang} />
                   ) : nick ? (
                     <div className="dino-verify-ok">
                       <span className="dino-verify-ok-dot"><Icon name="check" size={12} /></span>
@@ -978,18 +968,41 @@ export default function Game({ lang, addOrder, settings }) {
           {isGift && isStock && needUsername ? (
             <section className="card">
               <h2 className="sec-title"><span className="step-no">1</span> {t(lang, "account")}</h2>
-              <div className="form-grid">
-                <label className="field">
-                  Username
-                  <input
-                    value={userId}
-                    inputMode="text"
-                    placeholder={lang === "km" ? "ឧ. PlayerName" : "e.g. PlayerName"}
-                    autoComplete="username"
-                    onChange={(e) => setUserId(e.target.value)}
-                  />
-                </label>
-              </div>
+              <label className="dino-field">
+                <span className="dino-field-label">{isRobloxGame ? "ROBLOX USERNAME" : "USERNAME"}</span>
+                <div className="dino-check-row">
+                  <div className="dino-input-wrap">
+                    <span className="dino-input-ico" aria-hidden>
+                      <Icon name="user" size={16} />
+                    </span>
+                    <input
+                      value={userId}
+                      inputMode="text"
+                      placeholder={lang === "km" ? "ឧ. PlayerName" : "e.g. PlayerName"}
+                      autoComplete="username"
+                      onChange={(e) => {
+                        setUserId(e.target.value);
+                        setNick("");
+                        setCheckedFor("");
+                        setRbxProfile(null);
+                        setPayErr("");
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && needCheckId) {
+                          e.preventDefault();
+                          verify();
+                        }
+                      }}
+                    />
+                  </div>
+                  {needCheckId ? (
+                    <button type="button" className="dino-check-btn" disabled={checking || userId.trim().length < 3} onClick={verify}>
+                      {checking ? "…" : "Check"}
+                    </button>
+                  ) : null}
+                </div>
+              </label>
+              {needCheckId && rbxProfile ? <RobloxProfileCard profile={rbxProfile} lang={lang} /> : null}
             </section>
           ) : null}
 
@@ -1133,56 +1146,29 @@ export default function Game({ lang, addOrder, settings }) {
             {couponMsg.text ? <p className={`msg ${couponMsg.type}`}>{couponMsg.text}</p> : null}
             <div className="pay-label caps">{lang === "km" ? "ជ្រើសវិធីបង់ប្រាក់" : "Choose way to pay"}</div>
             <div className="pay-choices">
-              <div className="pay-choice pp-payment-choice active" role="radio" aria-checked="true">
-                <div className="pp-payment-logos" aria-label="ABA PayWay and KHQR">
+              <div className="pay-choice active" role="radio" aria-checked="true">
+                <div className="pay-choice-brand">
                   <img
-                    className="pp-payment-aba"
-                    src="/payments/aba-payway.png"
-                    alt="ABA PayWay"
-                    decoding="async"
-                  />
-                  <span className="pp-payment-divider" aria-hidden="true" />
-                  <img
-                    className="pp-payment-khqr"
-                    src="/payments/khqr-mark.png"
-                    alt="KHQR"
+                    className="pay-aba-mark"
+                    src={"/payments/aba-payway.png"}
+                    alt="ABA"
+                    width={88}
+                    height={32}
                     decoding="async"
                   />
                 </div>
                 <div className="pay-choice-meta">
                   <strong>ABA KHQR</strong>
-                  <span>{lang === "km" ? "បង់តាម ABA Mobile ឬកម្មវិធីធនាគារដែលគាំទ្រ KHQR" : "Pay with ABA Mobile or any bank app that supports KHQR"}</span>
+                  <span>{t(lang, "khqrHint")}</span>
                 </div>
                 <span className="pay-choice-check" aria-hidden>
                   <Icon name="check" size={14} />
                 </span>
               </div>
             </div>
-            <div className="od-box" aria-label="Order details">
-              <div className="od-head">{lang === "km" ? "ព័ត៌មានការបញ្ជាទិញ" : "Order details"}</div>
-              <div className="od-row"><span>{lang === "km" ? "សេវា" : "Game"}</span><b>{game.name}</b></div>
-              {userId.trim() ? (
-                <div className="od-row">
-                  <span>{isTikTok ? "URL" : isRobloxGame ? "Username" : "ID"}</span>
-                  <b className="od-mono">{userId.trim()}{zoneId.trim() ? ` (${zoneId.trim()})` : ""}</b>
-                </div>
-              ) : null}
-              {nick && nick !== "OK" ? (
-                <div className="od-row"><span>{lang === "km" ? "ឈ្មោះ" : "Nickname"}</span><b className="od-ok">{nick}</b></div>
-              ) : null}
-              <div className="od-row">
-                <span>{lang === "km" ? "កញ្ចប់" : "Package"}</span>
-                <b>{pack ? `${pack.nameKm && lang === "km" ? pack.nameKm : pack.name}${qty > 1 ? ` ×${qty}` : ""}` : "—"}</b>
-              </div>
-              <div className="od-row"><span>{lang === "km" ? "វិធីបង់" : "Method"}</span><b>ABA KHQR</b></div>
-            </div>
-            <div className="od-total">
-              <span>{lang === "km" ? "សរុបត្រូវបង់" : "Total to pay"}</span>
-              <strong>{pack ? money(total) : "—"}</strong>
-            </div>
             {payErr ? <p className="msg err">{payErr}</p> : null}
             <button type="button" className="pay-cta" onClick={pay} disabled={paying}>
-              {paying ? "…" : pack ? (lang === "km" ? `បង់ ${money(total)} ឥឡូវនេះ` : `Pay ${money(total)} now`) : (lang === "km" ? "ជ្រើសកញ្ចប់ជាមុន" : "Select a package")}
+              {paying ? "…" : pack ? `${t(lang, "pay")} · ${money(total)} →` : (lang === "km" ? "ជ្រើសកញ្ចប់ →" : "Select a package →")}
             </button>
             <p className="pay-terms">
               {lang === "km" ? "ដោយបន្ត អ្នកយល់ព្រមនឹង " : "By continuing you agree to our "}
@@ -1213,15 +1199,11 @@ export default function Game({ lang, addOrder, settings }) {
       >
         <div className="pw-sheet" onClick={(e) => e.stopPropagation()}>
           <div className="pw-handle" />
-          <div className="pw-brand pp-pay-sheet-brand">
-            <div className="pp-payment-logos pp-payment-logos-sheet" aria-label="ABA PayWay and KHQR">
-              <img className="pp-payment-aba" src="/payments/aba-payway.png" alt="ABA PayWay" />
-              <span className="pp-payment-divider" aria-hidden="true" />
-              <img className="pp-payment-khqr" src="/payments/khqr-mark.png" alt="KHQR" />
-            </div>
+          <div className="pw-brand">
+            <img className="pw-aba-img" src={"/payments/aba-payway.png"} alt="ABA" />
             <div className="pw-brand-col">
-              <span className="pw-brand-text">ABA KHQR</span>
-              <span className="pw-brand-sub">{lang === "km" ? "បង់ប្រាក់ដោយសុវត្ថិភាព" : "Secure bank payment"}</span>
+              <span className="pw-brand-text">ABA PAYWAY</span>
+              <span className="pw-brand-sub">KHQR · Secure</span>
             </div>
           </div>
 
