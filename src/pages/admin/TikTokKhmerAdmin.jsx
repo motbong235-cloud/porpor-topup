@@ -184,7 +184,7 @@ export default function TikTokKhmerAdmin() {
 
 
       <section className="ad-card" style={{ marginTop: 16 }}>
-        <h2 style={{ margin: "0 0 12px", fontSize: 16 }}>② Tutorial Video (បង់រួចបង្ហាញ)</h2>
+        <h2 style={{ margin: "0 0 12px", fontSize: 16, display: "flex", alignItems: "center", gap: 8 }}><AIcon name="video" size={18} /> ② Tutorial Video (បង់រួចបង្ហាញ)</h2>
         <p className="ad-hint">Upload video ពី phone / កុំព្យូទ័រ · បង្ហាញលើទំព័រ Success បន្ទាប់ពីអតិថិជនបង់ប្រាក់</p>
         <VideoSlot
           src={product.tutorialVideoUrl || ""}
@@ -213,7 +213,7 @@ export default function TikTokKhmerAdmin() {
       </section>
 
       <section className="ad-card" style={{ marginTop: 16 }}>
-        <h2 style={{ margin: "0 0 12px", fontSize: 16 }}>③ Customer Note / Message Template</h2>
+        <h2 style={{ margin: "0 0 12px", fontSize: 16, display: "flex", alignItems: "center", gap: 8 }}><AIcon name="note" size={18} /> ③ Customer Note / Message Template</h2>
         <label className="ad-field">
           <span>Note (ខ្មែរ)</span>
           <textarea
@@ -237,7 +237,7 @@ export default function TikTokKhmerAdmin() {
       </section>
 
       <section className="ad-card" style={{ marginTop: 16 }}>
-        <h2 style={{ margin: "0 0 12px", fontSize: 16 }}>④ Support Contact</h2>
+        <h2 style={{ margin: "0 0 12px", fontSize: 16, display: "flex", alignItems: "center", gap: 8 }}><AIcon name="support" size={18} /> ④ Support Contact</h2>
         <label className="ad-field">
           <span>Telegram Support</span>
           <input
@@ -251,9 +251,9 @@ export default function TikTokKhmerAdmin() {
 
       <section className="ad-card" style={{ marginTop: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <h2 style={{ margin: 0, fontSize: 16 }}>កញ្ចប់ ({product.packs?.length || 0})</h2>
+          <h2 style={{ margin: 0, fontSize: 16, display: "flex", alignItems: "center", gap: 8 }}><AIcon name="box" size={18} /> កញ្ចប់ ({product.packs?.length || 0})</h2>
           <button type="button" className="ad-btn soft" onClick={addPack}>
-            + បន្ថែមកញ្ចប់
+            <AIcon name="plus" size={15} /> បន្ថែមកញ្ចប់
           </button>
         </div>
         <div style={{ display: "grid", gap: 12 }}>

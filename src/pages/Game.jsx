@@ -679,7 +679,7 @@ export default function Game({ lang, addOrder, settings }) {
             <RobuxRain count={16} />
             <section className="card robux-quick-guide">
               <div className="robux-qg-head">
-                <span className="robux-qg-pin">📌</span>
+                <span className="robux-qg-pin"><Icon name="pin" size={18} /></span>
                 <div>
                   <strong>{lang === "km" ? "PINNED GUIDE · របៀបធ្វើ Quick Sign-in" : "PINNED GUIDE · Quick Sign-in"}</strong>
                   <p>{lang === "km" ? "អនុវត្តតាម ៥ ជំហាន បន្ទាប់ពីទទួលកូដពី Porpor" : "Follow 5 steps after you receive the code from Porpor"}</p>
@@ -812,7 +812,7 @@ export default function Game({ lang, addOrder, settings }) {
 
             {nick ? (
               <div className="dino-verify-ok">
-                <span className="dino-verify-ok-dot">✓</span>
+                <span className="dino-verify-ok-dot"><Icon name="check" size={12} /></span>
                 <div>
                   <strong>{nick}</strong>
                   <span>{lang === "km" ? "ID ត្រឹមត្រូវ" : "ID verified"}</span>
@@ -921,7 +921,7 @@ export default function Game({ lang, addOrder, settings }) {
                         </div>
                       </div>
                       {nick ? (
-                        <span className="rbx-ok-badge" aria-hidden>✓</span>
+                        <span className="rbx-ok-badge" aria-hidden><Icon name="check" size={13} /></span>
                       ) : null}
                       {rbxProfile.profileUrl ? (
                         <a
@@ -931,13 +931,13 @@ export default function Game({ lang, addOrder, settings }) {
                           rel="noopener noreferrer"
                           style={{ marginLeft: "auto", fontSize: 12, padding: "6px 10px" }}
                         >
-                          Profile ↗
+                          Profile <Icon name="external" size={13} />
                         </a>
                       ) : null}
                     </div>
                   ) : nick ? (
                     <div className="dino-verify-ok">
-                      <span className="dino-verify-ok-dot">✓</span>
+                      <span className="dino-verify-ok-dot"><Icon name="check" size={12} /></span>
                       <div>
                         <strong>{nick}</strong>
                         <span>{lang === "km" ? "ID ត្រឹមត្រូវ" : "ID verified"}</span>
@@ -1070,7 +1070,7 @@ export default function Game({ lang, addOrder, settings }) {
                             <span className="dino-pack-name">{lang === "km" ? (p.nameKm || p.name) : p.name}</span>
                             <span className="dino-pack-price">{money(p.price)}</span>
                           </span>
-                          {packId === p.id ? <span className="pack-tick" aria-hidden>✓</span> : null}
+                          {packId === p.id ? <span className="pack-tick" aria-hidden><Icon name="check" size={12} /></span> : null}
                         </button>
                       );
                     })}

@@ -143,10 +143,11 @@ export default function SettingsAdmin() {
             />
           </Field>
         </div>
-        <p className="ad-hint" style={{ marginTop: 8 }}>
+        <p className="ad-hint" style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6 }}>
+          <AIcon name={form.tgBotUsername ? "check" : "alert"} size={15} />
           {form.tgBotUsername
-            ? `✅ Username: @${String(form.tgBotUsername).replace(/^@/, "")}${form.tgBotToken ? " · Token មាន" : " · Token (បើមានរួច កុំបំពេញម្តងទៀត)"}`
-            : "⚠️ បំពេញ Bot Username + Token រួច Save"}
+            ? `Username: @${String(form.tgBotUsername).replace(/^@/, "")}${form.tgBotToken ? " · Token មាន" : " · Token (បើមានរួច កុំបំពេញម្តងទៀត)"}`
+            : "បំពេញ Bot Username + Token រួច Save"}
         </p>
         <p className="ad-hint" style={{ marginTop: 6 }}>
           <b>សំខាន់:</b> BotFather → <code>/setdomain</code> ត្រូវដាក់ <code>www.porportopup.com</code>
@@ -382,7 +383,7 @@ export default function SettingsAdmin() {
           </div>
         ))}
         <button type="button" className="ad-btn soft" onClick={() => set("coupons", [...form.coupons, { ...emptyCoupon }])}>
-          + បន្ថែមកូដ
+          <AIcon name="plus" size={15} /> បន្ថែមកូដ
         </button>
       </section>
 
@@ -514,7 +515,7 @@ export default function SettingsAdmin() {
         <h2>Backup / ទាញ data</h2>
         <p className="ad-hint">ទាញ file JSON ទុកមុនពេលដូរ server — មាន settings, orders, stock, live chat</p>
         <a className="ad-btn soft" href="/api/admin/backup" target="_blank" rel="noreferrer">
-          ទាញ Backup ពេញ
+          <AIcon name="download" size={15} /> ទាញ Backup ពេញ
         </a>
       </section>
     </form>

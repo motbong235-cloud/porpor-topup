@@ -223,6 +223,7 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
           </Link>
           <div className="header-actions">
             <button type="button" className="lang-btn" onClick={() => setLang(lang === "km" ? "en" : "km")}>
+              <Icon name="globe" size={15} />
               {lang === "km" ? "EN" : "ខ្មែរ"}
             </button>
             {tgUser ? (
@@ -312,18 +313,18 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
           <div className="footer-col">
             <div className="footer-label">{lang === "km" ? "តំណភ្ជាប់" : "Quick Links"}</div>
             <div className="footer-links-col">
-              <Link to="/">{t(lang, "home")}</Link>
-              <Link to="/track">{t(lang, "track")}</Link>
-              <Link to="/orders">{t(lang, "orders")}</Link>
-              <Link to="/reseller">{t(lang, "reseller")}</Link>
+              <Link to="/"><Icon name="home" size={15} />{t(lang, "home")}</Link>
+              <Link to="/track"><Icon name="search" size={15} />{t(lang, "track")}</Link>
+              <Link to="/orders"><Icon name="orders" size={15} />{t(lang, "orders")}</Link>
+              <Link to="/reseller"><Icon name="store" size={15} />{t(lang, "reseller")}</Link>
             </div>
           </div>
           <div className="footer-col">
             <div className="footer-label">{lang === "km" ? "ផ្លូវការ" : "Legal"}</div>
             <div className="footer-links-col">
-              <Link to="/legal/privacy">{t(lang, "privacy")}</Link>
-              <Link to="/legal/terms">{t(lang, "terms")}</Link>
-              <Link to="/legal/cookies">{t(lang, "cookies")}</Link>
+              <Link to="/legal/privacy"><Icon name="shield" size={15} />{t(lang, "privacy")}</Link>
+              <Link to="/legal/terms"><Icon name="file" size={15} />{t(lang, "terms")}</Link>
+              <Link to="/legal/cookies"><Icon name="cookie" size={15} />{t(lang, "cookies")}</Link>
             </div>
           </div>
           <div className="footer-col">

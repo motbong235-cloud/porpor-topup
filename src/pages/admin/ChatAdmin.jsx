@@ -215,7 +215,7 @@ export default function ChatAdmin() {
               <p className="ad-chat-sub">{threads.length} conversations</p>
             </div>
             <button type="button" className="ad-btn soft sm" onClick={loadThreads}>
-              Refresh
+              <AIcon name="refresh" size={15} /> Refresh
             </button>
           </div>
 
@@ -272,7 +272,7 @@ export default function ChatAdmin() {
         <section className="ad-chat-main">
           {!active ? (
             <div className="ad-chat-empty-main">
-              <div className="ad-chat-empty-icon">💬</div>
+              <div className="ad-chat-empty-icon"><AIcon name="chat" size={40} /></div>
               <strong>ជ្រើស conversation</strong>
               <p>ចុចខាងឆ្វេងដើម្បីឆ្លើយអតិថិជន</p>
             </div>

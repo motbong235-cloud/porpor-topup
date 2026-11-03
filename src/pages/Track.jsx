@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Icon } from "../components/Icons";
 import { useSearchParams } from "react-router-dom";
 import { t } from "../lib/i18n";
 import { money } from "../lib/store";
@@ -83,7 +84,7 @@ export default function Track({ lang, settings }) {
                     } catch {}
                   }}
                 >
-                  {t(lang, "copy")}
+                  <Icon name="copy" size={14} /> {t(lang, "copy")}
                 </button>
               </div>
               <div className={o.status === "delivered" ? "badge-ok" : "badge-ok pending"}>
@@ -141,7 +142,7 @@ export default function Track({ lang, settings }) {
                             } catch {}
                           }}
                         >
-                          {t(lang, "copy")}
+                          <Icon name="copy" size={14} /> {t(lang, "copy")}
                         </button>
                       </div>
                     </div>

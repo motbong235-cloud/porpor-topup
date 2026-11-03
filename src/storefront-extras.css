@@ -24,3 +24,12 @@
 
 /* Live chat bubble text */
 .msgr-text { display: block; white-space: pre-wrap; word-break: break-word; line-height: 1.45; }
+
+/* ---------- Icon alignment (icons added next to labels) ---------- */
+.lang-btn { display: inline-flex; align-items: center; gap: 6px; }
+.footer-links-col a { display: flex; align-items: center; gap: 9px; }
+.footer-links-col a .icon-svg { flex: none; opacity: .75; transition: opacity .15s, transform .15s; }
+.footer-links-col a:hover .icon-svg { opacity: 1; transform: translateX(2px); }
+.success-livechat, .btn-soft, .pw-aba-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+.btn.bg-brand { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.pack-tick .icon-svg, .dino-verify-ok-dot .icon-svg, .rbx-ok-badge .icon-svg, .robux-qg-pin .icon-svg { display: block; stroke-width: 3; }

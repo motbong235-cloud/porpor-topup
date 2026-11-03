@@ -30,7 +30,7 @@ function BannerManager({ banners, legacy, onChange }) {
   return (
     <div className="ad-banner-set">
       <div className="ad-banner-label">
-        <strong>🖼 Banner សម្រាប់ service នេះ ({list.length}/{MAX_BANNERS})</strong>
+        <strong><AIcon name="image" size={16} /> Banner សម្រាប់ service នេះ ({list.length}/{MAX_BANNERS})</strong>
         <small>
           Service ១ = Banner ផ្ទាល់ខ្លួន (មិនចែកជាមួយ service ផ្សេង) ·
           បង្ហាញនៅកន្លែង logo ខាងលើទំព័រ service · 1600×500 · 1–5 រូប
@@ -50,8 +50,8 @@ function BannerManager({ banners, legacy, onChange }) {
             {list.length > 1 ? (
               <div className="ad-banner-move">
                 <span>#{i + 1}</span>
-                <button type="button" className="ad-btn soft sm" disabled={i === 0} onClick={() => move(i, -1)} aria-label="ឡើងលើ">↑</button>
-                <button type="button" className="ad-btn soft sm" disabled={i === list.length - 1} onClick={() => move(i, 1)} aria-label="ចុះក្រោម">↓</button>
+                <button type="button" className="ad-btn soft sm" disabled={i === 0} onClick={() => move(i, -1)} aria-label="ឡើងលើ"><AIcon name="arrowUp" size={14} /></button>
+                <button type="button" className="ad-btn soft sm" disabled={i === list.length - 1} onClick={() => move(i, 1)} aria-label="ចុះក្រោម"><AIcon name="arrowDown" size={14} /></button>
               </div>
             ) : null}
           </div>
@@ -440,10 +440,10 @@ function LocalServicesPanel() {
             <AIcon name="refresh" size={16} /> ផ្ទុក
           </button>
           <button type="button" className="ad-btn soft" onClick={() => addProduct("stock")}>
-            + ស្តុក
+            <AIcon name="plus" size={15} /> ស្តុក
           </button>
           <button type="button" className="ad-btn soft" onClick={() => addProduct("live_chat")}>
-            + Live Chat
+            <AIcon name="plus" size={15} /> Live Chat
           </button>
           <button type="button" className="ad-btn primary" disabled={saving} onClick={() => save(products)}>
             {saving ? "…" : (<><AIcon name="check" size={16} /> រក្សាទុក</>)}
@@ -638,7 +638,7 @@ function LocalServicesPanel() {
                       {open ? "បិទ" : "កែ"}
                     </button>
                     <button type="button" className="ad-btn danger sm" onClick={() => removeProduct(i)}>
-                      លុប
+                      <AIcon name="trash" size={14} /> លុប
                     </button>
                   </div>
 
@@ -841,12 +841,12 @@ function LocalServicesPanel() {
                             onChange={(e) => updatePack(i, j, { cost: Number(e.target.value) })}
                           />
                           <button type="button" className="ad-btn danger sm" onClick={() => removePack(i, j)}>
-                            ×
+                            <AIcon name="x" size={14} />
                           </button>
                         </div>
                       ))}
                       <button type="button" className="ad-btn soft sm" onClick={() => addPack(i)}>
-                        + Pack
+                        <AIcon name="plus" size={14} /> Pack
                       </button>
                     </div>
                   ) : null}

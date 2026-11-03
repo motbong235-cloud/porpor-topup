@@ -104,7 +104,7 @@ export default function OrdersAdmin() {
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ស្វែងរក កូដ / Player ID / IP / ហ្គេម / ឈ្មោះ…" />
         </div>
         <a className="ad-btn soft" href="/api/admin/backup" download>
-          Backup ទិន្នន័យ
+          <AIcon name="download" size={15} /> Backup ទិន្នន័យ
         </a>
       </div>
 

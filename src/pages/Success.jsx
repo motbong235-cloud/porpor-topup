@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Icon } from "../components/Icons";
 import { Link, useSearchParams } from "react-router-dom";
 import { t } from "../lib/i18n";
 import { money } from "../lib/store";
@@ -257,7 +258,7 @@ export default function Success({ lang, settings }) {
                 : "Your code was delivered automatically (copy above). Contact Live Chat if needed."}
             </p>
             <button type="button" className="btn success-livechat" onClick={() => openLiveChat(order)}>
-              Live Chat
+              <Icon name="chat" size={17} /> Live Chat
             </button>
           </div>
         ) : (
@@ -268,7 +269,7 @@ export default function Success({ lang, settings }) {
                 : "Open Live Chat with Admin to receive your code. Order ID is attached automatically."}
             </p>
             <button type="button" className="btn success-livechat" onClick={() => openLiveChat(order)}>
-              Live Chat
+              <Icon name="chat" size={17} /> Live Chat
             </button>
           </div>
         )}

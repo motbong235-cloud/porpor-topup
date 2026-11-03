@@ -8,7 +8,10 @@ export function Icon({ name, size = 20 }) {
     fill: "none",
     stroke: "currentColor",
     strokeWidth: 2.2,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
     className: "icon-svg",
+    "aria-hidden": true,
   };
   switch (name) {
     case "search":
@@ -222,6 +225,52 @@ export function Icon({ name, size = 20 }) {
           <path d="M2 7h18a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7z" />
           <path d="M2 7V5a2 2 0 0 1 2-2h12" />
           <circle cx="17" cy="13" r="1.5" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    case "plus":
+      return (
+        <svg {...props} strokeWidth={2.4}>
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      );
+    case "external":
+      return (
+        <svg {...props}>
+          <path d="M7 17 17 7M8 7h9v9" />
+        </svg>
+      );
+    case "pin":
+      return (
+        <svg {...props} strokeWidth={2}>
+          <path d="M12 17v5M8 3h8l-1 6 3 4H6l3-4-1-6z" />
+        </svg>
+      );
+    case "globe":
+      return (
+        <svg {...props} strokeWidth={2}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+        </svg>
+      );
+    case "copy":
+      return (
+        <svg {...props} strokeWidth={2}>
+          <rect x="9" y="9" width="11" height="11" rx="2" />
+          <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" />
+        </svg>
+      );
+    case "file":
+      return (
+        <svg {...props} strokeWidth={2}>
+          <path d="M6 3h9l4 4v14H6V3z" />
+          <path d="M15 3v4h4M9 13h7M9 17h7" />
+        </svg>
+      );
+    case "cookie":
+      return (
+        <svg {...props} strokeWidth={2}>
+          <path d="M12 3a9 9 0 1 0 9 9 4 4 0 0 1-4-4 4 4 0 0 1-5-5z" />
+          <path d="M9 12h.01M13 16h.01M8 16h.01" />
         </svg>
       );
     default:

@@ -90,3 +90,9 @@ label.ad-field textarea:focus { outline: none; border-color: var(--ad-blue); box
 /* utilities */
 .grow { flex: 1 1 auto; }
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em; letter-spacing: -.01em; }
+
+/* ---------- Icon alignment (icons added next to labels) ---------- */
+.ad-btn, .ad button.ad-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.ad-btn svg { flex: none; }
+.ad-chat-empty-icon { display: grid; place-items: center; color: var(--ad-blue); opacity: .6; }
+.ad-banner-label strong { display: inline-flex; align-items: center; gap: 6px; }
