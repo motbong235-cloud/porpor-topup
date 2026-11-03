@@ -617,3 +617,92 @@ html.dark .search-input {
   border-color: var(--line) !important;
   color: var(--ink);
 }
+
+
+/* ===== Fixes: dual Pay now + equal packs + promise 2x2 ===== */
+
+/* Mobile: only sticky Pay; hide summary Pay */
+@media (max-width: 1023px) {
+  .pay-desktop,
+  aside.summary .pay-desktop,
+  .card.summary > button.btn.bg-brand {
+    display: none !important;
+  }
+  .pay-mobile {
+    display: block !important;
+  }
+}
+@media (min-width: 1024px) {
+  .pay-mobile {
+    display: none !important;
+  }
+  .pay-desktop {
+    display: inline-flex !important;
+  }
+}
+
+/* Pack cards equal width/height, full cell */
+.dino-pack-grid.packs,
+.packs.dino-pack-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  width: 100% !important;
+  align-items: stretch !important;
+}
+button.pack.dino-pack {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  min-height: 72px !important;
+  box-sizing: border-box !important;
+  align-self: stretch !important;
+}
+.dino-pack-meta {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+.dino-pack-name {
+  white-space: normal !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  line-height: 1.25 !important;
+  font-size: 12.5px !important;
+}
+.dino-pack-group {
+  width: 100% !important;
+}
+.dino-packs.packs-section {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Promise 2x2 equal stats (no lonely row) */
+.promise .stats,
+.promise .stats-2x2 {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 10px !important;
+}
+.promise .stat {
+  min-height: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+.promise .stat-hours {
+  font-size: 0.95rem !important;
+  line-height: 1.2;
+  word-break: break-word;
+}
+.promise-bottom {
+  margin-top: 28px;
+  margin-bottom: 12px;
+}
+
+/* Hide stray features if any remain on other pages from old CSS only */

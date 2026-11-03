@@ -7639,3 +7639,9 @@ html.dark .dino-input-wrap {
   border-radius: 10px;
   background: #fff;
 }
+
+/* force single pay btn */
+@media (max-width: 1023.98px) {
+  .pay-desktop { display: none !important; }
+  .card.summary .btn.bg-brand.pay-desktop { display: none !important; }
+}
