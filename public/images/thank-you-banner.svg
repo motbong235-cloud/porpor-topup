@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 300">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5eb0ff"/><stop offset=".55" stop-color="#1d6adf"/><stop offset="1" stop-color="#0a4cb5"/></linearGradient>
+    <linearGradient id="gem" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#bfe0ff"/></linearGradient>
+  </defs>
+  <g transform="translate(40 40)">
+    <rect width="220" height="220" rx="52" fill="url(#bg)"/>
+    <polygon points="110,34 160,78 110,156 60,78" fill="url(#gem)"/>
+    <polygon points="110,34 134,78 110,156 86,78" fill="#7dc0ff" opacity=".55"/>
+    <path d="M44 52l5 12 12 5-12 5-5 12-5-12-12-5 12-5z" fill="#fff"/>
+    <rect x="52" y="160" width="116" height="40" rx="20" fill="#082044"/>
+    <text x="110" y="190" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="30" fill="#fff">PP</text>
+  </g>
+  <g font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-weight="700">
+    <text x="320" y="130" font-size="78" fill="#fff" transform="rotate(-5 320 130)">Thank you</text>
+    <text x="340" y="210" font-size="60" fill="#bfe0ff" transform="rotate(-5 340 210)">for your support!</text>
+  </g>
+  <path d="M345 232 C 520 214, 700 206, 930 188" stroke="#7dc0ff" stroke-width="10" stroke-linecap="round" fill="none"/>
+  <path d="M900 60c-12-22-48-14-42 14 5 22 42 40 42 40s37-18 42-40c6-28-30-36-42-14z" fill="#7dc0ff"/>
+</svg>

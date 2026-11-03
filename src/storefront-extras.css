@@ -7,7 +7,7 @@
 .footer-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 .footer-col.brand-col { gap: 12px; }
 @media (max-width: 640px) { .footer-col.brand-col { grid-column: 1 / -1; } }
-.pay-logo.aba, .pay-logo.khqr { background: #fff; padding: 4px 8px; border: 1px solid var(--line); box-shadow: 0 2px 8px -4px rgba(6, 63, 44, .25); }
+.pay-logo.aba, .pay-logo.khqr { background: #fff; padding: 4px 8px; border: 1px solid var(--line); box-shadow: 0 2px 8px -4px rgba(8, 32, 68, .25); }
 
 /* Drawer close button */
 .drawer-close { margin-left: auto; flex: none; border-radius: 50%; transition: transform .2s, background .15s; }
@@ -35,6 +35,6 @@
 .pack-tick .icon-svg, .dino-verify-ok-dot .icon-svg, .rbx-ok-badge .icon-svg, .robux-qg-pin .icon-svg { display: block; stroke-width: 3; }
 
 /* TikTok tutorial video helpers */
-.tt-video-open { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 12px; font-weight: 600; color: var(--primary, #0fa06e); text-decoration: none; }
+.tt-video-open { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 12px; font-weight: 600; color: var(--primary, #1d6adf); text-decoration: none; }
 .tt-video-link { display: inline-flex; margin-top: 4px; text-decoration: none; }
 .tt-tutorial video { display: block; }

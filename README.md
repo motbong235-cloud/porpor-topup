@@ -132,3 +132,7 @@ pkg install -y git unzip
 unzip porpor-topup-v2.zip && cd porpor-topup-main
 bash termux-push.sh "your commit message"
 ```
+
+## Dino-style visuals, Porpor blue (v4)
+- Original artwork in `public/images/`: `porpor-logo.svg` (header + chat bubble), `banner-topup.svg` (default game banner), `thank-you-banner.svg` (payment panel). Replace these files with your own images using the same names, or set banners/logo in Admin.
+- Package cards use the package image; if none, Robux games fall back to `/icons/robux-coin.webp`, other games to the game image. Optional `badge` text on a package shows a pill (e.g. HOT).

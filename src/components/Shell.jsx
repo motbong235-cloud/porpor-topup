@@ -17,8 +17,8 @@ function LogoMark({ url, style }) {
     );
   }
   return (
-    <div className="logo-mark" style={style}>
-      PP
+    <div className="logo-mark has-img" style={style}>
+      <img src="/images/porpor-logo.svg" alt="POR POR TOPUP" />
     </div>
   );
 }
@@ -212,6 +212,9 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
     <div className="shell">
       <header className="header site-header">
         <div className="header-inner">
+          <button type="button" className="icon-btn ghost header-menu-btn" aria-label={t(lang, "menu")} onClick={() => setMenu(true)}>
+              <Icon name="menu" size={22} />
+            </button>
           <Link to="/" className="logo">
             <LogoMark url={settings && settings.logoUrl} />
             <div className="logo-text">
@@ -264,9 +267,6 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
             </button>
             <button type="button" className="icon-btn ghost" aria-label={t(lang, "search")} onClick={() => setSearch(true)}>
               <Icon name="search" />
-            </button>
-            <button type="button" className="icon-btn ghost" aria-label={t(lang, "menu")} onClick={() => setMenu(true)}>
-              <Icon name="menu" size={22} />
             </button>
           </div>
         </div>

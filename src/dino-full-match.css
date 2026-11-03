@@ -9,9 +9,9 @@
   --dino-radius: 1.25rem;
   --dino-radius-lg: 1.5rem;
   --dino-radius-xl: 1.75rem;
-  --dino-shadow: 0 4px 20px -8px rgba(6, 63, 44, 0.14), 0 1px 3px rgba(6, 63, 44, 0.06);
-  --dino-shadow-lg: 0 16px 40px -16px rgba(6, 63, 44, 0.22);
-  --dino-border: #e2e8f0;
+  --dino-shadow: 0 4px 20px -8px rgba(8, 32, 68, 0.14), 0 1px 3px rgba(8, 32, 68, 0.06);
+  --dino-shadow-lg: 0 16px 40px -16px rgba(8, 32, 68, 0.22);
+  --dino-border: #e4edf7;
 }
 
 /* ---- Shell / Header ---- */
@@ -29,10 +29,10 @@
   -webkit-backdrop-filter: blur(16px) saturate(1.25);
   background: rgba(255, 255, 255, 0.82) !important;
   border-bottom: 1px solid var(--dino-border) !important;
-  box-shadow: 0 1px 0 rgba(255,255,255,.5) inset, 0 4px 16px -12px rgba(6, 63, 44,.12);
+  box-shadow: 0 1px 0 rgba(255,255,255,.5) inset, 0 4px 16px -12px rgba(8,32,68,.12);
 }
 html.dark .header {
-  background: rgba(15, 45, 34, 0.88) !important;
+  background: rgba(14, 27, 46, 0.88) !important;
 }
 .header-inner {
   max-width: 1120px;
@@ -140,11 +140,11 @@ html.dark .dino-feature {
   border-radius: 14px;
   display: grid;
   place-items: center;
-  background: linear-gradient(145deg, #e9fbf3, #c7f3e1);
+  background: linear-gradient(145deg, #eef5ff, #dceaff);
   box-shadow: inset 0 1px 0 #fff;
 }
 html.dark .dino-feature-ico {
-  background: rgba(15, 160, 110, 0.15);
+  background: rgba(29, 106, 223, 0.15);
 }
 .dino-feature strong {
   display: block;
@@ -227,7 +227,7 @@ html.dark .dino-feature-ico {
   aspect-ratio: 1 / 1 !important;
   width: 100% !important;
   overflow: hidden !important;
-  background: linear-gradient(160deg, #eefff9, #dafef1) !important;
+  background: linear-gradient(160deg, #eef4ff, #d9e8ff) !important;
 }
 .game-card .game-tile img,
 .game-card-art img {
@@ -261,7 +261,7 @@ html.dark .dino-feature-ico {
   border-radius: 999px !important;
   font-size: 11.5px !important;
   font-weight: 750 !important;
-  background: #e9fbf3 !important;
+  background: #e8f1ff !important;
   color: var(--primary) !important;
   border: none !important;
 }
@@ -275,9 +275,9 @@ html.dark .dino-feature-ico {
   border-radius: 999px;
   font-size: 10px;
   font-weight: 800;
-  background: linear-gradient(90deg, #0fa06e, #22b885);
+  background: linear-gradient(90deg, #1d6adf, #4aa2ff);
   color: #fff;
-  box-shadow: 0 4px 10px rgba(15, 160, 110,.35);
+  box-shadow: 0 4px 10px rgba(29,106,223,.35);
 }
 
 /* Hot / event cards */
@@ -322,7 +322,7 @@ html.dark .dino-feature-ico {
 .search-input:focus {
   outline: none;
   border-color: var(--primary) !important;
-  box-shadow: 0 0 0 3px rgba(15, 160, 110,.15);
+  box-shadow: 0 0 0 3px rgba(29,106,223,.15);
 }
 
 /* Promise / stats */
@@ -330,7 +330,7 @@ html.dark .dino-feature-ico {
   margin: 28px 0 12px;
   padding: 22px 18px;
   border-radius: var(--dino-radius-xl);
-  background: linear-gradient(160deg, #063f2c 0%, #0fa06e 100%);
+  background: linear-gradient(160deg, #0b2a55 0%, #1d6adf 100%);
   color: #fff;
   box-shadow: var(--dino-shadow-lg);
   text-align: center;
@@ -340,7 +340,7 @@ html.dark .dino-feature-ico {
   font-size: 1.35rem;
   letter-spacing: -0.02em;
 }
-.promise .text-brand { color: #93e6c4; }
+.promise .text-brand { color: #b8d6ff; }
 .promise p { opacity: .9; font-size: 13.5px; }
 .stats {
   display: grid;
@@ -422,18 +422,18 @@ html.dark .dino-feature-ico {
 button.pack.dino-pack {
   border-radius: 16px !important;
   min-height: 68px !important;
-  border: 1.5px solid #e2f5ee !important;
-  background: #fbfefd !important;
-  box-shadow: 0 2px 6px rgba(6, 63, 44,.05) !important;
+  border: 1.5px solid #e2eaf5 !important;
+  background: #fbfcfe !important;
+  box-shadow: 0 2px 6px rgba(8,32,68,.05) !important;
 }
 button.pack.dino-pack.tone-cream { background: #fbf7ee !important; }
 button.pack.dino-pack.tone-lilac { background: #f5f2fb !important; }
 button.pack.dino-pack.tone-mint  { background: #eef8f4 !important; }
-button.pack.dino-pack.tone-sky   { background: #eefcf7 !important; }
+button.pack.dino-pack.tone-sky   { background: #eef5fc !important; }
 button.pack.dino-pack.active {
   border-color: var(--primary) !important;
-  background: #f0fff9 !important;
-  box-shadow: 0 0 0 1px var(--primary), 0 8px 18px -10px rgba(15, 160, 110,.4) !important;
+  background: #f0f6ff !important;
+  box-shadow: 0 0 0 1px var(--primary), 0 8px 18px -10px rgba(29,106,223,.4) !important;
 }
 .dino-pack-icon {
   width: 46px !important;
@@ -466,7 +466,7 @@ button.pack.dino-pack.active {
   padding: 12px;
   border-radius: 16px;
   border: 1.5px solid var(--primary);
-  background: #f3fffb;
+  background: #f3f8ff;
   position: relative;
 }
 .pay-aba-mark, .pay-choice-brand img {
@@ -518,10 +518,10 @@ button.btn-primary {
   border-radius: 999px !important;
   min-height: 48px !important;
   font-weight: 800 !important;
-  background: linear-gradient(180deg, #22b885, #0fa06e) !important;
+  background: linear-gradient(180deg, #2b7af0, #1d6adf) !important;
   color: #fff !important;
   border: none !important;
-  box-shadow: 0 10px 24px -10px rgba(15, 160, 110,.7) !important;
+  box-shadow: 0 10px 24px -10px rgba(29,106,223,.7) !important;
 }
 .btn.bg-brand:active,
 .btn-primary:active { transform: scale(.98); }
@@ -548,19 +548,19 @@ button.btn-primary {
 .msgr-panel {
   border-radius: 22px 22px 0 0 !important;
   overflow: hidden;
-  box-shadow: 0 -12px 40px rgba(6, 63, 44,.2) !important;
+  box-shadow: 0 -12px 40px rgba(8,32,68,.2) !important;
 }
 .msgr-head {
-  background: linear-gradient(180deg, #0b8258, #0fa06e) !important;
+  background: linear-gradient(180deg, #1a5fcc, #1d6adf) !important;
   color: #fff !important;
 }
 .msgr-bubble.me {
-  background: #0fa06e !important;
+  background: #1d6adf !important;
   color: #fff !important;
   border-radius: 16px 16px 4px 16px !important;
 }
 .msgr-bubble.them {
-  background: #eefaf6 !important;
+  background: #eef3fa !important;
   border-radius: 16px 16px 16px 4px !important;
 }
 .msgr-img {
@@ -586,7 +586,7 @@ button.btn-primary {
   background: rgba(255,255,255,.92);
   backdrop-filter: blur(12px);
   border-top: 1px solid var(--dino-border);
-  box-shadow: 0 -8px 24px rgba(6, 63, 44,.1);
+  box-shadow: 0 -8px 24px rgba(8,32,68,.1);
 }
 
 /* Footer soft */
@@ -610,7 +610,7 @@ html.dark .card.summary {
   border-color: var(--line) !important;
 }
 html.dark .promise {
-  background: linear-gradient(160deg, #063f2c, #086847);
+  background: linear-gradient(160deg, #06162e, #0d3a7a);
 }
 html.dark .search-input {
   background: var(--surface) !important;

@@ -6,6 +6,16 @@ import { applyCoupon, money } from "../lib/store";
 import { GameTile, Icon } from "../components/Icons";
 import RobuxRain from "../components/RobuxRain";
 
+const DEFAULT_BANNER = "/images/banner-topup.svg";
+const THANK_YOU_IMG = "/images/thank-you-banner.svg";
+
+/** Icon for a package when the admin has not uploaded one. */
+function fallbackPackIcon(game) {
+  const k = `${game?.id || ""} ${game?.name || ""}`.toLowerCase();
+  if (/robux|roblox|rbx/.test(k)) return "/icons/robux-coin.webp";
+  return game?.image || "";
+}
+
 
 function readCsrfCookie() {
   const m = document.cookie.match(/(?:^|; )porpor_csrf=([^;]*)/);
@@ -134,7 +144,7 @@ function ServiceHero({ game, lang, children }) {
   const [paused, setPaused] = useState(false);
   const touchX = useRef(null);
 
-  const all = Array.isArray(game.banners) && game.banners.length ? game.banners : game.banner ? [game.banner] : [];
+  const all = Array.isArray(game.banners) && game.banners.length ? game.banners : game.banner ? [game.banner] : [DEFAULT_BANNER];
   const imgs = all.filter((u) => !bad.has(u)).slice(0, 5);
   const n = imgs.length;
   const cur = n ? idx % n : 0;
@@ -1030,13 +1040,14 @@ export default function Game({ lang, addOrder, settings }) {
                     {g.items.map((p, i) => {
                       const soldOut = isStock && p.inStock === false;
                       const tone = tones[i % tones.length];
+                      const ico = p.image || fallbackPackIcon(game);
                       return (
                         <button
                           key={p.id}
                           type="button"
                           disabled={soldOut}
                           aria-pressed={packId === p.id}
-                          className={`pack dino-pack ${tone}${p.image ? " has-img" : ""}${packId === p.id ? " active" : ""}${soldOut ? " sold-out" : ""}`}
+                          className={`pack dino-pack ${tone}${ico ? " has-img" : ""}${packId === p.id ? " active" : ""}${soldOut ? " sold-out" : ""}`}
                           onClick={() => {
                             if (soldOut) return;
                             setPackId(p.id);
@@ -1061,8 +1072,8 @@ export default function Game({ lang, addOrder, settings }) {
                           }}
                         >
                           <span className="dino-pack-icon" aria-hidden>
-                            {p.image ? (
-                              <img src={p.image} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                            {ico ? (
+                              <img src={ico} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} />
                             ) : (
                               <span className="dino-pack-glyph">◆</span>
                             )}
@@ -1070,6 +1081,12 @@ export default function Game({ lang, addOrder, settings }) {
                           <span className="dino-pack-meta">
                             <span className="dino-pack-name">{lang === "km" ? (p.nameKm || p.name) : p.name}</span>
                             <span className="dino-pack-price">{money(p.price)}</span>
+                          </span>
+                          {p.badge ? <span className="dino-pack-badge">{p.badge}</span> : null}
+                          <span className="dino-pack-add" aria-hidden>
+                            {packId === p.id
+                              ? (lang === "km" ? "✓ បានជ្រើស" : "✓ Selected")
+                              : (lang === "km" ? "+ ជ្រើស" : "+ Add")}
                           </span>
                           {packId === p.id ? <span className="pack-tick" aria-hidden><Icon name="check" size={12} /></span> : null}
                         </button>
@@ -1096,8 +1113,21 @@ export default function Game({ lang, addOrder, settings }) {
             </section>
           ) : null}
 
-<section className="card pay-section">
-            <h2 className="sec-title"><span className="step-no">3</span> {t(lang, "payment")}</h2>
+<section className="card pay-section pay-dark">
+            <h2 className="sec-title pay-title">
+              <Icon name="cart" size={20} /> {t(lang, "payment")}
+            </h2>
+            <label className="pay-label">
+              {lang === "km" ? "កូដបញ្ចុះតម្លៃ" : "Coupon Code"} <small>({lang === "km" ? "ជម្រើស" : "Optional"})</small>
+            </label>
+            <div className="coupon-row">
+              <input value={coupon} onChange={(e) => setCoupon(e.target.value)} placeholder={t(lang, "coupon")} />
+              <button type="button" onClick={onCoupon} className="coupon-apply">
+                {t(lang, "apply")}
+              </button>
+            </div>
+            {couponMsg.text ? <p className={`msg ${couponMsg.type}`}>{couponMsg.text}</p> : null}
+            <div className="pay-label caps">{lang === "km" ? "ជ្រើសវិធីបង់ប្រាក់" : "Choose way to pay"}</div>
             <div className="pay-choices">
               <div className="pay-choice active" role="radio" aria-checked="true">
                 <div className="pay-choice-brand">
@@ -1119,13 +1149,13 @@ export default function Game({ lang, addOrder, settings }) {
                 </span>
               </div>
             </div>
-            <div className="coupon-row">
-              <input value={coupon} onChange={(e) => setCoupon(e.target.value)} placeholder={t(lang, "coupon")} />
-              <button type="button" onClick={onCoupon} className="coupon-apply">
-                <Icon name="tag" size={16} /> {t(lang, "apply")}
-              </button>
-            </div>
-            {couponMsg.text ? <p className={`msg ${couponMsg.type}`}>{couponMsg.text}</p> : null}
+            <p className="pay-terms">
+              {lang === "km" ? "ដោយបន្ត អ្នកយល់ព្រមនឹង " : "By continuing you agree to our "}
+              <Link to="/legal/terms">{lang === "km" ? "លក្ខខណ្ឌ" : "Terms"}</Link>
+              {" & "}
+              <Link to="/legal/privacy">{lang === "km" ? "ឯកជនភាព" : "Privacy"}</Link>.
+            </p>
+            <img className="pay-thanks" src={THANK_YOU_IMG} alt="Thank you for your support" loading="lazy" />
           </section>
         </div>
 
@@ -1264,10 +1294,10 @@ export default function Game({ lang, addOrder, settings }) {
             <div className="pw-scanned">
               <div className="pw-scanned-ico" aria-hidden="true">
                 <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-                  <rect x="12" y="12" width="16" height="16" rx="2" stroke="#0fa06e" strokeWidth="3" />
-                  <rect x="36" y="12" width="16" height="16" rx="2" stroke="#0fa06e" strokeWidth="3" />
-                  <rect x="12" y="36" width="16" height="16" rx="2" stroke="#0fa06e" strokeWidth="3" />
-                  <path d="M36 44h16M44 36v16" stroke="#0fa06e" strokeWidth="3" strokeLinecap="round" />
+                  <rect x="12" y="12" width="16" height="16" rx="2" stroke="#1d6adf" strokeWidth="3" />
+                  <rect x="36" y="12" width="16" height="16" rx="2" stroke="#1d6adf" strokeWidth="3" />
+                  <rect x="12" y="36" width="16" height="16" rx="2" stroke="#1d6adf" strokeWidth="3" />
+                  <path d="M36 44h16M44 36v16" stroke="#1d6adf" strokeWidth="3" strokeLinecap="round" />
                   <circle cx="48" cy="48" r="10" fill="#22c55e" />
                   <path d="M43 48l3 3 6-7" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
