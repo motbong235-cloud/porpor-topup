@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import "./index.css";
 import "./storefront-extras.css";
+import "./dino-full-match.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
