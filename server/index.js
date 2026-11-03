@@ -180,6 +180,74 @@ function summarizeKt(codes, statuses) {
   return { status: "processing" };
 }
 
+/* ---------- Auto-deliver paid stock orders that were waiting for stock ---------- */
+let restockBusy = false;
+
+function isAwaitingStock(o) {
+  if (!o || o.status !== "paid") return false;
+  const dt = o.deliveryType || "";
+  if (dt !== "stock" && dt !== "gift_code") return false;
+  return !!o.awaitingStock || /^(No stock|Partial stock)/.test(String(o.note || ""));
+}
+
+/**
+ * Deliver waiting orders (oldest first) as soon as the pack has enough codes.
+ * packId = only that pack (after admin adds stock); omit = sweep every pack.
+ * Returns how many orders were delivered.
+ */
+function fulfillAwaitingStock(packId) {
+  if (restockBusy) return 0;
+  restockBusy = true;
+  let delivered = 0;
+  try {
+    const want = packId == null ? null : String(packId);
+    const queue = listOrders()
+      .filter((o) => isAwaitingStock(o) && (want === null || String(o.packId) === want))
+      .sort((a, b) => (Number(a.paidAt || a.createdAt) || 0) - (Number(b.paidAt || b.createdAt) || 0));
+    const blocked = new Set(); // keep first-paid-first-served per pack
+    for (const o of queue) {
+      const pid = String(o.packId);
+      if (blocked.has(pid)) continue;
+      const qty = Math.max(1, Math.min(10, Number(o.qty) || 1));
+      const have = String(o.giftCode || "").split("\n").map((x) => x.trim()).filter(Boolean);
+      const need = qty - have.length;
+      if (need > 0 && stockCount(pid) < need) {
+        blocked.add(pid);
+        continue;
+      }
+      const codes = have.slice();
+      for (let i = 0; i < need; i++) {
+        const c = popPackStock(pid);
+        if (!c) break;
+        codes.push(c);
+      }
+      if (codes.length < qty) {
+        // should not happen (checked above) — keep what we got, stay in queue
+        updateOrder(o.id, { giftCode: codes.join("\n"), awaitingStock: true });
+        blocked.add(pid);
+        continue;
+      }
+      const updated = updateOrder(o.id, {
+        status: "delivered",
+        giftCode: codes.join("\n"),
+        awaitingStock: false,
+        note: "Auto-delivered after restock",
+        deliveredAt: Date.now(),
+      });
+      delivered++;
+      try {
+        tg.notifyOrder("delivered", updated).catch(() => {});
+      } catch {}
+      console.log(`[restock] auto-delivered order ${o.id} (${pid} x${qty})`);
+    }
+  } catch (e) {
+    console.error("[restock]", e.message);
+  } finally {
+    restockBusy = false;
+  }
+  return delivered;
+}
+
 async function fulfillTopup(order) {
   const dt = order.deliveryType || "topup";
 
@@ -247,13 +315,15 @@ async function fulfillTopup(order) {
       return updateOrder(order.id, {
         status: "paid",
         giftCode: codes.join("\n"),
-        note: `Partial stock (${codes.length}/${qty}) — rest via Live Chat`,
+        note: `Partial stock (${codes.length}/${qty}) — rest will auto-deliver when restocked`,
+        awaitingStock: true,
         paidAt: order.paidAt || Date.now(),
       });
     }
     return updateOrder(order.id, {
       status: "paid",
-      note: "No stock — deliver via Live Chat / Admin",
+      note: "No stock — will auto-deliver when restocked",
+      awaitingStock: true,
       paidAt: order.paidAt || Date.now(),
     });
   }
@@ -1396,8 +1466,10 @@ app.put("/api/admin/gift-stock/:packId", adminAuth, (req, res) => {
   } else if (Array.isArray(raw)) {
     codes = raw;
   }
-  const count = mode === "append" ? addPackStock(packId, codes) : setPackStock(packId, codes);
-  res.json({ packId, count, stock: getGiftStock()[packId] || [] });
+  mode === "append" ? addPackStock(packId, codes) : setPackStock(packId, codes);
+  const autoDelivered = fulfillAwaitingStock(packId);
+  const count = stockCount(packId);
+  res.json({ packId, count, autoDelivered, stock: getGiftStock()[packId] || [] });
 });
 
 app.get("/api/admin/local-products", adminAuth, (_req, res) => {
@@ -1935,6 +2007,10 @@ app.get("/api/admin/dino/products", adminAuth, async (req, res) => {
     res.status(502).json({ ok: false, error: e.message });
   }
 });
+
+/* Safety net: every minute (and shortly after boot) deliver any order still waiting for stock */
+setInterval(() => fulfillAwaitingStock(), 60 * 1000).unref?.();
+setTimeout(() => fulfillAwaitingStock(), 10 * 1000).unref?.();
 
 app.listen(PORT, () => {
   console.log(`Porpor TOPUP on :${PORT}`);

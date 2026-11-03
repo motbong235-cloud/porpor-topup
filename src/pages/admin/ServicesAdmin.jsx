@@ -346,6 +346,7 @@ function LocalServicesPanel() {
       setStockCounts((c) => ({ ...c, [packId]: d.count }));
       setStockOk(true);
       toast(mode === "append" ? `បន្ថែមស្តុក · សរុប ${d.count}` : `ស្តុកថ្មី · ${d.count} កូដ`);
+      if (d.autoDelivered > 0) toast(`បានបញ្ជូនស្វ័យប្រវត្តិ ${d.autoDelivered} order ដែលកំពុងរង់ចាំស្តុក`);
       if (mode !== "append") setStockDraft((s) => ({ ...s, [packId]: "" }));
     } catch {
       setStockOk(false);
