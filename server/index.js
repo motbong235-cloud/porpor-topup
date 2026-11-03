@@ -57,7 +57,15 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");
 const DIST = path.join(ROOT, "dist");
 const PORT = Number(process.env.PORT) || 3000;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "porpor-admin-2026";
+const DEFAULT_ADMIN_PASSWORD = "porpor-admin-2026"; // public in the repo — never accepted in production
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || DEFAULT_ADMIN_PASSWORD;
+
+/** Constant-time string compare (hash both sides so lengths never leak). */
+function safeEq(a, b) {
+  const x = crypto.createHash("sha256").update(String(a)).digest();
+  const y = crypto.createHash("sha256").update(String(b)).digest();
+  return crypto.timingSafeEqual(x, y);
+}
 
 function isWeakAdminPassword(pw) {
   const p = String(pw || "");
@@ -69,6 +77,10 @@ function isWeakAdminPassword(pw) {
 /** Private admin SPA path (no leading slash). Default: pp-console — set ADMIN_PATH on Render to hide it. */
 const ADMIN_PATH = String(process.env.ADMIN_PATH || "pp-console").replace(/^\/+|\/+$/g, "") || "pp-console";
 const isProd = process.env.NODE_ENV === "production";
+if (isProd && (!process.env.ADMIN_PASSWORD || String(process.env.ADMIN_PASSWORD).trim() === DEFAULT_ADMIN_PASSWORD)) {
+  console.error("[security] FATAL: ADMIN_PASSWORD is not set (or is the public default). Set a strong ADMIN_PASSWORD in Render → Environment, then redeploy.");
+  process.exit(1);
+}
 
 /** Checkout idempotency: key -> { orderId, at } (in-memory, ~15 min) */
 const checkoutIdem = new Map();
@@ -78,8 +90,18 @@ setInterval(() => {
 }, 60_000).unref?.();
 
 const app = express();
-app.set("trust proxy", 1); // Render / reverse proxy — real client IP
-app.use(express.json({ limit: "1mb" }));
+// Number of proxy hops in front of the app: Render = 1 (default). Behind Cloudflare + Render set TRUST_PROXY=2.
+const TRUST_PROXY = Number.isInteger(Number(process.env.TRUST_PROXY)) && process.env.TRUST_PROXY !== "" ? Number(process.env.TRUST_PROXY) : 1;
+app.set("trust proxy", TRUST_PROXY);
+app.use(
+  express.json({
+    limit: "1mb",
+    // keep the exact bytes of webhook bodies so HMAC signatures can be verified
+    verify: (req, _res, buf) => {
+      if (String(req.url || "").startsWith("/api/webhook/")) req.rawBody = buf.toString("utf8");
+    },
+  }),
+);
 app.use(cookieParser());
 app.use(csrfGuard);
 // Basic abuse shield (per-IP)
@@ -613,11 +635,45 @@ function sniffChatMedia(b) {
   return null;
 }
 
+/* Visitor uploads are capped (per IP per day + total disk) and old files are deleted automatically */
+const CHAT_UPLOAD_MAX_BYTES = 300 * 1024 * 1024;
+const CHAT_UPLOAD_TTL_MS = 45 * 24 * 3600 * 1000;
+
+function chatUploadUsage() {
+  let total = 0;
+  try {
+    for (const f of fs.readdirSync(UPLOAD_DIR)) {
+      if (!f.startsWith("chat-")) continue;
+      try {
+        total += fs.statSync(path.join(UPLOAD_DIR, f)).size;
+      } catch {}
+    }
+  } catch {}
+  return total;
+}
+
+function pruneChatUploads() {
+  try {
+    const cut = Date.now() - CHAT_UPLOAD_TTL_MS;
+    for (const f of fs.readdirSync(UPLOAD_DIR)) {
+      if (!f.startsWith("chat-")) continue;
+      const fp = path.join(UPLOAD_DIR, f);
+      try {
+        if (fs.statSync(fp).mtimeMs < cut) fs.unlinkSync(fp);
+      } catch {}
+    }
+  } catch {}
+}
+setInterval(pruneChatUploads, 6 * 3600 * 1000).unref?.();
+setTimeout(pruneChatUploads, 30 * 1000).unref?.();
+
 app.post(
   "/api/chat/upload",
   limit("chat_upload", { limit: 8, windowMs: 60_000 }),
+  limit("chat_upload_day", { limit: 40, windowMs: 24 * 3600 * 1000 }),
   express.raw({ type: () => true, limit: "3mb" }),
   (req, res) => {
+  if (chatUploadUsage() > CHAT_UPLOAD_MAX_BYTES) return res.status(507).json({ error: "storage_full" });
   const ext = sniffChatMedia(req.body);
   if (!ext) return res.status(400).json({ error: "bad_file" });
   // images + audio only
@@ -634,29 +690,43 @@ app.post(
   res.json({ url: `/uploads/${name}`, type: ["webm", "ogg", "m4a"].includes(ext) ? "voice" : "image" });
 });
 
-app.post("/api/chat/session", (req, res) => {
-  // 1 IP = 1 user — thread id is always the client IP (server-side)
-  const ip = clientIp(req);
+/** Visitor chat identity = random cookie token (never the IP: CGNAT shares IPs, XFF can be forged). */
+function chatToken(req, res) {
+  const cur = String(req.cookies?.porpor_chat || "");
+  if (/^[a-f0-9]{32}$/.test(cur)) return cur;
+  const tok = crypto.randomBytes(16).toString("hex");
+  res.cookie("porpor_chat", tok, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: isProd,
+    maxAge: 365 * 24 * 3600 * 1000,
+    path: "/",
+  });
+  return tok;
+}
+
+app.post("/api/chat/session", limit("chat_session", { limit: 30, windowMs: 60_000 }), (req, res) => {
   const meta = {
     name: String(req.body?.name || "").slice(0, 80),
     orderId: String(req.body?.orderId || "").slice(0, 40),
+    ip: clientIp(req),
   };
-  const thread = liveChat.getOrCreateThread(ip, meta);
+  const thread = liveChat.getOrCreateThread(chatToken(req, res), meta);
   res.json({ visitorId: thread.id, messages: thread.messages || [] });
 });
 
 app.get("/api/chat/messages", (req, res) => {
-  // Always bind to request IP (ignore client-supplied thread id for security)
-  const ip = clientIp(req);
+  // Always bind to the visitor's own cookie token (ignore any client-supplied thread id)
+  const tid = chatToken(req, res);
   const after = Number(req.query.after || 0) || 0;
-  const data = liveChat.getMessages(ip, after);
+  const data = liveChat.getMessages(tid, after);
   if (!data) return res.status(404).json({ error: "not_found" });
-  liveChat.markRead(ip, "user");
+  liveChat.markRead(tid, "user");
   res.json(data);
 });
 
-app.post("/api/chat/messages", (req, res) => {
-  const ip = clientIp(req);
+app.post("/api/chat/messages", limit("chat_msg", { limit: 30, windowMs: 60_000 }), (req, res) => {
+  const tid = chatToken(req, res);
   const type = String(req.body?.type || "text");
   const text = String(req.body?.text || "").trim();
   const mediaUrl = String(req.body?.mediaUrl || "").trim();
@@ -665,19 +735,19 @@ app.post("/api/chat/messages", (req, res) => {
     if (!text) return res.status(400).json({ error: "invalid" });
     if (text.length > 2000) return res.status(400).json({ error: "too_long" });
   } else if (type === "image" || type === "voice") {
-    if (!/^\/uploads\/[\w.-]{1,120}$/.test(mediaUrl)) {
+    if (!/^\/uploads\/chat-[\w.-]{1,120}$/.test(mediaUrl) || mediaUrl.includes("..")) {
       return res.status(400).json({ error: "bad_media" });
     }
   } else {
     return res.status(400).json({ error: "bad_type" });
   }
   const msg = liveChat.postUserMessage(
-    ip,
+    tid,
     { type, text, mediaUrl, duration },
-    { name: req.body?.name, orderId: req.body?.orderId },
+    { name: req.body?.name, orderId: req.body?.orderId, ip: clientIp(req) },
   );
   if (!msg) return res.status(400).json({ error: "invalid" });
-  res.json({ ok: true, message: msg, ip });
+  res.json({ ok: true, message: msg });
 });
 
 app.get("/api/admin/chat/threads", adminAuth, (_req, res) => {
@@ -1167,7 +1237,7 @@ app.post("/api/admin/login", limit("login", { limit: 20, windowMs: 60_000 }), (r
   }
   const password = String(req.body?.password || "").trim();
   const expected = String(ADMIN_PASSWORD || "").trim();
-  if (!password || password !== expected) {
+  if (!password || !safeEq(password, expected)) {
     recordLoginFail(ip);
     auditLog("login_fail", { ip, reason: "bad_password" });
     return res.status(401).json({ error: "bad_password" });
@@ -1898,7 +1968,7 @@ setTimeout(() => {
 function robuxWorkerAuth(req) {
   const secret = (process.env.ROBUX_WORKER_SECRET || process.env.ADMIN_TOKEN || "").trim();
   const h = String(req.headers["x-robux-secret"] || req.headers["x-admin-token"] || "").trim();
-  if (secret && h && h === secret) return true;
+  if (secret && h && safeEq(h, secret)) return true;
   return false;
 }
 
@@ -1955,15 +2025,14 @@ app.post("/api/robux/complete", express.json(), (req, res) => {
 // —— Dino Topups webhook (order.updated) ——
 app.post("/api/webhook/dino", async (req, res) => {
   try {
-    const raw = typeof req.body === "string" ? req.body : JSON.stringify(req.body || {});
     const secret = (process.env.DINO_WEBHOOK_SECRET || getSettings().dinoWebhookSecret || "").trim();
-    const ts = req.headers["x-dino-timestamp"] || req.headers["x-dino-timestamp"];
+    // Unsigned webhooks are never accepted (anyone could otherwise change order status)
+    if (!secret) return res.status(503).json({ ok: false, error: "webhook_secret_not_set" });
+    const raw = typeof req.rawBody === "string" ? req.rawBody : "";
+    const ts = req.headers["x-dino-timestamp"];
     const sig = req.headers["x-dino-signature"];
-    if (secret) {
-      // optional verify when secret set
-      if (!dinoTopup.verifyWebhookSignature(raw, ts, sig, secret)) {
-        return res.status(401).json({ ok: false, error: "bad_signature" });
-      }
+    if (!raw || !dinoTopup.verifyWebhookSignature(raw, ts, sig, secret)) {
+      return res.status(401).json({ ok: false, error: "bad_signature" });
     }
     const event = typeof req.body === "object" && req.body ? req.body : JSON.parse(raw || "{}");
     const data = event.data?.order || event.order || event.data || {};
@@ -1972,7 +2041,9 @@ app.post("/api/webhook/dino", async (req, res) => {
       const orders = typeof listOrders === "function" ? listOrders() : getOrders();
       const list = Array.isArray(orders) ? orders : (orders?.orders || []);
       const o = list.find((x) => x.id === ref || x.dinoOrderId === data.order_id || x.dinoReference === String(ref));
-      if (o) {
+      // Only orders that really were paid may be changed by a provider webhook
+      const payable = o && (o.providerPaid || ["paid", "processing", "queued", "done", "delivered"].includes(o.status));
+      if (o && payable) {
         const st = dinoTopup.summarizeDinoStatus(data.status);
         updateOrder(o.id, {
           dinoStatus: data.status,

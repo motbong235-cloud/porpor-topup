@@ -143,9 +143,31 @@ export function getOrder(id) {
   return listOrders().find((o) => o.id === id) || null;
 }
 
+const MAX_ORDERS = Math.max(500, Number(process.env.MAX_ORDERS) || 2000);
+
 export function createOrder(order) {
   const db = read();
-  db.orders = [order, ...(db.orders || [])].slice(0, 500);
+  let all = [order, ...(db.orders || [])];
+  if (all.length > MAX_ORDERS) {
+    // Never silently lose orders: unresolved ones stay, finished ones go to an archive file.
+    const overflow = all.slice(MAX_ORDERS);
+    const isOpen = (o) =>
+      !!(o.awaitingStock || o.needsManual || ["paid", "queued", "processing"].includes(o.status));
+    const keep = overflow.filter(isOpen);
+    const archive = overflow.filter((o) => !isOpen(o));
+    all = all.slice(0, MAX_ORDERS).concat(keep);
+    if (archive.length) {
+      try {
+        fs.appendFileSync(
+          path.join(DATA_DIR, "orders-archive.jsonl"),
+          archive.map((o) => JSON.stringify(o)).join("\n") + "\n",
+        );
+      } catch (e) {
+        console.error("[orders-archive]", e.message);
+      }
+    }
+  }
+  db.orders = all;
   write(db);
   return order;
 }

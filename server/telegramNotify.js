@@ -459,7 +459,7 @@ export function verifyTelegramLogin(payload) {
     .join("\n");
   const secret = crypto.createHash("sha256").update(token).digest();
   const hmac = crypto.createHmac("sha256", secret).update(check).digest("hex");
-  if (hmac !== hash) return { ok: false, error: "bad_hash" };
+  if (!sameSig(hmac, hash)) return { ok: false, error: "bad_hash" };
   const authDate = Number(data.auth_date) || 0;
   if (authDate && Date.now() / 1000 - authDate > 86400) return { ok: false, error: "expired" };
   return {
@@ -475,8 +475,21 @@ export function verifyTelegramLogin(payload) {
 }
 
 /** Signed session cookie so login survives Render restarts */
+let fallbackSecret = null;
 function sessionSecret() {
-  return botToken() || process.env.ADMIN_PASSWORD || "porpor-tg-secret";
+  const env = String(process.env.SESSION_SECRET || "").trim();
+  if (env) return env;
+  const bt = botToken();
+  if (bt) return bt;
+  // No secret configured: random per-process key (sessions reset on restart) — never a public default
+  if (!fallbackSecret) fallbackSecret = crypto.randomBytes(32).toString("hex");
+  return fallbackSecret;
+}
+
+function sameSig(a, b) {
+  const x = Buffer.from(String(a));
+  const y = Buffer.from(String(b));
+  return x.length === y.length && crypto.timingSafeEqual(x, y);
 }
 
 export function signTgSession(user) {
@@ -496,7 +509,7 @@ export function readTgSession(token) {
   if (!token || !token.includes(".")) return null;
   const [body, sig] = token.split(".");
   const expect = crypto.createHmac("sha256", sessionSecret()).update(body).digest("base64url");
-  if (sig !== expect) return null;
+  if (!sameSig(sig, expect)) return null;
   try {
     const data = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
     if (!data?.id || (data.exp && data.exp < Date.now())) return null;

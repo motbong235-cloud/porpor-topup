@@ -53,7 +53,7 @@ export function getOrCreateThread(ip, meta = {}) {
   if (!db.threads[tid]) {
     db.threads[tid] = {
       id: tid,
-      ip: tid,
+      ip: meta.ip ? ipKey(meta.ip) : tid,
       createdAt: Date.now(),
       updatedAt: Date.now(),
       name: meta.name || "",
