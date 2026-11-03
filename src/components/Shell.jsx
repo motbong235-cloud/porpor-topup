@@ -225,7 +225,7 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
             </div>
           </Link>
           <div className="header-actions">
-            <button type="button" className="lang-btn" onClick={() => setLang(lang === "km" ? "en" : "km")}>
+            <button type="button" className="lang-btn header-lang" onClick={() => setLang(lang === "km" ? "en" : "km")}>
               <Icon name="globe" size={15} />
               {lang === "km" ? "EN" : "ខ្មែរ"}
             </button>
@@ -365,6 +365,14 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
               <Icon name="download" size={18} /> <span>{t(lang, "install")}</span>
             </button>
           ) : null}
+          <button
+            type="button"
+            className="drawer-link"
+            onClick={() => setLang(lang === "km" ? "en" : "km")}
+          >
+            <Icon name="globe" size={18} />
+            {lang === "km" ? "English" : "ភាសាខ្មែរ"}
+          </button>
           <div className="drawer-section">{lang === "km" ? "ផ្លូវការ" : "LEGAL"}</div>
           <Link to="/legal/privacy" className="drawer-link soft" onClick={() => setMenu(false)}>
             <Icon name="shield" size={18} /> <span>{t(lang, "privacy")}</span>

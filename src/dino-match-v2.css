@@ -109,7 +109,7 @@ html.dark .header, html.dark .site-header { background: rgba(7, 17, 31, 0.9) !im
 /* ---------- Search / filter pill ---------- */
 .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
 .search-input {
-  flex: 1 1 200px; min-width: 0; height: 38px;
+  flex: 0 0 auto; width: 100%; min-width: 0; height: 40px;
   border-radius: 999px; border: 1px solid var(--dm-ring);
   background: var(--dm-card); padding: 0 14px; font-size: 13px; outline: none;
 }
@@ -325,7 +325,7 @@ html.dark .crumb span { color: #e2e8f0; }
 .layout-2 { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
 @media (min-width: 1024px) {
   .layout-2 { grid-template-columns: minmax(0, 1fr) 360px; gap: 20px; }
-  .layout-2 > .summary, .layout-2 > aside.summary { position: sticky; top: 84px; align-self: start; }
+  .layout-2 > .pay-aside { position: sticky; top: 84px; align-self: start; }
 }
 .container:has(.layout-2) { max-width: 1180px !important; }
 
@@ -544,3 +544,119 @@ html.dark .dino-pack-group-count { background: #14263f; color: #9aafc8; }
 }
 html.dark .float-chat.livechat-fab::after { box-shadow: 0 0 0 3px #07111f; }
 .livechat-fab-logo { width: 38px; height: 38px; object-fit: contain; border-radius: 10px; }
+
+
+/* ============================================================
+   v5 — fixes: sizing, full-width banner, header fit, no order
+   summary (pay panel is the sticky column), logo thank-you, footer
+   ============================================================ */
+html { font-size: 16px; }
+body { font-size: 14px; line-height: 1.45; }
+
+/* Search box must never be tall (flex-basis bug in column layout) */
+.toolbar { flex-direction: column; align-items: stretch; }
+@media (min-width: 640px) { .toolbar { flex-direction: row; align-items: center; } .search-input { width: auto; flex: 1 1 260px; max-width: 420px; } }
+
+/* Everything on game page fills the container */
+.container:has(.layout-2) { max-width: 1280px !important; }
+.svc-top-stack { margin-bottom: 14px !important; }
+.svc-top-stack > * { width: 100% !important; max-width: none !important; min-width: 0; justify-self: stretch; box-sizing: border-box; }
+.svc-promo-banner { width: 100% !important; display: block; }
+.layout-2 { gap: 14px !important; }
+.layout-2 > div { min-width: 0; width: 100%; }
+.layout-2 > div > section, .layout-2 > div > .card { margin: 0 !important; }
+.layout-2 > div { display: flex; flex-direction: column; }
+.crumb { font-size: 12px; margin: 0 0 10px; }
+
+/* Step titles: normal case like dino, consistent size */
+.sec-title, .section-head h2, .pack-head .sec-title {
+  text-transform: none !important; letter-spacing: -0.01em !important;
+  font-size: 15px !important; font-weight: 800 !important; margin: 0 0 12px;
+}
+@media (min-width: 640px) { .sec-title, .pack-head .sec-title { font-size: 16px !important; } }
+.sec-title .step-no { width: 24px !important; height: 24px !important; font-size: 12px !important; }
+.dino-field-label, .field-label, label.lbl { font-size: 11px !important; letter-spacing: .08em; text-transform: uppercase; }
+.svc-hero.below-banner h1 { font-size: 20px !important; }
+@media (min-width: 640px) { .svc-hero.below-banner h1 { font-size: 24px !important; } }
+.svc-hero.below-banner .svc-hero-text { min-width: 0; }
+.svc-region { font-size: 11px !important; font-weight: 700; color: var(--muted); display: block; margin: 0 0 2px; text-align: left; }
+.svc-hero.below-banner .game-tile { width: 64px !important; height: 64px !important; }
+@media (min-width: 640px) { .svc-hero.below-banner .game-tile { width: 80px !important; height: 80px !important; } }
+.card { padding: 14px; }
+@media (min-width: 640px) { .card { padding: 18px; } }
+.qty { font-size: 12px; gap: 6px; }
+.qty button { width: 28px; height: 28px; }
+.cats .cat { font-size: 12px; padding: 6px 14px; }
+
+/* ---------- Header: fits one row on phones ---------- */
+.header-inner { gap: 8px !important; }
+.header-actions { gap: 4px !important; }
+.logo { flex: 1 1 auto; min-width: 0; }
+.logo-text { min-width: 0; overflow: visible !important; }
+.logo-name { font-size: 14px !important; line-height: 1.1; white-space: nowrap; overflow: visible; text-overflow: clip; }
+@media (min-width: 640px) { .logo-name { font-size: 17px !important; } }
+.logo-mark.has-img, .logo-mark { width: 36px !important; height: 36px !important; }
+@media (min-width: 640px) { .logo-mark.has-img, .logo-mark { width: 40px !important; height: 40px !important; } }
+.header-user-btn { width: 34px !important; height: 34px !important; }
+.header-user-photo, .header-user-initial { width: 34px; height: 34px; border-radius: 999px; object-fit: cover; }
+.icon-btn { width: 34px; height: 34px; }
+@media (max-width: 639px) { .header-lang { display: none !important; } }
+
+/* ---------- Payment aside (replaces order summary) ---------- */
+.pay-aside { width: 100%; }
+.pay-aside .card.pay-section.pay-dark { margin: 0 !important; }
+.pay-cta {
+  display: block; width: 100%; margin-top: 16px; height: 52px; border: none; cursor: pointer;
+  border-radius: 999px; font-size: 16px; font-weight: 800; letter-spacing: -0.01em;
+  background: #7dc0ff; color: #06255a;
+  box-shadow: 0 4px 0 0 #3d86d6; transition: transform .15s, box-shadow .15s, background .15s;
+}
+.pay-cta:hover:not(:disabled) { background: #9bd0ff; }
+.pay-cta:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 0 #3d86d6; }
+.pay-cta:disabled { opacity: .7; cursor: wait; }
+.pay-dark .msg.err { margin: 12px 0 0; }
+.pay-terms { margin: 12px 0 4px !important; font-size: 12.5px !important; }
+
+/* Thank-you block: website logo + script text (dino layout) */
+.pay-thanks { display: flex !important; align-items: center; justify-content: center; gap: 14px; width: 100% !important; margin: 14px 0 0 !important; }
+.pay-thanks-logo {
+  width: 92px; height: 92px; object-fit: contain; flex: none;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .35));
+}
+.pay-thanks-text { display: flex; flex-direction: column; line-height: 1.05; transform: rotate(-4deg);
+  font-family: "Georgia", "Times New Roman", serif; font-style: italic; font-weight: 800; text-shadow: 0 2px 0 rgba(0,0,0,.25); }
+.pay-thanks-text span:first-child { font-size: 30px; color: #fff; }
+.pay-thanks-text span:last-child { font-size: 22px; color: #bfe0ff; position: relative; padding-bottom: 8px; }
+.pay-thanks-text span:last-child::after {
+  content: ""; position: absolute; left: 0; right: 6px; bottom: 0; height: 5px; border-radius: 999px; background: #7dc0ff;
+}
+@media (min-width: 1024px) { .pay-thanks-logo { width: 76px; height: 76px; } .pay-thanks-text span:first-child { font-size: 26px; } .pay-thanks-text span:last-child { font-size: 18px; } }
+
+/* ---------- Footer: dark navy like dino ---------- */
+.footer {
+  background: linear-gradient(180deg, #082044 0%, #061830 100%) !important;
+  color: #e3efff; border-top: none !important; margin-top: 28px; padding-top: 28px;
+}
+html.dark .footer { background: linear-gradient(180deg, #061426 0%, #040e1c 100%) !important; }
+.footer-inner { max-width: 1280px !important; margin: 0 auto; padding: 0 16px 20px;
+  display: grid !important; grid-template-columns: 1fr 1fr; gap: 26px 20px; }
+@media (min-width: 640px) { .footer-inner { padding: 0 24px 24px; } }
+@media (min-width: 900px) { .footer-inner { grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 28px; } }
+.footer .brand-col { grid-column: 1 / -1; }
+@media (min-width: 900px) { .footer .brand-col { grid-column: auto; } }
+.footer-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.footer-name { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+.footer-name .text-brand { color: #7dc0ff !important; }
+.footer-tag { display: none; }
+.footer-desc { color: rgba(227, 239, 255, .7); font-size: 15px; margin: 0; }
+.footer-label { color: #fff; font-size: 17px; font-weight: 800; margin: 0 0 12px; text-transform: none; letter-spacing: 0; }
+.footer-links-col { display: flex; flex-direction: column; gap: 12px; }
+.footer-links-col a { display: flex; align-items: center; gap: 10px; color: rgba(227, 239, 255, .78); font-size: 15px; }
+.footer-links-col a:hover { color: #fff; }
+.footer-links-col .icon-svg { color: rgba(227, 239, 255, .7); }
+.footer .pay-logos { display: flex; gap: 10px; flex-wrap: wrap; }
+.footer .pay-logo { background: #fff; border-radius: 10px; padding: 5px 10px; height: 38px; width: auto; }
+.footer-copy {
+  border-top: 1px solid rgba(255, 255, 255, .12); text-align: center; padding: 16px;
+  color: rgba(227, 239, 255, .7); font-size: 13.5px;
+}

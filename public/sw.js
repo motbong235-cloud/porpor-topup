@@ -1,7 +1,7 @@
 /* POR POR TOPUP — service worker (makes the site installable + offline fallback).
  * Safety rules: NEVER touches /api, admin pages, uploads or non-GET requests,
  * so payments, orders and admin data are always live from the network. */
-const VERSION = "pp-2026-11-03-green";
+const VERSION = "pp-2026-11-03-v5";
 const STATIC_CACHE = `${VERSION}-static`;
 const OFFLINE_URL = "/offline.html";
 const PRECACHE = [OFFLINE_URL, "/favicon.svg", "/icons/icon-192.png"];

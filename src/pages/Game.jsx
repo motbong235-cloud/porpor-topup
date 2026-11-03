@@ -7,7 +7,6 @@ import { GameTile, Icon } from "../components/Icons";
 import RobuxRain from "../components/RobuxRain";
 
 const DEFAULT_BANNER = "/images/banner-topup.svg";
-const THANK_YOU_IMG = "/images/thank-you-banner.svg";
 
 /** Icon for a package when the admin has not uploaded one. */
 function fallbackPackIcon(game) {
@@ -628,7 +627,7 @@ export default function Game({ lang, addOrder, settings }) {
       </ServiceHero>
 
       <div className="layout-2">
-        <div style={{ display: "grid", gap: 24 }}>
+        <div style={{ display: "grid", gap: 14 }}>
           {/* Full account form for Khmer TopUp games */}
 
           {showSafetyGuide && safetyOn ? (
@@ -1113,7 +1112,11 @@ export default function Game({ lang, addOrder, settings }) {
             </section>
           ) : null}
 
-<section className="card pay-section pay-dark">
+
+        </div>
+
+        <aside className="pay-aside">
+          <section className="card pay-section pay-dark">
             <h2 className="sec-title pay-title">
               <Icon name="cart" size={20} /> {t(lang, "payment")}
             </h2>
@@ -1149,72 +1152,32 @@ export default function Game({ lang, addOrder, settings }) {
                 </span>
               </div>
             </div>
+            {payErr ? <p className="msg err">{payErr}</p> : null}
+            <button type="button" className="pay-cta" onClick={pay} disabled={paying}>
+              {paying ? "…" : pack ? `${t(lang, "pay")} · ${money(total)} →` : (lang === "km" ? "ជ្រើសកញ្ចប់ →" : "Select a package →")}
+            </button>
             <p className="pay-terms">
               {lang === "km" ? "ដោយបន្ត អ្នកយល់ព្រមនឹង " : "By continuing you agree to our "}
               <Link to="/legal/terms">{lang === "km" ? "លក្ខខណ្ឌ" : "Terms"}</Link>
               {" & "}
               <Link to="/legal/privacy">{lang === "km" ? "ឯកជនភាព" : "Privacy"}</Link>.
             </p>
-            <img className="pay-thanks" src={THANK_YOU_IMG} alt="Thank you for your support" loading="lazy" />
+            <div className="pay-thanks">
+              <img
+                className="pay-thanks-logo"
+                src={(settings && settings.logoUrl) || "/images/porpor-logo.svg"}
+                alt="POR POR TOPUP"
+                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/images/porpor-logo.svg"; }}
+              />
+              <div className="pay-thanks-text">
+                <span>{lang === "km" ? "អរគុណ" : "Thank you"}</span>
+                <span>{lang === "km" ? "ដែលគាំទ្រយើង!" : "for your support!"}</span>
+              </div>
+            </div>
           </section>
-        </div>
-
-        <aside className="card summary">
-          <h2 className="sec-title"><Icon name="cart" size={18} /> {t(lang, "summary")}</h2>
-          <dl>
-            <div className="row">
-              <dt>{t(lang, "items")}</dt>
-              <dd>{pack ? (lang === "km" ? pack.nameKm : pack.name) : "—"}</dd>
-            </div>
-            <div className="row">
-              <dt>{t(lang, "qty")}</dt>
-              <dd>{qty}</dd>
-            </div>
-            <div className="row">
-              <dt>{t(lang, "nickname")}</dt>
-              <dd>{nick || "—"}</dd>
-            </div>
-            <div className="row">
-              <dt>{t(lang, "subtotal")}</dt>
-              <dd>{money(sub)}</dd>
-            </div>
-            <div className="row">
-              <dt>{t(lang, "discount")}</dt>
-              <dd>−{money(applied)}</dd>
-            </div>
-            <div className="row total">
-              <dt>{t(lang, "total")}</dt>
-              <dd>{money(total)}</dd>
-            </div>
-          </dl>
-          {payErr ? <p className="msg err">{payErr}</p> : null}
-          <button type="button" className="btn bg-brand pay-desktop" onClick={pay} disabled={paying}>
-            {paying ? "…" : `${t(lang, "pay")} · ${money(total)}`}
-          </button>
         </aside>
       </div>
 
-      <div className="pay-mobile">
-        <div className="pay-mobile-sel">
-          <span>{pack ? (lang === "km" ? pack.nameKm : pack.name) : (lang === "km" ? "សូមជ្រើសកញ្ចប់" : "Select a package")}</span>
-          {pack ? <b>×{qty}</b> : null}
-        </div>
-        {payErr ? (
-          <p className="msg err" style={{ margin: "0 0 8px" }}>
-            {payErr}
-          </p>
-        ) : null}
-        <button
-          type="button"
-          className="btn bg-brand"
-          style={{ width: "100%", height: 48, borderRadius: 999, border: "none", fontWeight: 800 }}
-          onClick={pay}
-          disabled={paying}
-        >
-          {paying ? "…" : `${t(lang, "pay")} · ${money(total)}`}
-        </button>
-      </div>
-      <div className="spacer-mobile" />
 
       <div
         className={`pw-sheet-bg${qrOpen ? " open" : ""}`}
