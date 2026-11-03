@@ -7739,18 +7739,18 @@ html.dark .dino-input-wrap {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  height: 28px !important;
-  padding: 0 10px !important;
-  border-radius: 8px !important;
-  background: #fff !important;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
-  overflow: hidden;
+  height: 22px !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible;
 }
 .pay-pill img {
   display: block !important;
-  height: 16px !important;
+  height: 18px !important;
   width: auto !important;
-  max-width: 72px !important;
+  max-width: 64px !important;
   object-fit: contain !important;
 }
 .footer-copy {
