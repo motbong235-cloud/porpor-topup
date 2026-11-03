@@ -609,10 +609,11 @@ export default function Game({ lang, addOrder, settings }) {
         <Link to="/">{t(lang, "home")}</Link> · <span>{game.name}</span>
       </nav>
       <ServiceHero game={game} lang={lang}>
-        <div className="chips">
-          <span className="chip chip-icon"><Icon name="zap" size={14} /> {t(lang, "statSpeed")}</span>
-          <span className="chip chip-icon"><Icon name="qr" size={14} /> KHQR</span>
-          <span className="chip chip-icon"><Icon name="shield" size={14} /> Secure</span>
+        <div className="chips trust-row">
+          <span className="trust-chip"><img src="/dino-icons/icon-fast.svg" alt="" width={14} height={14} /> Fast</span>
+          <span className="trust-chip"><img src="/dino-icons/icon-safe.svg" alt="" width={14} height={14} /> Secure</span>
+          <span className="trust-chip"><img src="/dino-icons/icon-24hours.svg" alt="" width={14} height={14} /> 24/7</span>
+          <span className="trust-chip"><img src="/payments/khqr-mark.png" alt="" width={14} height={14} /> KHQR</span>
         </div>
       </ServiceHero>
 
@@ -1102,7 +1103,7 @@ export default function Game({ lang, addOrder, settings }) {
                 <div className="pay-choice-brand">
                   <img
                     className="pay-aba-mark"
-                    src={"/aba-logo.svg?v=4"}
+                    src={"/payments/aba-payway.png"}
                     alt="ABA"
                     width={88}
                     height={32}
@@ -1192,7 +1193,7 @@ export default function Game({ lang, addOrder, settings }) {
         <div className="pw-sheet" onClick={(e) => e.stopPropagation()}>
           <div className="pw-handle" />
           <div className="pw-brand">
-            <img className="pw-aba-img" src={"/aba-logo.svg?v=4"} alt="ABA" />
+            <img className="pw-aba-img" src={"/payments/aba-payway.png"} alt="ABA" />
             <div className="pw-brand-col">
               <span className="pw-brand-text">ABA PAYWAY</span>
               <span className="pw-brand-sub">KHQR · Secure</span>

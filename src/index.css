@@ -7293,3 +7293,349 @@ html.dark .dino-info-note {
   align-items: center;
   gap: 8px;
 }
+
+/* =========================================================
+   Dino layout refresh — shapes/spacing/shadows from dinotopups
+   Colors stay Porpor navy/blue (do not use Dino green)
+   ========================================================= */
+
+:root {
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
+  --shadow-soft: 0 4px 18px -6px rgba(8, 32, 68, 0.12), 0 1px 3px rgba(8, 32, 68, 0.06);
+  --shadow-lift: 0 12px 32px -14px rgba(8, 32, 68, 0.22), 0 4px 10px rgba(8, 32, 68, 0.08);
+  --shadow-card: 0 8px 24px -12px rgba(8, 32, 68, 0.14);
+}
+
+/* Page canvas */
+body {
+  background:
+    radial-gradient(1200px 500px at 10% -10%, rgba(29, 106, 223, 0.08), transparent 55%),
+    radial-gradient(900px 400px at 100% 0%, rgba(74, 162, 255, 0.07), transparent 50%),
+    var(--bg) !important;
+}
+
+.container {
+  max-width: 1120px;
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+}
+
+/* Header — soft glass bar */
+.header {
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  background: color-mix(in srgb, var(--surface) 88%, transparent) !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset;
+}
+.header-inner {
+  min-height: 58px;
+  gap: 12px;
+}
+
+/* Cards — Dino soft rounded */
+.card,
+.enter-info-card,
+.dino-info-card,
+.packs-section,
+.game-page .card {
+  border-radius: var(--radius-lg) !important;
+  border: 1px solid color-mix(in srgb, var(--line) 90%, #fff) !important;
+  box-shadow: var(--shadow-card) !important;
+  background: var(--surface) !important;
+}
+
+/* Home game cards — taller art, soft body */
+.game-card.dino-card,
+.game-card {
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden;
+  border: 1px solid #e4edf8 !important;
+  background: #fff !important;
+  box-shadow: var(--shadow-soft) !important;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease !important;
+}
+.game-card.dino-card:hover:not(.disabled),
+.game-card.card-hover:hover:not(.disabled) {
+  transform: translateY(-4px) !important;
+  box-shadow: var(--shadow-lift) !important;
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--line)) !important;
+}
+.game-card.dino-card .game-tile,
+.game-card .game-tile {
+  border-radius: 0 !important;
+  aspect-ratio: 1 / 1;
+}
+.game-card.dino-card .game-card-body,
+.game-card .game-card-body {
+  padding: 12px 12px 14px !important;
+}
+.game-card .game-name {
+  font-weight: 750 !important;
+  font-size: 13.5px !important;
+  letter-spacing: -0.01em;
+}
+.game-card .game-cta.on {
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+  padding: 6px 12px !important;
+  background: color-mix(in srgb, var(--primary) 12%, #fff) !important;
+  color: var(--primary) !important;
+}
+
+/* Special events row */
+.events-special .event-card,
+.event-card.hot-card {
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden;
+  border: 1px solid #e4edf8 !important;
+  box-shadow: var(--shadow-soft) !important;
+  background: #fff !important;
+}
+.event-card .hot-art,
+.event-card .event-art {
+  border-radius: 0 !important;
+}
+.event-card .hot-foot {
+  padding: 10px 12px 12px !important;
+}
+.event-card .hot-name {
+  font-weight: 750 !important;
+}
+.event-card .hot-price {
+  color: var(--primary) !important;
+  font-weight: 800 !important;
+}
+
+/* Section titles */
+.sec-title,
+.section-head h2 {
+  letter-spacing: -0.02em;
+  font-weight: 800 !important;
+}
+.section-sub {
+  color: var(--muted) !important;
+}
+
+/* Packs — horizontal Dino chips, 2-col */
+.dino-packs.packs-section {
+  padding: 16px !important;
+}
+.dino-pack-grid.packs {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  width: 100% !important;
+}
+@media (max-width: 380px) {
+  .dino-pack-grid.packs {
+    grid-template-columns: 1fr !important;
+  }
+}
+button.pack.dino-pack {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-height: 64px !important;
+  padding: 10px 12px !important;
+  border-radius: 16px !important;
+  border: 1.5px solid #e2eaf5 !important;
+  text-align: left !important;
+  position: relative !important;
+  box-shadow: 0 2px 8px -4px rgba(8, 32, 68, 0.1) !important;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.15s ease !important;
+}
+button.pack.dino-pack:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--primary) 40%, #e2eaf5) !important;
+}
+button.pack.dino-pack.active {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 1px var(--primary), 0 8px 18px -10px rgba(29, 106, 223, 0.45) !important;
+  background: #f3f8ff !important;
+}
+.dino-pack-icon {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  box-shadow: 0 2px 6px rgba(8, 32, 68, 0.08);
+}
+.dino-pack-name {
+  font-size: 12.5px !important;
+  font-weight: 750 !important;
+}
+.dino-pack-price {
+  font-size: 15px !important;
+  font-weight: 850 !important;
+  color: var(--primary) !important;
+}
+
+/* Enter info / Check row — Dino form shape */
+.dino-info-card,
+.enter-info-card {
+  padding: 18px 16px !important;
+}
+.dino-input-wrap,
+.rbx-check-row .dino-input-wrap {
+  border-radius: 14px !important;
+  border: 1.5px solid #dce6f3 !important;
+  background: #f7faff !important;
+  min-height: 48px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.dino-input-wrap:focus-within {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(29, 106, 223, 0.15) !important;
+  background: #fff !important;
+}
+.dino-check-btn {
+  border-radius: 14px !important;
+  min-height: 48px !important;
+  padding: 0 16px !important;
+  font-weight: 750 !important;
+  background: var(--primary) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 6px 14px -6px rgba(29, 106, 223, 0.55) !important;
+}
+.dino-check-btn:disabled {
+  opacity: 0.45 !important;
+  box-shadow: none !important;
+}
+
+/* Profile card after check */
+.rbx-profile-card {
+  margin-top: 12px;
+  padding: 12px !important;
+  border-radius: 16px !important;
+  border: 1px solid #d7e6ff !important;
+  background: linear-gradient(180deg, #f5f9ff, #eef5ff) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+.rbx-avatar {
+  border-radius: 14px !important;
+  box-shadow: 0 4px 10px rgba(8, 32, 68, 0.12);
+}
+
+/* Payment / order panel */
+.pay-panel,
+.order-summary,
+.pw-card {
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-lift) !important;
+}
+.btn.bg-brand,
+button.btn.bg-brand {
+  border-radius: 999px !important;
+  font-weight: 800 !important;
+  min-height: 48px !important;
+  box-shadow: 0 10px 22px -10px rgba(29, 106, 223, 0.65) !important;
+  letter-spacing: 0.01em;
+}
+.btn.bg-brand:active {
+  transform: scale(0.98);
+}
+
+/* Banner softer */
+.banner.banner-v2 {
+  border-radius: var(--radius-xl) !important;
+  overflow: hidden;
+  box-shadow: var(--shadow-soft) !important;
+}
+
+/* Trust chips under product title */
+.trust-row,
+.game-trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.trust-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 650;
+  background: #eef5ff;
+  color: var(--navy);
+  border: 1px solid #d6e6fb;
+}
+
+/* Live chat panel polish */
+.msgr-panel {
+  border-radius: 20px 20px 0 0 !important;
+  box-shadow: 0 -8px 40px rgba(8, 32, 68, 0.18) !important;
+}
+.msgr-head {
+  border-radius: 20px 20px 0 0 !important;
+}
+
+/* Success page */
+.success-card {
+  border-radius: var(--radius-xl) !important;
+  box-shadow: var(--shadow-lift) !important;
+  border: 1px solid #e2eaf5 !important;
+}
+
+/* Admin chat images already fixed — keep soft cards */
+.ad-chat-img {
+  border-radius: 14px !important;
+  box-shadow: var(--shadow-soft);
+}
+
+/* Dark mode stay coherent */
+html.dark .game-card.dino-card,
+html.dark .game-card,
+html.dark .event-card.hot-card {
+  background: var(--surface) !important;
+  border-color: var(--line) !important;
+}
+html.dark button.pack.dino-pack.active {
+  background: rgba(29, 106, 223, 0.18) !important;
+}
+html.dark .dino-input-wrap {
+  background: color-mix(in srgb, var(--surface) 80%, #000) !important;
+  border-color: var(--line) !important;
+}
+
+.games.dino-games,
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (min-width: 640px) {
+  .games.dino-games,
+  .games-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+@media (min-width: 960px) {
+  .games.dino-games,
+  .games-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.trust-chip img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
+.pw-aba-img {
+  width: 40px !important;
+  height: 40px !important;
+  object-fit: contain !important;
+  border-radius: 10px;
+  background: #fff;
+}
