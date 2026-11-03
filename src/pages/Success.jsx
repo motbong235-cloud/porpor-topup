@@ -3,7 +3,7 @@ import { Icon } from "../components/Icons";
 import { Link, useSearchParams } from "react-router-dom";
 import { t } from "../lib/i18n";
 import { money } from "../lib/store";
-import RobuxRain from "../components/RobuxRain";
+import RobuxCelebration from "../components/RobuxCelebration";
 
 /**
  * Payment Successful page (like dinotopups):
@@ -305,7 +305,7 @@ export default function Success({ lang, settings }) {
         )}
 
 
-        {isRobux ? <RobuxRain count={14} /> : null}
+        {isRobux && paid ? <RobuxCelebration count={7} /> : null}
 
         {isTikTok && paid ? (
           <div className="tt-tutorial">
