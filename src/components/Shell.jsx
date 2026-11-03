@@ -273,32 +273,7 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
       </header>
 
       <main className="main">{children}</main>
-
-            <section className="trust-strip" aria-label="Why us">
-        <div className="trust-card">
-          <span className="trust-ico"><Icon name="zap" size={20} /></span>
-          <div>
-            <strong>{lang === "km" ? "លឿនភ្លាមៗ" : "Lightning Fast"}</strong>
-            <p>{lang === "km" ? "Order ដំណើរការក្នុងរយៈពេលវិនាទី" : "Orders processed in seconds, not minutes."}</p>
-          </div>
-        </div>
-        <div className="trust-card">
-          <span className="trust-ico"><Icon name="clock" size={20} /></span>
-          <div>
-            <strong>{lang === "km" ? "ដឹកជញ្ជូនភ្លាម" : "Instant Delivery"}</strong>
-            <p>{lang === "km" ? "Top-up ចូលគណនីស្វ័យប្រវត្តិ / Live Chat" : "Top-ups land in your account automatically."}</p>
-          </div>
-        </div>
-        <div className="trust-card">
-          <span className="trust-ico"><Icon name="shield" size={20} /></span>
-          <div>
-            <strong>{lang === "km" ? "សុវត្ថិភាព" : "Safe & Secure"}</strong>
-            <p>{lang === "km" ? "ការបង់ប្រាក់ការពារពេញលេញ" : "Every payment protected end-to-end."}</p>
-          </div>
-        </div>
-      </section>
-
-      <footer className="footer">
+<footer className="footer">
         <div className="footer-inner">
           <div className="footer-col brand-col">
             <div className="footer-brand">
