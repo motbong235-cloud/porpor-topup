@@ -130,6 +130,20 @@ export default function TikTokKhmerAdmin() {
         </button>
       </PageHead>
 
+      {/* Service banner is intentionally first so it is easy to find in admin. */}
+      <section className="ad-card" style={{ marginTop: 16 }}>
+        <h2 style={{ margin: "0 0 12px", fontSize: 16, display: "flex", alignItems: "center", gap: 8 }}>
+          <AIcon name="image" size={18} /> ① Banner ខាងលើសេវា TikTok Khmer
+        </h2>
+        <p className="ad-hint">Upload រូប Banner ដែលនឹងបង្ហាញនៅផ្នែកខាងលើទំព័រ TikTok Khmer មុនព័ត៌មានសេវា និងកញ្ចប់។ អាចដាក់បាន 1–5 រូប (ណែនាំ 1600 × 500 px)។
+        </p>
+        <BannerManager
+          banners={product.banners}
+          legacy={product.banner}
+          onChange={(list) => setProduct((p) => (p ? { ...p, banners: list, banner: list[0] || "" } : p))}
+        />
+      </section>
+
       <section className="ad-card">
         <div className="ad-grid-2" style={{ alignItems: "start" }}>
           <div>
@@ -182,14 +196,6 @@ export default function TikTokKhmerAdmin() {
         </div>
       </section>
 
-
-      <section className="ad-card" style={{ marginTop: 16 }}>
-        <BannerManager
-          banners={product.banners}
-          legacy={product.banner}
-          onChange={(list) => setProduct((p) => (p ? { ...p, banners: list, banner: list[0] || "" } : p))}
-        />
-      </section>
 
       <section className="ad-card" style={{ marginTop: 16 }}>
         <h2 style={{ margin: "0 0 12px", fontSize: 16, display: "flex", alignItems: "center", gap: 8 }}><AIcon name="video" size={18} /> ② Tutorial Video (បង់រួចបង្ហាញ)</h2>
