@@ -136,7 +136,7 @@ export default function ChatAdmin() {
       const up = await uploadBlob(file);
       const data = await api(`/api/admin/chat/${active}`, {
         method: "POST",
-        body: JSON.stringify({ type: "image", url: up.url || up.path, text: "" }),
+        body: JSON.stringify({ type: "image", mediaUrl: up.url || up.path, text: "" }),
       });
       if (data.message) {
         setMessages((m) => [...m, data.message]);
@@ -156,12 +156,24 @@ export default function ChatAdmin() {
     }
   }
 
+  function mediaSrc(m) {
+    return m.mediaUrl || m.url || (m.type === "image" || m.type === "voice" ? m.text : "") || "";
+  }
+
   function renderBody(m) {
-    if (m.type === "image" && (m.url || m.text)) {
-      return <img src={m.url || m.text} alt="" className="ad-chat-img" />;
+    const src = mediaSrc(m);
+    if (m.type === "image" && src) {
+      return (
+        <a href={src} target="_blank" rel="noreferrer" className="ad-chat-img-wrap">
+          <img src={src} alt="" className="ad-chat-img" loading="lazy" />
+        </a>
+      );
     }
-    if (m.type === "voice" || m.type === "audio") {
-      return <audio controls src={m.url || m.text} className="ad-chat-audio" />;
+    if ((m.type === "voice" || m.type === "audio") && src) {
+      return <audio controls preload="metadata" src={src} className="ad-chat-audio" />;
+    }
+    if (m.type === "image" || m.type === "voice") {
+      return <p className="ad-chat-text muted">{m.type === "image" ? "📷 (រូបភាព — URL ខូច)" : "🎤 (សំឡេង — URL ខូច)"}</p>;
     }
     return <p className="ad-chat-text">{m.text}</p>;
   }

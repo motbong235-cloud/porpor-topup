@@ -764,7 +764,7 @@ app.get("/api/admin/chat/:id", adminAuth, (req, res) => {
 app.post("/api/admin/chat/:id", adminAuth, (req, res) => {
   const type = String(req.body?.type || "text");
   const text = String(req.body?.text || "").trim();
-  const mediaUrl = String(req.body?.mediaUrl || "").trim();
+  const mediaUrl = String(req.body?.mediaUrl || req.body?.url || "").trim();
   const duration = Number(req.body?.duration) || 0;
   if (type === "text" && !text) return res.status(400).json({ error: "empty" });
   if ((type === "image" || type === "voice") && !/^\/uploads\/[\w.-]{1,120}$/.test(mediaUrl)) {
