@@ -4,7 +4,8 @@
  */
 import { getSettings } from "./store.js";
 import * as khmerTopup from "./khmerTopup.js";
-import { localCatalog, findLocalPack } from "./localProducts.js";
+import * as dinoTopup from "./dinoTopup.js";
+import { localCatalog, findLocalPack, cleanBanners } from "./localProducts.js";
 
 const TTL = 60_000;
 let cache = { at: 0, games: null, raw: null };
@@ -166,6 +167,8 @@ export async function storefront() {
       name: g.name,
       nameKm: g.name,
       image: (s && s.image) || g.image,
+      banners: cleanBanners(s?.banners, s?.banner),
+      banner: cleanBanners(s?.banners, s?.banner)[0] || "",
       mark: markOf(g.name),
       hue: hueOf(g.slug),
       famous: !!(s && s.featured),
@@ -185,39 +188,145 @@ export async function storefront() {
   return out;
 }
 
+
+/** Dino games the admin enabled (dinoSelection) — for storefront */
+export async function dinoStorefront() {
+  if (!dinoTopup.isDinoReady()) return [];
+  const settings = getSettings();
+  const sel = settings.dinoSelection || {};
+  const globalMarkup = Number(sel.markupPercent) || 0;
+  // Always list enabled Dino games on Home when API key is set.
+  // topupProvider only controls which API is used for auto-fulfill after pay.
+  let supplier = [];
+  try {
+    const data = await dinoTopup.listProducts();
+    supplier = dinoTopup.normalizeGamesPayload(data);
+  } catch (e) {
+    console.warn("[catalog] dino list failed:", e.message);
+    return [];
+  }
+
+  const out = [];
+  for (const g of supplier) {
+    const s = sel.games?.[g.slug] || sel.games?.[String(g.slug).toLowerCase()];
+    const isOpen = !!s?.enabled;
+    if (!isOpen && !s?.showWhenOff) continue;
+
+    const hasOwn = s && s.markup !== undefined && s.markup !== null && s.markup !== "" && Number.isFinite(Number(s.markup));
+    const markup = hasOwn ? Number(s.markup) : globalMarkup;
+    const allowed = Array.isArray(s?.packages) ? new Set(s.packages.map(String)) : null;
+
+    const packs = (g.packs || [])
+      .filter((p) => p.inStock !== false && (!allowed || allowed.has(String(p.id))))
+      .map((p) => ({
+        id: String(p.id),
+        name: p.name,
+        nameKm: p.name,
+        price: sellPrice(Number(p.cost) || 0, markup),
+        cost: Number(p.cost) || 0,
+        category: p.category || "Diamonds",
+        image: (s && (s.packImages?.[p.id] || s.packIcon)) || p.image || "",
+      }));
+
+    if (isOpen && !packs.length) continue;
+
+    out.push({
+      id: g.slug,
+      name: g.name,
+      nameKm: g.name,
+      image: (s && s.image) || g.image || "",
+      banners: cleanBanners(s?.banners, s?.banner),
+      banner: cleanBanners(s?.banners, s?.banner)[0] || "",
+      mark: markOf(g.name),
+      hue: hueOf(g.slug),
+      famous: !!(s && s.featured),
+      hot: !!(s && s.featured),
+      open: isOpen,
+      showWhenOff: !!s?.showWhenOff,
+      hasZone: !!g.needsZone,
+      zoneLabelKm: "Zone ID",
+      zoneLabelEn: "Zone ID",
+      servers: [],
+      idHintKm: "",
+      idHintEn: "",
+      provider: "dino",
+      dinoId: g.slug,
+      packs: packs,
+    });
+  }
+  return out;
+}
+
+
 export async function publicCatalog() {
-  const games = await storefront();
-  // OFF local products are hidden unless the admin chose "show as OFF"
+  const [khmerGames, dinoGames] = await Promise.all([
+    storefront().catch(() => []),
+    dinoStorefront().catch(() => []),
+  ]);
+
   const local = localCatalog()
     .filter((g) => g.open !== false || g.showWhenOff)
     .map((g) => ({
       ...g,
       packs: g.packs.map(({ cost, ...p }) => p),
     }));
-  // local gift cards first (featured)
-  return [...local, ...games.map((g) => ({ ...g, packs: g.packs.map(({ cost, ...p }) => p) }))];
+
+  // Merge: local first, then Khmer, then Dino (skip dino slug already present from Khmer)
+  const seen = new Set(local.map((g) => String(g.id)));
+  const merged = [];
+  for (const g of khmerGames) {
+    const id = String(g.id);
+    if (seen.has(id)) continue;
+    seen.add(id);
+    merged.push({ ...g, packs: g.packs.map(({ cost, ...p }) => p), provider: g.provider || "khmer" });
+  }
+  for (const g of dinoGames) {
+    const id = String(g.id);
+    // Both mode: if same slug enabled on both, prefer Dino when dino open
+    if (seen.has(id)) {
+      const idx = merged.findIndex((x) => String(x.id) === id);
+      if (idx >= 0 && g.open) {
+        merged[idx] = { ...g, packs: g.packs.map(({ cost, ...p }) => p) };
+      }
+      continue;
+    }
+    seen.add(id);
+    merged.push({ ...g, packs: g.packs.map(({ cost, ...p }) => p) });
+  }
+  return [...local, ...merged];
 }
 
 export async function findPack(gameId, packId) {
   const local = findLocalPack(gameId, packId);
   if (local) return local;
-  const game = (await storefront()).find((g) => g.id === String(gameId));
+  // Prefer full public catalog (Khmer + Dino)
+  const all = await publicCatalog();
+  const game = all.find((g) => String(g.id) === String(gameId));
   if (!game) return null;
-  const pack = game.packs.find((p) => p.id === String(packId));
-  return pack ? { game, pack } : null;
+  // re-fetch with cost for checkout: try storefronts that keep cost
+  const withCost =
+    (await storefront()).find((g) => String(g.id) === String(gameId)) ||
+    (await dinoStorefront()).find((g) => String(g.id) === String(gameId));
+  const g = withCost || game;
+  const pack = (g.packs || []).find((p) => String(p.id) === String(packId));
+  return pack ? { game: g, pack } : null;
 }
 
 export async function findGame(gameId) {
   const local = localCatalog().find((g) => g.id === String(gameId));
   if (local) return local;
-  return (await storefront()).find((g) => g.id === String(gameId)) || null;
+  const fromKt = (await storefront()).find((g) => String(g.id) === String(gameId));
+  if (fromKt) return fromKt;
+  const fromDino = (await dinoStorefront()).find((g) => String(g.id) === String(gameId));
+  return fromDino || null;
 }
 
 /** Only allow our own uploads or https URLs as image sources. */
 function cleanImg(u) {
   const s = String(u || "").trim();
   if (!s) return "";
-  if (/^\/uploads\/[\w.-]{1,100}$/.test(s)) return s;
+  if (/^\/uploads\/[\w.-]{1,120}$/.test(s)) return s;
+  if (/^\/icons\/[\w.-]{1,80}$/.test(s)) return s;
   if (/^https:\/\/[^\s"'<>]{1,490}$/.test(s)) return s;
   return "";
 }
@@ -242,9 +351,51 @@ export function sanitizeSelection(input) {
       markup: mkNum !== null && Number.isFinite(mkNum) ? Math.min(500, Math.max(0, mkNum)) : null,
       packages: Array.isArray(v?.packages) ? v.packages.map(String).slice(0, 2000) : null,
       image: cleanImg(v?.image),
+      banners: cleanBanners(v?.banners, v?.banner),
+      banner: cleanBanners(v?.banners, v?.banner)[0] || "",
       packIcon: cleanImg(v?.packIcon),
       packImages,
     };
   }
   return out;
+}
+
+
+/**
+ * Apply fixed reseller pack prices (USD) for a logged-in reseller user.
+ * settings.resellerPrices = { packId: number }
+ * settings.resellers = [{ username, telegramId, active }]
+ */
+export function isResellerUser(settings, tgUser) {
+  if (!tgUser) return false;
+  const list = Array.isArray(settings?.resellers) ? settings.resellers : [];
+  const uname = String(tgUser.username || "").toLowerCase().replace(/^@/, "");
+  const tid = Number(tgUser.id) || 0;
+  return list.some((r) => {
+    if (r && r.active === false) return false;
+    const ru = String(r.username || "").toLowerCase().replace(/^@/, "");
+    const rid = Number(r.telegramId) || 0;
+    if (tid && rid && tid === rid) return true;
+    if (uname && ru && uname === ru) return true;
+    return false;
+  });
+}
+
+export function resellerFixedPrice(settings, packId) {
+  const map = settings?.resellerPrices || {};
+  const v = Number(map[String(packId)]);
+  return Number.isFinite(v) && v > 0 ? Math.round(v * 100) / 100 : null;
+}
+
+export function applyResellerToCatalog(games, settings, tgUser) {
+  if (!isResellerUser(settings, tgUser)) return { games, isReseller: false };
+  const out = (games || []).map((g) => ({
+    ...g,
+    packs: (g.packs || []).map((p) => {
+      const rp = resellerFixedPrice(settings, p.id);
+      if (rp == null) return p;
+      return { ...p, price: rp, resellerPrice: true, retailPrice: p.price };
+    }),
+  }));
+  return { games: out, isReseller: true };
 }

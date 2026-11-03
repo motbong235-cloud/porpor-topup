@@ -8,8 +8,8 @@
   "display": "standalone",
   "orientation": "portrait",
   "lang": "km",
-  "background_color": "#f3f7fd",
-  "theme_color": "#1d6adf",
+  "background_color": "#edf7f2",
+  "theme_color": "#0fa06e",
   "categories": ["games", "shopping"],
   "icons": [
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },

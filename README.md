@@ -110,3 +110,25 @@ Docs: [Khmer TopUp API](https://khmer-topup.com/api-docs)
 - Priority for a package: its own image → the game's default package image → the Khmer TopUp image → none.
 - Click the red ✕ on an image to go back to the default. Accepted: PNG, JPG, WEBP, GIF (SVG is rejected on purpose).
 - Every change in Services is saved automatically after ~1 second (status shown at the top right).
+
+
+## Admin
+- URL: `https://YOUR-DOMAIN/pp-console` (or `ADMIN_PATH` env)
+- Password: env `ADMIN_PASSWORD` (default only for dev)
+
+## Order → Telegram channel
+Set either in Render env or Admin → Settings:
+- `TELEGRAM_BOT_TOKEN` / tgBotToken
+- `TELEGRAM_CHANNEL_ID` / tgChannelId (e.g. `-100...`)
+Bot must be **admin** of the channel.
+
+
+## Dino-style UI (v2)
+- `src/dino-match-v2.css` loads last and copies dinotopups.com layout: 1440px container, 16/6 banner, 3→6 column square game tiles, flat white header/footer, card ring style. Palette stays Porpor blue.
+
+## Push from Termux
+```bash
+pkg install -y git unzip
+unzip porpor-topup-v2.zip && cd porpor-topup-main
+bash termux-push.sh "your commit message"
+```

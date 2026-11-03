@@ -25,14 +25,19 @@ import {
   stockCount,
   runAutoBackup,
   listBackups,
+  exportFullBackup,
+  importFullBackup,
   SHOP_HOURS,
 } from "./store.js";
 import * as khmerSystem from "./khmerSystem.js";
 import * as khmerSystemPay from "./khmerSystemPay.js";
 import * as liveChat from "./liveChat.js";
 import * as khmerTopup from "./khmerTopup.js";
+import * as dinoTopup from "./dinoTopup.js";
+import * as priceWatch from "./priceWatch.js";
+import * as robloxLookup from "./robloxLookup.js";
 import * as catalog from "./catalog.js";
-import { isGiftCodeProduct, localCatalog, DEFAULT_LOCAL_PRODUCTS } from "./localProducts.js";
+import { isGiftCodeProduct, localCatalog, DEFAULT_LOCAL_PRODUCTS, cleanBanners } from "./localProducts.js";
 import {
   clientIp,
   clientUa,
@@ -46,12 +51,21 @@ import {
 } from "./security.js";
 import { issueCsrf, csrfGuard } from "./csrf.js";
 import * as branding from "./branding.js";
+import * as tg from "./telegramNotify.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");
 const DIST = path.join(ROOT, "dist");
 const PORT = Number(process.env.PORT) || 3000;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "porpor-admin-2026";
+const DEFAULT_ADMIN_PASSWORD = "porpor-admin-2026"; // public in the repo — never accepted in production
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || DEFAULT_ADMIN_PASSWORD;
+
+/** Constant-time string compare (hash both sides so lengths never leak). */
+function safeEq(a, b) {
+  const x = crypto.createHash("sha256").update(String(a)).digest();
+  const y = crypto.createHash("sha256").update(String(b)).digest();
+  return crypto.timingSafeEqual(x, y);
+}
 
 function isWeakAdminPassword(pw) {
   const p = String(pw || "");
@@ -63,10 +77,31 @@ function isWeakAdminPassword(pw) {
 /** Private admin SPA path (no leading slash). Default: pp-console — set ADMIN_PATH on Render to hide it. */
 const ADMIN_PATH = String(process.env.ADMIN_PATH || "pp-console").replace(/^\/+|\/+$/g, "") || "pp-console";
 const isProd = process.env.NODE_ENV === "production";
+if (isProd && (!process.env.ADMIN_PASSWORD || String(process.env.ADMIN_PASSWORD).trim() === DEFAULT_ADMIN_PASSWORD)) {
+  console.error("[security] FATAL: ADMIN_PASSWORD is not set (or is the public default). Set a strong ADMIN_PASSWORD in Render → Environment, then redeploy.");
+  process.exit(1);
+}
+
+/** Checkout idempotency: key -> { orderId, at } (in-memory, ~15 min) */
+const checkoutIdem = new Map();
+setInterval(() => {
+  const cut = Date.now() - 15 * 60_000;
+  for (const [k, v] of checkoutIdem) if (!v || v.at < cut) checkoutIdem.delete(k);
+}, 60_000).unref?.();
 
 const app = express();
-app.set("trust proxy", 1); // Render / reverse proxy — real client IP
-app.use(express.json({ limit: "1mb" }));
+// Number of proxy hops in front of the app: Render = 1 (default). Behind Cloudflare + Render set TRUST_PROXY=2.
+const TRUST_PROXY = Number.isInteger(Number(process.env.TRUST_PROXY)) && process.env.TRUST_PROXY !== "" ? Number(process.env.TRUST_PROXY) : 1;
+app.set("trust proxy", TRUST_PROXY);
+app.use(
+  express.json({
+    limit: "1mb",
+    // keep the exact bytes of webhook bodies so HMAC signatures can be verified
+    verify: (req, _res, buf) => {
+      if (String(req.url || "").startsWith("/api/webhook/")) req.rawBody = buf.toString("utf8");
+    },
+  }),
+);
 app.use(cookieParser());
 app.use(csrfGuard);
 // Basic abuse shield (per-IP)
@@ -81,9 +116,23 @@ app.use((_req, res, next) => {
   if (isProd) {
     res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
   }
+  // Telegram Login Widget needs script + iframe from telegram.org / oauth.telegram.org
   res.setHeader(
     "Content-Security-Policy",
-    "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; img-src 'self' data: https: blob:; font-src 'self' https://fonts.gstatic.com data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self'; connect-src 'self'; form-action 'self'",
+    [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "frame-ancestors 'none'",
+      "object-src 'none'",
+      "img-src 'self' data: https: blob:",
+      "font-src 'self' https://fonts.gstatic.com data:",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "script-src 'self' https://telegram.org https://oauth.telegram.org",
+      "frame-src 'self' https://oauth.telegram.org https://telegram.org https://www.youtube.com https://www.youtube-nocookie.com",
+      "media-src 'self' https: blob:",
+      "connect-src 'self' https://telegram.org https://oauth.telegram.org",
+      "form-action 'self' https://oauth.telegram.org",
+    ].join("; "),
   );
   next();
 });
@@ -98,7 +147,8 @@ function adminAuth(req, res, next) {
 }
 
 function newCode() {
-  return `PP-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+  // Longer random id reduces IDOR / enumeration of track URLs
+  return `PP-${crypto.randomBytes(5).toString("hex").toUpperCase()}`;
 }
 
 function uniqueCode() {
@@ -136,9 +186,13 @@ function publicOrder(o) {
     method: o.method,
     status: o.status,
     createdAt: o.createdAt,
+    paidAt: o.paidAt || null,
+    providerPaid: !!o.providerPaid,
+    needsManual: !!o.needsManual,
     deliveryType: o.deliveryType || "topup",
     giftCode: o.giftCode || null,
     note: o.note || "",
+    telegramId: o.telegramId || null,
   };
 }
 
@@ -149,16 +203,117 @@ function summarizeKt(codes, statuses) {
   return { status: "processing" };
 }
 
+/* ---------- Auto-deliver paid stock orders that were waiting for stock ---------- */
+let restockBusy = false;
+
+function isAwaitingStock(o) {
+  if (!o || o.status !== "paid") return false;
+  const dt = o.deliveryType || "";
+  if (dt !== "stock" && dt !== "gift_code") return false;
+  return !!o.awaitingStock || /^(No stock|Partial stock)/.test(String(o.note || ""));
+}
+
+/**
+ * Deliver waiting orders (oldest first) as soon as the pack has enough codes.
+ * packId = only that pack (after admin adds stock); omit = sweep every pack.
+ * Returns how many orders were delivered.
+ */
+function fulfillAwaitingStock(packId) {
+  if (restockBusy) return 0;
+  restockBusy = true;
+  let delivered = 0;
+  try {
+    const want = packId == null ? null : String(packId);
+    const queue = listOrders()
+      .filter((o) => isAwaitingStock(o) && (want === null || String(o.packId) === want))
+      .sort((a, b) => (Number(a.paidAt || a.createdAt) || 0) - (Number(b.paidAt || b.createdAt) || 0));
+    const blocked = new Set(); // keep first-paid-first-served per pack
+    for (const o of queue) {
+      const pid = String(o.packId);
+      if (blocked.has(pid)) continue;
+      const qty = Math.max(1, Math.min(10, Number(o.qty) || 1));
+      const have = String(o.giftCode || "").split("\n").map((x) => x.trim()).filter(Boolean);
+      const need = qty - have.length;
+      if (need > 0 && stockCount(pid) < need) {
+        blocked.add(pid);
+        continue;
+      }
+      const codes = have.slice();
+      for (let i = 0; i < need; i++) {
+        const c = popPackStock(pid);
+        if (!c) break;
+        codes.push(c);
+      }
+      if (codes.length < qty) {
+        // should not happen (checked above) — keep what we got, stay in queue
+        updateOrder(o.id, { giftCode: codes.join("\n"), awaitingStock: true });
+        blocked.add(pid);
+        continue;
+      }
+      const updated = updateOrder(o.id, {
+        status: "delivered",
+        giftCode: codes.join("\n"),
+        awaitingStock: false,
+        note: "Auto-delivered after restock",
+        deliveredAt: Date.now(),
+      });
+      delivered++;
+      try {
+        tg.notifyOrder("delivered", updated).catch(() => {});
+      } catch {}
+      console.log(`[restock] auto-delivered order ${o.id} (${pid} x${qty})`);
+    }
+  } catch (e) {
+    console.error("[restock]", e.message);
+  } finally {
+    restockBusy = false;
+  }
+  return delivered;
+}
+
 async function fulfillTopup(order) {
   const dt = order.deliveryType || "topup";
 
-  // Live Chat only — no stock codes
-  if (dt === "live_chat") {
-    return updateOrder(order.id, {
-      status: "paid",
-      note: "Live Chat delivery — customer will contact admin",
+  // Robux Send / Live Chat — queue for admin; notify bot (no silent auto transfer)
+  if (dt === "live_chat" || dt === "robux_send") {
+    const queued = updateOrder(order.id, {
+      status: "queued",
+      needsManual: true,
+      note:
+        dt === "robux_send"
+          ? "Robux Send — MANUAL only (not auto). Admin transfer via Live Chat / bot."
+          : "Live Chat / manual delivery — notify bot",
       paidAt: order.paidAt || Date.now(),
+      queuedAt: Date.now(),
     });
+    // Telegram already notified on paid via formatOrderMsg → formatRobuxSendMsg
+    try {
+      if (dt === "robux_send") {
+        // Re-lookup profile so channel always has avatar + correct username
+        (async () => {
+          let o = queued;
+          try {
+            const prof = await robloxLookup.lookupRobloxUsername(o.userId);
+            if (prof && prof.valid) {
+              o = updateOrder(o.id, {
+                rbxUsername: prof.username || o.userId,
+                rbxDisplayName: prof.displayName || o.nickname || "",
+                rbxUserId: prof.userId != null ? String(prof.userId) : o.rbxUserId,
+                rbxAvatarUrl: prof.avatarUrl || o.rbxAvatarUrl,
+                rbxProfileUrl: prof.profileUrl || o.rbxProfileUrl,
+                nickname: prof.displayName || o.nickname || "",
+              }) || o;
+            }
+          } catch (e) {
+            console.warn("[robux] profile enrich failed", e.message);
+          }
+          await tg.notifyRobuxSend(o);
+        })().catch(() => {});
+      } else if (dt === "live_chat" && !tg.isKaiRouteOrder(queued)) {
+        tg.notifyChannel(tg.formatRobuxSendMsg(queued)).catch(() => {});
+      }
+    } catch {}
+    return queued;
   }
 
   // Stock / gift_code — auto-assign code from inventory
@@ -183,13 +338,15 @@ async function fulfillTopup(order) {
       return updateOrder(order.id, {
         status: "paid",
         giftCode: codes.join("\n"),
-        note: `Partial stock (${codes.length}/${qty}) — rest via Live Chat`,
+        note: `Partial stock (${codes.length}/${qty}) — rest will auto-deliver when restocked`,
+        awaitingStock: true,
         paidAt: order.paidAt || Date.now(),
       });
     }
     return updateOrder(order.id, {
       status: "paid",
-      note: "No stock — deliver via Live Chat / Admin",
+      note: "No stock — will auto-deliver when restocked",
+      awaitingStock: true,
       paidAt: order.paidAt || Date.now(),
     });
   }
@@ -197,10 +354,86 @@ async function fulfillTopup(order) {
   if (!settings.autoTopup) {
     return updateOrder(order.id, { status: "paid", note: "autoTopup disabled — fulfill manually" });
   }
-  if (!khmerTopup.isTopupReady()) {
+
+  // Provider: "khmer" | "dino" | "both"
+  const pref = String(settings.topupProvider || order.topupProvider || "khmer").toLowerCase();
+  let useDino = false;
+  let useKhmer = false;
+  if (pref === "dino") {
+    useDino = dinoTopup.isDinoReady();
+  } else if (pref === "both") {
+    const dinoSel = settings.dinoSelection?.games || {};
+    const slug = String(order.gameId || order.dinoGame || "");
+    const dinoEnabled = !!(dinoSel[slug]?.enabled || dinoSel[order.dinoGame]?.enabled);
+    const forceDino = order.topupProvider === "dino" || dinoEnabled;
+    if (forceDino && dinoTopup.isDinoReady()) useDino = true;
+    else if (khmerTopup.isTopupReady()) useKhmer = true;
+    else if (dinoTopup.isDinoReady()) useDino = true;
+  } else {
+    useKhmer = khmerTopup.isTopupReady();
+  }
+
+  // Never auto-API for manual delivery types
+  if (order.deliveryType === "robux_send" || order.deliveryType === "live_chat") {
+    return updateOrder(order.id, {
+      status: "queued",
+      needsManual: true,
+      note: order.deliveryType === "robux_send"
+        ? "Robux Send — MANUAL only (blocked auto topup path)"
+        : "Live Chat — manual only",
+      paidAt: order.paidAt || Date.now(),
+    });
+  }
+
+  if (useDino) {
+    const product = order.dinoProduct || order.packId;
+    const game = order.dinoGame || order.gameId;
+    if (!product || !game) {
+      return updateOrder(order.id, {
+        status: "paid",
+        note: "Dino product/game missing on order — fulfill manually",
+      });
+    }
+    updateOrder(order.id, { status: "processing", topupProvider: "dino" });
+    try {
+      const result = await dinoTopup.placeOrder({
+        game,
+        product,
+        playerId: order.userId,
+        zoneId: order.zoneId || undefined,
+        quantity: order.qty > 1 ? order.qty : undefined,
+        reference: order.id,
+        maxPrice: order.total || undefined,
+      });
+      const remote = result.order || result;
+      const st = dinoTopup.summarizeDinoStatus(remote.status);
+      return updateOrder(order.id, {
+        status: st.done ? (st.status === "failed" ? "paid" : st.status === "done" ? "done" : st.status) : "processing",
+        paidAt: order.paidAt || Date.now(),
+        providerPaid: true,
+        topupProvider: "dino",
+        dinoOrderId: remote.order_id || remote.id || null,
+        dinoReference: remote.reference || order.id,
+        dinoStatus: remote.status || null,
+        note: `Dino ${remote.order_id || remote.reference || ""} · ${remote.status || ""}`,
+        needsManual: st.status === "failed",
+      });
+    } catch (e) {
+      return updateOrder(order.id, {
+        status: "paid",
+        paidAt: order.paidAt || Date.now(),
+        providerPaid: true,
+        topupProvider: "dino",
+        note: `Dino topup error: ${e.message} — fulfill manually`,
+        needsManual: true,
+      });
+    }
+  }
+
+  if (!useKhmer) {
     return updateOrder(order.id, {
       status: "paid",
-      note: "KHMER_TOPUP_API_KEY missing — paid but not auto-delivered",
+      note: "No topup provider ready (set DINO_TOPUP_API_KEY or KHMER_TOPUP_API_KEY)",
     });
   }
   if (!order.ktPackageId) {
@@ -212,10 +445,9 @@ async function fulfillTopup(order) {
 
   const codes = [...(order.ktOrderCodes || (order.ktOrderCode ? [order.ktOrderCode] : []))];
   const statuses = { ...(order.ktStatuses || {}) };
-  updateOrder(order.id, { status: "processing" });
+  updateOrder(order.id, { status: "processing", topupProvider: "khmer" });
 
   try {
-    // one Khmer TopUp order per unit, so qty > 1 delivers everything the customer paid for
     for (let i = codes.length; i < (order.qty || 1); i++) {
       const result = await khmerTopup.placeOrder({
         packageId: order.ktPackageId,
@@ -229,11 +461,14 @@ async function fulfillTopup(order) {
     }
   } catch (e) {
     return updateOrder(order.id, {
-      status: "failed",
+      status: "paid",
+      paidAt: order.paidAt || Date.now(),
+      providerPaid: true,
       ktOrderCodes: codes,
-      ktOrderCode: codes[0],
+      ktOrderCode: codes[0] || order.ktOrderCode,
       ktStatuses: statuses,
-      note: `TopUp error after ${codes.length}/${order.qty || 1} placed: ${e.message}`,
+      note: `TopUp error after ${codes.length}/${order.qty || 1}: ${e.message} — fulfill manually`,
+      needsManual: true,
     });
   }
 
@@ -266,7 +501,8 @@ app.get("/api/csrf", (req, res) => {
 });
 
 app.get("/api/public-config", (_req, res) => {
-  res.json({ adminPath: ADMIN_PATH });
+  // Do not expose ADMIN_PATH here (security). Path is injected into index.html as window.__ADMIN_PATH__ only.
+  res.json({ ok: true });
 });
 
 
@@ -335,7 +571,8 @@ app.get("/api/health", (_req, res) => {
     ok: true,
     name: "POR POR TOPUP",
     payment: khmerSystem.isPaymentReady(),
-    topup: khmerTopup.isTopupReady(),
+    topup: khmerTopup.isTopupReady() || dinoTopup.isDinoReady(),
+    dinoTopup: dinoTopup.isDinoReady(),
   });
 });
 
@@ -343,7 +580,10 @@ app.get("/api/integrations/status", (_req, res) => {
   const s = getSettings();
   res.json({
     paymentReady: khmerSystem.isPaymentReady(),
-    topupReady: khmerTopup.isTopupReady(),
+    topupReady: khmerTopup.isTopupReady() || dinoTopup.isDinoReady(),
+    khmerTopupReady: khmerTopup.isTopupReady(),
+    dinoTopupReady: dinoTopup.isDinoReady(),
+    topupProvider: s.topupProvider || "khmer",
     autoTopup: !!s.autoTopup,
   });
 });
@@ -360,13 +600,20 @@ app.get("/api/settings", (_req, res) => {
     maintenance: s.maintenance,
     logoUrl: s.logoUrl || "",
     bannerUrls: Array.isArray(s.bannerUrls) ? s.bannerUrls : [],
-    coupons: (s.coupons || []).map((c) => ({
-      code: c.code,
-      type: c.type,
-      value: c.value,
-      min: c.min,
-    })),
+    // Never list coupon codes publicly — validate only at checkout when user types a code
+    couponsEnabled: Array.isArray(s.coupons) && s.coupons.length > 0,
   });
+});
+
+/** Preview coupon discount — does not list codes; user must already know the code */
+app.post("/api/coupon/preview", limit("coupon", { limit: 30, windowMs: 60_000 }), (req, res) => {
+  const code = String(req.body?.code || "").trim();
+  const subtotal = Number(req.body?.subtotal) || 0;
+  if (!code) return res.json({ ok: true, discount: 0, code: "" });
+  if (subtotal < 0 || subtotal > 1e6) return res.status(400).json({ ok: false, error: "bad_subtotal" });
+  const cp = calcCoupon(getSettings(), code, subtotal);
+  if (!cp.ok) return res.json({ ok: false, error: cp.error === "coupon_min" ? "min" : "bad", discount: 0 });
+  res.json({ ok: true, discount: cp.discount, code: cp.code });
 });
 
 /** Which server build is live (to confirm a deploy actually took effect). */
@@ -389,7 +636,45 @@ function sniffChatMedia(b) {
   return null;
 }
 
-app.post("/api/chat/upload", express.raw({ type: () => true, limit: "6mb" }), (req, res) => {
+/* Visitor uploads are capped (per IP per day + total disk) and old files are deleted automatically */
+const CHAT_UPLOAD_MAX_BYTES = 300 * 1024 * 1024;
+const CHAT_UPLOAD_TTL_MS = 45 * 24 * 3600 * 1000;
+
+function chatUploadUsage() {
+  let total = 0;
+  try {
+    for (const f of fs.readdirSync(UPLOAD_DIR)) {
+      if (!f.startsWith("chat-")) continue;
+      try {
+        total += fs.statSync(path.join(UPLOAD_DIR, f)).size;
+      } catch {}
+    }
+  } catch {}
+  return total;
+}
+
+function pruneChatUploads() {
+  try {
+    const cut = Date.now() - CHAT_UPLOAD_TTL_MS;
+    for (const f of fs.readdirSync(UPLOAD_DIR)) {
+      if (!f.startsWith("chat-")) continue;
+      const fp = path.join(UPLOAD_DIR, f);
+      try {
+        if (fs.statSync(fp).mtimeMs < cut) fs.unlinkSync(fp);
+      } catch {}
+    }
+  } catch {}
+}
+setInterval(pruneChatUploads, 6 * 3600 * 1000).unref?.();
+setTimeout(pruneChatUploads, 30 * 1000).unref?.();
+
+app.post(
+  "/api/chat/upload",
+  limit("chat_upload", { limit: 8, windowMs: 60_000 }),
+  limit("chat_upload_day", { limit: 40, windowMs: 24 * 3600 * 1000 }),
+  express.raw({ type: () => true, limit: "3mb" }),
+  (req, res) => {
+  if (chatUploadUsage() > CHAT_UPLOAD_MAX_BYTES) return res.status(507).json({ error: "storage_full" });
   const ext = sniffChatMedia(req.body);
   if (!ext) return res.status(400).json({ error: "bad_file" });
   // images + audio only
@@ -406,29 +691,43 @@ app.post("/api/chat/upload", express.raw({ type: () => true, limit: "6mb" }), (r
   res.json({ url: `/uploads/${name}`, type: ["webm", "ogg", "m4a"].includes(ext) ? "voice" : "image" });
 });
 
-app.post("/api/chat/session", (req, res) => {
-  // 1 IP = 1 user — thread id is always the client IP (server-side)
-  const ip = clientIp(req);
+/** Visitor chat identity = random cookie token (never the IP: CGNAT shares IPs, XFF can be forged). */
+function chatToken(req, res) {
+  const cur = String(req.cookies?.porpor_chat || "");
+  if (/^[a-f0-9]{32}$/.test(cur)) return cur;
+  const tok = crypto.randomBytes(16).toString("hex");
+  res.cookie("porpor_chat", tok, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: isProd,
+    maxAge: 365 * 24 * 3600 * 1000,
+    path: "/",
+  });
+  return tok;
+}
+
+app.post("/api/chat/session", limit("chat_session", { limit: 30, windowMs: 60_000 }), (req, res) => {
   const meta = {
     name: String(req.body?.name || "").slice(0, 80),
     orderId: String(req.body?.orderId || "").slice(0, 40),
+    ip: clientIp(req),
   };
-  const thread = liveChat.getOrCreateThread(ip, meta);
-  res.json({ visitorId: thread.id, ip: thread.ip || thread.id, messages: thread.messages || [] });
+  const thread = liveChat.getOrCreateThread(chatToken(req, res), meta);
+  res.json({ visitorId: thread.id, messages: thread.messages || [] });
 });
 
 app.get("/api/chat/messages", (req, res) => {
-  // Always bind to request IP (ignore client-supplied thread id for security)
-  const ip = clientIp(req);
+  // Always bind to the visitor's own cookie token (ignore any client-supplied thread id)
+  const tid = chatToken(req, res);
   const after = Number(req.query.after || 0) || 0;
-  const data = liveChat.getMessages(ip, after);
+  const data = liveChat.getMessages(tid, after);
   if (!data) return res.status(404).json({ error: "not_found" });
-  liveChat.markRead(ip, "user");
+  liveChat.markRead(tid, "user");
   res.json(data);
 });
 
-app.post("/api/chat/messages", (req, res) => {
-  const ip = clientIp(req);
+app.post("/api/chat/messages", limit("chat_msg", { limit: 30, windowMs: 60_000 }), (req, res) => {
+  const tid = chatToken(req, res);
   const type = String(req.body?.type || "text");
   const text = String(req.body?.text || "").trim();
   const mediaUrl = String(req.body?.mediaUrl || "").trim();
@@ -437,19 +736,19 @@ app.post("/api/chat/messages", (req, res) => {
     if (!text) return res.status(400).json({ error: "invalid" });
     if (text.length > 2000) return res.status(400).json({ error: "too_long" });
   } else if (type === "image" || type === "voice") {
-    if (!/^\/uploads\/[\w.-]{1,120}$/.test(mediaUrl)) {
+    if (!/^\/uploads\/chat-[\w.-]{1,120}$/.test(mediaUrl) || mediaUrl.includes("..")) {
       return res.status(400).json({ error: "bad_media" });
     }
   } else {
     return res.status(400).json({ error: "bad_type" });
   }
   const msg = liveChat.postUserMessage(
-    ip,
+    tid,
     { type, text, mediaUrl, duration },
-    { name: req.body?.name, orderId: req.body?.orderId },
+    { name: req.body?.name, orderId: req.body?.orderId, ip: clientIp(req) },
   );
   if (!msg) return res.status(400).json({ error: "invalid" });
-  res.json({ ok: true, message: msg, ip });
+  res.json({ ok: true, message: msg });
 });
 
 app.get("/api/admin/chat/threads", adminAuth, (_req, res) => {
@@ -466,7 +765,7 @@ app.get("/api/admin/chat/:id", adminAuth, (req, res) => {
 app.post("/api/admin/chat/:id", adminAuth, (req, res) => {
   const type = String(req.body?.type || "text");
   const text = String(req.body?.text || "").trim();
-  const mediaUrl = String(req.body?.mediaUrl || "").trim();
+  const mediaUrl = String(req.body?.mediaUrl || req.body?.url || "").trim();
   const duration = Number(req.body?.duration) || 0;
   if (type === "text" && !text) return res.status(400).json({ error: "empty" });
   if ((type === "image" || type === "voice") && !/^\/uploads\/[\w.-]{1,120}$/.test(mediaUrl)) {
@@ -487,16 +786,18 @@ app.get("/api/version", (_req, res) => {
 });
 
 /** Games + packages the admin selected from Khmer TopUp (prices include markup). */
-app.get("/api/catalog", async (_req, res) => {
-  // short browser/CDN cache: repeat visits and page changes are instant; admin edits show within ~15s
-  res.set("Cache-Control", "public, max-age=15, stale-while-revalidate=60");
-  if (!khmerTopup.isTopupReady()) {
-    return res.json({ games: [], error: "topup_not_configured" });
-  }
+app.get("/api/catalog", async (req, res) => {
   try {
-    res.json({ games: await catalog.publicCatalog() });
+    const settings = getSettings();
+    let games = await catalog.publicCatalog();
+    const tgUser = tg.readTgSession(req.cookies?.porpor_tg);
+    const applied = catalog.applyResellerToCatalog(games, settings, tgUser);
+    res.json({
+      games: applied.games,
+      isReseller: applied.isReseller,
+      resellerUsername: applied.isReseller ? (tgUser?.username || tgUser?.id || null) : null,
+    });
   } catch (e) {
-    res.set("Cache-Control", "no-store");
     res.status(502).json({ games: [], error: "catalog_unavailable", message: e.message });
   }
 });
@@ -504,20 +805,165 @@ app.get("/api/catalog", async (_req, res) => {
 app.post("/api/verify", limit("verify", { limit: 30, windowMs: 60_000 }), async (req, res) => {
   const { slug, playerId, serverId } = req.body || {};
   if (!slug || !playerId) return res.status(400).json({ result: "incomplete", message: "slug and playerId required" });
-  if (!khmerTopup.isTopupReady()) {
-    return res.status(503).json({ result: "unknown", error: "topup_not_configured" });
-  }
   try {
     const game = await catalog.findGame(slug);
     if (!game || game.open === false) return res.status(404).json({ result: "unknown", error: "game_unavailable" });
-    const data = await khmerTopup.verifyAccount(slug, playerId, serverId);
-    return res.json(data);
+
+    const slugL = String(game.id || slug).toLowerCase();
+    const nameL = String(game.name || "").toLowerCase();
+    const isRoblox =
+      game.deliveryType === "robux_send" ||
+      slugL.includes("roblox") ||
+      slugL.includes("robux") ||
+      nameL.includes("roblox") ||
+      nameL.includes("robux");
+
+    // Roblox: always enrich with public profile (avatar + display name)
+    let rbx = null;
+    if (isRoblox) {
+      try {
+        rbx = await robloxLookup.lookupRobloxUsername(playerId);
+      } catch (e) {
+        rbx = { valid: false, message: e.message };
+      }
+    }
+
+    const pref = String(getSettings().topupProvider || "khmer").toLowerCase();
+    let supplier = null;
+    try {
+      if (dinoTopup.isDinoReady() && (pref === "dino" || isRoblox)) {
+        // Prefer Dino check-id for roblox when key exists
+        const gameKey = isRoblox ? "roblox" : game.dinoId || slug;
+        try {
+          const data = await dinoTopup.checkId(gameKey, playerId, serverId);
+          supplier = {
+            provider: "dino",
+            valid: !!data.valid,
+            nickname: data.nickname || null,
+            region: data.region || null,
+            message: data.message || null,
+            unavailable: !!data.unavailable,
+          };
+        } catch (e) {
+          if (pref === "dino" && !isRoblox) throw e;
+          // roblox can continue with public lookup only
+        }
+      }
+      if (!supplier && khmerTopup.isTopupReady() && !isRoblox) {
+        const data = await khmerTopup.verifyAccount(slug, playerId, serverId);
+        // normalize Khmer response
+        const result = data.result || (data.valid ? "valid" : data.valid === false ? "invalid" : "unknown");
+        return res.json({ ...data, result: result === "ok" ? "valid" : result });
+      }
+    } catch (e) {
+      if (!isRoblox) return res.json({ result: "unknown", error: e.message });
+    }
+
+    if (isRoblox) {
+      const ok = rbx?.valid === true && (supplier ? supplier.valid !== false : true);
+      if (!rbx?.valid) {
+        return res.json({
+          result: "invalid",
+          valid: false,
+          message: rbx?.message || "Invalid Roblox username",
+          provider: supplier?.provider || "roblox",
+        });
+      }
+      return res.json({
+        result: "valid",
+        valid: true,
+        nickname: supplier?.nickname || rbx.displayName || rbx.username,
+        region: supplier?.region || null,
+        message: supplier?.message || null,
+        provider: supplier?.provider || "roblox",
+        roblox: {
+          userId: rbx.userId,
+          username: rbx.username,
+          displayName: rbx.displayName,
+          avatarUrl: rbx.avatarUrl,
+          profileUrl: rbx.profileUrl,
+          created: rbx.created,
+        },
+      });
+    }
+
+    if (supplier) {
+      return res.json({
+        result: supplier.valid ? "valid" : "invalid",
+        valid: supplier.valid,
+        nickname: supplier.nickname,
+        region: supplier.region,
+        message: supplier.message,
+        provider: supplier.provider,
+      });
+    }
+
+    if (!khmerTopup.isTopupReady() && !dinoTopup.isDinoReady()) {
+      return res.status(503).json({ result: "unknown", error: "topup_not_configured" });
+    }
+    return res.json({ result: "unknown", message: "no_check" });
   } catch (e) {
     return res.json({ result: "unknown", error: e.message });
   }
 });
 
-app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000 }), async (req, res) => {
+
+app.get("/api/auth/telegram/config", (_req, res) => {
+  const botUsername = tg.botUsername() || null;
+  const ready = tg.isLoginReady();
+  res.set("Cache-Control", "no-store");
+  res.json({
+    ok: Boolean(botUsername),
+    botUsername,
+    configured: ready,
+    hasToken: Boolean(typeof tg.botToken === "function" ? tg.botToken() : false),
+  });
+});
+function setTgCookie(res, user) {
+  const token = tg.signTgSession(user);
+  res.cookie("porpor_tg", token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: isProd,
+    maxAge: 30 * 24 * 3600 * 1000,
+    path: "/",
+  });
+}
+
+app.post("/api/auth/telegram", limit("tglogin", { limit: 20, windowMs: 60_000 }), (req, res) => {
+  const v = tg.verifyTelegramLogin(req.body || {});
+  if (!v.ok) {
+    console.warn("[tg-login]", v.error, req.body?.id);
+    return res.status(401).json({ error: v.error || "unauthorized" });
+  }
+  setTgCookie(res, v.user);
+  auditLog("tg_login", { tgId: v.user.id, username: v.user.username, ip: clientIp(req) });
+  res.json({ ok: true, user: v.user });
+});
+
+/** Redirect-based login (more reliable on mobile / when embed widget stays blank) */
+app.get("/api/auth/telegram/callback", limit("tglogin", { limit: 30, windowMs: 60_000 }), (req, res) => {
+  const v = tg.verifyTelegramLogin(req.query || {});
+  if (!v.ok) {
+    console.warn("[tg-login-callback]", v.error, req.query?.id);
+    return res.redirect("/?tg_login=fail");
+  }
+  setTgCookie(res, v.user);
+  auditLog("tg_login", { tgId: v.user.id, username: v.user.username, ip: clientIp(req), via: "callback" });
+  res.redirect("/?tg_login=ok");
+});
+app.get("/api/auth/me", (req, res) => {
+  const user = tg.readTgSession(req.cookies?.porpor_tg);
+  if (!user) return res.json({ ok: false, user: null });
+  res.json({ ok: true, user });
+});
+app.post("/api/auth/logout", (req, res) => {
+  res.clearCookie("porpor_tg", { path: "/" });
+  res.json({ ok: true });
+});
+
+app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000 }), async (req, res, next) => {
+  try {
   const body = req.body || {};
   const settings = getSettings();
   if (settings.maintenance) {
@@ -526,9 +972,29 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
   if (!khmerSystem.isPaymentReady()) {
     return res.status(503).json({ error: "not_configured" });
   }
-
   if (!body.gameId || !body.packId) {
     return res.status(400).json({ error: "invalid" });
+  }
+
+  // Idempotency: same key within ~15 min returns the same still-pending order/QR
+  const idemRaw = String(body.idempotencyKey || "").trim().slice(0, 160);
+  if (idemRaw) {
+    const hit = checkoutIdem.get(`${clientIp(req)}:${idemRaw}`);
+    const prev = hit ? getOrder(hit.orderId) : null;
+    if (prev && prev.status === "pending" && prev.qrImage) {
+      return res.json({
+        order: publicOrder(prev),
+        payment: {
+          transactionId: prev.transactionId,
+          qrImage: prev.qrImage,
+          qrString: prev.qrString,
+          payUrl: prev.payUrl || "",
+          deeplink: prev.openAbaUrl || prev.deeplink || prev.payUrl || "",
+          openAbaUrl: prev.openAbaUrl || "",
+          expiresAt: prev.expiresAt,
+        },
+      });
+    }
   }
 
   // Price comes from the server catalog — never trust the client total.
@@ -563,7 +1029,7 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
   const needUser = giftCode
     ? (typeof found.game.requireUsername === "boolean"
         ? found.game.requireUsername
-        : found.game.deliveryType === "live_chat" || found.game.deliveryType === "gift_code")
+        : found.game.deliveryType === "live_chat" || found.game.deliveryType === "robux_send" || found.game.deliveryType === "gift_code")
     : true;
   if (needUser && userId.length < 3) {
     return res.status(400).json({ error: "invalid", detail: "need_username" });
@@ -577,7 +1043,12 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
   }
 
   const qty = Math.min(10, Math.max(1, Math.floor(Number(body.qty)) || 1));
-  const subtotal = round2(found.pack.price * qty);
+  // Reseller fixed price (USD) when logged-in TG user is in reseller list
+  const tgUser = tg.readTgSession(req.cookies?.porpor_tg);
+  const isRes = catalog.isResellerUser(settings, tgUser);
+  const fixedRp = isRes ? catalog.resellerFixedPrice(settings, found.pack.id) : null;
+  const unitPrice = fixedRp != null ? fixedRp : Number(found.pack.price);
+  const subtotal = round2(unitPrice * qty);
   const cp = calcCoupon(settings, body.coupon, subtotal);
   if (!cp.ok) return res.status(400).json({ error: cp.error });
   const total = round2(subtotal - cp.discount);
@@ -596,11 +1067,33 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
     userId: giftCode ? (needUser ? userId : userId || "gift") : userId,
     zoneId,
     server,
-    nickname: String(body.nickname || ""),
+    nickname: String(body.nickname || body.rbxDisplayName || ""),
+    rbxUsername: String(body.rbxUsername || body.userId || "").trim().slice(0, 64) || null,
+    rbxDisplayName: String(body.rbxDisplayName || body.nickname || "").trim().slice(0, 64) || null,
+    rbxUserId: body.rbxUserId != null && body.rbxUserId !== "" ? String(body.rbxUserId).slice(0, 32) : null,
+    rbxAvatarUrl: (() => {
+      const u = String(body.rbxAvatarUrl || "").trim();
+      if (/^https:\/\/[^\s"'<>]{1,500}$/.test(u)) return u;
+      return null;
+    })(),
+    rbxProfileUrl: (() => {
+      const u = String(body.rbxProfileUrl || "").trim();
+      if (/^https:\/\/(www\.)?roblox\.com\/[^\s"'<>]{1,200}$/.test(u)) return u;
+      return null;
+    })(),
     method: "khqr",
     coupon: cp.code,
-    ktPackageId: giftCode ? null : Number(found.pack.id),
-    deliveryType: giftCode ? (found.game.deliveryType === "live_chat" ? "live_chat" : "stock") : "topup",
+    ktPackageId: giftCode ? null : Number(found.pack.id) || null,
+    dinoGame: giftCode ? null : (found.game.dinoId || found.game.id || null),
+    dinoProduct: giftCode ? null : (found.pack.dinoId || found.pack.id || null),
+    topupProvider: giftCode
+      ? null
+      : (found.game.provider === "dino" || String(settings.topupProvider || "").toLowerCase() === "dino"
+          ? "dino"
+          : String(settings.topupProvider || "").toLowerCase() === "both" && found.game.provider === "dino"
+            ? "dino"
+            : null),
+    deliveryType: giftCode ? (found.game.deliveryType === "live_chat" || found.game.deliveryType === "robux_send" ? found.game.deliveryType : "stock") : (found.game.deliveryType === "robux_send" ? "robux_send" : "topup"),
     giftCode: null,
     status: "pending",
     clientIp: clientIp(req),
@@ -608,7 +1101,12 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
     createdAt: Date.now(),
   });
 
-  const qr = await khmerSystem.createQr(order.total, order.id, `p${order.id}`);
+  const kaiRoute = tg.isKaiRouteOrder({
+    gameId: order.gameId,
+    gameName: order.gameName,
+    packName: order.packName,
+  });
+  const qr = await khmerSystem.createQr(order.total, order.id, `p${order.id}`, { useKai: kaiRoute });
   if (!qr.success) {
     console.error("[checkout] ABA PayWay QR failed:", qr.error, JSON.stringify(qr.raw || {}));
     updateOrder(order.id, { status: "failed", note: `QR error: ${qr.error}` });
@@ -636,8 +1134,14 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
     deeplink: qr.deeplink || qr.pay_url || "",
     openAbaUrl: openAba,
     expiresAt,
+    payViaKai: !!kaiRoute,
+    method: kaiRoute ? "khqr_kai" : (order.method || "khqr"),
   });
   auditLog("checkout_create", { orderId: updated.id, total: updated.total, ip: clientIp(req) });
+  try { tg.notifyOrder("new", updated).catch(() => {}); } catch {}
+  if (idemRaw) {
+    checkoutIdem.set(`${clientIp(req)}:${idemRaw}`, { orderId: updated.id, at: Date.now() });
+  }
   return res.json({
     order: publicOrder(updated),
     payment: {
@@ -650,42 +1154,66 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
       expiresAt,
     },
   });
+  } catch (e) {
+    console.error("[checkout] unexpected:", e && e.stack ? e.stack : e);
+    if (!res.headersSent) res.status(500).json({ error: "server_error" });
+  }
 });
 
 app.get("/api/checkout/:id/status", limit("paystatus", { limit: 40, windowMs: 60_000 }), async (req, res) => {
   let order = getOrder(req.params.id);
   if (!order) return res.status(404).json({ error: "not_found" });
 
-  // Payment bypass guard: ONLY provider confirmation can mark paid (never trust client body).
-  if (order.status === "pending" && order.transactionId && khmerSystem.isPaymentReady()) {
-    const pay = await khmerSystem.checkPayment(order.transactionId);
-    if (assertPaymentProviderPaid(pay)) {
-      // Optional amount check when provider returns amount
+  if (order.status === "failed" && (order.providerPaid || order.paidAt)) {
+    order = updateOrder(order.id, {
+      status: "paid",
+      note: ((order.note || "") + " | recovered from false failed").trim(),
+      needsManual: true,
+    });
+  }
+
+  const canCheckPay =
+    order.transactionId &&
+    khmerSystem.isPaymentReady() &&
+    (order.status === "pending" || (order.status === "failed" && !order.providerPaid));
+
+  if (canCheckPay) {
+    const pay = await khmerSystem.checkPayment(order.transactionId, { useKai: !!order.payViaKai });
+    console.log("[pay-check]", order.id, pay.status, pay.paid, pay.error || "");
+    // Strict: only explicit provider paid (never trust ok/success alone)
+    if (assertPaymentProviderPaid(pay) && pay.paid === true && !pay.simulation && !pay.error) {
       const paidAmt = Number(pay.amount ?? pay.total ?? pay.paid_amount);
-      if (Number.isFinite(paidAmt) && paidAmt > 0 && Math.abs(paidAmt - Number(order.total)) > 0.02) {
-        console.warn("[pay] amount mismatch", order.id, paidAmt, order.total);
-        order = updateOrder(order.id, {
-          note: `Amount mismatch provider=${paidAmt} order=${order.total}`,
-        });
+      // If provider returns an amount, it must match order total (±$0.05)
+      if (Number.isFinite(paidAmt) && paidAmt > 0 && Math.abs(paidAmt - Number(order.total)) > 0.05) {
+        console.warn("[pay] amount mismatch BLOCKED", order.id, paidAmt, order.total);
+        order = updateOrder(order.id, { note: `Amount mismatch blocked provider=${paidAmt} order=${order.total}` });
+        auditLog("payment_amount_mismatch", { orderId: order.id, paidAmt, total: order.total });
       } else {
         const fresh = getOrder(order.id);
-        if (fresh && fresh.status === "pending") {
+        if (fresh && (fresh.status === "pending" || (fresh.status === "failed" && !fresh.providerPaid))) {
           order = updateOrder(order.id, {
             status: "paid",
             paidAt: Date.now(),
             paidIp: clientIp(req),
             providerPaid: true,
+            payStatusRaw: pay.status || "paid",
           });
-          auditLog("payment_ok", { orderId: order.id, total: order.total, ip: clientIp(req) });
+          auditLog("payment_ok", { orderId: order.id, total: order.total, ip: clientIp(req), status: pay.status });
+          try { tg.notifyOrder("paid", order).catch(() => {}); } catch {}
           order = await fulfillTopup(order);
+          if (order && order.status === "delivered") {
+            try { tg.notifyOrder("delivered", order).catch(() => {}); } catch {}
+          }
         } else if (fresh) {
           order = fresh;
         }
       }
+    } else if (pay.paid) {
+      console.warn("[pay] rejected non-strict paid signal", order.id, pay.status, pay.raw && Object.keys(pay.raw));
     }
   }
 
-  if (order.status === "processing" && order.ktOrderCode) {
+  if (order.status === "processing" && (order.ktOrderCode || (order.ktOrderCodes || []).length)) {
     order = await pollKtStatus(order);
   }
 
@@ -708,17 +1236,19 @@ app.post("/api/admin/login", limit("login", { limit: 20, windowMs: 60_000 }), (r
     res.setHeader("Retry-After", String(allowed.retryAfter));
     return res.status(429).json({ error: "locked", retryAfter: allowed.retryAfter });
   }
-  const password = String(req.body?.password || "");
-  if (password !== ADMIN_PASSWORD) {
+  const password = String(req.body?.password || "").trim();
+  const expected = String(ADMIN_PASSWORD || "").trim();
+  if (!password || !safeEq(password, expected)) {
     recordLoginFail(ip);
     auditLog("login_fail", { ip, reason: "bad_password" });
     return res.status(401).json({ error: "bad_password" });
   }
   clearLoginFails(ip);
   const { token, expires } = createSession();
+  // sameSite=lax so mobile browsers / custom domains keep the session cookie
   res.cookie("porpor_admin", token, {
     httpOnly: true,
-    sameSite: isProd ? "strict" : "lax",
+    sameSite: "lax",
     secure: isProd,
     maxAge: expires - Date.now(),
     path: "/",
@@ -729,9 +1259,19 @@ app.post("/api/admin/login", limit("login", { limit: 20, windowMs: 60_000 }), (r
     ok: true,
     expires,
     csrf,
+    token, // fallback for clients that cannot store cookies
     weakPassword: isWeakAdminPassword(ADMIN_PASSWORD),
     totpEnabled: false,
   });
+});
+
+
+app.post("/api/admin/telegram/test", adminAuth, async (_req, res) => {
+  const r = await tg.notifyChannel(
+    "<b>✅ Porpor Topup</b>\nTelegram notify តភ្ជាប់រួច។\nOrder ថ្មីនឹងផ្ញើចូល channel នេះ។"
+  );
+  if (!r.ok) return res.status(400).json({ ok: false, error: r.error || r.raw || "failed" });
+  res.json({ ok: true });
 });
 
 app.post("/api/admin/logout", (req, res) => {
@@ -759,15 +1299,26 @@ app.post("/api/admin/backups/run", adminAuth, (req, res) => {
 });
 
 app.get("/api/admin/backup", adminAuth, (_req, res) => {
-  const payload = {
-    exportedAt: new Date().toISOString(),
-    settings: getSettings(),
-    orders: listOrders(),
-    giftStock: getGiftStock(),
-  };
-  const name = `porpor-backup-${new Date().toISOString().slice(0, 10)}.json`;
-  res.setHeader("Content-Disposition", `attachment; filename="${name}"`);
-  res.json(payload);
+  try {
+    const payload = exportFullBackup();
+    const name = `porpor-full-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    res.setHeader("Content-Disposition", `attachment; filename="${name}"`);
+    res.json(payload);
+  } catch (e) {
+    res.status(500).json({ error: "backup_failed", message: String(e.message || e) });
+  }
+});
+
+/** Restore full backup JSON (for server migration). Body = export payload. */
+app.post("/api/admin/restore", adminAuth, (req, res) => {
+  try {
+    const body = req.body || {};
+    const summary = importFullBackup(body);
+    auditLog("restore_full", { ip: clientIp(req), ...summary });
+    res.json({ ok: true, summary });
+  } catch (e) {
+    res.status(400).json({ error: "restore_failed", message: String(e.message || e) });
+  }
 });
 
 app.get("/api/admin/me", (req, res) => {
@@ -852,6 +1403,15 @@ app.patch("/api/admin/orders/:id", adminAuth, async (req, res) => {
   if (req.body?.fulfill) {
     o = await fulfillTopup(o);
   }
+  // TikTok Khmer → Kai bot/channel on done or rejected (never Porpor channel)
+  try {
+    const st = String(o.status || "").toLowerCase();
+    if (st === "delivered" || st === "done") {
+      tg.notifyOrder("delivered", o).catch(() => {});
+    } else if (st === "rejected" || st === "cancelled" || st === "canceled") {
+      tg.notifyOrder("rejected", o).catch(() => {});
+    }
+  } catch {}
   res.json(o);
 });
 
@@ -875,12 +1435,18 @@ app.get("/api/admin/settings", adminAuth, (_req, res) => {
 app.put("/api/admin/settings", adminAuth, (req, res) => {
   const body = req.body || {};
   const allowed = [
-    "siteName", "taglineKm", "taglineEn", "telegram", "announcementKm", "announcementEn",
-    "supportEmail", "maintenance", "coupons", "autoTopup", "logoUrl", "bannerUrls", "localProducts",
+    "siteName", "taglineKm", "taglineEn", "telegram", "announcementKm", "announcementEn", "kaiBotToken", "kaiOrderBotToken", "kaiBotUsername", "kaiChatId", "kaiChannelId", "kaiRouteGames", "kaiAbaKey", "kaiAbaMerchant",
+    "supportEmail", "maintenance", "coupons", "autoTopup", "topupProvider", "logoUrl", "bannerUrls", "localProducts",
+    "deliveryHours", "tickerSoldBase", "tickerSoldLabel", "resellers", "resellerPrices",
+    "tgBotToken", "tgBotUsername", "tgChannelId",
   ];
   const patch = {};
   for (const k of allowed) {
     if (body[k] !== undefined) patch[k] = body[k];
+  }
+  if (patch.topupProvider !== undefined) {
+    const v = String(patch.topupProvider || "khmer").toLowerCase();
+    patch.topupProvider = ["khmer", "dino", "both"].includes(v) ? v : "khmer";
   }
   if (patch.logoUrl !== undefined) patch.logoUrl = cleanImageUrl(patch.logoUrl);
   if (patch.logoUrl !== undefined) branding.clearBrandingCache();
@@ -889,6 +1455,41 @@ app.put("/api/admin/settings", adminAuth, (req, res) => {
       .map(cleanImageUrl)
       .filter(Boolean)
       .slice(0, 5);
+  }
+  // Resellers: username list (Telegram) + optional telegramId; fixed prices by pack id
+  if (patch.resellers !== undefined) {
+    patch.resellers = (Array.isArray(patch.resellers) ? patch.resellers : [])
+      .map((r) => ({
+        username: String(r.username || "").trim().replace(/^@/, "").toLowerCase().slice(0, 64),
+        telegramId: r.telegramId ? Number(r.telegramId) || null : null,
+        active: r.active !== false,
+        note: String(r.note || "").slice(0, 120),
+      }))
+      .filter((r) => r.username || r.telegramId)
+      .slice(0, 200);
+  }
+  if (patch.tgBotToken !== undefined) {
+    const tok = String(patch.tgBotToken || "").trim().slice(0, 200);
+    // empty string would wipe a previously saved token on accidental re-save
+    if (!tok) delete patch.tgBotToken;
+    else patch.tgBotToken = tok;
+  }
+  if (patch.tgChannelId !== undefined) {
+    patch.tgChannelId = String(patch.tgChannelId || "").trim().slice(0, 64);
+  }
+  if (patch.tgBotUsername !== undefined) {
+    patch.tgBotUsername = String(patch.tgBotUsername || "").trim().replace(/^@/, "").replace(/[^A-Za-z0-9_]/g, "").slice(0, 64);
+  }
+  if (patch.resellerPrices !== undefined) {
+    const src = patch.resellerPrices && typeof patch.resellerPrices === "object" ? patch.resellerPrices : {};
+    const out = {};
+    for (const [k, v] of Object.entries(src)) {
+      const id = String(k).trim().slice(0, 80);
+      const n = Number(v);
+      if (!id || !Number.isFinite(n) || n <= 0) continue;
+      out[id] = Math.round(n * 100) / 100;
+    }
+    patch.resellerPrices = out;
   }
   res.json(updateSettings(patch));
 });
@@ -936,18 +1537,28 @@ app.put("/api/admin/gift-stock/:packId", adminAuth, (req, res) => {
   } else if (Array.isArray(raw)) {
     codes = raw;
   }
-  const count = mode === "append" ? addPackStock(packId, codes) : setPackStock(packId, codes);
-  res.json({ packId, count, stock: getGiftStock()[packId] || [] });
+  mode === "append" ? addPackStock(packId, codes) : setPackStock(packId, codes);
+  const autoDelivered = fulfillAwaitingStock(packId);
+  const count = stockCount(packId);
+  res.json({ packId, count, autoDelivered, stock: getGiftStock()[packId] || [] });
 });
 
 app.get("/api/admin/local-products", adminAuth, (_req, res) => {
   const s = getSettings();
-  const products = Array.isArray(s.localProducts) && s.localProducts.length
-    ? s.localProducts
-    : DEFAULT_LOCAL_PRODUCTS;
+  let products;
+  const usingDefaults = !(Array.isArray(s.localProducts) && s.localProducts.length);
+  if (!usingDefaults) {
+    const byId = new Map(s.localProducts.map((g) => [String(g.id), g]));
+    for (const d of DEFAULT_LOCAL_PRODUCTS) {
+      if (!byId.has(String(d.id))) byId.set(String(d.id), d);
+    }
+    products = [...byId.values()];
+  } else {
+    products = DEFAULT_LOCAL_PRODUCTS;
+  }
   res.json({
     products,
-    usingDefaults: !(Array.isArray(s.localProducts) && s.localProducts.length),
+    usingDefaults,
     stockCounts: stockSummary(),
   });
 });
@@ -969,7 +1580,7 @@ app.put("/api/admin/local-products", adminAuth, (req, res) => {
             nameKm: String(p.nameKm || p.name || p.id || "").trim(),
             price: Number(p.price),
             cost: Number(p.cost != null ? p.cost : p.price),
-            category: String(p.category || "Gift Card"),
+            category: (String(p.category || "").trim().toLowerCase() === "gift card" ? "Roblox" : String(p.category || "Roblox")),
             bonus: p.bonus ? String(p.bonus) : "",
             image: img,
           };
@@ -990,10 +1601,12 @@ app.put("/api/admin/local-products", adminAuth, (req, res) => {
         mark: String(g.mark || "GC").slice(0, 4),
         image: (function () {
           let u = String(g.image || "").trim();
-          if (/^\/uploads\/[\w.-]{1,100}$/.test(u) || /^https:\/\/[^\s"'<>]{1,490}$/.test(u)) return u;
+          if (/^\/uploads\/[\w.-]{1,100}$/.test(u) || /^\/icons\/[\w.-]{1,100}$/.test(u) || /^https:\/\/[^\s"'<>]{1,490}$/.test(u)) return u;
           return "";
         })(),
-        deliveryType: ["stock", "live_chat", "gift_code", "topup"].includes(g.deliveryType)
+        banners: cleanBanners(g.banners, g.banner),
+        banner: cleanBanners(g.banners, g.banner)[0] || "",
+        deliveryType: ["stock", "live_chat", "robux_send", "gift_code", "topup"].includes(g.deliveryType)
           ? (g.deliveryType === "gift_code" ? "stock" : g.deliveryType)
           : "stock",
         requireUsername: !!g.requireUsername,
@@ -1001,6 +1614,32 @@ app.put("/api/admin/local-products", adminAuth, (req, res) => {
         servers: [],
         idHintKm: String(g.idHintKm || ""),
         idHintEn: String(g.idHintEn || ""),
+        tutorialVideoUrl: (() => {
+          const u = String(g.tutorialVideoUrl || "").trim();
+          if (/^\/uploads\/[\w.-]{1,120}$/.test(u)) return u;
+          if (/^https:\/\/[^\s"'<>]{1,490}$/.test(u)) return u;
+          return "";
+        })(),
+        tutorialVideoTitle: String(g.tutorialVideoTitle || "").trim().slice(0, 120),
+        customerNoteKm: String(g.customerNoteKm || "").trim().slice(0, 1000),
+        customerNoteEn: String(g.customerNoteEn || "").trim().slice(0, 1000),
+        supportContact: String(g.supportContact || "https://t.me/kairozen_support").trim().slice(0, 120),
+        safetyGuide: (() => {
+          const sg = g.safetyGuide && typeof g.safetyGuide === "object" ? g.safetyGuide : {};
+          const stepsKm = Array.isArray(sg.stepsKm)
+            ? sg.stepsKm.map((x) => String(x).slice(0, 200)).filter(Boolean).slice(0, 6)
+            : [];
+          const stepsEn = Array.isArray(sg.stepsEn)
+            ? sg.stepsEn.map((x) => String(x).slice(0, 200)).filter(Boolean).slice(0, 6)
+            : stepsKm;
+          return {
+            enabled: !!sg.enabled,
+            titleKm: String(sg.titleKm || "សូមអានមុនបន្ត").slice(0, 80),
+            titleEn: String(sg.titleEn || "Please read before continuing").slice(0, 80),
+            stepsKm,
+            stepsEn,
+          };
+        })(),
         packs,
       };
     })
@@ -1028,6 +1667,130 @@ app.put("/api/admin/kt-selection", adminAuth, (req, res) => {
   updateSettings({ ktSelection: selection });
   res.json({ selection });
 });
+
+app.get("/api/admin/dino-games", adminAuth, async (req, res) => {
+  if (!dinoTopup.isDinoReady()) {
+    return res.status(503).json({ error: "DINO_TOPUP_API_KEY not set" });
+  }
+  try {
+    const want = String(req.query.game || "").trim();
+    const skipped = [];
+    let games = [];
+
+    if (want) {
+      try {
+        const data = await dinoTopup.listProducts(want);
+        games = dinoTopup.normalizeGamesPayload(data);
+      } catch (e) {
+        skipped.push({ game: want, error: e.message });
+      }
+    } else {
+      // 1) Full catalog without filter (docs: game optional)
+      try {
+        const data = await dinoTopup.listProducts();
+        games = dinoTopup.normalizeGamesPayload(data);
+      } catch (e) {
+        skipped.push({ game: "*", error: e.message });
+      }
+
+      // 2) If API returned few games, merge common ids individually
+      const known = [
+        "ml", "ff", "pubg", "hok", "genshin", "roblox",
+        "valorant", "codm", "aov", "wildrift", "lol",
+        "steam", "itunes", "google-play", "delta", "blood-strike",
+        "honor", "zepeto", "magic-chess", "lifeafter", "identity-v",
+      ];
+      const have = new Set(games.map((g) => String(g.slug).toLowerCase()));
+      if (games.length < 8) {
+        for (const gid of known) {
+          if (have.has(gid)) continue;
+          try {
+            const data = await dinoTopup.listProducts(gid);
+            for (const g of dinoTopup.normalizeGamesPayload(data)) {
+              const key = String(g.slug).toLowerCase();
+              if (have.has(key)) continue;
+              have.add(key);
+              games.push(g);
+            }
+          } catch (e) {
+            skipped.push({ game: gid, error: e.message || e.code || "fail" });
+          }
+        }
+      }
+    }
+
+    // de-dupe by slug
+    const seen = new Set();
+    const uniq = [];
+    for (const g of games) {
+      const k = String(g.slug).toLowerCase();
+      if (seen.has(k)) continue;
+      seen.add(k);
+      uniq.push(g);
+    }
+
+    res.json({
+      games: uniq,
+      count: uniq.length,
+      skipped: skipped.slice(0, 30),
+      selection: getSettings().dinoSelection || { markupPercent: 0, games: {} },
+    });
+  } catch (e) {
+    res.status(502).json({ error: e.message });
+  }
+});
+
+app.put("/api/admin/dino-selection", adminAuth, (req, res) => {
+  const selection = catalog.sanitizeSelection(req.body);
+  updateSettings({ dinoSelection: selection });
+  res.json({ selection });
+});
+
+/* ---------- Price watch (Khmer + Dino) ---------- */
+app.get("/api/admin/kt-prices", adminAuth, async (req, res) => {
+  const provider = String(req.query.provider || "khmer").toLowerCase() === "dino" ? "dino" : "khmer";
+  if (provider === "khmer" && !khmerTopup.isTopupReady()) {
+    return res.status(503).json({ error: "KHMER_TOPUP_API_KEY not set" });
+  }
+  if (provider === "dino" && !dinoTopup.isDinoReady()) {
+    return res.status(503).json({ error: "DINO_TOPUP_API_KEY not set" });
+  }
+  try {
+    const data = await priceWatch.latestChanges(provider);
+    res.json({ ok: true, ...data, snapshots: priceWatch.listSnapshots(provider, 15) });
+  } catch (e) {
+    console.error("[kt-prices]", e);
+    res.status(502).json({ ok: false, error: e.message || String(e) });
+  }
+});
+
+app.post("/api/admin/kt-prices/snapshot", adminAuth, async (req, res) => {
+  const provider = String(req.body?.provider || req.query.provider || "khmer").toLowerCase() === "dino" ? "dino" : "khmer";
+  if (provider === "khmer" && !khmerTopup.isTopupReady()) {
+    return res.status(503).json({ error: "KHMER_TOPUP_API_KEY not set" });
+  }
+  if (provider === "dino" && !dinoTopup.isDinoReady()) {
+    return res.status(503).json({ error: "DINO_TOPUP_API_KEY not set" });
+  }
+  try {
+    const r = await priceWatch.takeSnapshot(provider, { force: true });
+    // Don't serialize full prices map to client (huge)
+    res.json({
+      ok: true,
+      skipped: r.skipped,
+      provider: r.provider,
+      previousAt: r.previousAt || null,
+      snapshot: r.snapshot ? { at: r.snapshot.at, count: r.snapshot.count } : null,
+      changes: r.changes || [],
+      snapshots: priceWatch.listSnapshots(provider, 15),
+    });
+  } catch (e) {
+    console.error("[kt-prices/snapshot]", e);
+    res.status(502).json({ ok: false, error: e.message || String(e) });
+  }
+});
+
+
 
 /* ---------- Image uploads (game + package images) ---------- */
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
@@ -1057,6 +1820,23 @@ app.post("/api/admin/upload", adminAuth, express.raw({ type: () => true, limit: 
   const name = `${Date.now().toString(36)}-${crypto.randomBytes(6).toString("hex")}.${ext}`;
   fs.writeFileSync(path.join(UPLOAD_DIR, name), req.body);
   res.json({ url: `/uploads/${name}` });
+});
+
+/** Identify mp4/mov/webm from real bytes (never trust filename / content-type). */
+function sniffVideo(b) {
+  if (!Buffer.isBuffer(b) || b.length < 16) return null;
+  if (b.toString("ascii", 4, 8) === "ftyp") return "mp4"; // mp4 / m4v / mov (iPhone)
+  if (b[0] === 0x1a && b[1] === 0x45 && b[2] === 0xdf && b[3] === 0xa3) return "webm";
+  return null;
+}
+
+/* Tutorial video upload (TikTok Khmer admin) — max 60MB, mp4 / mov / webm */
+app.post("/api/admin/upload-video", adminAuth, express.raw({ type: () => true, limit: "60mb" }), (req, res) => {
+  const ext = sniffVideo(req.body);
+  if (!ext) return res.status(400).json({ error: "bad_video" });
+  const name = `vid-${Date.now().toString(36)}-${crypto.randomBytes(6).toString("hex")}.${ext}`;
+  fs.writeFileSync(path.join(UPLOAD_DIR, name), req.body);
+  res.json({ url: `/uploads/${name}`, size: req.body.length });
 });
 
 /* ---------- Branding: favicon / app icon / manifest follow the logo uploaded in Admin ---------- */
@@ -1098,6 +1878,9 @@ app.get("/manifest.webmanifest", (_req, res) => {
   res.setHeader("Cache-Control", "no-cache");
   res.type("application/manifest+json").send(JSON.stringify(branding.buildManifest(base)));
 });
+
+/** OPEN ABA Mobile — MUST be before SPA catch-all or React treats /open-aba as admin */
+app.get("/open-aba", (req, res) => khmerSystemPay.openAbaRoute(req, res));
 
 if (fs.existsSync(DIST)) {
   // Serve assets but NEVER auto-serve index.html (we inject ADMIN_PATH ourselves)
@@ -1155,22 +1938,151 @@ app.use((err, _req, res, next) => {
   res.status(500).json({ error: "server_error" });
 });
 
-// Auto backup every 6 hours
-setInterval(() => {
+// Auto backup every 5 hours → disk + Telegram bot/channel
+async function backupAndSendTelegram() {
   try {
     const dest = runAutoBackup();
     if (dest) auditLog("backup_auto", { dest });
   } catch (e) {
     console.error("[backup]", e.message);
   }
-}, 6 * 60 * 60 * 1000).unref?.();
-try {
-  runAutoBackup();
-} catch {}
+  try {
+    const payload = exportFullBackup();
+    const r = await tg.sendBackupToTelegram(payload);
+    auditLog("backup_telegram", { ok: !!r?.ok, error: r?.error || null });
+  } catch (e) {
+    console.error("[backup-telegram]", e.message);
+  }
+}
+setInterval(() => {
+  backupAndSendTelegram();
+}, 5 * 60 * 60 * 1000).unref?.();
+// first run ~2 min after boot (avoid cold-start race)
+setTimeout(() => {
+  backupAndSendTelegram();
+}, 2 * 60 * 1000).unref?.();
 
 
-/** OPEN ABA Mobile — same as Kai- bot */
-app.get("/open-aba", (req, res) => khmerSystemPay.openAbaRoute(req, res));
+
+
+/** Worker / admin helper: list Robux Send queue (secret or admin session). */
+function robuxWorkerAuth(req) {
+  const secret = (process.env.ROBUX_WORKER_SECRET || process.env.ADMIN_TOKEN || "").trim();
+  const h = String(req.headers["x-robux-secret"] || req.headers["x-admin-token"] || "").trim();
+  if (secret && h && safeEq(h, secret)) return true;
+  return false;
+}
+
+app.get("/api/robux/pending", (req, res) => {
+  if (!robuxWorkerAuth(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  const all = listOrders();
+  const pending = (all || []).filter(
+    (o) =>
+      o &&
+      (o.status === "queued" || o.status === "paid" || o.status === "processing") &&
+      (o.deliveryType === "robux_send" || o.deliveryType === "live_chat") &&
+      o.needsManual
+  );
+  res.json({
+    ok: true,
+    orders: pending.map((o) => ({
+      id: o.id,
+      userId: o.userId,
+      gameName: o.gameName,
+      packName: o.packName,
+      qty: o.qty,
+      total: o.total,
+      status: o.status,
+      paidAt: o.paidAt,
+      note: o.note,
+    })),
+  });
+});
+
+app.post("/api/robux/complete", express.json(), (req, res) => {
+  if (!robuxWorkerAuth(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  const id = String(req.body?.orderId || "").trim();
+  const receipt = String(req.body?.receipt || "").trim().slice(0, 200);
+  if (!id) return res.status(400).json({ ok: false, error: "orderId required" });
+  const o = getOrder(id);
+  if (!o) return res.status(404).json({ ok: false, error: "not_found" });
+  if (!["queued", "paid", "processing"].includes(o.status)) {
+    return res.status(400).json({ ok: false, error: "bad_status", status: o.status });
+  }
+  const updated = updateOrder(id, {
+    status: "delivered",
+    needsManual: false,
+    deliveredAt: Date.now(),
+    transferReceipt: receipt || o.transferReceipt || "",
+    note: (o.note || "") + (receipt ? ` | receipt ${receipt}` : " | marked delivered"),
+  });
+  try { tg.notifyOrder("delivered", updated).catch(() => {}); } catch {}
+  res.json({ ok: true, order: publicOrder(updated) });
+});
+
+
+
+
+// —— Dino Topups webhook (order.updated) ——
+app.post("/api/webhook/dino", async (req, res) => {
+  try {
+    const secret = (process.env.DINO_WEBHOOK_SECRET || getSettings().dinoWebhookSecret || "").trim();
+    // Unsigned webhooks are never accepted (anyone could otherwise change order status)
+    if (!secret) return res.status(503).json({ ok: false, error: "webhook_secret_not_set" });
+    const raw = typeof req.rawBody === "string" ? req.rawBody : "";
+    const ts = req.headers["x-dino-timestamp"];
+    const sig = req.headers["x-dino-signature"];
+    if (!raw || !dinoTopup.verifyWebhookSignature(raw, ts, sig, secret)) {
+      return res.status(401).json({ ok: false, error: "bad_signature" });
+    }
+    const event = typeof req.body === "object" && req.body ? req.body : JSON.parse(raw || "{}");
+    const data = event.data?.order || event.order || event.data || {};
+    const ref = data.reference || data.order_id;
+    if (ref) {
+      const orders = typeof listOrders === "function" ? listOrders() : getOrders();
+      const list = Array.isArray(orders) ? orders : (orders?.orders || []);
+      const o = list.find((x) => x.id === ref || x.dinoOrderId === data.order_id || x.dinoReference === String(ref));
+      // Only orders that really were paid may be changed by a provider webhook
+      const payable = o && (o.providerPaid || ["paid", "processing", "queued", "done", "delivered"].includes(o.status));
+      if (o && payable) {
+        const st = dinoTopup.summarizeDinoStatus(data.status);
+        updateOrder(o.id, {
+          dinoStatus: data.status,
+          dinoOrderId: data.order_id || o.dinoOrderId,
+          status: data.status === "success" ? "done" : data.status === "failed" ? "paid" : st.done ? o.status : "processing",
+          note: `Dino webhook: ${data.status}`,
+          needsManual: data.status === "failed",
+        });
+      }
+    }
+    res.status(200).json({ ok: true });
+  } catch (e) {
+    console.error("dino webhook", e.message);
+    res.status(200).json({ ok: true });
+  }
+});
+
+app.get("/api/admin/dino/balance", adminAuth, async (_req, res) => {
+  if (!dinoTopup.isDinoReady()) return res.status(503).json({ ok: false, error: "not_configured" });
+  try {
+    res.json({ ok: true, ...(await dinoTopup.getBalance()) });
+  } catch (e) {
+    res.status(502).json({ ok: false, error: e.message });
+  }
+});
+
+app.get("/api/admin/dino/products", adminAuth, async (req, res) => {
+  if (!dinoTopup.isDinoReady()) return res.status(503).json({ ok: false, error: "not_configured" });
+  try {
+    res.json(await dinoTopup.listProducts(req.query.game));
+  } catch (e) {
+    res.status(502).json({ ok: false, error: e.message });
+  }
+});
+
+/* Safety net: every minute (and shortly after boot) deliver any order still waiting for stock */
+setInterval(() => fulfillAwaitingStock(), 60 * 1000).unref?.();
+setTimeout(() => fulfillAwaitingStock(), 10 * 1000).unref?.();
 
 app.listen(PORT, () => {
   console.log(`Porpor TOPUP on :${PORT}`);

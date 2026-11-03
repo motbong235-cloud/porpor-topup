@@ -172,9 +172,13 @@ export async function checkPayment(paymentId) {
       signal: AbortSignal.timeout(15000),
     });
     const data = await r.json();
-    const status = String(data.status || "").toUpperCase();
-    const paid = !!data.ok && status === "PAID";
-    return { paid, status: status.toLowerCase(), amount: data.amount, raw: data };
+    const status = String(data.status || data.payment_status || data.state || "").toUpperCase();
+    const paidFlag = data.ok === true || data.paid === true || data.success === true;
+    const paidStatuses = new Set(["PAID", "SUCCESS", "COMPLETED", "COMPLETE", "DONE", "SETTLED"]);
+    const paid = paidFlag || paidStatuses.has(status);
+    const code = data.status_code ?? data.code;
+    const paidByCode = code === 1 || code === "1" || code === 200;
+    return { paid: !!(paid || paidByCode), status: status.toLowerCase() || (paid ? "paid" : "unknown"), amount: data.amount ?? data.total ?? data.paid_amount, raw: data };
   } catch (e) {
     return { paid: false, error: e.message || String(e) };
   }
@@ -203,7 +207,7 @@ export function openAbaHtml(deeplink) {
 <style>
 body{font-family:system-ui,sans-serif;background:#0b1220;color:#e8eefc;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;text-align:center;padding:1.5rem}
 .card{background:#121a2f;border-radius:16px;padding:1.5rem;max-width:360px;border:1px solid #24304d}
-a.btn{display:inline-block;margin-top:1rem;padding:.85rem 1.2rem;border-radius:12px;background:linear-gradient(135deg,#1d6adf,#22d3ee);color:#fff;font-weight:700;text-decoration:none}
+a.btn{display:inline-block;margin-top:1rem;padding:.85rem 1.2rem;border-radius:12px;background:linear-gradient(135deg,#0fa06e,#22d3ee);color:#fff;font-weight:700;text-decoration:none}
 </style></head><body>
 <div class="card">
   <h1>ABA Mobile</h1>

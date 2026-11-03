@@ -1,7 +1,23 @@
 /**
- * ABA PayWay (Node port of khmer_system.py)
+ * ABA PayWay / KHQR flow for Porpor TOPUP
+ * ----------------------------------------
+ * 1) Checkout  → createQr(amount, orderId)
+ *    POST {KHMER_SYSTEM_URL}/aba-api/generate-qr
+ *    body: { api_key, merchant_id, username, amount }
+ *    ← payment_id, qr_image, qr_string, pay_url, deeplink
+ *
+ * 2) Customer scans KHQR (any bank) OR taps OPEN ABA Mobile (deeplink)
+ *
+ * 3) Poll GET /api/checkout/:id/status
+ *    → checkPayment(payment_id) via POST /aba-api/check-payment
+ *    when PAID → order status "paid" → fulfillTopup (Khmer TopUp)
+ *
  * Env: ABA_API_KEY, ABA_MERCHANT_ID
+ * Optional: KHMER_SYSTEM_URL (default https://khmer-system.com)
+ *           QR_EXPIRE_SEC (default 3600 = 1h), PUBLIC_BASE_URL (for /open-aba)
  */
+import { getSettings } from "./store.js";
+
 const BASE_URL = process.env.KHMER_SYSTEM_URL || "https://khmer-system.com";
 const CREATE_URL = `${BASE_URL}/aba-api/generate-qr`;
 const CHECK_URL = `${BASE_URL}/aba-api/check-payment`;
@@ -12,10 +28,35 @@ function clean(v) {
     .replace(/[\s\u200b\ufeff]+/g, "")
     .replace(/^["'`]+|["'`]+$/g, "");
 }
-function apiKey() {
+function apiKey(opts = {}) {
+  // TikTok / Kai route: prefer Kai merchant credentials (same wallet as bot Kai-)
+  if (opts.useKai) {
+    try {
+      const s = getSettings() || {};
+      const k = clean(s.kaiAbaKey || process.env.KAI_ABA_API_KEY || process.env.ABA_API_KEY);
+      if (k) return k;
+    } catch {}
+  }
+  try {
+    const s = getSettings() || {};
+    const k = clean(s.abaApiKey || "");
+    if (k) return k;
+  } catch {}
   return clean(process.env.ABA_API_KEY);
 }
-function merchantId() {
+function merchantId(opts = {}) {
+  if (opts.useKai) {
+    try {
+      const s = getSettings() || {};
+      const m = clean(s.kaiAbaMerchant || process.env.KAI_ABA_MERCHANT_ID || process.env.ABA_MERCHANT_ID);
+      if (m) return m;
+    } catch {}
+  }
+  try {
+    const s = getSettings() || {};
+    const m = clean(s.abaMerchantId || "");
+    if (m) return m;
+  } catch {}
   return clean(process.env.ABA_MERCHANT_ID);
 }
 
@@ -83,19 +124,23 @@ const HEADERS = {
  *   POST /aba-api/generate-qr  { api_key, merchant_id, username, amount }
  *   → { ok: true, payment_id, qr_image, card_image, pay_url, expires_at }
  */
-export async function createQr(amount, billNumber, username) {
-  if (!isPaymentReady()) {
+export async function createQr(amount, billNumber, username, opts = {}) {
+  const useKai = !!(opts && opts.useKai);
+  const keyOpts = { useKai };
+  if (!apiKey(keyOpts) || !merchantId(keyOpts)) {
     return {
       success: false,
-      error: "ABA_API_KEY or ABA_MERCHANT_ID not set",
+      error: useKai
+        ? "Kai ABA key/merchant not set (Admin → Kai ABA, same as bot Kai-)"
+        : "ABA_API_KEY or ABA_MERCHANT_ID not set",
       simulation: true,
     };
   }
 
   const QR_EXPIRE_SEC = Math.max(3600, Number(process.env.QR_EXPIRE_SEC || 3600) || 3600); // min 1 hour
   const payload = {
-    api_key: apiKey(),
-    merchant_id: merchantId(),
+    api_key: apiKey(keyOpts),
+    merchant_id: merchantId(keyOpts),
     username: makeUsername(username || `p${billNumber}`),
     amount: Math.round(Number(amount) * 100) / 100,
     // Request longer QR lifetime when the provider supports it
@@ -104,19 +149,23 @@ export async function createQr(amount, billNumber, username) {
     ttl: QR_EXPIRE_SEC,
   };
 
+  let lastErr = "unknown";
+  for (let attempt = 1; attempt <= 2; attempt++) {
   try {
     const r = await fetch(CREATE_URL, {
       method: "POST",
       headers: HEADERS,
       body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(20000),
+      signal: AbortSignal.timeout(25000),
     });
     const text = await r.text();
     let data;
     try {
       data = JSON.parse(text);
     } catch {
-      return { success: false, error: `HTTP ${r.status} (non-JSON): ${text.slice(0, 200)}` };
+      lastErr = `HTTP ${r.status} (non-JSON): ${text.slice(0, 200)}`;
+      if (attempt < 2) { await new Promise((x) => setTimeout(x, 800)); continue; }
+      return { success: false, error: lastErr };
     }
 
     if (data.ok && data.payment_id) {
@@ -160,25 +209,35 @@ export async function createQr(amount, billNumber, username) {
         raw: { ...data, card_image: undefined, qr_image: undefined },
       };
     }
-    return {
-      success: false,
-      error: data.message || data.error || "Failed to create QR",
-      raw: data,
-    };
+    lastErr = data.message || data.error || "Failed to create QR";
+    if (attempt < 2) { await new Promise((x) => setTimeout(x, 800)); continue; }
+    return { success: false, error: lastErr, raw: data };
   } catch (e) {
-    return { success: false, error: e.message || String(e) };
+    lastErr = e.message || String(e);
+    if (attempt < 2) { await new Promise((x) => setTimeout(x, 800)); continue; }
+    return { success: false, error: lastErr };
   }
+  } // retry loop
+  return { success: false, error: lastErr };
 }
 
-/** POST /aba-api/check-payment { api_key, merchant_id, payment_id } → { ok, status: "PAID" | ... } */
-export async function checkPayment(paymentId) {
-  if (!isPaymentReady()) {
+/**
+ * POST /aba-api/check-payment
+ * CRITICAL: never treat response.ok / success / HTTP 200 as "customer paid".
+ * Those only mean the API call worked. Paid requires explicit status/paid flag.
+ */
+export async function checkPayment(paymentId, opts = {}) {
+  const keyOpts = { useKai: !!(opts && opts.useKai) };
+  if (!apiKey(keyOpts) || !merchantId(keyOpts)) {
     return { paid: false, error: "Keys not set", simulation: true };
+  }
+  if (!paymentId) {
+    return { paid: false, error: "missing payment_id" };
   }
 
   const payload = {
-    api_key: apiKey(),
-    merchant_id: merchantId(),
+    api_key: apiKey(keyOpts),
+    merchant_id: merchantId(keyOpts),
     payment_id: String(paymentId),
   };
 
@@ -189,10 +248,44 @@ export async function checkPayment(paymentId) {
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(15000),
     });
-    const data = await r.json();
-    const status = String(data.status || "").toUpperCase();
-    const paid = !!data.ok && status === "PAID";
-    return { paid, status: status.toLowerCase(), amount: data.amount, raw: data };
+    let data;
+    try {
+      data = await r.json();
+    } catch {
+      return { paid: false, error: `HTTP ${r.status} non-JSON` };
+    }
+
+    const status = String(
+      data.status || data.payment_status || data.state || data.tran_status || "",
+    ).toUpperCase().trim();
+
+    // Explicit paid only — ignore data.ok / data.success (API ack, not payment)
+    const paidStatuses = new Set(["PAID", "SUCCESS", "COMPLETED", "COMPLETE", "DONE", "SETTLED"]);
+    const unpaidStatuses = new Set([
+      "PENDING", "UNPAID", "WAITING", "CREATED", "EXPIRED", "FAILED", "CANCELLED", "CANCELED", "TIMEOUT", "OPEN",
+    ]);
+
+    let paid = false;
+    if (data.paid === true || String(data.paid).toLowerCase() === "true") paid = true;
+    if (paidStatuses.has(status)) paid = true;
+    if (unpaidStatuses.has(status)) paid = false;
+
+    // Provider-specific codes ONLY when they mean payment state (not HTTP)
+    // e.g. payment_status_code === "0" sometimes means paid on ABA — require status too
+    const psc = data.payment_status_code ?? data.tran_status_code;
+    if (psc !== undefined && psc !== null && String(psc) !== "" && paidStatuses.has(status)) {
+      paid = true;
+    }
+
+    // Never mark paid from simulation / missing keys responses
+    if (data.simulation) paid = false;
+
+    return {
+      paid: !!paid,
+      status: status.toLowerCase() || (paid ? "paid" : "pending"),
+      amount: data.amount ?? data.total ?? data.paid_amount,
+      raw: data,
+    };
   } catch (e) {
     return { paid: false, error: e.message || String(e) };
   }

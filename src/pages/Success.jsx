@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Icon } from "../components/Icons";
 import { Link, useSearchParams } from "react-router-dom";
 import { t } from "../lib/i18n";
 import { money } from "../lib/store";
+import RobuxRain from "../components/RobuxRain";
 
 /**
  * Payment Successful page (like dinotopups):
@@ -9,14 +11,49 @@ import { money } from "../lib/store";
  * - Live Chat → Telegram admin with Order ID + amount prefilled
  * - Customer does not fill anything else
  */
+/** YouTube video id from watch / youtu.be / shorts / live / embed links (with extra params). */
+function youtubeId(raw) {
+  try {
+    const u = new URL(String(raw || "").trim());
+    const h = u.hostname.replace(/^(www|m|music)\./, "");
+    let id = "";
+    if (h === "youtu.be") id = u.pathname.split("/")[1] || "";
+    else if (h === "youtube.com" || h === "youtube-nocookie.com") {
+      if (u.pathname === "/watch") id = u.searchParams.get("v") || "";
+      else {
+        const m = u.pathname.match(/^\/(?:embed|shorts|live|v)\/([\w-]{6,20})/);
+        if (m) id = m[1];
+      }
+    }
+    return /^[\w-]{6,20}$/.test(id) ? id : "";
+  } catch {
+    return "";
+  }
+}
+
+function isDirectVideo(u) {
+  const s = String(u || "").split("?")[0].toLowerCase();
+  return s.startsWith("/uploads/") || /\.(mp4|m4v|mov|webm)$/.test(s);
+}
+
 export default function Success({ lang, settings }) {
   const [params] = useSearchParams();
   const code = (params.get("code") || "").trim();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(!!code);
   const [err, setErr] = useState("");
+  const [gameMeta, setGameMeta] = useState(null);
 
   const telegram = settings?.telegram || "https://t.me/porportopup";
+  const isTikTok = useMemo(() => {
+    // Tutorial video + note are only for the TikTok Khmer service (not any game with "tiktok" in its name)
+    return String(order?.gameId || "").toLowerCase() === "tiktok-khmer";
+  }, [order]);
+  const isRobux = useMemo(() => {
+    const dt = String(order?.deliveryType || "");
+    const name = String(order?.gameName || "").toLowerCase();
+    return dt === "robux_send" || name.includes("robux");
+  }, [order]);
 
   useEffect(() => {
     if (!code) {
@@ -43,6 +80,23 @@ export default function Success({ lang, settings }) {
       clearInterval(timer);
     };
   }, [code]);
+
+  useEffect(() => {
+    if (!order?.gameId) return;
+    let alive = true;
+    fetch("/api/catalog")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((list) => {
+        if (!alive) return;
+        const games = Array.isArray(list) ? list : list?.games || [];
+        const g = games.find((x) => String(x.id) === String(order.gameId));
+        setGameMeta(g || null);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [order?.gameId]);
 
   function openLiveChat(o) {
     const lines =
@@ -139,7 +193,7 @@ export default function Success({ lang, settings }) {
   }
 
   const isGift = ["stock", "live_chat", "gift_code"].includes(order.deliveryType);
-  const paid = order.status !== "pending" && order.status !== "failed";
+  const paid = order.providerPaid || order.paidAt || ["paid", "delivered", "processing", "done", "success", "completed"].includes(String(order.status || "").toLowerCase());
 
   return (
     <div className="container success-page">
@@ -228,7 +282,7 @@ export default function Success({ lang, settings }) {
                 : "Your code was delivered automatically (copy above). Contact Live Chat if needed."}
             </p>
             <button type="button" className="btn success-livechat" onClick={() => openLiveChat(order)}>
-              Live Chat
+              <Icon name="chat" size={17} /> Live Chat
             </button>
           </div>
         ) : (
@@ -239,10 +293,83 @@ export default function Success({ lang, settings }) {
                 : "Open Live Chat with Admin to receive your code. Order ID is attached automatically."}
             </p>
             <button type="button" className="btn success-livechat" onClick={() => openLiveChat(order)}>
-              Live Chat
+              <Icon name="chat" size={17} /> Live Chat
             </button>
           </div>
         )}
+
+
+        {isRobux ? <RobuxRain count={14} /> : null}
+
+        {isTikTok && paid ? (
+          <div className="tt-tutorial">
+            <h3>
+              {gameMeta?.tutorialVideoTitle ||
+                (lang === "km" ? "Video បង្រៀន · TikTok Khmer" : "Tutorial video · TikTok Khmer")}
+            </h3>
+            {gameMeta?.tutorialVideoUrl ? (
+              (() => {
+                const url = String(gameMeta.tutorialVideoUrl);
+                const yt = youtubeId(url);
+                const openLabel = lang === "km" ? "បើក Video ក្នុងផ្ទាំងថ្មី" : "Open video in a new tab";
+                if (yt) {
+                  return (
+                    <iframe
+                      title="tutorial"
+                      src={`https://www.youtube-nocookie.com/embed/${yt}?rel=0&playsinline=1`}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      referrerPolicy="strict-origin-when-cross-origin"
+                      loading="lazy"
+                      allowFullScreen
+                    />
+                  );
+                }
+                if (isDirectVideo(url)) {
+                  return (
+                    <>
+                      <video src={url} controls playsInline preload="metadata" />
+                      <a className="tt-video-open" href={url} target="_blank" rel="noopener noreferrer">
+                        <Icon name="external" size={14} /> {openLabel}
+                      </a>
+                    </>
+                  );
+                }
+                // Facebook / Telegram / Drive … cannot be embedded: show a clear button instead of an empty box
+                return (
+                  <a className="btn bg-brand tt-video-link" href={url} target="_blank" rel="noopener noreferrer">
+                    <Icon name="external" size={16} /> {lang === "km" ? "មើល Video បង្រៀន" : "Watch tutorial video"}
+                  </a>
+                );
+              })()
+            ) : (
+              <p className="tt-tutorial-note">
+                {lang === "km"
+                  ? "Admin នឹងដាក់ video បង្រៀនក្នុង Settings TikTok Khmer"
+                  : "Admin can set tutorial video in TikTok Khmer settings"}
+              </p>
+            )}
+            <div className="tt-tutorial-note">
+              {(lang === "km"
+                ? gameMeta?.customerNoteKm
+                : gameMeta?.customerNoteEn) ||
+                (lang === "km"
+                  ? "អរគុណសម្រាប់ការបញ្ជាទិញ! សូមមើល video បង្រៀនខាងលើ។ បើត្រូវការជំនួយ ទាក់ទង Support។"
+                  : "Thank you for your order! Watch the tutorial above. Contact support if you need help.")}
+            </div>
+            <a
+              className="btn bg-brand tt-support-btn"
+              href={
+                (gameMeta?.supportContact || "https://t.me/kairozen_support").startsWith("http")
+                  ? gameMeta?.supportContact || "https://t.me/kairozen_support"
+                  : `https://t.me/${String(gameMeta?.supportContact || "kairozen_support").replace(/^@/, "")}`
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {lang === "km" ? "ទាក់ទង Support @kairozen_support" : "Contact Support @kairozen_support"}
+            </a>
+          </div>
+        ) : null}
 
         <div className="success-actions">
           <Link to="/" className="btn btn-soft">
