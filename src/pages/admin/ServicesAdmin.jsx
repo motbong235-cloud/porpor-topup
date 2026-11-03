@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AIcon, ImageSlot, PageHead, Switch, WideImageSlot, api, toast, usd } from "./ui";
+import { AIcon, ImageSlot, PageHead, Switch, api, toast, usd } from "./ui";
 
-const blank = { enabled: false, showWhenOff: false, featured: false, markup: null, packages: null, image: "", banner: "", banners: [], packIcon: "", packImages: {} };
+const blank = { enabled: false, showWhenOff: false, featured: false, markup: null, packages: null, image: "", packIcon: "", packImages: {} };
 
 function sellPrice(cost, markup) {
   return Math.ceil(cost * (1 + (Number(markup) || 0) / 100) * 100 - 1e-9) / 100;
@@ -11,66 +11,6 @@ function markOf(name) {
   const w = String(name).replace(/[^\p{L}\p{N} ]/gu, "").split(/\s+/).filter(Boolean);
   if (!w.length) return "?";
   return (w.length === 1 ? w[0].slice(0, 2) : w[0][0] + w[1][0]).toUpperCase();
-}
-
-
-const MAX_BANNERS = 5;
-
-/** 1–5 banners per service. Empty slot at the end adds another (until 5). */
-function BannerManager({ banners, legacy, onChange }) {
-  const list = banners && banners.length ? banners : legacy ? [legacy] : [];
-  const set = (next) => onChange(next.slice(0, MAX_BANNERS));
-  function move(i, d) {
-    const j = i + d;
-    if (j < 0 || j >= list.length) return;
-    const next = [...list];
-    [next[i], next[j]] = [next[j], next[i]];
-    set(next);
-  }
-  return (
-    <div className="ad-banner-set">
-      <div className="ad-banner-label">
-        <strong><AIcon name="image" size={16} /> Banner សម្រាប់ service នេះ ({list.length}/{MAX_BANNERS})</strong>
-        <small>
-          Service ១ = Banner ផ្ទាល់ខ្លួន (មិនចែកជាមួយ service ផ្សេង) ·
-          បង្ហាញនៅកន្លែង logo ខាងលើទំព័រ service · 1600×500 · 1–5 រូប
-        </small>
-      </div>
-      <div className="ad-banner-list">
-        {list.map((url, i) => (
-          <div key={i} className="ad-banner-item">
-            <WideImageSlot
-              src={url}
-              ratio="16 / 5"
-              maxWidth={1600}
-              label={`Banner ${i + 1}`}
-              onUrl={(u) => set(list.map((x, k) => (k === i ? u : x)))}
-              onClear={() => set(list.filter((_, k) => k !== i))}
-            />
-            {list.length > 1 ? (
-              <div className="ad-banner-move">
-                <span>#{i + 1}</span>
-                <button type="button" className="ad-btn soft sm" disabled={i === 0} onClick={() => move(i, -1)} aria-label="ឡើងលើ"><AIcon name="arrowUp" size={14} /></button>
-                <button type="button" className="ad-btn soft sm" disabled={i === list.length - 1} onClick={() => move(i, 1)} aria-label="ចុះក្រោម"><AIcon name="arrowDown" size={14} /></button>
-              </div>
-            ) : null}
-          </div>
-        ))}
-        {list.length < MAX_BANNERS ? (
-          <div className="ad-banner-item">
-            <WideImageSlot
-              src=""
-              ratio="16 / 5"
-              maxWidth={1600}
-              label={list.length ? "+ បន្ថែម banner service នេះ" : "Upload Banner (service នេះតែម្តង)"}
-              hint={list.length ? `នៅសល់ ${MAX_BANNERS - list.length}` : "1600 × 500 px"}
-              onUrl={(u) => set([...list, u])}
-            />
-          </div>
-        ) : null}
-      </div>
-    </div>
-  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -115,7 +55,6 @@ function GameCard({ g, s, defaultMarkup, isOpen, onToggleOpen, patch }) {
           </div>
           <div className="ad-tags">
             {s.image ? <span className="ad-tag">រូបផ្ទាល់ខ្លួន</span> : null}
-            {(s.banners?.length || s.banner) ? <span className="ad-tag ok">Banner {s.banners?.length || 1}</span> : null}
             {s.enabled ? (
               <span className="ad-tag ok">កំពុងលក់ · {chosen.size} កញ្ចប់</span>
             ) : s.showWhenOff ? (
@@ -130,12 +69,6 @@ function GameCard({ g, s, defaultMarkup, isOpen, onToggleOpen, patch }) {
           <small>{s.enabled ? "បើក" : "បិទ"}</small>
         </div>
       </div>
-
-      <BannerManager
-        banners={s.banners}
-        legacy={s.banner}
-        onChange={(list) => patch(g.slug, { banners: list, banner: list[0] || "" })}
-      />
 
       <div className="ad-game-controls">
         <button
@@ -249,7 +182,7 @@ function GameCard({ g, s, defaultMarkup, isOpen, onToggleOpen, patch }) {
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 
-/* ─── Local services (Roblox / manual delivery) ─── */
+/* ─── Local services (Gift cards / manual delivery) ─── */
 function blankLocal() {
   return {
     id: "",
@@ -263,13 +196,8 @@ function blankLocal() {
     open: true,
     hue: 210,
     mark: "GC",
-    image: "",
-    banner: "",
-    banners: [],
     deliveryType: "gift_code",
-    idHintKm: "",
-    idHintEn: "",
-    packs: [{ id: "", name: "", price: 0, cost: 0, category: "Roblox" }],
+    packs: [{ id: "", name: "", price: 0, cost: 0, category: "Gift Card" }],
   };
 }
 
@@ -346,7 +274,6 @@ function LocalServicesPanel() {
       setStockCounts((c) => ({ ...c, [packId]: d.count }));
       setStockOk(true);
       toast(mode === "append" ? `បន្ថែមស្តុក · សរុប ${d.count}` : `ស្តុកថ្មី · ${d.count} កូដ`);
-      if (d.autoDelivered > 0) toast(`បានបញ្ជូនស្វ័យប្រវត្តិ ${d.autoDelivered} order ដែលកំពុងរង់ចាំស្តុក`);
       if (mode !== "append") setStockDraft((s) => ({ ...s, [packId]: "" }));
     } catch {
       setStockOk(false);
@@ -372,9 +299,9 @@ function LocalServicesPanel() {
       hue: isChat ? 280 : 210,
       mark: isChat ? "LC" : "ST",
       image: "",
-      deliveryType: isChat ? "live_chat" : (p.deliveryType === "robux_send" ? "robux_send" : "stock"),
+      deliveryType: isChat ? "live_chat" : "stock",
       requireUsername: isChat ? true : false,
-      packs: [{ id: `${id}-1`, name: "Pack 1", nameKm: "Pack 1", price: 1, cost: 1, category: "Roblox", image: "" }],
+      packs: [{ id: `${id}-1`, name: "Pack 1", nameKm: "Pack 1", price: 1, cost: 1, category: "Gift Card", image: "" }],
     };
     setProducts((x) => [...x, p]);
     setEditIdx(products.length);
@@ -398,7 +325,7 @@ function LocalServicesPanel() {
         const n = (p.packs || []).length + 1;
         return {
           ...p,
-          packs: [...(p.packs || []), { id: `${p.id}-${n}`, name: `Pack ${n}`, nameKm: `Pack ${n}`, price: 1, cost: 1, category: "Roblox", image: "" }],
+          packs: [...(p.packs || []), { id: `${p.id}-${n}`, name: `Pack ${n}`, nameKm: `Pack ${n}`, price: 1, cost: 1, category: "Gift Card", image: "" }],
         };
       }),
     );
@@ -440,10 +367,10 @@ function LocalServicesPanel() {
             <AIcon name="refresh" size={16} /> ផ្ទុក
           </button>
           <button type="button" className="ad-btn soft" onClick={() => addProduct("stock")}>
-            <AIcon name="plus" size={15} /> ស្តុក
+            + ស្តុក
           </button>
           <button type="button" className="ad-btn soft" onClick={() => addProduct("live_chat")}>
-            <AIcon name="plus" size={15} /> Live Chat
+            + Live Chat
           </button>
           <button type="button" className="ad-btn primary" disabled={saving} onClick={() => save(products)}>
             {saving ? "…" : (<><AIcon name="check" size={16} /> រក្សាទុក</>)}
@@ -454,24 +381,10 @@ function LocalServicesPanel() {
       <div className="ad-local-body">
         {/* Stock zone */}
         <div className="ad-stock-zone">
-          <div className="ad-stock-zone-head">
-            <div className="ad-stock-zone-title">
-              <span className="ad-stock-ico" aria-hidden>
-                <AIcon name="box" size={18} />
-              </span>
-              <div>
-                <strong>ដាក់ស្តុកកូដ</strong>
-                <p>បិទកូដ ១ បន្ទាត់ = ១ កូដ · បន្ថែម = រក្សាចាស់ · ជំនួស = លុបចាស់</p>
-              </div>
-            </div>
-            <div className="ad-stock-summary">
-              <span className="ad-stock-pill">
-                {stockPacks.length} packs
-              </span>
-              <span className={`ad-stock-pill ${(Object.values(stockCounts).reduce((a, b) => a + (Number(b) || 0), 0)) > 0 ? "ok" : "empty"}`}>
-                សរុប {Object.values(stockCounts).reduce((a, b) => a + (Number(b) || 0), 0)} កូដ
-              </span>
-            </div>
+          <div className="ad-section-title">
+            <AIcon name="box" size={18} />
+            <strong>ដាក់ស្តុកកូដ</strong>
+            <span className="ad-muted">សម្រាប់ service ប្រភេទស្តុក</span>
           </div>
 
           {!stockOk ? (
@@ -484,81 +397,50 @@ function LocalServicesPanel() {
           {loading ? (
             <div className="ad-loading"><span className="ad-spin" /> កំពុងផ្ទុក…</div>
           ) : stockPacks.length === 0 ? (
-            <div className="ad-stock-empty">
-              <div className="ad-stock-empty-ico"><AIcon name="box" size={28} /></div>
-              <strong>មិនទាន់មាន pack ស្តុក</strong>
-              <p>ចុចប៊ូតុង <b>+ ស្តុក</b> ខាងលើ ដើម្បីបង្កើត service រួចបន្ថែម pack</p>
-            </div>
+            <p className="ad-muted">មិនទាន់មាន pack ស្តុក — ចុច <b>+ ស្តុក</b> ខាងលើ</p>
           ) : (
             <div className="ad-stock-list">
-              {stockPacks.map(({ service, pack: pk }) => {
-                const left = stockCounts[pk.id] || 0;
-                const busy = stockBusy === pk.id;
-                const lines = String(stockDraft[pk.id] ?? "")
-                  .split(/\n/)
-                  .map((x) => x.trim())
-                  .filter(Boolean).length;
-                return (
-                  <div key={pk.id} className={`ad-stock-card${left > 0 ? " has" : " low"}`}>
-                    <div className="ad-stock-card-top">
-                      <div className="ad-stock-card-info">
-                        <div className="ad-stock-card-name">
-                          <strong>{pk.name || pk.id}</strong>
-                          <span className="ad-stock-svc">{service}</span>
-                        </div>
-                        <div className="ad-stock-card-meta">
-                          <code>{pk.id}</code>
-                          <span>${Number(pk.price || 0).toFixed(2)}</span>
-                        </div>
-                      </div>
-                      <div className={`ad-stock-badge${left > 0 ? " ok" : " zero"}`}>
-                        <span className="ad-stock-badge-n">{left}</span>
-                        <span className="ad-stock-badge-l">នៅសល់</span>
+              {stockPacks.map(({ service, pack: pk }) => (
+                <div key={pk.id} className="ad-stock-card">
+                  <div className="ad-stock-card-top">
+                    <div>
+                      <strong>{service}</strong>
+                      <span className="ad-muted"> · {pk.name || pk.id}</span>
+                      <div className="ad-mono-sm">
+                        <code>{pk.id}</code> · ${Number(pk.price || 0).toFixed(2)}
                       </div>
                     </div>
-
-                    <label className="ad-stock-label">
-                      បិទកូដ (១ បន្ទាត់ ១ កូដ)
-                      {lines > 0 ? <em> · {lines} បន្ទាត់</em> : null}
-                    </label>
-                    <textarea
-                      className="ad-stock-ta"
-                      rows={4}
-                      placeholder={"CODE-001\nCODE-002\nCODE-003"}
-                      value={stockDraft[pk.id] ?? ""}
-                      onChange={(e) => setStockDraft((s) => ({ ...s, [pk.id]: e.target.value }))}
-                    />
-
-                    <div className="ad-stock-actions">
-                      <button
-                        type="button"
-                        className="ad-btn primary"
-                        disabled={busy}
-                        onClick={() => saveStock(pk.id, "append")}
-                      >
-                        {busy ? "…" : (<><AIcon name="box" size={15} /> បន្ថែមស្តុក</>)}
-                      </button>
-                      <button
-                        type="button"
-                        className="ad-btn soft"
-                        disabled={busy}
-                        onClick={() => confirm("ជំនួសស្តុកទាំងអស់? កូដចាស់នឹងត្រូវលុប។") && saveStock(pk.id, "replace")}
-                      >
-                        ជំនួសទាំងអស់
-                      </button>
-                      <button
-                        type="button"
-                        className="ad-btn soft sm"
-                        disabled={busy || !(stockDraft[pk.id] || "").trim()}
-                        onClick={() => setStockDraft((s) => ({ ...s, [pk.id]: "" }))}
-                        title="សម្អាត"
-                      >
-                        សម្អាត
-                      </button>
-                    </div>
+                    <span className={`ad-tag${(stockCounts[pk.id] || 0) > 0 ? " ok" : ""}`}>
+                      នៅសល់ {stockCounts[pk.id] || 0}
+                    </span>
                   </div>
-                );
-              })}
+                  <textarea
+                    className="ad-stock-ta"
+                    rows={3}
+                    placeholder={"CODE-001\nCODE-002\nCODE-003"}
+                    value={stockDraft[pk.id] ?? ""}
+                    onChange={(e) => setStockDraft((s) => ({ ...s, [pk.id]: e.target.value }))}
+                  />
+                  <div className="ad-row-btns">
+                    <button
+                      type="button"
+                      className="ad-btn primary"
+                      disabled={stockBusy === pk.id}
+                      onClick={() => saveStock(pk.id, "append")}
+                    >
+                      <AIcon name="box" size={15} /> បន្ថែមស្តុក
+                    </button>
+                    <button
+                      type="button"
+                      className="ad-btn soft"
+                      disabled={stockBusy === pk.id}
+                      onClick={() => confirm("ជំនួសស្តុកទាំងអស់?") && saveStock(pk.id, "replace")}
+                    >
+                      ជំនួស
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -596,7 +478,6 @@ function LocalServicesPanel() {
                         {(p.packs || []).length} packs
                         {isStock ? ` · ស្តុក ${totalStock}` : " · Live Chat"}
                         {needUser ? " · Username" : ""}
-                        {(p.banners?.length || p.banner) ? ` · Banner ${p.banners?.length || 1}` : ""}
                       </small>
                     </div>
                     <span className={`ad-tag${isStock ? " ok" : ""}`}>{isStock ? "ស្តុក" : "Live Chat"}</span>
@@ -631,14 +512,11 @@ function LocalServicesPanel() {
                         បង្ហាញជា OFF
                       </label>
                     ) : null}
-                    <button type="button" className={`ad-btn${(p.banners?.length || p.banner) ? " primary" : " soft"} sm`} onClick={() => setEditIdx(i)} title="កំណត់ banner">
-                      <AIcon name="upload" size={13} /> Banner
-                    </button>
                     <button type="button" className="ad-btn soft sm" onClick={() => setEditIdx(open ? -1 : i)}>
                       {open ? "បិទ" : "កែ"}
                     </button>
                     <button type="button" className="ad-btn danger sm" onClick={() => removeProduct(i)}>
-                      <AIcon name="trash" size={14} /> លុប
+                      លុប
                     </button>
                   </div>
 
@@ -674,110 +552,8 @@ function LocalServicesPanel() {
                               onChange={(e) => updateAt(i, { blurbKm: e.target.value, blurbEn: e.target.value })}
                             />
                           </label>
-                          {(p.deliveryType === "live_chat" || (!p.deliveryType && needUser)) ? (
-                            <label className="span-2">
-                              Note លើទំព័រ (Live Chat / ដោយដៃ) — អាចកែបាន
-                              <textarea
-                                rows={3}
-                                value={p.idHintKm || ""}
-                                placeholder="យើងខ្ញុំមិនទាមទារ Password… បង់រួចទទួល Order ID រួចផ្ញើតាម Live Chat…"
-                                onChange={(e) =>
-                                  updateAt(i, { idHintKm: e.target.value, idHintEn: e.target.value })
-                                }
-                              />
-                            </label>
-                          ) : null}
-
-                          {(p.deliveryType === "live_chat") ? (
-                            <div className="ad-safety-box span-2">
-                              <label className="ad-check-row">
-                                <input
-                                  type="checkbox"
-                                  checked={!!(p.safetyGuide && p.safetyGuide.enabled)}
-                                  onChange={(e) =>
-                                    updateAt(i, {
-                                      safetyGuide: {
-                                        ...(p.safetyGuide || {}),
-                                        enabled: e.target.checked,
-                                        titleKm: (p.safetyGuide && p.safetyGuide.titleKm) || "សូមអានមុនបន្ត",
-                                        titleEn: (p.safetyGuide && p.safetyGuide.titleEn) || "Please read before continuing",
-                                        stepsKm:
-                                          (p.safetyGuide && p.safetyGuide.stepsKm) || [
-                                            "បើក Settings ក្នុង Roblox → បិទ Select / Unselect និង Kid",
-                                            "កុំផ្តល់ Password — Admin មិនសុំ Password",
-                                            "បង់រួចផ្ញើ Order ID តាម Live Chat",
-                                          ],
-                                        stepsEn:
-                                          (p.safetyGuide && p.safetyGuide.stepsEn) || [
-                                            "Open Roblox Settings → turn off Select / Unselect and Kid",
-                                            "Never share your password — Admin never asks for it",
-                                            "After payment, send Order ID via Live Chat",
-                                          ],
-                                      },
-                                    })
-                                  }
-                                />
-                                <span>បង្ហាញ Popup ការណែនាំពេលចូល service (ដោយដៃ)</span>
-                              </label>
-                              {p.safetyGuide?.enabled ? (
-                                <>
-                                  <label>
-                                    ចំណងជើង Popup
-                                    <input
-                                      value={p.safetyGuide?.titleKm || ""}
-                                      onChange={(e) =>
-                                        updateAt(i, {
-                                          safetyGuide: {
-                                            ...p.safetyGuide,
-                                            titleKm: e.target.value,
-                                            titleEn: e.target.value,
-                                          },
-                                        })
-                                      }
-                                    />
-                                  </label>
-                                  <label>
-                                    ជំហាន (១ បន្ទាត់ = ១ ជំហាន)
-                                    <textarea
-                                      rows={4}
-                                      value={(p.safetyGuide?.stepsKm || []).join("\n")}
-                                      onChange={(e) => {
-                                        const steps = e.target.value
-                                          .split("\n")
-                                          .map((x) => x.trim())
-                                          .filter(Boolean)
-                                          .slice(0, 6);
-                                        updateAt(i, {
-                                          safetyGuide: {
-                                            ...p.safetyGuide,
-                                            stepsKm: steps,
-                                            stepsEn: steps,
-                                          },
-                                        });
-                                      }}
-                                    />
-                                  </label>
-                                </>
-                              ) : null}
-                            </div>
-                          ) : null}
                         </div>
                       </div>
-
-                      <BannerManager
-                        banners={p.banners}
-                        legacy={p.banner}
-                        onChange={(list) => {
-                          setProducts((prev) => {
-                            const next = prev.map((p, idx) =>
-                              idx === i ? { ...p, banners: list, banner: list[0] || "" } : p
-                            );
-                            // autosave banner so service keeps its own image
-                            setTimeout(() => save(next), 400);
-                            return next;
-                          });
-                        }}
-                      />
 
                       <div className="ad-mode-label">របៀបដំណើរការ</div>
                       <div className="ad-mode-grid">
@@ -841,12 +617,12 @@ function LocalServicesPanel() {
                             onChange={(e) => updatePack(i, j, { cost: Number(e.target.value) })}
                           />
                           <button type="button" className="ad-btn danger sm" onClick={() => removePack(i, j)}>
-                            <AIcon name="x" size={14} />
+                            ×
                           </button>
                         </div>
                       ))}
                       <button type="button" className="ad-btn soft sm" onClick={() => addPack(i)}>
-                        <AIcon name="plus" size={14} /> Pack
+                        + Pack
                       </button>
                     </div>
                   ) : null}
@@ -861,235 +637,7 @@ function LocalServicesPanel() {
 }
 
 
-
-
-function DinoPanel() {
-  const blankD = { enabled: false, showWhenOff: false, featured: false, markup: null, packages: null, image: "", banner: "", banners: [], packIcon: "", packImages: {} };
-  const [games, setGames] = useState(null);
-  const [sel, setSel] = useState({ markupPercent: 0, games: {} });
-  const [err, setErr] = useState("");
-  const [open, setOpen] = useState("");
-  const [q, setQ] = useState("");
-  const [filter, setFilter] = useState("all");
-  const [gameFilter, setGameFilter] = useState("");
-  const [balance, setBalance] = useState(null);
-  const [skipped, setSkipped] = useState([]);
-  const [gameCount, setGameCount] = useState(0);
-
-  const [rev, setRev] = useState(0);
-  const [savedRev, setSavedRev] = useState(0);
-  const [saving, setSaving] = useState(false);
-  const [saveErr, setSaveErr] = useState(false);
-  const selRef = useRef(sel);
-  selRef.current = sel;
-  const revRef = useRef(0);
-
-  const load = useCallback(() => {
-    setErr("");
-    setGames(null);
-    const qs = gameFilter ? `?game=${encodeURIComponent(gameFilter)}` : "";
-    api(`/api/admin/dino-games${qs}`)
-      .then((d) => {
-        setGames(d.games || []);
-        setGameCount(d.count || (d.games || []).length);
-        setSkipped(Array.isArray(d.skipped) ? d.skipped : []);
-        setSel({
-          markupPercent: d.selection?.markupPercent || 0,
-          games: d.selection?.games || {},
-        });
-        revRef.current = 0;
-        setRev(0);
-        setSavedRev(0);
-      })
-      .catch((e) => {
-        const m = e.message || "";
-        setErr(
-          m.includes("not set") || m.includes("not_configured")
-            ? "មិនទាន់កំណត់ DINO_TOPUP_API_KEY លើ Render"
-            : m || "មិនអាចទាញ Dino games",
-        );
-        setGames([]);
-      });
-    api("/api/admin/dino/balance")
-      .then((b) => setBalance(b))
-      .catch(() => setBalance(null));
-  }, [gameFilter]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  const save = useCallback(async () => {
-    const myRev = revRef.current;
-    setSaving(true);
-    setSaveErr(false);
-    try {
-      await api("/api/admin/dino-selection", {
-        method: "PUT",
-        body: JSON.stringify(selRef.current),
-      });
-      setSavedRev(myRev);
-    } catch {
-      setSaveErr(true);
-      toast("រក្សាទុក Dino មិនបាន", "bad");
-    } finally {
-      setSaving(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (rev === savedRev || saveErr) return;
-    const t = setTimeout(save, 700);
-    return () => clearTimeout(t);
-  }, [rev, savedRev, save, saveErr]);
-
-  function touch() {
-    revRef.current += 1;
-    setRev(revRef.current);
-    setSaveErr(false);
-  }
-
-  const patch = useCallback((slug, p) => {
-    setSel((s) => ({
-      ...s,
-      games: { ...s.games, [slug]: { ...blankD, ...(s.games[slug] || {}), ...p } },
-    }));
-    touch();
-  }, []);
-
-  const enabledCount = Object.values(sel.games).filter((g) => g.enabled).length;
-  const list = useMemo(() => {
-    const s = q.trim().toLowerCase();
-    return (games || []).filter((g) => {
-      const on = !!sel.games[g.slug]?.enabled;
-      if (filter === "on" && !on) return false;
-      if (filter === "off" && on) return false;
-      return !s || g.name.toLowerCase().includes(s) || g.slug.toLowerCase().includes(s);
-    });
-  }, [games, q, filter, sel.games]);
-
-  const stateLabel = saveErr ? (
-    <button type="button" className="ad-save err" onClick={save}>
-      <AIcon name="alert" size={14} /> រក្សាទុកមិនបាន — ចុចម្តងទៀត
-    </button>
-  ) : saving ? (
-    <span className="ad-save"><span className="ad-spin" /> កំពុងរក្សាទុក…</span>
-  ) : rev !== savedRev ? (
-    <span className="ad-save wait">មានការផ្លាស់ប្តូរ…</span>
-  ) : (
-    <span className="ad-save ok"><AIcon name="check" size={14} /> បានរក្សាទុករួច</span>
-  );
-
-  return (
-    <>
-      <PageHead km="Dino Topups" en="Enable games · upload images · same controls as Khmer">
-        {stateLabel}
-      </PageHead>
-
-      <header className="ad-dino-head-bar">
-        <div className="ad-dino-bal">
-          {balance?.balance != null || balance?.ok ? (
-            <>
-              <small>Wallet Dino</small>
-              <strong>${Number(balance.balance ?? 0).toFixed(2)}</strong>
-            </>
-          ) : (
-            <>
-              <small>Wallet</small>
-              <strong className="muted">—</strong>
-            </>
-          )}
-        </div>
-        <p className="ad-muted">
-          Provider ដាច់ពី Khmer · Settings ត្រូវជ្រើស <b>Dino</b> · Pack ID = product id Dino
-        </p>
-      </header>
-
-      {err ? <p className="ad-error">{err}</p> : null}
-      {!err && gameCount > 0 ? (
-        <p className="ad-muted">រកឃើញ <b>{gameCount}</b> ហ្គេមពី Dino API{skipped.length ? ` · skip ${skipped.length}` : ""}</p>
-      ) : null}
-      {skipped.length > 0 && gameCount < 5 ? (
-        <p className="ad-error" style={{ fontSize: 12 }}>
-          game ids មួយចំនួន fail — ពិនិត្យ key ឬ Dino catalog: {skipped.slice(0, 5).map((x) => x.game).join(", ")}
-        </p>
-      ) : null}
-
-      <section className="ad-card ad-toolbar">
-        <div className="ad-search grow">
-          <AIcon name="search" size={16} />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ស្វែងរកហ្គេម Dino…" />
-        </div>
-        <label className="ad-inline big">
-          Filter game
-          <select value={gameFilter} onChange={(e) => setGameFilter(e.target.value)}>
-            <option value="">ទាំងអស់ (ml, ff…)</option>
-            <option value="ml">ml</option>
-            <option value="ff">ff</option>
-            <option value="pubg">pubg</option>
-            <option value="hok">hok</option>
-            <option value="genshin">genshin</option>
-            <option value="roblox">roblox</option>
-          </select>
-        </label>
-        <label className="ad-inline big">
-          បូកថែមទូទៅ %
-          <input
-            type="number"
-            min="0"
-            step="0.5"
-            value={sel.markupPercent}
-            onChange={(e) => {
-              setSel((s) => ({ ...s, markupPercent: e.target.value }));
-              touch();
-            }}
-          />
-        </label>
-      </section>
-
-      <div className="ad-chips">
-        {[
-          ["all", "ទាំងអស់", games?.length || 0],
-          ["on", "កំពុងលក់", enabledCount],
-          ["off", "មិនលក់", Math.max(0, (games?.length || 0) - enabledCount)],
-        ].map(([k, label, n]) => (
-          <button key={k} type="button" className={`ad-chip${filter === k ? " active" : ""}`} onClick={() => setFilter(k)}>
-            {label} <em>{n}</em>
-          </button>
-        ))}
-        <span className="grow" />
-        <button type="button" className="ad-btn soft sm" onClick={load}>
-          <AIcon name="refresh" size={14} /> ទាញពី Dino
-        </button>
-      </div>
-
-      {!games ? (
-        <div className="ad-loading"><span className="ad-spin" /> កំពុងទាញបញ្ជី Dino…</div>
-      ) : null}
-      {games && !err && games.length === 0 ? (
-        <p className="ad-empty card">Dino មិនមានហ្គេម — ពិនិត្យ API key</p>
-      ) : null}
-      {games && games.length > 0 && list.length === 0 ? <p className="ad-empty card">រកមិនឃើញ</p> : null}
-
-      <div className="ad-games">
-        {list.map((g) => (
-          <GameCard
-            key={g.slug}
-            g={g}
-            s={{ ...blankD, ...(sel.games[g.slug] || {}) }}
-            defaultMarkup={sel.markupPercent}
-            isOpen={open === g.slug}
-            onToggleOpen={() => setOpen(open === g.slug ? "" : g.slug)}
-            patch={patch}
-          />
-        ))}
-      </div>
-    </>
-  );
-}
-
 export default function ServicesAdmin() {
-  const [tab, setTab] = useState("local"); // local | khmer | dino
   const [games, setGames] = useState(null);
   const [sel, setSel] = useState({ markupPercent: 0, games: {} });
   const [err, setErr] = useState("");
@@ -1207,28 +755,9 @@ export default function ServicesAdmin() {
   );
 
   return (
-    <div className="ad-page-services">
-      <PageHead km="សេវាកម្ម" en="Local · Khmer TopUp · Dino — separated" />
-
-      <div className="ad-seg" role="tablist">
-        <button type="button" role="tab" className={tab === "local" ? "on" : ""} onClick={() => setTab("local")}>
-          ស្តុក / Live Chat
-        </button>
-        <button type="button" role="tab" className={tab === "khmer" ? "on" : ""} onClick={() => setTab("khmer")}>
-          Khmer TopUp
-        </button>
-        <button type="button" role="tab" className={tab === "dino" ? "on" : ""} onClick={() => setTab("dino")}>
-          Dino Topups
-        </button>
-      </div>
-
-      {tab === "local" ? <LocalServicesPanel /> : null}
-
-      {tab === "dino" ? <DinoPanel /> : null}
-
-      {tab === "khmer" || tab === "topup" ? (
-      <>
-      <PageHead km="Khmer TopUp" en="Games from Khmer TopUp API only — separate from Dino">
+    <div>
+      <LocalServicesPanel />
+      <PageHead km="សេវាហ្គេម" en="Choose which Khmer TopUp games to sell · upload images">
         {stateLabel}
       </PageHead>
 
@@ -1296,8 +825,6 @@ export default function ServicesAdmin() {
           />
         ))}
       </div>
-      </>
-      ) : null}
     </div>
   );
 }

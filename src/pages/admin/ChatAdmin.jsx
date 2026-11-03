@@ -1,39 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AIcon, api } from "./ui";
 import "./Admin.css";
-
-const QUICK = [
-  { t: "សួស្តី! មានអ្វីអាចជួយបាន?", s: "សួស្តី" },
-  { t: "កំពុងពិនិត្យ Order ឲ្យ…", s: "កំពុងពិនិត្យ" },
-  { t: "បានរួចរាល់ហើយ ✅", s: "រួចរាល់" },
-  { t: "សូមរង់ចាំបន្តិច", s: "រង់ចាំ" },
-  { t: "សូមផ្ញើរូបភស្តុតាង", s: "ផ្ញើរូប" },
-];
-
-function fmtTime(at) {
-  if (!at) return "";
-  try {
-    const d = new Date(at);
-    const now = new Date();
-    const same =
-      d.getFullYear() === now.getFullYear() &&
-      d.getMonth() === now.getMonth() &&
-      d.getDate() === now.getDate();
-    if (same) return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    return d.toLocaleDateString([], { day: "2-digit", month: "short" });
-  } catch {
-    return "";
-  }
-}
-
-function preview(m) {
-  if (!m) return "—";
-  if (m.type === "image") return "📷 រូបភាព";
-  if (m.type === "voice" || m.type === "audio") return "🎤 សំឡេង";
-  const t = (m.text || "").trim();
-  if (!t) return "—";
-  return t.length > 42 ? t.slice(0, 42) + "…" : t;
-}
 
 export default function ChatAdmin() {
   const [threads, setThreads] = useState([]);
@@ -42,14 +9,10 @@ export default function ChatAdmin() {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [filter, setFilter] = useState("");
   const listRef = useRef(null);
-  const inputRef = useRef(null);
   const fileRef = useRef(null);
-  const activeRef = useRef(null);
-  activeRef.current = active;
 
-  const loadThreads = useCallback(async () => {
+  async function loadThreads() {
     try {
       const data = await api("/api/admin/chat/threads");
       setThreads(data.threads || []);
@@ -58,31 +21,20 @@ export default function ChatAdmin() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }
 
-  const loadMessages = useCallback(async (id, silent = false) => {
-    if (!id) return;
+  async function openThread(id) {
+    setActive(id);
     try {
       const data = await api(`/api/admin/chat/${id}`);
       setMessages(data.messages || []);
       requestAnimationFrame(() => {
-        const el = listRef.current;
-        if (!el) return;
-        if (!silent || el.scrollHeight - el.scrollTop - el.clientHeight < 100) {
-          el.scrollTop = el.scrollHeight;
-        }
+        if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
       });
+      loadThreads();
     } catch {
-      if (!silent) setMessages([]);
+      setMessages([]);
     }
-  }, []);
-
-  async function openThread(id) {
-    setActive(id);
-    setText("");
-    await loadMessages(id);
-    await loadThreads();
-    requestAnimationFrame(() => inputRef.current?.focus());
   }
 
   async function uploadBlob(blob) {
@@ -92,6 +44,7 @@ export default function ChatAdmin() {
       headers: { "Content-Type": blob.type || "application/octet-stream" },
       body: blob,
     });
+    // admin upload only accepts images — for voice use chat upload
     if (!r.ok) {
       const r2 = await fetch("/api/chat/upload", {
         method: "POST",
@@ -105,23 +58,21 @@ export default function ChatAdmin() {
     return r.json();
   }
 
-  async function sendText(raw) {
-    const body = (raw ?? text).trim();
-    if (!body || !active || sending) return;
+  async function send(e) {
+    e?.preventDefault?.();
+    if (!text.trim() || !active || sending) return;
     setSending(true);
     try {
       const data = await api(`/api/admin/chat/${active}`, {
         method: "POST",
-        body: JSON.stringify({ type: "text", text: body }),
+        body: JSON.stringify({ type: "text", text: text.trim() }),
       });
       if (data.message) {
         setMessages((m) => [...m, data.message]);
         setText("");
         requestAnimationFrame(() => {
           if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
-          inputRef.current?.focus();
         });
-        loadThreads();
       }
     } catch {}
     setSending(false);
@@ -130,233 +81,108 @@ export default function ChatAdmin() {
   async function sendImage(e) {
     const file = e.target.files?.[0];
     e.target.value = "";
-    if (!file || !active || sending) return;
+    if (!file || !active) return;
     setSending(true);
     try {
       const up = await uploadBlob(file);
       const data = await api(`/api/admin/chat/${active}`, {
         method: "POST",
-        body: JSON.stringify({ type: "image", mediaUrl: up.url || up.path, text: "" }),
+        body: JSON.stringify({ type: "image", mediaUrl: up.url }),
       });
-      if (data.message) {
-        setMessages((m) => [...m, data.message]);
-        requestAnimationFrame(() => {
-          if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
-        });
-        loadThreads();
-      }
+      if (data.message) setMessages((m) => [...m, data.message]);
     } catch {}
     setSending(false);
   }
 
-  function onKeyDown(e) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendText(text);
-    }
-  }
+  useEffect(() => {
+    loadThreads();
+    const t = setInterval(loadThreads, 4000);
+    return () => clearInterval(t);
+  }, []);
 
-  function mediaSrc(m) {
-    return m.mediaUrl || m.url || (m.type === "image" || m.type === "voice" ? m.text : "") || "";
-  }
+  useEffect(() => {
+    if (!active) return;
+    const t = setInterval(() => openThread(active), 3500);
+    return () => clearInterval(t);
+  }, [active]);
 
   function renderBody(m) {
-    const src = mediaSrc(m);
-    if (m.type === "image" && src) {
+    if (m.type === "image" && m.mediaUrl) {
       return (
-        <a href={src} target="_blank" rel="noreferrer" className="ad-chat-img-wrap">
-          <img src={src} alt="" className="ad-chat-img" loading="lazy" />
+        <a href={m.mediaUrl} target="_blank" rel="noreferrer">
+          <img src={m.mediaUrl} alt="" style={{ maxWidth: 200, borderRadius: 10 }} />
         </a>
       );
     }
-    if ((m.type === "voice" || m.type === "audio") && src) {
-      return <audio controls preload="metadata" src={src} className="ad-chat-audio" />;
+    if (m.type === "voice" && m.mediaUrl) {
+      return <audio controls src={m.mediaUrl} style={{ maxWidth: 220 }} />;
     }
-    if (m.type === "image" || m.type === "voice") {
-      return <p className="ad-chat-text muted">{m.type === "image" ? "📷 (រូបភាព — URL ខូច)" : "🎤 (សំឡេង — URL ខូច)"}</p>;
-    }
-    return <p className="ad-chat-text">{m.text}</p>;
+    return m.text;
   }
 
-  useEffect(() => {
-    loadThreads();
-    const t = setInterval(() => {
-      loadThreads();
-      if (activeRef.current) loadMessages(activeRef.current, true);
-    }, 7000);
-    return () => clearInterval(t);
-  }, [loadThreads, loadMessages]);
-
-  const activeThread = threads.find((th) => th.id === active);
-  const q = filter.trim().toLowerCase();
-  const filtered = !q
-    ? threads
-    : threads.filter((th) =>
-        [th.name, th.ip, th.id, th.orderId, th.last?.text]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase()
-          .includes(q)
-      );
-
-  const unreadTotal = threads.reduce((s, th) => s + (th.unreadAdmin || 0), 0);
-
   return (
-    <div className="ad-chat-shell">
-      <div className="ad-chat-layout">
-        {/* Sidebar */}
-        <aside className="ad-chat-list">
-          <div className="ad-chat-list-head">
-            <div>
-              <h2>
-                Live Chat
-                {unreadTotal > 0 ? <span className="ad-chat-head-badge">{unreadTotal}</span> : null}
-              </h2>
-              <p className="ad-chat-sub">{threads.length} conversations</p>
+    <div className="ad-chat-layout">
+      <div className="ad-card ad-chat-list">
+        <div className="ad-card-head">
+          <h2>Live Chat</h2>
+          <button type="button" className="ad-btn soft sm" onClick={loadThreads}>
+            Refresh
+          </button>
+        </div>
+        {loading ? (
+          <div className="ad-loading">…</div>
+        ) : threads.length === 0 ? (
+          <div className="ad-empty">មិនទាន់មានសារ</div>
+        ) : (
+          <ul className="ad-chat-threads">
+            {threads.map((th) => (
+              <li key={th.id}>
+                <button
+                  type="button"
+                  className={active === th.id ? "active" : ""}
+                  onClick={() => openThread(th.id)}
+                >
+                  <strong>{th.ip || th.id}</strong>
+                  <span className="muted">
+                    {th.name ? `${th.name} · ` : ""}
+                    {th.orderId ? `Order ${th.orderId} · ` : ""}
+                    {th.last?.text?.slice(0, 36) || "—"}
+                  </span>
+                  {th.unreadAdmin > 0 ? <em className="badge">{th.unreadAdmin}</em> : null}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <div className="ad-card ad-chat-main">
+        {!active ? (
+          <div className="ad-empty">ជ្រើស conversation</div>
+        ) : (
+          <>
+            <div className="ad-card-head">
+              <h2>IP · {active}</h2>
             </div>
-            <button type="button" className="ad-btn soft sm" onClick={loadThreads}>
-              <AIcon name="refresh" size={15} /> Refresh
-            </button>
-          </div>
-
-          <div className="ad-chat-search">
-            <input
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              placeholder="ស្វែងរក ឈ្មោះ / IP / Order…"
-            />
-          </div>
-
-          {loading ? (
-            <div className="ad-loading">…</div>
-          ) : filtered.length === 0 ? (
-            <div className="ad-empty">មិនទាន់មានសារ</div>
-          ) : (
-            <ul className="ad-chat-threads">
-              {filtered.map((th) => {
-                const title = th.name || "Guest";
-                const lastAt = th.last?.at || th.updatedAt || th.at;
-                const unread = (th.unreadAdmin || 0) > 0;
-                return (
-                  <li key={th.id}>
-                    <button
-                      type="button"
-                      className={`ad-chat-item${active === th.id ? " active" : ""}${unread ? " has-unread" : ""}`}
-                      onClick={() => openThread(th.id)}
-                    >
-                      <div className="ad-chat-avatar">{(title[0] || "G").toUpperCase()}</div>
-                      <div className="ad-chat-item-body">
-                        <div className="ad-chat-item-top">
-                          <span className="ad-chat-item-name">{title}</span>
-                          <span className="ad-chat-item-time">{fmtTime(lastAt)}</span>
-                        </div>
-                        {th.orderId ? (
-                          <span className="ad-chat-chip">#{String(th.orderId).slice(0, 12)}</span>
-                        ) : (
-                          <span className="ad-chat-item-ip">{th.ip || th.id}</span>
-                        )}
-                        <div className={`ad-chat-item-preview${unread ? " bold" : ""}`}>
-                          {preview(th.last)}
-                        </div>
-                      </div>
-                      {unread ? <em className="ad-chat-unread">{th.unreadAdmin}</em> : null}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </aside>
-
-        {/* Main */}
-        <section className="ad-chat-main">
-          {!active ? (
-            <div className="ad-chat-empty-main">
-              <div className="ad-chat-empty-icon"><AIcon name="chat" size={40} /></div>
-              <strong>ជ្រើស conversation</strong>
-              <p>ចុចខាងឆ្វេងដើម្បីឆ្លើយអតិថិជន</p>
+            <div className="ad-chat-msgs" ref={listRef}>
+              {messages.map((m) => (
+                <div key={m.id} className={`ad-chat-bubble ${m.role}`}>
+                  {renderBody(m)}
+                  <time>{new Date(m.at).toLocaleString()}</time>
+                </div>
+              ))}
             </div>
-          ) : (
-            <>
-              <header className="ad-chat-main-head">
-                <div className="ad-chat-main-title">
-                  <div className="ad-chat-avatar lg">
-                    {(activeThread?.name || "G")[0].toUpperCase()}
-                  </div>
-                  <div className="ad-chat-main-meta">
-                    <h2>{activeThread?.name || "Guest"}</h2>
-                    <div className="ad-chat-meta-row">
-                      <code className="ad-chat-ip-tag">{active}</code>
-                      {activeThread?.orderId ? (
-                        <span className="ad-chat-chip">Order {activeThread.orderId}</span>
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
-              </header>
-
-              <div className="ad-chat-msgs" ref={listRef}>
-                {messages.length === 0 ? (
-                  <div className="ad-chat-no-msg">មិនទាន់មានសារ</div>
-                ) : (
-                  messages.map((m) => {
-                    const isAdmin = m.role === "admin" || m.role === "me" || m.role === "agent";
-                    return (
-                      <div key={m.id} className={`ad-chat-row ${isAdmin ? "admin" : "user"}`}>
-                        <div className={`ad-chat-bubble ${isAdmin ? "me" : "user"}`}>
-                          {renderBody(m)}
-                          <time>{fmtTime(m.at)}</time>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-
-              <div className="ad-chat-composer">
-                <div className="ad-chat-quick">
-                  {QUICK.map((q) => (
-                    <button
-                      key={q.s}
-                      type="button"
-                      className="ad-chat-quick-btn"
-                      disabled={sending}
-                      onClick={() => sendText(q.t)}
-                      title={q.t}
-                    >
-                      {q.s}
-                    </button>
-                  ))}
-                </div>
-                <form className="ad-chat-form" onSubmit={(e) => { e.preventDefault(); sendText(text); }}>
-                  <input ref={fileRef} type="file" accept="image/*" hidden onChange={sendImage} />
-                  <button
-                    type="button"
-                    className="ad-btn soft ad-chat-attach"
-                    onClick={() => fileRef.current?.click()}
-                    disabled={sending}
-                    title="ផ្ញើរូប"
-                  >
-                    <AIcon name="camera" size={18} />
-                  </button>
-                  <textarea
-                    ref={inputRef}
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
-                    onKeyDown={onKeyDown}
-                    placeholder="វាយសារ… Enter ផ្ញើ"
-                    rows={1}
-                    disabled={sending}
-                  />
-                  <button type="submit" className="ad-btn primary ad-chat-send" disabled={!text.trim() || sending}>
-                    <AIcon name="send" size={15} />
-                    {sending ? "…" : "ផ្ញើ"}
-                  </button>
-                </form>
-              </div>
-            </>
-          )}
-        </section>
+            <form className="ad-chat-form" onSubmit={send}>
+              <input ref={fileRef} type="file" accept="image/*" hidden onChange={sendImage} />
+              <button type="button" className="ad-btn soft" onClick={() => fileRef.current?.click()} disabled={sending} aria-label="Photo">
+                <AIcon name="camera" size={18} />
+              </button>
+              <input value={text} onChange={(e) => setText(e.target.value)} placeholder="ឆ្លើយតប…" />
+              <button type="submit" className="ad-btn primary" disabled={!text.trim() || sending}>
+                <AIcon name="send" size={15} /> ផ្ញើ
+              </button>
+            </form>
+          </>
+        )}
       </div>
     </div>
   );

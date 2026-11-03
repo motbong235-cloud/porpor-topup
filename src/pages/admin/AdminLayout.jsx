@@ -15,9 +15,7 @@ export default function AdminLayout({ adminPath = "pp-console" }) {
     { to: base, end: true, icon: "dashboard", km: "ផ្ទាំងគ្រប់គ្រង", en: "Dashboard" },
     { to: `${base}/orders`, icon: "orders", km: "ការបញ្ជាទិញ", en: "Orders" },
     { to: `${base}/services`, icon: "services", km: "សេវាហ្គេម", en: "Services" },
-    { to: `${base}/tiktok-khmer`, icon: "services", km: "TikTok Khmer", en: "TikTok packs" },
-    { to: `${base}/prices`, icon: "orders", km: "តាមដានតម្លៃ", en: "Prices" },
-    { to: `${base}/chat`, icon: "send", km: "Live Chat", en: "Live Chat" },
+    { to: `${base}/chat`, icon: "help", km: "Live Chat", en: "Live Chat" },
     { to: `${base}/settings`, icon: "settings", km: "ការកំណត់", en: "Settings" },
   ];
 
@@ -28,28 +26,10 @@ export default function AdminLayout({ adminPath = "pp-console" }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    let alive = true;
-    const t = setTimeout(() => {
-      if (alive) {
-        setAuthed(false);
-        setReady(true);
-      }
-    }, 4000);
     api("/api/admin/me")
-      .then(() => {
-        if (alive) setAuthed(true);
-      })
-      .catch(() => {
-        if (alive) setAuthed(false);
-      })
-      .finally(() => {
-        clearTimeout(t);
-        if (alive) setReady(true);
-      });
-    return () => {
-      alive = false;
-      clearTimeout(t);
-    };
+      .then(() => setAuthed(true))
+      .catch(() => setAuthed(false))
+      .finally(() => setReady(true));
   }, []);
 
   useEffect(() => {
@@ -63,26 +43,20 @@ export default function AdminLayout({ adminPath = "pp-console" }) {
     setErr("");
     setLoading(true);
     try {
-      const data = await api("/api/admin/login", {
+      await api("/api/admin/login", {
         method: "POST",
         body: JSON.stringify({ password }),
       });
-      if (data?.token) {
-        try { sessionStorage.setItem("pp_admin_token", data.token); } catch {}
-      }
       setAuthed(true);
       setPassword("");
-    } catch (e) {
-      const code = e?.data?.error || e?.message || "";
-      if (code === "locked") setErr("សាកល្បងច្រើនពេក — រង់ចាំបន្តិច");
-      else setErr("ពាក្យសម្ងាត់មិនត្រឹមត្រូវ");
+    } catch {
+      setErr("ពាក្យសម្ងាត់មិនត្រឹមត្រូវ");
     } finally {
       setLoading(false);
     }
   }
 
   async function logout() {
-    try { sessionStorage.removeItem("pp_admin_token"); } catch {}
     try {
       await api("/api/admin/logout", { method: "POST", body: "{}" });
     } catch {}
@@ -106,15 +80,17 @@ export default function AdminLayout({ adminPath = "pp-console" }) {
           <h1>
             Porpor <span>Admin</span>
           </h1>
+          <p>តំបន់គ្រប់គ្រងឯកជន · Private admin panel</p>
+          <p style={{ fontSize: 11, opacity: 0.55, marginTop: -6 }}>build {BUILD_TAG}</p>
           <label>
-            ពាក្យសម្ងាត់
+            ពាក្យសម្ងាត់ / Password
             <input
               type="password"
               autoFocus
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder=""
+              placeholder="••••••••"
             />
           </label>
           {err ? <div className="ad-login-err">{err}</div> : null}
@@ -137,12 +113,7 @@ export default function AdminLayout({ adminPath = "pp-console" }) {
         </Link>
         <nav>
           {NAV.map((n) => (
-            <NavLink
-              key={n.to}
-              to={n.to}
-              end={n.end}
-              className={({ isActive }) => (isActive ? "ad-link active" : "ad-link")}
-            >
+            <NavLink key={n.to} to={n.to} end={n.end} className="ad-link">
               <AIcon name={n.icon} />
               <span>
                 {n.km}
@@ -191,12 +162,7 @@ export default function AdminLayout({ adminPath = "pp-console" }) {
 
       <nav className="ad-tabs">
         {NAV.map((n) => (
-          <NavLink
-            key={n.to}
-            to={n.to}
-            end={n.end}
-            className={({ isActive }) => (isActive ? "active" : undefined)}
-          >
+          <NavLink key={n.to} to={n.to} end={n.end}>
             <AIcon name={n.icon} size={20} />
             <span>{n.km}</span>
           </NavLink>

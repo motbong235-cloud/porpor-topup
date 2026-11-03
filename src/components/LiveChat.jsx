@@ -5,7 +5,7 @@ import { Icon } from "./Icons";
  * Messenger-style in-site Live Chat — text, image, voice.
  * Thread bound to IP on server.
  */
-export function LiveChat({ lang = "km", openSignal = 0, logoUrl = "" }) {
+export function LiveChat({ lang = "km", openSignal = 0 }) {
   const [open, setOpen] = useState(false);
   const [thread, setThread] = useState("");
   const [messages, setMessages] = useState([]);
@@ -232,22 +232,16 @@ export function LiveChat({ lang = "km", openSignal = 0, logoUrl = "" }) {
           setUnread(0);
         }}
       >
-        {logoUrl ? (
-          <img src={logoUrl} alt="" className="livechat-fab-logo" />
-        ) : (
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2">
-            <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z" />
-          </svg>
-        )}
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2">
+          <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z" />
+        </svg>
         {unread > 0 ? <span className="livechat-badge">{unread}</span> : null}
       </button>
 
       <div className={`msgr-panel${open ? " open" : ""}`} role="dialog" aria-label={title}>
         <header className="msgr-head">
           <div className="msgr-head-left">
-            <div className="msgr-avatar">
-              {logoUrl ? <img src={logoUrl} alt="" /> : <span>PP</span>}
-            </div>
+            <div className="msgr-avatar">PP</div>
             <div>
               <strong>{title}</strong>
               <span className="msgr-status"><span className="msgr-dot" /> {online}</span>
@@ -273,9 +267,8 @@ export function LiveChat({ lang = "km", openSignal = 0, logoUrl = "" }) {
                 {lang === "km" ? (
                   <>
                     <p><b>1.</b> បន្ទាប់ពីបង់ប្រាក់រួច សូមផ្ញើ Order ID មកក្នុង chat នេះ</p>
-                    <p><b>2.</b> Robux / Roblox: ធ្វើ <b>Quick Sign-in</b> (ម៉ឺនុយ → Quick Sign-in → កូដ ៦ខ្ទង់ → Confirm)</p>
-                    <p><b>3.</b> គណនីត្រូវ Uncheck Kid · កុំផ្ញើ Password</p>
-                    <p><b>4.</b> Admin ដំណើរការ និង update ស្ថានភាព order</p>
+                    <p><b>2.</b> បើ service ត្រូវ Login (Roblox/Robux…) ផ្ញើ Username + ព័ត៌មានតាមសំណើ admin</p>
+                    <p><b>3.</b> Admin នឹងដំណើរការ និង update ស្ថានភាព order</p>
                     <p className="msgr-pin-note">កុំផ្ញើពាក្យសម្ងាត់ក្នុង chat បើមិនចាំបាច់</p>
                   </>
                 ) : (

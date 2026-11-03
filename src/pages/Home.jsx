@@ -5,65 +5,36 @@ import { money } from "../lib/store";
 import { t } from "../lib/i18n";
 import { GameTile, Icon } from "../components/Icons";
 
-function fallbackArt(g) {
-  const k = `${g?.id || ""} ${g?.name || ""}`.toLowerCase();
-  if (/gift|gc|card/.test(k) && /roblox|rbx/.test(k)) return "/icons/roblox-gift.svg";
-  if (/plus|premium/.test(k) && /roblox|rbx/.test(k)) return "/icons/roblox-plus.svg";
-  if (/robux|login/.test(k)) return "/icons/robux.svg";
-  if (/roblox|rbx/.test(k)) return "/icons/roblox.svg";
-  if (/mlbb|mobile.?legends|\bml\b/.test(k)) return "/icons/mlbb.svg";
-  return "/icons/roblox.svg";
-}
-
-
-function minPackPrice(game) {
-  const packs = Array.isArray(game?.packs) ? game.packs : [];
-  let m = null;
-  for (const p of packs) {
-    const n = Number(p?.price);
-    if (Number.isFinite(n) && n > 0 && (m == null || n < m)) m = n;
-  }
-  return m;
-}
-
 function GameCard({ game, lang, famous }) {
   const badge = !game.open ? (
     <span className="game-badge off">{t(lang, "off")}</span>
   ) : famous ? (
     <span className="game-badge hot">{t(lang, "hot")}</span>
   ) : null;
-  const from = minPackPrice(game);
+
+  const cta = game.open ? (
+    <span className="game-cta on">{t(lang, "topup")}</span>
+  ) : (
+    <span className="game-cta off">{t(lang, "maintenance")}</span>
+  );
 
   if (!game.open) {
     return (
-      <div className="game-card dino-card disabled" title={t(lang, "unavailable")}>
+      <div className="game-card disabled" title={t(lang, "unavailable")}>
         {badge}
-        <div className="game-card-art">
-          <GameTile game={game} />
-        </div>
-        <div className="game-card-body">
-          <div className="game-name">{game.name}</div>
-          <span className="game-cta off">{t(lang, "maintenance")}</span>
-        </div>
+        <GameTile game={game} />
+        <div className="game-name">{game.name}</div>
+        {cta}
       </div>
     );
   }
 
   return (
-    <Link className="game-card dino-card card-hover" to={`/game/${game.id}`}>
+    <Link className="game-card card-hover" to={`/game/${game.id}`}>
       {badge}
-      <div className="game-card-art">
-        <GameTile game={game} />
-      </div>
-      <div className="game-card-body">
-        <div className="game-name">{game.name}</div>
-        {from != null ? (
-          <div className="game-from">
-            {lang === "km" ? "តម្លៃពី" : "From"} {money(from)}
-          </div>
-        ) : null}
-        <span className="game-cta on">{t(lang, "topup")}</span>
-      </div>
+      <GameTile game={game} />
+      <div className="game-name">{game.name}</div>
+      {cta}
     </Link>
   );
 }
@@ -182,26 +153,8 @@ export default function Home({ lang, settings }) {
   const [slide, setSlide] = useState(0);
   const [filter, setFilter] = useState("");
   const famous = useMemo(() => games.filter((g) => g.famous), [games]);
-  // Special Events (top): always put TikTok Khmer first when present
-  const spotlight = useMemo(() => {
-    const isTikTok = (g) =>
-      String(g?.id || "").toLowerCase().includes("tiktok") ||
-      String(g?.name || "").toLowerCase().includes("tiktok");
-    const open = games.filter((g) => g.open !== false);
-    const tt = open.find(isTikTok);
-    const pool = (famous.length ? famous : open).filter((g) => !isTikTok(g));
-    const rest = pool.slice(0, tt ? 2 : 3);
-    return tt ? [tt, ...rest] : rest;
-  }, [games, famous]);
-  const firstTo = (() => {
-    const tt = games.find(
-      (g) =>
-        String(g?.id || "").toLowerCase().includes("tiktok") ||
-        String(g?.name || "").toLowerCase().includes("tiktok"),
-    );
-    if (tt) return `/game/${tt.id}`;
-    return games[0] ? `/game/${games[0].id}` : "/";
-  })();
+  const spotlight = useMemo(() => (famous.length ? famous : games).slice(0, 4), [famous, games]);
+  const firstTo = games[0] ? `/game/${games[0].id}` : "/";
   const filtered = useMemo(() => {
     const q = filter.trim().toLowerCase();
     if (!q) return games;
@@ -278,7 +231,8 @@ export default function Home({ lang, settings }) {
         </div>
         </>)}
       </section>
-<OrderTicker data={ticker} lang={lang} />
+
+      <OrderTicker data={ticker} lang={lang} />
 
       {spotlight.length > 0 && (
         <section className="section">
@@ -288,23 +242,17 @@ export default function Home({ lang, settings }) {
             </span>
             <h2>{t(lang, "special")}</h2>
           </div>
-          <div className="events events-special events-row-3">
+          <div className="events events-special">
             {spotlight.filter((g) => g.open !== false).map((g) => {
               const min = Math.min(...(g.packs || []).map((p) => p.price));
               return (
                 <Link key={g.id} className="event-card hot-card" to={`/game/${g.id}`}>
                   <div className="hot-art game-tile" style={{ "--h": g.hue }}>
-                    <img
-                      className="event-img"
-                      src={g.image || fallbackArt(g)}
-                      alt=""
-                      loading="lazy"
-                      onError={(e) => {
-                        const fb = fallbackArt(g);
-                        if (fb && e.currentTarget.src.indexOf(fb) < 0) e.currentTarget.src = fb;
-                        else e.currentTarget.style.display = "none";
-                      }}
-                    />
+                    {g.image ? (
+                      <img className="event-img" src={g.image} alt="" loading="lazy" onError={(e) => e.currentTarget.remove()} />
+                    ) : (
+                      <span className="hot-mark">{g.mark ? g.mark.slice(0, 3) : <Icon name="star" size={22} />}</span>
+                    )}
                     <span className="hot-badge">{t(lang, "hot")}</span>
                   </div>
                   <div className="hot-foot">
@@ -327,7 +275,7 @@ export default function Home({ lang, settings }) {
           <h2 className="sec-title"><Icon name="star" size={18} /> {t(lang, "famous")}</h2>
         </div>
         <p className="section-sub">{t(lang, "famousSub")}</p>
-        <div className="game-grid game-grid-3">
+        <div className="game-grid">
           {famous.map((g) => (
             <GameCard key={g.id} game={g} lang={lang} famous />
           ))}
@@ -354,7 +302,7 @@ export default function Home({ lang, settings }) {
         <p className="count">
           {filtered.length} {t(lang, "countGames")}
         </p>
-        <div className="game-grid game-grid-3">
+        <div className="game-grid">
           {loading ? (
             <GameSkeletons />
           ) : error ? (
@@ -375,38 +323,47 @@ export default function Home({ lang, settings }) {
         </div>
       </section>
 
-      {/* 4 feature cards */}
-      <section className="dino-features dino-features-bottom" aria-label="features">
-        <div className="dino-feature">
-          <div className="dino-feature-ico"><img src="/dino-icons/icon-fast.svg" alt="" width="28" height="28" /></div>
-          <div>
-            <strong>{lang === "km" ? "លឿនភ្លាមៗ" : "Lightning Fast"}</strong>
-            <p>{lang === "km" ? "Order ដំណើរការក្នុងរយៈពេលវិនាទី" : "Orders processed in seconds, not minutes."}</p>
-          </div>
+      <section className="promise">
+        <div className="promise-pill">
+          <span className="kicker-dot" style={{ background: "var(--primary)" }} />
+          {t(lang, "promise")}
         </div>
-        <div className="dino-feature">
-          <div className="dino-feature-ico"><img src="/dino-icons/icon-safe.svg" alt="" width="28" height="28" /></div>
-          <div>
-            <strong>{lang === "km" ? "សុវត្ថិភាព" : "Safe & Secure"}</strong>
-            <p>{lang === "km" ? "ការបង់ប្រាក់ការពារពេញលេញ" : "Every payment protected end-to-end."}</p>
+        <h2>
+          {t(lang, "promiseA")}
+          <span className="text-brand">{t(lang, "promiseB")}</span>
+        </h2>
+        <p>{t(lang, "promiseBody")}</p>
+        <div className="stats">
+          <div className="stat">
+            <div className="stat-icon">
+              <Icon name="package" size={22} />
+            </div>
+            <div className="stat-value">{ticker ? Number(ticker.sold || 0).toLocaleString() : "…"}</div>
+            <div className="stat-label">{t(lang, "statOrders")}</div>
           </div>
-        </div>
-        <div className="dino-feature">
-          <div className="dino-feature-ico"><img src="/dino-icons/icon-24hours.svg" alt="" width="28" height="28" /></div>
-          <div>
-            <strong>24/7</strong>
-            <p>{lang === "km" ? "សេវាកម្មគ្រប់ម៉ោង" : "Always online when you need us."}</p>
+          <div className="stat">
+            <div className="stat-icon">
+              <Icon name="game" size={22} />
+            </div>
+            <div className="stat-value">{loading && !games.length ? "…" : games.filter((g) => g.open !== false).length}</div>
+            <div className="stat-label">{t(lang, "statGames")}</div>
           </div>
-        </div>
-        <div className="dino-feature">
-          <div className="dino-feature-ico"><img src="/dino-icons/icon-support-headphone.svg" alt="" width="28" height="28" /></div>
-          <div>
-            <strong>{lang === "km" ? "ជំនួយ Live Chat" : "Live Support"}</strong>
-            <p>{lang === "km" ? "ឆាតជាមួយ Admin ក្នុង website" : "Chat with admin right on the site."}</p>
+          <div className="stat">
+            <div className="stat-icon">
+              <Icon name="zap" size={22} />
+            </div>
+            <div className="stat-value">{ticker ? fmtDuration(ticker.avgDeliverySec, lang) : "…"}</div>
+            <div className="stat-label">{t(lang, "statSpeed")}</div>
+          </div>
+          <div className="stat">
+            <div className="stat-icon">
+              <Icon name="help" size={22} />
+            </div>
+            <div className="stat-value stat-hours">{(ticker && ticker.delivery) || SHOP_HOURS}</div>
+            <div className="stat-label">{t(lang, "statChat")}</div>
           </div>
         </div>
       </section>
-
-</div>
+    </div>
   );
 }

@@ -28,7 +28,7 @@ export default function Support({ lang, settings }) {
         style={{ marginTop: 24 }}
         onClick={() => window.dispatchEvent(new CustomEvent("pp-open-livechat", { detail: {} }))}
       >
-        <Icon name="chat" size={18} /> {t(lang, "chat")}
+        {t(lang, "chat")}
       </button>
     </div>
   );

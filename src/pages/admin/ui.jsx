@@ -1,5 +1,4 @@
 import { useRef, useState } from "react";
-import "./AdminExtras.css";
 
 /* ---------- API helper ---------- */
 function readCsrf() {
@@ -15,10 +14,6 @@ export async function api(path, opts = {}) {
     const csrf = readCsrf();
     if (csrf) headers["X-CSRF-Token"] = csrf;
   }
-  try {
-    const tok = sessionStorage.getItem("pp_admin_token");
-    if (tok) headers["x-admin-token"] = tok;
-  } catch {}
   const res = await fetch(path, {
     credentials: "include",
     ...opts,
@@ -67,18 +62,6 @@ const PATHS = {
   trend: "M3 17l6-6 4 4 8-8M15 7h6v6",
   clock: "M12 21a9 9 0 100-18 9 9 0 000 18zm0-14v5l3 2",
   box: "M21 8l-9-5-9 5v8l9 5 9-5V8zM3 8l9 5 9-5M12 13v9",
-  plus: "M12 5v14M5 12h14",
-  arrowUp: "M12 19V5M5 12l7-7 7 7",
-  arrowDown: "M12 5v14M19 12l-7 7-7-7",
-  download: "M12 4v12m0 0l-4-4m4 4l4-4M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3",
-  chat: "M21 12a8 8 0 01-11.6 7.1L4 20l1-4.6A8 8 0 1121 12z",
-  image: "M4 5h16v14H4V5zm0 11l4-4 3 3 4-5 5 6M9 9.5v.01",
-  video: "M3 6h12a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V7a1 1 0 011-1zm14 4l5-3v10l-5-3z",
-  copy: "M9 9h11v11H9V9zM5 15H4a1 1 0 01-1-1V4a1 1 0 011-1h10a1 1 0 011 1v1",
-  note: "M6 3h9l4 4v14H6V3zm9 0v4h4M9 12h7M9 16h7",
-  info: "M12 21a9 9 0 100-18 9 9 0 000 18zm0-9v5m0-8.5v.01",
-  support: "M12 21a9 9 0 100-18 9 9 0 000 18zm0-6a3 3 0 100-6 3 3 0 000 6zM5.6 5.6l3.5 3.5m5.8 5.8l3.5 3.5m0-12.8l-3.5 3.5m-5.8 5.8l-3.5 3.5",
-  shield: "M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z",
 };
 
 export function AIcon({ name, size = 18 }) {
@@ -217,7 +200,7 @@ export function ImageSlot({ src, fallback = "?", size = 64, custom, onUrl, onCle
         style={{ borderRadius: round }}
       >
         {showImg ? (
-          <img style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} src={src} alt="" onError={() => setBroken(src)} />
+          <img src={src} alt="" onError={() => setBroken(src)} />
         ) : (
           <span className="ad-slot-mark" style={{ fontSize: Math.max(11, size / 3.4) }}>
             {fallback}
@@ -291,126 +274,6 @@ export function WideImageSlot({ src, ratio = "16 / 5", maxWidth = 1600, width = 
         ) : null}
         <input ref={input} type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden onChange={pick} />
       </div>
-    </div>
-  );
-}
-
-/* ---------- Video upload (with progress) ---------- */
-export const MAX_VIDEO_MB = 60;
-
-export function uploadVideo(file, onProgress) {
-  return new Promise((resolve, reject) => {
-    if (!file.type.startsWith("video/")) return reject(new Error("not_video"));
-    if (file.size > MAX_VIDEO_MB * 1024 * 1024) return reject(new Error("too_large"));
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/api/admin/upload-video");
-    xhr.withCredentials = true;
-    xhr.setRequestHeader("Content-Type", file.type || "video/mp4");
-    const csrf = readCsrf();
-    if (csrf) xhr.setRequestHeader("X-CSRF-Token", csrf);
-    try {
-      const tok = sessionStorage.getItem("pp_admin_token");
-      if (tok) xhr.setRequestHeader("x-admin-token", tok);
-    } catch {}
-    xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100));
-    };
-    xhr.onload = () => {
-      let data = {};
-      try {
-        data = JSON.parse(xhr.responseText);
-      } catch {}
-      if (xhr.status >= 200 && xhr.status < 300 && data.url) return resolve(data.url);
-      if (xhr.status === 401) window.dispatchEvent(new Event("admin-unauthorized"));
-      reject(Object.assign(new Error(data.error || "error"), { status: xhr.status }));
-    };
-    xhr.onerror = () => reject(new Error("network"));
-    xhr.send(file);
-  });
-}
-
-/** Click / drag-drop video upload box with progress bar + preview. */
-export function VideoSlot({ src, onUrl, onClear }) {
-  const input = useRef(null);
-  const [busy, setBusy] = useState(false);
-  const [pct, setPct] = useState(0);
-  const [over, setOver] = useState(false);
-
-  async function handle(file) {
-    if (!file) return;
-    setBusy(true);
-    setPct(0);
-    try {
-      onUrl(await uploadVideo(file, setPct));
-      toast("Upload video រួចរាល់ — កុំភ្លេចចុច រក្សាទុក", "ok");
-    } catch (err) {
-      const msg =
-        err.message === "not_video" || err.message === "bad_video"
-          ? "សូមជ្រើសរើសឯកសារ video (MP4 / MOV / WebM)"
-          : err.message === "too_large" || err.status === 413
-            ? `Video ធំពេក (អតិបរមា ${MAX_VIDEO_MB}MB) — សូមបង្រួមមុន`
-            : "Upload មិនបានទេ សូមព្យាយាមម្តងទៀត";
-      toast(msg, "bad");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  function pick(e) {
-    const f = e.target.files?.[0];
-    e.target.value = "";
-    handle(f);
-  }
-
-  function drop(e) {
-    e.preventDefault();
-    setOver(false);
-    if (!busy) handle(e.dataTransfer.files?.[0]);
-  }
-
-  return (
-    <div className="ad-vslot">
-      {src ? (
-        <div className="ad-vslot-preview">
-          {(src.includes("youtube.com") || src.includes("youtu.be")) ? (
-            <p className="ad-hint">▶ YouTube link: {src}</p>
-          ) : (
-            <video src={src} controls playsInline preload="metadata" />
-          )}
-          <div className="ad-vslot-actions">
-            <button type="button" className="ad-btn soft" disabled={busy} onClick={() => input.current?.click()}>
-              <AIcon name="upload" size={15} /> ប្តូរ video
-            </button>
-            <button type="button" className="ad-btn soft" disabled={busy} onClick={onClear}>
-              <AIcon name="trash" size={15} /> លុប
-            </button>
-          </div>
-        </div>
-      ) : (
-        <button
-          type="button"
-          className={`ad-vslot-drop${over ? " over" : ""}${busy ? " busy" : ""}`}
-          disabled={busy}
-          onClick={() => input.current?.click()}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setOver(true);
-          }}
-          onDragLeave={() => setOver(false)}
-          onDrop={drop}
-        >
-          <AIcon name="upload" size={28} />
-          <b>ចុចដើម្បី Upload Video</b>
-          <small>ឬអូសដាក់ទីនេះ · MP4 / MOV / WebM · អតិបរមា {MAX_VIDEO_MB}MB</small>
-        </button>
-      )}
-      {busy ? (
-        <div className="ad-vslot-bar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-          <i style={{ width: `${pct}%` }} />
-          <span>{pct < 100 ? `កំពុង Upload… ${pct}%` : "កំពុងរក្សាទុក…"}</span>
-        </div>
-      ) : null}
-      <input ref={input} type="file" accept="video/mp4,video/quicktime,video/webm" hidden onChange={pick} />
     </div>
   );
 }

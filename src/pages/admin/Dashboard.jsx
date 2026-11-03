@@ -52,29 +52,6 @@ export default function Dashboard() {
     <div>
       <PageHead km="ផ្ទាំងគ្រប់គ្រង" en="Overview of orders, revenue and system status" />
 
-      <div className="ad-pipe">
-        <div className="ad-stage hot">
-          <div className="k"><i style={{ background: "var(--ad-amber)" }} />រង់ចាំបង់</div>
-          <div className="v">{s.pending ?? s.byStatus?.pending ?? 0}</div>
-          <div className="n">ត្រូវដោះស្រាយ</div>
-        </div>
-        <div className="ad-stage">
-          <div className="k"><i style={{ background: "var(--ad-blue)" }} />បានបង់</div>
-          <div className="v">{s.byStatus?.paid ?? s.byStatus?.processing ?? 0}</div>
-          <div className="n">រង់ចាំបញ្ចូល</div>
-        </div>
-        <div className="ad-stage">
-          <div className="k"><i style={{ background: "var(--ad-violet)" }} />កំពុងដំណើរ</div>
-          <div className="v">{s.byStatus?.processing ?? 0}</div>
-          <div className="n">Supplier</div>
-        </div>
-        <div className="ad-stage">
-          <div className="k"><i style={{ background: "var(--ad-jade)" }} />ជោគជ័យ</div>
-          <div className="v">{s.byStatus?.success ?? s.byStatus?.delivered ?? s.todayOrders ?? 0}</div>
-          <div className="n">ថ្ងៃនេះ / សរុប</div>
-        </div>
-      </div>
-
       <div className="ad-stats">
         <Stat icon="money" tone="blue" label="ចំណូលសរុប" value={usd(s.revenue)} sub="ការបញ្ជាទិញជោគជ័យ" />
         <Stat icon="trend" tone="green" label="ប្រាក់ចំណេញ" value={usd(s.profit)} sub="ចំណូល − តម្លៃដើម" />

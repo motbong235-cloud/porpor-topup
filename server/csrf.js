@@ -7,7 +7,7 @@ export function issueCsrf(res, isProd) {
   const token = crypto.randomBytes(24).toString("hex");
   res.cookie("porpor_csrf", token, {
     httpOnly: false, // readable by JS for header
-    sameSite: "lax",
+    sameSite: isProd ? "strict" : "lax",
     secure: isProd,
     path: "/",
     maxAge: 12 * 60 * 60 * 1000,

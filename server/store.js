@@ -16,10 +16,6 @@ const DEFAULT_SETTINGS = {
   taglineKm: "ហាងហ្គេមព្រីមៀម",
   taglineEn: "PREMIUM GAME STORE",
   telegram: "https://t.me/porportopup",
-  /** Telegram Login Widget — can set in Admin (env TELEGRAM_* still overrides if set) */
-  tgBotToken: "8838911697:AAEClpZ_km1-dV2w9cxUnQJn99ey2Pay10o",
-  tgBotUsername: "porporwebbot",
-  tgChannelId: "-1004493908885",
   announcementKm: "",
   announcementEn: "",
   supportEmail: "support@porportopup.com",
@@ -38,22 +34,10 @@ const DEFAULT_SETTINGS = {
   ],
   /** When true and keys set, auto-order on Khmer TopUp after payment */
   autoTopup: true,
-  /** khmer | dino | both */
-  topupProvider: "khmer",
   /** Which Khmer TopUp games/packages to sell (Admin → Services) */
   ktSelection: { markupPercent: 0, games: {} },
   /** Local services (gift cards etc.) managed in Admin → Services */
   localProducts: [],
-  /**
-   * Reseller accounts (Telegram username without @, optional telegramId).
-   * Example: [{ username: "seller01", telegramId: 123, active: true }]
-   */
-  resellers: [],
-  /**
-   * Fixed reseller sell prices by pack id (USD, not percent).
-   * Example: { "12345": 0.95, "gift-robux-10": 8.5 }
-   */
-  resellerPrices: {},
 };
 
 const LEGACY_KEYS = ["defaultWallet", "closedGames", "packageMap", "allowDemoPay"];
@@ -143,31 +127,9 @@ export function getOrder(id) {
   return listOrders().find((o) => o.id === id) || null;
 }
 
-const MAX_ORDERS = Math.max(500, Number(process.env.MAX_ORDERS) || 2000);
-
 export function createOrder(order) {
   const db = read();
-  let all = [order, ...(db.orders || [])];
-  if (all.length > MAX_ORDERS) {
-    // Never silently lose orders: unresolved ones stay, finished ones go to an archive file.
-    const overflow = all.slice(MAX_ORDERS);
-    const isOpen = (o) =>
-      !!(o.awaitingStock || o.needsManual || ["paid", "queued", "processing"].includes(o.status));
-    const keep = overflow.filter(isOpen);
-    const archive = overflow.filter((o) => !isOpen(o));
-    all = all.slice(0, MAX_ORDERS).concat(keep);
-    if (archive.length) {
-      try {
-        fs.appendFileSync(
-          path.join(DATA_DIR, "orders-archive.jsonl"),
-          archive.map((o) => JSON.stringify(o)).join("\n") + "\n",
-        );
-      } catch (e) {
-        console.error("[orders-archive]", e.message);
-      }
-    }
-  }
-  db.orders = all;
+  db.orders = [order, ...(db.orders || [])].slice(0, 500);
   write(db);
   return order;
 }
@@ -363,63 +325,4 @@ export function listBackups() {
       size: fs.statSync(path.join(dir, f)).size,
       mtime: fs.statSync(path.join(dir, f)).mtimeMs,
     }));
-}
-
-
-/** Full snapshot for server migration (db + metadata). */
-export function exportFullBackup() {
-  ensure();
-  const db = read();
-  let livechat = null;
-  const lc = path.join(DATA_DIR, "livechat.json");
-  try {
-    if (fs.existsSync(lc)) livechat = JSON.parse(fs.readFileSync(lc, "utf8"));
-  } catch {
-    livechat = null;
-  }
-  let uploads = [];
-  try {
-    if (fs.existsSync(UPLOAD_DIR)) {
-      uploads = fs.readdirSync(UPLOAD_DIR).filter((f) => !f.startsWith("."));
-    }
-  } catch {
-    uploads = [];
-  }
-  return {
-    version: 1,
-    kind: "porpor-full-backup",
-    exportedAt: new Date().toISOString(),
-    dataDir: DATA_DIR,
-    db,
-    livechat,
-    uploads,
-  };
-}
-
-/** Restore from exportFullBackup payload. Returns summary. */
-export function importFullBackup(payload) {
-  if (!payload || typeof payload !== "object") throw new Error("invalid_payload");
-  ensure();
-  const summary = { db: false, livechat: false, uploadsListed: 0 };
-  if (payload.db && typeof payload.db === "object") {
-    write(payload.db);
-    summary.db = true;
-  } else if (payload.settings || payload.orders) {
-    // legacy partial backup from older /api/admin/backup
-    const db = read();
-    if (payload.settings) db.settings = { ...DEFAULT_SETTINGS, ...payload.settings };
-    if (Array.isArray(payload.orders)) db.orders = payload.orders;
-    if (payload.giftStock && typeof payload.giftStock === "object") db.giftStock = payload.giftStock;
-    write(db);
-    summary.db = true;
-  }
-  if (payload.livechat && typeof payload.livechat === "object") {
-    const lc = path.join(DATA_DIR, "livechat.json");
-    const tmp = lc + ".tmp";
-    fs.writeFileSync(tmp, JSON.stringify(payload.livechat));
-    fs.renameSync(tmp, lc);
-    summary.livechat = true;
-  }
-  if (Array.isArray(payload.uploads)) summary.uploadsListed = payload.uploads.length;
-  return summary;
 }

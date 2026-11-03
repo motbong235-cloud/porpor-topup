@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Icon } from "../components/Icons";
 import { useSearchParams } from "react-router-dom";
 import { t } from "../lib/i18n";
 import { money } from "../lib/store";
@@ -37,8 +36,8 @@ export default function Track({ lang, settings }) {
     const base = String(telegram || "").trim();
     const msg = encodeURIComponent(
       lang === "km"
-        ? `សួស្តី បង! បង់ Roblox រួចហើយ លេខកម្មង់: ${orderId} សុំកូដផង`
-        : `Hi! I paid for Roblox. Order: ${orderId}. Please send my code.`,
+        ? `សួស្តី បង! បង់ Roblox Gift Card រួចហើយ លេខកម្មង់: ${orderId} សុំកូដផង`
+        : `Hi! I paid for Roblox Gift Card. Order: ${orderId}. Please send my code.`,
     );
     if (base.includes("t.me") || base.includes("telegram")) {
       const sep = base.includes("?") ? "&" : "?";
@@ -84,7 +83,7 @@ export default function Track({ lang, settings }) {
                     } catch {}
                   }}
                 >
-                  <Icon name="copy" size={14} /> {t(lang, "copy")}
+                  {t(lang, "copy")}
                 </button>
               </div>
               <div className={o.status === "delivered" ? "badge-ok" : "badge-ok pending"}>
@@ -122,7 +121,7 @@ export default function Track({ lang, settings }) {
               {isGift ? (
                 <div className="card" style={{ marginTop: 16, borderColor: "var(--primary)" }}>
                   <h3 style={{ margin: "0 0 8px" }}>
-                    Roblox
+                    {lang === "km" ? "Roblox Gift Card" : "Roblox Gift Card"}
                   </h3>
                   {o.giftCode ? (
                     <div>
@@ -142,7 +141,7 @@ export default function Track({ lang, settings }) {
                             } catch {}
                           }}
                         >
-                          <Icon name="copy" size={14} /> {t(lang, "copy")}
+                          {t(lang, "copy")}
                         </button>
                       </div>
                     </div>

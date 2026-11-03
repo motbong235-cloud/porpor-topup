@@ -12,9 +12,14 @@ function now() {
 
 /** Client IP behind Render / Cloudflare / nginx */
 export function clientIp(req) {
-  // req.ip honours Express "trust proxy" (TRUST_PROXY env, default 1 hop) and ignores
-  // client-forged X-Forwarded-For entries. Never read the raw header here.
-  return String(req.ip || req.socket?.remoteAddress || "").trim().slice(0, 64) || "unknown";
+  const xf = String(req.headers["x-forwarded-for"] || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (xf.length) return xf[0].slice(0, 64);
+  const xr = String(req.headers["x-real-ip"] || "").trim();
+  if (xr) return xr.slice(0, 64);
+  return String(req.ip || req.socket?.remoteAddress || "").slice(0, 64) || "unknown";
 }
 
 export function clientUa(req) {
