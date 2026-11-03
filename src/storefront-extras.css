@@ -38,3 +38,49 @@
 .tt-video-open { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 12px; font-weight: 600; color: var(--primary, #1d6adf); text-decoration: none; }
 .tt-video-link { display: inline-flex; margin-top: 4px; text-decoration: none; }
 .tt-tutorial video { display: block; }
+
+
+/* Featured ABA PayWay + KHQR footer marks */
+.footer .pay-logos-featured {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+.footer .pay-logo-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 142px;
+  min-height: 58px;
+  padding: 9px 12px;
+  border: 1px solid rgba(148, 183, 224, .42);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, .16);
+}
+.footer .pay-logo-card-aba { min-width: 158px; }
+.footer .pay-logo-card-khqr { min-width: 142px; }
+.footer .pay-logo-card .pay-logo {
+  display: block;
+  width: 100%;
+  max-width: 150px;
+  height: 38px;
+  object-fit: contain;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.footer .pay-logo-card-khqr .pay-logo { max-width: 126px; height: 42px; }
+@media (max-width: 420px) {
+  .footer .pay-logos-featured { gap: 9px; }
+  .footer .pay-logo-card { min-width: 0; min-height: 54px; padding: 8px 10px; }
+  .footer .pay-logo-card-aba { width: 148px; }
+  .footer .pay-logo-card-khqr { width: 132px; }
+  .footer .pay-logo-card .pay-logo { height: 34px; }
+  .footer .pay-logo-card-khqr .pay-logo { height: 38px; }
+}

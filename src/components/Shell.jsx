@@ -304,9 +304,13 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
           </div>
           <div className="footer-col">
             <div className="footer-label">{t(lang, "accept")}</div>
-            <div className="pay-logos">
-              <img className="pay-logo aba" src="/aba-logo.svg" alt="ABA" height={28} />
-              <img className="pay-logo khqr" src="/khqr-logo.svg" alt="KHQR" height={28} />
+            <div className="pay-logos pay-logos-featured" aria-label="Accepted payment methods">
+              <div className="pay-logo-card pay-logo-card-aba">
+                <img className="pay-logo aba" src="/payments/aba-payway.png" alt="ABA PayWay" />
+              </div>
+              <div className="pay-logo-card pay-logo-card-khqr">
+                <img className="pay-logo khqr" src="/payments/khqr-wordmark.png" alt="KHQR" />
+              </div>
             </div>
           </div>
         </div>
