@@ -33,3 +33,8 @@
 .success-livechat, .btn-soft, .pw-aba-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
 .btn.bg-brand { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 .pack-tick .icon-svg, .dino-verify-ok-dot .icon-svg, .rbx-ok-badge .icon-svg, .robux-qg-pin .icon-svg { display: block; stroke-width: 3; }
+
+/* TikTok tutorial video helpers */
+.tt-video-open { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 12px; font-weight: 600; color: var(--primary, #1d6adf); text-decoration: none; }
+.tt-video-link { display: inline-flex; margin-top: 4px; text-decoration: none; }
+.tt-tutorial video { display: block; }
