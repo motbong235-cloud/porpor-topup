@@ -130,21 +130,7 @@ export default function TikTokKhmerAdmin() {
         </button>
       </PageHead>
 
-      {/* Service banner is intentionally first so it is easy to find in admin. */}
-      <section className="ad-card" style={{ marginTop: 16 }}>
-        <h2 style={{ margin: "0 0 12px", fontSize: 16, display: "flex", alignItems: "center", gap: 8 }}>
-          <AIcon name="image" size={18} /> ① Banner ខាងលើសេវា TikTok Khmer
-        </h2>
-        <p className="ad-hint">Upload រូប Banner ដែលនឹងបង្ហាញនៅផ្នែកខាងលើទំព័រ TikTok Khmer មុនព័ត៌មានសេវា និងកញ្ចប់។ អាចដាក់បាន 1–5 រូប (ណែនាំ 1600 × 500 px)។
-        </p>
-        <BannerManager
-          banners={product.banners}
-          legacy={product.banner}
-          onChange={(list) => setProduct((p) => (p ? { ...p, banners: list, banner: list[0] || "" } : p))}
-        />
-      </section>
-
-      <section className="ad-card">
+      <section className="ad-card ad-ttk-overview">
         <div className="ad-grid-2" style={{ alignItems: "start" }}>
           <div>
             <label className="ad-field">
@@ -196,6 +182,19 @@ export default function TikTokKhmerAdmin() {
         </div>
       </section>
 
+
+      <section className="ad-card ad-ttk-banner-card" style={{ marginTop: 16 }}>
+        <div className="ad-section-title">
+          <span className="ad-section-number">①</span>
+          <div><h2>Banner ខាងលើ TikTok Khmer</h2><p>Upload រូប Banner ដែលអតិថិជនឃើញមុនពេលជ្រើសរើសកញ្ចប់</p></div>
+        </div>
+        <BannerManager
+          banners={product.banners}
+          legacy={product.banner}
+          onChange={(list) => setProduct((p) => (p ? { ...p, banners: list, banner: list[0] || "" } : p))}
+        />
+        <p className="ad-save-reminder"><AIcon name="info" size={15} /> ក្រោយ Upload សូមចុច <b>រក្សាទុក</b> ខាងលើ ដើម្បីឲ្យ Banner បង្ហាញលើ Website។</p>
+      </section>
 
       <section className="ad-card" style={{ marginTop: 16 }}>
         <h2 style={{ margin: "0 0 12px", fontSize: 16, display: "flex", alignItems: "center", gap: 8 }}><AIcon name="video" size={18} /> ② Tutorial Video (បង់រួចបង្ហាញ)</h2>

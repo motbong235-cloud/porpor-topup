@@ -271,15 +271,19 @@ export function WideImageSlot({ src, ratio = "16 / 5", maxWidth = 1600, width = 
 
   return (
     <div className="ad-wide" style={{ width, maxWidth: "100%" }}>
-      <div className="ad-slot ad-wide-slot" style={{ aspectRatio: ratio, borderRadius: 14 }}>
-        <button type="button" className="ad-slot-btn" onClick={() => input.current?.click()} title={label} aria-label={label} disabled={busy} style={{ borderRadius: 14 }}>
+      <div className={`ad-slot ad-wide-slot${showImg ? " has-image" : " is-empty"}`} style={{ aspectRatio: ratio, borderRadius: 16 }}>
+        <button type="button" className="ad-slot-btn" onClick={() => input.current?.click()} title={label} aria-label={label} disabled={busy} style={{ borderRadius: 16 }}>
           {showImg ? (
-            <img src={src} alt="" style={contain ? { objectFit: "contain" } : undefined} onError={() => setBroken(src)} />
+            <>
+              <img src={src} alt="Banner preview" style={contain ? { objectFit: "contain" } : undefined} onError={() => setBroken(src)} />
+              <span className="ad-wide-change"><AIcon name="camera" size={15} /> ចុចដើម្បីប្តូរ Banner</span>
+            </>
           ) : (
             <span className="ad-wide-empty">
-              <AIcon name="upload" size={22} />
+              <span className="ad-wide-upload-icon"><AIcon name="upload" size={24} /></span>
               <b>{label}</b>
-              {hint ? <small>{hint}</small> : null}
+              <small>{hint || "ជ្រើសរើសរូបភាពពីទូរស័ព្ទ ឬកុំព្យូទ័រ"}</small>
+              <em>PNG · JPG · WEBP · GIF</em>
             </span>
           )}
           <span className={`ad-slot-over${busy ? " busy" : ""}`}>{busy ? <span className="ad-spin" /> : <AIcon name="camera" size={22} />}</span>
@@ -456,11 +460,14 @@ export function BannerManager({ banners, legacy, onChange }) {
   return (
     <div className="ad-banner-set">
       <div className="ad-banner-label">
-        <strong><AIcon name="image" size={16} /> Banner សម្រាប់ service នេះ ({list.length}/{MAX_BANNERS})</strong>
+        <div className="ad-banner-heading">
+          <strong><AIcon name="image" size={18} /> Banner សម្រាប់ service នេះ</strong>
+          <span className="ad-banner-count">{list.length} / {MAX_BANNERS} រូប</span>
+        </div>
         <small>
-          Service ១ = Banner ផ្ទាល់ខ្លួន (មិនចែកជាមួយ service ផ្សេង) ·
-          បង្ហាញនៅកន្លែង logo ខាងលើទំព័រ service · 1600×500 · 1–5 រូប
+          Upload banner ផ្ទាល់ខ្លួនសម្រាប់ service នេះប៉ុណ្ណោះ។ Banner នឹងបង្ហាញនៅផ្នែកខាងលើទំព័រ service។
         </small>
+        <div className="ad-banner-specs"><span>សមាមាត្រ 16:5</span><span>ណែនាំ 1600 × 500 px</span><span>អតិបរមា 5 រូប</span></div>
       </div>
       <div className="ad-banner-list">
         {list.map((url, i) => (
