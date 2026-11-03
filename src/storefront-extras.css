@@ -1,0 +1,26 @@
+/* ===== Storefront extras — classes used in JSX that had no CSS ===== */
+
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: -.01em; }
+.grow { flex: 1 1 auto; }
+
+/* Footer columns */
+.footer-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.footer-col.brand-col { gap: 12px; }
+@media (max-width: 640px) { .footer-col.brand-col { grid-column: 1 / -1; } }
+.pay-logo.aba, .pay-logo.khqr { background: #fff; padding: 4px 8px; border: 1px solid var(--line); box-shadow: 0 2px 8px -4px rgba(8, 32, 68, .25); }
+
+/* Drawer close button */
+.drawer-close { margin-left: auto; flex: none; border-radius: 50%; transition: transform .2s, background .15s; }
+.drawer-close:hover { transform: rotate(90deg); }
+
+/* Banner v2 */
+.banner-v2 { border-radius: calc(var(--radius) + 4px); overflow: hidden; box-shadow: var(--shadow-lg, var(--shadow)); }
+
+/* Roblox account verified tick */
+.rbx-ok-badge {
+  flex: none; width: 24px; height: 24px; display: inline-grid; place-items: center; border-radius: 50%;
+  background: var(--ok); color: #fff; font-size: 13px; font-weight: 800; box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 25%, transparent);
+}
+
+/* Live chat bubble text */
+.msgr-text { display: block; white-space: pre-wrap; word-break: break-word; line-height: 1.45; }
