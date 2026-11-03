@@ -34,21 +34,48 @@ export function botUsername() {
 }
 
 /** Route specific products (e.g. TikTok Khmer) to Kai- bot instead of Porpor channel. */
+function normalizeChatId(v) {
+  let s = String(v || "").trim();
+  if (!s) return "";
+  // allow "@channel" or numeric / -100...
+  if (s.startsWith("@")) return s;
+  s = s.replace(/\s+/g, "");
+  return s;
+}
 function kaiBotToken() {
-  const env = (process.env.KAI_BOT_TOKEN || process.env.KAI_ORDER_BOT_TOKEN || "").trim();
+  const env = (process.env.KAI_BOT_TOKEN || process.env.KAI_ORDER_BOT_TOKEN || process.env.ORDER_BOT_TOKEN || "").trim();
   if (env) return env;
   try {
-    const s = String(getSettings().kaiBotToken || "").trim();
+    const st = getSettings();
+    const s = String(st.kaiOrderBotToken || st.kaiBotToken || "").trim();
     if (s) return s;
   } catch {}
   return "";
 }
-function kaiChatId() {
-  const env = (process.env.KAI_CHAT_ID || process.env.KAI_ORDER_CHAT_ID || "").trim();
+/** Token used only for Order Bot chat (optional separate from channel bot). */
+function kaiOrderBotToken() {
+  const env = (process.env.KAI_ORDER_BOT_TOKEN || process.env.ORDER_BOT_TOKEN || "").trim();
   if (env) return env;
   try {
-    const s = String(getSettings().kaiChatId || "").trim();
+    const st = getSettings();
+    const s = String(st.kaiOrderBotToken || "").trim();
     if (s) return s;
+  } catch {}
+  // fall back to main kai token
+  return kaiBotToken();
+}
+function kaiChatId() {
+  const env = (
+    process.env.KAI_CHAT_ID ||
+    process.env.KAI_ORDER_CHAT_ID ||
+    process.env.ORDER_BOT_CHAT_ID ||
+    ""
+  ).trim();
+  if (env) return normalizeChatId(env);
+  try {
+    const st = getSettings();
+    const s = String(st.kaiChatId || st.kaiOrderChatId || st.orderBotChatId || "").trim();
+    if (s) return normalizeChatId(s);
   } catch {}
   return "";
 }
@@ -88,7 +115,8 @@ function kaiChannelId() {
   return "";
 }
 export function isKaiNotifyReady() {
-  return Boolean(kaiBotToken() && (kaiChatId() || kaiChannelId()));
+  // Need token + at least one destination (order chat preferred)
+  return Boolean(kaiOrderBotToken() && (kaiChatId() || kaiChannelId()));
 }
 
 export function isNotifyReady() {
@@ -391,28 +419,61 @@ export async function notifyOrder(kind, o) {
       return { ok: true, skipped: "await_payment" };
     }
     if (!isKaiNotifyReady()) {
-      console.warn("[telegram] Kai route order but kaiBotToken/kaiChatId/kaiChannelId not set — NOT sending to Porpor");
+      console.warn("[telegram] Kai route order but token/chat not set — NOT sending to Porpor channel");
       return { ok: false, error: "kai_not_configured" };
     }
-    const token = kaiBotToken();
+    const orderToken = kaiOrderBotToken();
+    const channelToken = kaiBotToken() || orderToken;
     const results = [];
     const orderChat = kaiChatId();
+    const ch = kaiChannelId();
+
+    // 1) ORDER BOT chat — full link (required for admin work)
     if (orderChat) {
       const textBot = formatKaiOrderMsg(o, { forChannel: false, kind: k });
-      const r1 = await sendTelegramWithToken(token, orderChat, textBot);
+      let r1 = await sendTelegramWithToken(orderToken, orderChat, textBot);
+      // Retry with main kai token if order-bot token fails (chat may belong to other bot)
+      if (!r1.ok && channelToken && channelToken !== orderToken) {
+        console.warn("[telegram] Kai order-bot token failed, retry main kai token", r1.error || r1.raw);
+        r1 = await sendTelegramWithToken(channelToken, orderChat, textBot);
+      }
       results.push(r1);
-      if (!r1.ok) console.warn("[telegram] Kai order-bot failed", r1.error || r1.raw);
-      else console.log("[telegram] Kai order-bot →", orderChat, o.id, k);
+      if (!r1.ok) {
+        console.warn("[telegram] Kai ORDER chat FAILED", orderChat, r1.error || r1.raw, r1);
+      } else {
+        console.log("[telegram] Kai ORDER chat OK →", orderChat, o.id, k);
+      }
+    } else {
+      console.warn("[telegram] kaiChatId EMPTY — only channel will get message. Set Admin → Kai Order Chat ID");
     }
-    const ch = kaiChannelId();
+
+    // 2) CHANNEL — private link (public log)
     if (ch) {
-      const textCh = formatKaiOrderMsg(o, { forChannel: true, kind: k });
-      const r2 = await sendTelegramWithToken(token, ch, textCh);
-      results.push(r2);
-      if (!r2.ok) console.warn("[telegram] Kai channel failed", r2.error || r2.raw);
-      else console.log("[telegram] Kai channel →", ch, o.id, k);
+      // skip if same as order chat (avoid duplicate in one chat)
+      if (orderChat && String(ch) === String(orderChat)) {
+        console.log("[telegram] Kai channel same as order chat — skip second send");
+      } else {
+        const textCh = formatKaiOrderMsg(o, { forChannel: true, kind: k });
+        const r2 = await sendTelegramWithToken(channelToken, ch, textCh);
+        results.push(r2);
+        if (!r2.ok) console.warn("[telegram] Kai channel failed", r2.error || r2.raw);
+        else console.log("[telegram] Kai channel →", ch, o.id, k);
+      }
     }
-    return results.find((r) => r.ok) || results[0] || { ok: false, error: "no_target" };
+
+    const orderOk = results.some((r, i) => r.ok && orderChat);
+    if (orderChat && !results[0]?.ok) {
+      // Last resort: put order details on channel with warning so admin still sees link
+      if (ch && String(ch) !== String(orderChat)) {
+        const warn =
+          formatKaiOrderMsg(o, { forChannel: false, kind: k }) +
+          "
+
+⚠️ <i>Order Bot chat send failed — check kaiChatId + bot token (Admin must /start the bot)</i>";
+        await sendTelegramWithToken(channelToken, ch, warn).catch(() => {});
+      }
+    }
+    return results.find((r) => r.ok) || results[0] || { ok: false, error: orderChat ? "send_failed" : "no_order_chat" };
   }
   // Porpor services only
   if (String(kind).toLowerCase() === "new") {

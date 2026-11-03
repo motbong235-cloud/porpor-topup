@@ -178,7 +178,7 @@ export default function SettingsAdmin() {
               autoComplete="off"
             />
           </Field>
-          <Field label="Kai Order Chat ID" hint="Admin / Order Bot chat — ទទួល Link ពេញ">
+          <Field label="Kai Order Chat ID" hint="សំខាន់! Chat ID ឯកជន/Group Order Bot (លេខ -100… ឬ user id) — បើទទេ សារទៅតែ Channel">
             <input
               value={form.kaiChatId || ""}
               onChange={(e) => set("kaiChatId", e.target.value)}
