@@ -246,6 +246,12 @@ export default function Success({ lang, settings }) {
               </strong>
             </div>
           ) : null}
+          {order.nickname && String(order.nickname).trim() && order.nickname !== "OK" ? (
+            <div className="row">
+              <span>{lang === "km" ? "អ្នកលេង" : "Player"}</span>
+              <strong>{order.nickname}</strong>
+            </div>
+          ) : null}
           <div className="row">
             <span>{lang === "km" ? "វិធីទូទាត់" : "Payment Method"}</span>
             <strong className="pay-method-logos">

@@ -1,0 +1,22 @@
+/* Dino-style order summary inside the payment panel (desktop + mobile) */
+.pay-aside .od-box { margin-top: 12px; background: #fff; border-radius: 14px; padding: 12px 14px; color: #0f172a; }
+.pay-aside .od-head { font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 6px; letter-spacing: .02em; }
+.pay-aside .od-row { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: 13.5px; border-top: 1px dashed #e2e8f0; }
+.pay-aside .od-row:first-of-type { border-top: 0; }
+.pay-aside .od-row span { color: #64748b; flex: none; }
+.pay-aside .od-row b { text-align: right; font-weight: 600; word-break: break-word; min-width: 0; }
+.pay-aside .od-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+.pay-aside .od-ok { color: #059669; }
+.pay-aside .od-total { margin-top: 10px; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: rgba(255,255,255,.14); color: #fff; }
+.pay-aside .od-total span { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; opacity: .9; }
+.pay-aside .od-total strong { font-size: 24px; line-height: 1; }
+html.dark .pay-aside .od-box { background: #1e293b; color: #e2e8f0; }
+html.dark .pay-aside .od-row { border-color: #334155; }
+
+/* Desktop: wider two-column store page, sticky payment panel */
+@media (min-width: 960px) {
+  .container:has(.layout-2) { max-width: 1240px !important; }
+  .layout-2 { grid-template-columns: minmax(0, 1fr) 380px !important; gap: 22px !important; }
+  .layout-2 > .pay-aside { position: sticky; top: 84px; align-self: start; }
+  .layout-2 .pay-cta { min-height: 52px; font-size: 16px; }
+}

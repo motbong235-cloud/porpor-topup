@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { AIcon, ImageSlot, PageHead, Switch, VideoSlot, api, toast } from "./ui";
+import { AIcon, BannerManager, ImageSlot, PageHead, Switch, VideoSlot, api, toast } from "./ui";
 
 const TID = "tiktok-khmer";
 
@@ -182,6 +182,14 @@ export default function TikTokKhmerAdmin() {
         </div>
       </section>
 
+
+      <section className="ad-card" style={{ marginTop: 16 }}>
+        <BannerManager
+          banners={product.banners}
+          legacy={product.banner}
+          onChange={(list) => setProduct((p) => (p ? { ...p, banners: list, banner: list[0] || "" } : p))}
+        />
+      </section>
 
       <section className="ad-card" style={{ marginTop: 16 }}>
         <h2 style={{ margin: "0 0 12px", fontSize: 16, display: "flex", alignItems: "center", gap: 8 }}><AIcon name="video" size={18} /> ② Tutorial Video (បង់រួចបង្ហាញ)</h2>

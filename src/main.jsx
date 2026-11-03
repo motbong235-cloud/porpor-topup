@@ -6,6 +6,7 @@ import "./index.css";
 import "./storefront-extras.css";
 import "./dino-full-match.css";
 import "./dino-match-v2.css";
+import "./dino-desktop.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

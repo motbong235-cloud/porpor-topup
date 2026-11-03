@@ -1152,9 +1152,31 @@ export default function Game({ lang, addOrder, settings }) {
                 </span>
               </div>
             </div>
+            <div className="od-box" aria-label="Order details">
+              <div className="od-head">{lang === "km" ? "ព័ត៌មានការបញ្ជាទិញ" : "Order details"}</div>
+              <div className="od-row"><span>{lang === "km" ? "សេវា" : "Game"}</span><b>{game.name}</b></div>
+              {userId.trim() ? (
+                <div className="od-row">
+                  <span>{isTikTok ? "URL" : isRobloxGame ? "Username" : "ID"}</span>
+                  <b className="od-mono">{userId.trim()}{zoneId.trim() ? ` (${zoneId.trim()})` : ""}</b>
+                </div>
+              ) : null}
+              {nick && nick !== "OK" ? (
+                <div className="od-row"><span>{lang === "km" ? "ឈ្មោះ" : "Nickname"}</span><b className="od-ok">{nick}</b></div>
+              ) : null}
+              <div className="od-row">
+                <span>{lang === "km" ? "កញ្ចប់" : "Package"}</span>
+                <b>{pack ? `${pack.nameKm && lang === "km" ? pack.nameKm : pack.name}${qty > 1 ? ` ×${qty}` : ""}` : "—"}</b>
+              </div>
+              <div className="od-row"><span>{lang === "km" ? "វិធីបង់" : "Method"}</span><b>ABA KHQR</b></div>
+            </div>
+            <div className="od-total">
+              <span>{lang === "km" ? "សរុបត្រូវបង់" : "Total to pay"}</span>
+              <strong>{pack ? money(total) : "—"}</strong>
+            </div>
             {payErr ? <p className="msg err">{payErr}</p> : null}
             <button type="button" className="pay-cta" onClick={pay} disabled={paying}>
-              {paying ? "…" : pack ? `${t(lang, "pay")} · ${money(total)} →` : (lang === "km" ? "ជ្រើសកញ្ចប់ →" : "Select a package →")}
+              {paying ? "…" : pack ? (lang === "km" ? `បង់ ${money(total)} ឥឡូវនេះ` : `Pay ${money(total)} now`) : (lang === "km" ? "ជ្រើសកញ្ចប់ជាមុន" : "Select a package")}
             </button>
             <p className="pay-terms">
               {lang === "km" ? "ដោយបន្ត អ្នកយល់ព្រមនឹង " : "By continuing you agree to our "}

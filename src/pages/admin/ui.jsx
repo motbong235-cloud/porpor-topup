@@ -439,3 +439,62 @@ export function timeAgo(ts) {
 }
 
 export const usd = (n) => `$${(Number(n) || 0).toFixed(2)}`;
+
+const MAX_BANNERS = 5;
+
+/** 1–5 banners per service. Empty slot at the end adds another (until 5). */
+export function BannerManager({ banners, legacy, onChange }) {
+  const list = banners && banners.length ? banners : legacy ? [legacy] : [];
+  const set = (next) => onChange(next.slice(0, MAX_BANNERS));
+  function move(i, d) {
+    const j = i + d;
+    if (j < 0 || j >= list.length) return;
+    const next = [...list];
+    [next[i], next[j]] = [next[j], next[i]];
+    set(next);
+  }
+  return (
+    <div className="ad-banner-set">
+      <div className="ad-banner-label">
+        <strong><AIcon name="image" size={16} /> Banner សម្រាប់ service នេះ ({list.length}/{MAX_BANNERS})</strong>
+        <small>
+          Service ១ = Banner ផ្ទាល់ខ្លួន (មិនចែកជាមួយ service ផ្សេង) ·
+          បង្ហាញនៅកន្លែង logo ខាងលើទំព័រ service · 1600×500 · 1–5 រូប
+        </small>
+      </div>
+      <div className="ad-banner-list">
+        {list.map((url, i) => (
+          <div key={i} className="ad-banner-item">
+            <WideImageSlot
+              src={url}
+              ratio="16 / 5"
+              maxWidth={1600}
+              label={`Banner ${i + 1}`}
+              onUrl={(u) => set(list.map((x, k) => (k === i ? u : x)))}
+              onClear={() => set(list.filter((_, k) => k !== i))}
+            />
+            {list.length > 1 ? (
+              <div className="ad-banner-move">
+                <span>#{i + 1}</span>
+                <button type="button" className="ad-btn soft sm" disabled={i === 0} onClick={() => move(i, -1)} aria-label="ឡើងលើ"><AIcon name="arrowUp" size={14} /></button>
+                <button type="button" className="ad-btn soft sm" disabled={i === list.length - 1} onClick={() => move(i, 1)} aria-label="ចុះក្រោម"><AIcon name="arrowDown" size={14} /></button>
+              </div>
+            ) : null}
+          </div>
+        ))}
+        {list.length < MAX_BANNERS ? (
+          <div className="ad-banner-item">
+            <WideImageSlot
+              src=""
+              ratio="16 / 5"
+              maxWidth={1600}
+              label={list.length ? "+ បន្ថែម banner service នេះ" : "Upload Banner (service នេះតែម្តង)"}
+              hint={list.length ? `នៅសល់ ${MAX_BANNERS - list.length}` : "1600 × 500 px"}
+              onUrl={(u) => set([...list, u])}
+            />
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
