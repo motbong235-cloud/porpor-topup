@@ -46,9 +46,8 @@ export default function Success({ lang, settings }) {
 
   const telegram = settings?.telegram || "https://t.me/porportopup";
   const isTikTok = useMemo(() => {
-    const id = String(order?.gameId || "").toLowerCase();
-    const name = String(order?.gameName || "").toLowerCase();
-    return id.includes("tiktok") || name.includes("tiktok");
+    // Tutorial video + note are only for the TikTok Khmer service (not any game with "tiktok" in its name)
+    return String(order?.gameId || "").toLowerCase() === "tiktok-khmer";
   }, [order]);
   const isRobux = useMemo(() => {
     const dt = String(order?.deliveryType || "");
