@@ -467,9 +467,7 @@ export async function notifyOrder(kind, o) {
       if (ch && String(ch) !== String(orderChat)) {
         const warn =
           formatKaiOrderMsg(o, { forChannel: false, kind: k }) +
-          "
-
-⚠️ <i>Order Bot chat send failed — check kaiChatId + bot token (Admin must /start the bot)</i>";
+          "\n\n⚠️ <i>Order Bot chat send failed — check kaiChatId + bot token (Admin must /start the bot)</i>";
         await sendTelegramWithToken(channelToken, ch, warn).catch(() => {});
       }
     }
