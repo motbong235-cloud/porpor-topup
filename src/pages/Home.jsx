@@ -375,47 +375,38 @@ export default function Home({ lang, settings }) {
         </div>
       </section>
 
-      <section className="promise promise-bottom">
-        <div className="promise-pill">
-          <span className="kicker-dot" style={{ background: "var(--primary)" }} />
-          {t(lang, "promise")}
+      {/* 4 feature cards */}
+      <section className="dino-features dino-features-bottom" aria-label="features">
+        <div className="dino-feature">
+          <div className="dino-feature-ico"><img src="/dino-icons/icon-fast.svg" alt="" width="28" height="28" /></div>
+          <div>
+            <strong>{lang === "km" ? "លឿនភ្លាមៗ" : "Lightning Fast"}</strong>
+            <p>{lang === "km" ? "Order ដំណើរការក្នុងរយៈពេលវិនាទី" : "Orders processed in seconds, not minutes."}</p>
+          </div>
         </div>
-        <h2>
-          {t(lang, "promiseA")}
-          <span className="text-brand">{t(lang, "promiseB")}</span>
-        </h2>
-        <p>{t(lang, "promiseBody")}</p>
-        <div className="stats stats-2x2">
-          <div className="stat">
-            <div className="stat-icon">
-              <Icon name="package" size={22} />
-            </div>
-            <div className="stat-value">{ticker ? Number(ticker.sold || 0).toLocaleString() : "…"}</div>
-            <div className="stat-label">{t(lang, "statOrders")}</div>
+        <div className="dino-feature">
+          <div className="dino-feature-ico"><img src="/dino-icons/icon-safe.svg" alt="" width="28" height="28" /></div>
+          <div>
+            <strong>{lang === "km" ? "សុវត្ថិភាព" : "Safe & Secure"}</strong>
+            <p>{lang === "km" ? "ការបង់ប្រាក់ការពារពេញលេញ" : "Every payment protected end-to-end."}</p>
           </div>
-          <div className="stat">
-            <div className="stat-icon">
-              <Icon name="game" size={22} />
-            </div>
-            <div className="stat-value">{loading && !games.length ? "…" : games.filter((g) => g.open !== false).length}</div>
-            <div className="stat-label">{t(lang, "statGames")}</div>
+        </div>
+        <div className="dino-feature">
+          <div className="dino-feature-ico"><img src="/dino-icons/icon-24hours.svg" alt="" width="28" height="28" /></div>
+          <div>
+            <strong>24/7</strong>
+            <p>{lang === "km" ? "សេវាកម្មគ្រប់ម៉ោង" : "Always online when you need us."}</p>
           </div>
-          <div className="stat">
-            <div className="stat-icon">
-              <Icon name="zap" size={22} />
-            </div>
-            <div className="stat-value">{ticker ? fmtDuration(ticker.avgDeliverySec, lang) : "…"}</div>
-            <div className="stat-label">{t(lang, "statSpeed")}</div>
-          </div>
-          <div className="stat">
-            <div className="stat-icon">
-              <Icon name="help" size={22} />
-            </div>
-            <div className="stat-value stat-hours">{(ticker && ticker.delivery) || SHOP_HOURS}</div>
-            <div className="stat-label">{t(lang, "statChat")}</div>
+        </div>
+        <div className="dino-feature">
+          <div className="dino-feature-ico"><img src="/dino-icons/icon-support-headphone.svg" alt="" width="28" height="28" /></div>
+          <div>
+            <strong>{lang === "km" ? "ជំនួយ Live Chat" : "Live Support"}</strong>
+            <p>{lang === "km" ? "ឆាតជាមួយ Admin ក្នុង website" : "Chat with admin right on the site."}</p>
           </div>
         </div>
       </section>
-    </div>
+
+</div>
   );
 }
