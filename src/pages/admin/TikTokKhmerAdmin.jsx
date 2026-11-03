@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { AIcon, ImageSlot, PageHead, Switch, api, toast, usd } from "./ui";
+import { AIcon, ImageSlot, PageHead, Switch, VideoSlot, api, toast } from "./ui";
 
 const TID = "tiktok-khmer";
 
@@ -62,7 +62,7 @@ export default function TikTokKhmerAdmin() {
       }
       setProduct({ ...p, packs: Array.isArray(p.packs) ? p.packs : [] });
     } catch (e) {
-      toast(e.message || "Load failed", "err");
+      toast(e.message || "Load failed", "bad");
     } finally {
       setLoading(false);
     }
@@ -107,7 +107,7 @@ export default function TikTokKhmerAdmin() {
       if (p) setProduct(p);
       toast("រក្សាទុក TikTok Khmer រួច", "ok");
     } catch (e) {
-      toast(e.message || "Save failed", "err");
+      toast(e.message || "Save failed", "bad");
     } finally {
       setSaving(false);
     }
@@ -116,7 +116,7 @@ export default function TikTokKhmerAdmin() {
   if (loading || !product) {
     return (
       <div className="ad-page">
-        <PageHead title="TikTok Khmer" sub="Loading…" />
+        <PageHead km="TikTok Khmer" en="Loading…" />
         <div className="ad-spin big" />
       </div>
     );
@@ -124,15 +124,11 @@ export default function TikTokKhmerAdmin() {
 
   return (
     <div className="ad-page">
-      <PageHead
-        title="TikTok Khmer"
-        sub="Products · កញ្ចប់ · បង្ហាញ Home · order → bot Kai-"
-        actions={
-          <button type="button" className="ad-btn primary" disabled={saving} onClick={save}>
-            {saving ? "…" : "រក្សាទុក"}
-          </button>
-        }
-      />
+      <PageHead km="TikTok Khmer" en="Products · កញ្ចប់ · បង្ហាញ Home · order → bot Kai-">
+        <button type="button" className="ad-btn primary" disabled={saving} onClick={save}>
+          {saving ? "…" : "រក្សាទុក"}
+        </button>
+      </PageHead>
 
       <section className="ad-card">
         <div className="ad-grid-2" style={{ alignItems: "start" }}>
@@ -189,16 +185,13 @@ export default function TikTokKhmerAdmin() {
 
       <section className="ad-card" style={{ marginTop: 16 }}>
         <h2 style={{ margin: "0 0 12px", fontSize: 16 }}>② Tutorial Video (បង់រួចបង្ហាញ)</h2>
-        <p className="ad-hint">ដាក់ URL video (YouTube / ផ្ទាល់ /uploads/…) · បង្ហាញលើទំព័រ Success បន្ទាប់ពីបង់</p>
-        <label className="ad-field">
-          <span>Video URL</span>
-          <input
-            value={product.tutorialVideoUrl || ""}
-            onChange={(e) => patch("tutorialVideoUrl", e.target.value)}
-            placeholder="https://… หรือ /uploads/tutorial.mp4"
-          />
-        </label>
-        <label className="ad-field">
+        <p className="ad-hint">Upload video ពី phone / កុំព្យូទ័រ · បង្ហាញលើទំព័រ Success បន្ទាប់ពីអតិថិជនបង់ប្រាក់</p>
+        <VideoSlot
+          src={product.tutorialVideoUrl || ""}
+          onUrl={(u) => patch("tutorialVideoUrl", u)}
+          onClear={() => patch("tutorialVideoUrl", "")}
+        />
+        <label className="ad-field" style={{ marginTop: 14 }}>
           <span>Video Title</span>
           <input
             value={product.tutorialVideoTitle || ""}
@@ -206,6 +199,17 @@ export default function TikTokKhmerAdmin() {
             placeholder="Tutorial · របៀបប្រើ"
           />
         </label>
+        <details className="ad-vslot-alt">
+          <summary>ឬប្រើ Link (YouTube / https://…)</summary>
+          <label className="ad-field">
+            <span>Video URL</span>
+            <input
+              value={product.tutorialVideoUrl || ""}
+              onChange={(e) => patch("tutorialVideoUrl", e.target.value)}
+              placeholder="https://youtu.be/…"
+            />
+          </label>
+        </details>
       </section>
 
       <section className="ad-card" style={{ marginTop: 16 }}>

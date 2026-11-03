@@ -2838,3 +2838,24 @@ button.ad-provider-card {
   min-width: 0;
 }
 
+
+/* ---------- Video upload slot (TikTok Khmer tutorial) ---------- */
+.ad-vslot { display: grid; gap: 10px; }
+.ad-vslot-drop {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; min-height: 150px; padding: 20px; text-align: center; cursor: pointer;
+  border: 2px dashed var(--ad-line); border-radius: 14px;
+  background: var(--ad-blue-soft); color: var(--ad-blue); font-family: var(--ad-fk);
+  transition: border-color .15s, background .15s;
+}
+.ad-vslot-drop:hover, .ad-vslot-drop.over { border-color: var(--ad-blue); background: color-mix(in srgb, var(--ad-blue) 14%, transparent); }
+.ad-vslot-drop.busy { opacity: .6; cursor: progress; }
+.ad-vslot-drop small { color: var(--ad-ink-3); }
+.ad-vslot-preview video { width: 100%; max-width: 420px; max-height: 360px; border-radius: 14px; background: #000; display: block; }
+.ad-vslot-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.ad-vslot-bar { position: relative; height: 26px; border-radius: 99px; background: var(--ad-line); overflow: hidden; }
+.ad-vslot-bar i { position: absolute; inset: 0 auto 0 0; background: var(--ad-blue); transition: width .2s; }
+.ad-vslot-bar span { position: relative; z-index: 1; display: block; text-align: center; line-height: 26px; font-size: 12px; font-weight: 600; color: var(--ad-ink); mix-blend-mode: normal; }
+.ad-vslot-alt { margin-top: 8px; }
+.ad-vslot-alt summary { cursor: pointer; font-size: 13px; color: var(--ad-ink-3); }
+@media (max-width: 640px) { .ad-vslot-preview video { max-width: 100%; } }

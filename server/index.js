@@ -1679,6 +1679,23 @@ app.post("/api/admin/upload", adminAuth, express.raw({ type: () => true, limit: 
   res.json({ url: `/uploads/${name}` });
 });
 
+/** Identify mp4/mov/webm from real bytes (never trust filename / content-type). */
+function sniffVideo(b) {
+  if (!Buffer.isBuffer(b) || b.length < 16) return null;
+  if (b.toString("ascii", 4, 8) === "ftyp") return "mp4"; // mp4 / m4v / mov (iPhone)
+  if (b[0] === 0x1a && b[1] === 0x45 && b[2] === 0xdf && b[3] === 0xa3) return "webm";
+  return null;
+}
+
+/* Tutorial video upload (TikTok Khmer admin) — max 60MB, mp4 / mov / webm */
+app.post("/api/admin/upload-video", adminAuth, express.raw({ type: () => true, limit: "60mb" }), (req, res) => {
+  const ext = sniffVideo(req.body);
+  if (!ext) return res.status(400).json({ error: "bad_video" });
+  const name = `vid-${Date.now().toString(36)}-${crypto.randomBytes(6).toString("hex")}.${ext}`;
+  fs.writeFileSync(path.join(UPLOAD_DIR, name), req.body);
+  res.json({ url: `/uploads/${name}`, size: req.body.length });
+});
+
 /* ---------- Branding: favicon / app icon / manifest follow the logo uploaded in Admin ---------- */
 const ICON_CACHE = "public, max-age=3600"; // links carry ?v=<logo hash>, so a new logo is picked up immediately
 function defaultIconPath(file) {

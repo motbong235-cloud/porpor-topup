@@ -282,6 +282,126 @@ export function WideImageSlot({ src, ratio = "16 / 5", maxWidth = 1600, width = 
   );
 }
 
+/* ---------- Video upload (with progress) ---------- */
+export const MAX_VIDEO_MB = 60;
+
+export function uploadVideo(file, onProgress) {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith("video/")) return reject(new Error("not_video"));
+    if (file.size > MAX_VIDEO_MB * 1024 * 1024) return reject(new Error("too_large"));
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/admin/upload-video");
+    xhr.withCredentials = true;
+    xhr.setRequestHeader("Content-Type", file.type || "video/mp4");
+    const csrf = readCsrf();
+    if (csrf) xhr.setRequestHeader("X-CSRF-Token", csrf);
+    try {
+      const tok = sessionStorage.getItem("pp_admin_token");
+      if (tok) xhr.setRequestHeader("x-admin-token", tok);
+    } catch {}
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100));
+    };
+    xhr.onload = () => {
+      let data = {};
+      try {
+        data = JSON.parse(xhr.responseText);
+      } catch {}
+      if (xhr.status >= 200 && xhr.status < 300 && data.url) return resolve(data.url);
+      if (xhr.status === 401) window.dispatchEvent(new Event("admin-unauthorized"));
+      reject(Object.assign(new Error(data.error || "error"), { status: xhr.status }));
+    };
+    xhr.onerror = () => reject(new Error("network"));
+    xhr.send(file);
+  });
+}
+
+/** Click / drag-drop video upload box with progress bar + preview. */
+export function VideoSlot({ src, onUrl, onClear }) {
+  const input = useRef(null);
+  const [busy, setBusy] = useState(false);
+  const [pct, setPct] = useState(0);
+  const [over, setOver] = useState(false);
+
+  async function handle(file) {
+    if (!file) return;
+    setBusy(true);
+    setPct(0);
+    try {
+      onUrl(await uploadVideo(file, setPct));
+      toast("Upload video រួចរាល់ — កុំភ្លេចចុច រក្សាទុក", "ok");
+    } catch (err) {
+      const msg =
+        err.message === "not_video" || err.message === "bad_video"
+          ? "សូមជ្រើសរើសឯកសារ video (MP4 / MOV / WebM)"
+          : err.message === "too_large" || err.status === 413
+            ? `Video ធំពេក (អតិបរមា ${MAX_VIDEO_MB}MB) — សូមបង្រួមមុន`
+            : "Upload មិនបានទេ សូមព្យាយាមម្តងទៀត";
+      toast(msg, "bad");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function pick(e) {
+    const f = e.target.files?.[0];
+    e.target.value = "";
+    handle(f);
+  }
+
+  function drop(e) {
+    e.preventDefault();
+    setOver(false);
+    if (!busy) handle(e.dataTransfer.files?.[0]);
+  }
+
+  return (
+    <div className="ad-vslot">
+      {src ? (
+        <div className="ad-vslot-preview">
+          {(src.includes("youtube.com") || src.includes("youtu.be")) ? (
+            <p className="ad-hint">▶ YouTube link: {src}</p>
+          ) : (
+            <video src={src} controls playsInline preload="metadata" />
+          )}
+          <div className="ad-vslot-actions">
+            <button type="button" className="ad-btn soft" disabled={busy} onClick={() => input.current?.click()}>
+              <AIcon name="upload" size={15} /> ប្តូរ video
+            </button>
+            <button type="button" className="ad-btn soft" disabled={busy} onClick={onClear}>
+              <AIcon name="trash" size={15} /> លុប
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          className={`ad-vslot-drop${over ? " over" : ""}${busy ? " busy" : ""}`}
+          disabled={busy}
+          onClick={() => input.current?.click()}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setOver(true);
+          }}
+          onDragLeave={() => setOver(false)}
+          onDrop={drop}
+        >
+          <AIcon name="upload" size={28} />
+          <b>ចុចដើម្បី Upload Video</b>
+          <small>ឬអូសដាក់ទីនេះ · MP4 / MOV / WebM · អតិបរមា {MAX_VIDEO_MB}MB</small>
+        </button>
+      )}
+      {busy ? (
+        <div className="ad-vslot-bar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+          <i style={{ width: `${pct}%` }} />
+          <span>{pct < 100 ? `កំពុង Upload… ${pct}%` : "កំពុងរក្សាទុក…"}</span>
+        </div>
+      ) : null}
+      <input ref={input} type="file" accept="video/mp4,video/quicktime,video/webm" hidden onChange={pick} />
+    </div>
+  );
+}
+
 /* ---------- Page header ---------- */
 export function PageHead({ km, en, children }) {
   return (

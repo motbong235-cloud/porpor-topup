@@ -296,7 +296,7 @@ export default function Success({ lang, settings }) {
                   allowFullScreen
                 />
               ) : (
-                <video src={gameMeta.tutorialVideoUrl} controls playsInline />
+                <video src={gameMeta.tutorialVideoUrl} controls playsInline preload="metadata" />
               )
             ) : (
               <p className="tt-tutorial-note">
