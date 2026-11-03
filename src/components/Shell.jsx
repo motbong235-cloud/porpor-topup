@@ -302,15 +302,15 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
               <Link to="/legal/cookies"><Icon name="cookie" size={15} />{t(lang, "cookies")}</Link>
             </div>
           </div>
-          <div className="footer-col">
+          <div className="footer-col footer-col-pay">
             <div className="footer-label">{t(lang, "accept")}</div>
-            <div className="pay-logos pay-logos-featured" aria-label="Accepted payment methods">
-              <div className="pay-logo-card pay-logo-card-aba">
-                <img className="pay-logo aba" src="/payments/aba-payway.png" alt="ABA PayWay" />
-              </div>
-              <div className="pay-logo-card pay-logo-card-khqr">
-                <img className="pay-logo khqr" src="/payments/khqr-wordmark.png" alt="KHQR" />
-              </div>
+            <div className="pay-logos pay-logos-sm" aria-label="Accepted payment methods">
+              <span className="pay-pill">
+                <img src="/payments/aba-payway.png" alt="ABA PayWay" onError={(e) => { e.currentTarget.src = "/aba-logo.svg"; }} />
+              </span>
+              <span className="pay-pill">
+                <img src="/payments/khqr-mark.png" alt="KHQR" onError={(e) => { e.currentTarget.src = "/khqr-logo.svg"; }} />
+              </span>
             </div>
           </div>
         </div>
