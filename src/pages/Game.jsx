@@ -5,6 +5,7 @@ import { t } from "../lib/i18n";
 import { applyCoupon, money } from "../lib/store";
 import { GameTile, Icon } from "../components/Icons";
 import RobuxRain from "../components/RobuxRain";
+import "./PaymentBrand.css";
 
 const DEFAULT_BANNER = "/images/banner-topup.svg";
 
@@ -1132,20 +1133,25 @@ export default function Game({ lang, addOrder, settings }) {
             {couponMsg.text ? <p className={`msg ${couponMsg.type}`}>{couponMsg.text}</p> : null}
             <div className="pay-label caps">{lang === "km" ? "ជ្រើសវិធីបង់ប្រាក់" : "Choose way to pay"}</div>
             <div className="pay-choices">
-              <div className="pay-choice active" role="radio" aria-checked="true">
-                <div className="pay-choice-brand">
+              <div className="pay-choice pp-payment-choice active" role="radio" aria-checked="true">
+                <div className="pp-payment-logos" aria-label="ABA PayWay and KHQR">
                   <img
-                    className="pay-aba-mark"
-                    src={"/payments/aba-payway.png"}
-                    alt="ABA"
-                    width={88}
-                    height={32}
+                    className="pp-payment-aba"
+                    src="/payments/aba-payway.png"
+                    alt="ABA PayWay"
+                    decoding="async"
+                  />
+                  <span className="pp-payment-divider" aria-hidden="true" />
+                  <img
+                    className="pp-payment-khqr"
+                    src="/payments/khqr-mark.png"
+                    alt="KHQR"
                     decoding="async"
                   />
                 </div>
                 <div className="pay-choice-meta">
                   <strong>ABA KHQR</strong>
-                  <span>{t(lang, "khqrHint")}</span>
+                  <span>{lang === "km" ? "បង់តាម ABA Mobile ឬកម្មវិធីធនាគារដែលគាំទ្រ KHQR" : "Pay with ABA Mobile or any bank app that supports KHQR"}</span>
                 </div>
                 <span className="pay-choice-check" aria-hidden>
                   <Icon name="check" size={14} />
@@ -1207,11 +1213,15 @@ export default function Game({ lang, addOrder, settings }) {
       >
         <div className="pw-sheet" onClick={(e) => e.stopPropagation()}>
           <div className="pw-handle" />
-          <div className="pw-brand">
-            <img className="pw-aba-img" src={"/payments/aba-payway.png"} alt="ABA" />
+          <div className="pw-brand pp-pay-sheet-brand">
+            <div className="pp-payment-logos pp-payment-logos-sheet" aria-label="ABA PayWay and KHQR">
+              <img className="pp-payment-aba" src="/payments/aba-payway.png" alt="ABA PayWay" />
+              <span className="pp-payment-divider" aria-hidden="true" />
+              <img className="pp-payment-khqr" src="/payments/khqr-mark.png" alt="KHQR" />
+            </div>
             <div className="pw-brand-col">
-              <span className="pw-brand-text">ABA PAYWAY</span>
-              <span className="pw-brand-sub">KHQR · Secure</span>
+              <span className="pw-brand-text">ABA KHQR</span>
+              <span className="pw-brand-sub">{lang === "km" ? "បង់ប្រាក់ដោយសុវត្ថិភាព" : "Secure bank payment"}</span>
             </div>
           </div>
 

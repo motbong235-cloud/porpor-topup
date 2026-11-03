@@ -3,7 +3,8 @@ import { Icon } from "../components/Icons";
 import { Link, useSearchParams } from "react-router-dom";
 import { t } from "../lib/i18n";
 import { money } from "../lib/store";
-import RobuxCelebration from "../components/RobuxCelebration";
+import RobuxRain from "../components/RobuxRain";
+import "./PaymentBrand.css";
 
 /**
  * Payment Successful page (like dinotopups):
@@ -254,9 +255,10 @@ export default function Success({ lang, settings }) {
           ) : null}
           <div className="row">
             <span>{lang === "km" ? "វិធីទូទាត់" : "Payment Method"}</span>
-            <strong className="pay-method-logos">
-              <img src="/aba-logo.svg" alt="ABA" height={22} />
-              <img src="/khqr-logo.svg" alt="KHQR" height={22} />
+            <strong className="pay-method-logos pp-success-payment-logos" aria-label="ABA PayWay and KHQR">
+              <img src="/payments/aba-payway.png" alt="ABA PayWay" />
+              <img src="/payments/khqr-mark.png" alt="KHQR" />
+              <span>ABA KHQR</span>
             </strong>
           </div>
           <div className="row">
@@ -305,7 +307,7 @@ export default function Success({ lang, settings }) {
         )}
 
 
-        {isRobux && paid ? <RobuxCelebration count={7} /> : null}
+        {isRobux ? <RobuxRain count={14} /> : null}
 
         {isTikTok && paid ? (
           <div className="tt-tutorial">
