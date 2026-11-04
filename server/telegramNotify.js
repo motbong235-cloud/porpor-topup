@@ -376,6 +376,12 @@ function khNow() {
 }
 
 /** Same style as Kai- channel / order bot message */
+
+function usernameFromLink(url) {
+  const m = String(url || "").match(/tiktok\.com\/@([^/?#\s]+)/i);
+  return m ? decodeURIComponent(m[1]).replace(/^@/, "") : "";
+}
+
 export function formatKaiOrderMsg(o, { forChannel = false, kind = "paid" } = {}) {
   const buyer = o.telegramId || o.userId || "—";
   const label = o.packName || o.gameName || "TikTok Khmer";
@@ -400,12 +406,18 @@ export function formatKaiOrderMsg(o, { forChannel = false, kind = "paid" } = {})
   const linkDisp = forChannel
     ? "Private"
     : (rawLink && rawLink !== "gift" ? rawLink : "—");
+  const ttkUser = o.ttkUsername || usernameFromLink(rawLink) || "";
+  const ttkName = o.ttkDisplayName || "";
   const lines = [
     title,
     "",
     `Buyer ID: <code>${esc(forChannel ? maskUid(buyer) : String(buyer))}</code>`,
     "",
-    `🔗 Link: ${forChannel ? linkDisp : `<code>${esc(linkDisp)}</code>`}`,
+    ttkUser
+      ? `👤 TikTok: <b>@${esc(ttkUser)}</b>${ttkName && ttkName !== ttkUser ? ` · ${esc(ttkName)}` : ""}`
+      : "👤 TikTok: <i>(parse username from link)</i>",
+    ttkUser ? `🔗 Profile: https://www.tiktok.com/@${esc(ttkUser)}` : "",
+    `🔗 Video: ${forChannel ? linkDisp : `<code>${esc(linkDisp)}</code>`}`,
     `🎯 សេវាកម្ម: ${esc(svc)}`,
     `📋 Order ID: <code>${esc(o.id)}</code>`,
     `💵 តម្លៃសរុប: <b>$${price.toFixed(2)}</b>`,
@@ -413,8 +425,9 @@ export function formatKaiOrderMsg(o, { forChannel = false, kind = "paid" } = {})
     `📅 Date: ${khNow()}`,
     "",
     "🌐 <b>Source:</b> Porpor Topup (TikTok Khmer)",
+    "⚠️ Admin: ផ្ញើ likes/views ទៅ <b>@" + esc(ttkUser || "???") + "</b> តាម link ខាងលើ",
     "អរគុណចំពោះការប្រើប្រាស់ ❤️",
-  ];
+  ].filter(Boolean);
   if (!forChannel) {
     lines.push("");
     lines.push("<i>ពី Porpor Topup · TikTok Khmer</i>");
@@ -433,27 +446,39 @@ export function formatKaiOrderMsg(o, { forChannel = false, kind = "paid" } = {})
 export async function notifyOrder(kind, o) {
   const k = String(kind || "").toLowerCase();
 
-  // ——— TikTok Khmer → ONLY @order_kaibot chat (never Porpor channel, never Kai channel)
+  // ——— TikTok Khmer → Order bot chat + Porpor channel (never Kai- channel)
   if (isKaiRouteOrder(o)) {
     if (k === "new" || k === "pending" || k === "created") {
       console.log("[telegram] TikTok skip unpaid", o?.id);
       return { ok: true, skipped: "await_payment" };
     }
-    if (!isKaiNotifyReady()) {
-      console.warn("[telegram] TikTok paid but kaiOrderBotToken/kaiChatId missing — NOT sending to Porpor channel", o?.id);
-      return { ok: false, error: "kai_not_configured" };
-    }
-    const orderToken = kaiOrderBotToken();
-    const orderChat = kaiChatId();
-    const textBot = formatKaiOrderMsg(o, { forChannel: false, kind: k });
-    const r1 = await sendTelegramWithToken(orderToken, orderChat, textBot, {}, 2);
-    if (!r1.ok) {
-      console.warn("[telegram] TikTok ORDER chat FAILED", orderChat, r1.error || r1.raw);
+    const results = [];
+    // 1) Order bot (full link + username)
+    if (isKaiNotifyReady()) {
+      const textBot = formatKaiOrderMsg(o, { forChannel: false, kind: k });
+      const r1 = await sendTelegramWithToken(kaiOrderBotToken(), kaiChatId(), textBot, {}, 2);
+      results.push(r1);
+      if (!r1.ok) console.warn("[telegram] TikTok ORDER chat FAILED", kaiChatId(), r1.error || r1.raw);
+      else console.log("[telegram] TikTok ORDER chat OK →", kaiChatId(), o.id, k);
     } else {
-      console.log("[telegram] TikTok ORDER chat OK →", orderChat, o.id, k);
+      console.warn("[telegram] kaiOrderBotToken/kaiChatId missing — still send Porpor channel");
     }
-    // Explicit: do not touch Porpor channel or Kai channel
-    return r1;
+    // 2) Porpor channel (username visible so admin does not mis-send)
+    if (isNotifyReady()) {
+      const textCh = formatKaiOrderMsg(o, { forChannel: true, kind: k });
+      // Prefer photo thumbnail if we have it
+      let r2;
+      if (o.ttkThumbnail) {
+        r2 = await sendTelegramPhoto(channelId(), o.ttkThumbnail, textCh);
+        if (!r2.ok) r2 = await notifyChannel(textCh);
+      } else {
+        r2 = await notifyChannel(textCh);
+      }
+      results.push(r2);
+      if (!r2.ok) console.warn("[telegram] TikTok Porpor channel FAILED", r2.error || r2.raw);
+      else console.log("[telegram] TikTok Porpor channel OK", o.id, k);
+    }
+    return results.find((r) => r && r.ok) || results[0] || { ok: false, error: "tiktok_notify_failed" };
   }
 
   // ——— All other Porpor services → Porpor channel only

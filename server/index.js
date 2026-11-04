@@ -36,6 +36,7 @@ import * as khmerTopup from "./khmerTopup.js";
 import * as dinoTopup from "./dinoTopup.js";
 import * as priceWatch from "./priceWatch.js";
 import * as robloxLookup from "./robloxLookup.js";
+import * as tiktokLookup from "./tiktokLookup.js";
 import * as catalog from "./catalog.js";
 import { isGiftCodeProduct, localCatalog, DEFAULT_LOCAL_PRODUCTS, cleanBanners } from "./localProducts.js";
 import {
@@ -1070,7 +1071,7 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
   const total = round2(subtotal - cp.discount);
   if (!(total > 0)) return res.status(400).json({ error: "invalid" });
 
-  const order = createOrder({
+  let order = createOrder({
     id: uniqueCode(),
     gameId: found.game.id,
     gameName: found.game.name,
@@ -1130,6 +1131,25 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
     gameName: order.gameName,
     packName: order.packName,
   });
+  // TikTok: resolve @username from video link (oEmbed + URL) so admin never mis-targets
+  if (kaiRoute && order.userId) {
+    try {
+      const tt = await tiktokLookup.lookupTikTokLink(order.userId);
+      if (tt && (tt.username || tt.displayName)) {
+        order = updateOrder(order.id, {
+          ttkUsername: tt.username || null,
+          ttkDisplayName: tt.displayName || null,
+          ttkAuthorUrl: tt.authorUrl || null,
+          ttkThumbnail: tt.thumbnail || null,
+          ttkResolvedUrl: tt.resolvedUrl || null,
+          ttkTitle: tt.title || null,
+        }) || order;
+      }
+    } catch (e) {
+      console.warn("[tiktok] lookup on checkout", e.message);
+    }
+  }
+
   const qr = await khmerSystem.createQr(order.total, order.id, `p${order.id}`, { useKai: kaiRoute });
   if (!qr.success) {
     console.error("[checkout] ABA PayWay QR failed:", qr.error, JSON.stringify(qr.raw || {}));
@@ -1229,6 +1249,23 @@ async function tryConfirmPayment(order, meta = {}) {
       status: pay.status,
       source: meta.source || "status",
     });
+    if (tg.isKaiRouteOrder(updated) && updated.userId && !updated.ttkUsername) {
+      try {
+        const tt = await tiktokLookup.lookupTikTokLink(updated.userId);
+        if (tt && (tt.username || tt.displayName)) {
+          updated = updateOrder(updated.id, {
+            ttkUsername: tt.username || null,
+            ttkDisplayName: tt.displayName || null,
+            ttkAuthorUrl: tt.authorUrl || null,
+            ttkThumbnail: tt.thumbnail || null,
+            ttkResolvedUrl: tt.resolvedUrl || null,
+            ttkTitle: tt.title || null,
+          }) || updated;
+        }
+      } catch (e) {
+        console.warn("[tiktok] lookup on paid", e.message);
+      }
+    }
     try {
       tg.notifyOrder("paid", updated).catch(() => {});
     } catch {}
