@@ -1305,6 +1305,7 @@ async function tryConfirmPayment(order, meta = {}) {
             ttkDisplayName: tt.displayName || null,
             ttkAuthorUrl: tt.authorUrl || null,
             ttkThumbnail: tt.thumbnail || null,
+            ttkAvatarUrl: tt.avatarUrl || null,
             ttkResolvedUrl: tt.resolvedUrl || null,
             ttkTitle: tt.title || null,
           }) || updated;
