@@ -820,12 +820,57 @@ app.post("/api/verify", limit("verify", { limit: 30, windowMs: 60_000 }), async 
 
     const slugL = String(game.id || slug).toLowerCase();
     const nameL = String(game.name || "").toLowerCase();
+    const isTikTok =
+      slugL.includes("tiktok") ||
+      nameL.includes("tiktok") ||
+      String(game.nameKm || "").toLowerCase().includes("tiktok");
     const isRoblox =
       game.deliveryType === "robux_send" ||
       slugL.includes("roblox") ||
       slugL.includes("robux") ||
       nameL.includes("roblox") ||
       nameL.includes("robux");
+
+    // TikTok Khmer: resolve video URL → @username (oEmbed + redirect)
+    if (isTikTok) {
+      try {
+        const tt = await tiktokLookup.lookupTikTokLink(playerId);
+        if (!tt || !tt.valid) {
+          return res.json({
+            result: "invalid",
+            valid: false,
+            message: "Invalid TikTok link — use full video URL",
+            provider: "tiktok",
+          });
+        }
+        if (!tt.username && !tt.displayName) {
+          return res.json({
+            result: "invalid",
+            valid: false,
+            message: "Could not read TikTok username from link",
+            provider: "tiktok",
+            tiktok: tt,
+          });
+        }
+        return res.json({
+          result: "valid",
+          valid: true,
+          nickname: tt.displayName || tt.username,
+          provider: "tiktok",
+          tiktok: {
+            username: tt.username,
+            displayName: tt.displayName,
+            authorUrl: tt.authorUrl,
+            thumbnail: tt.thumbnail,
+            title: tt.title,
+            resolvedUrl: tt.resolvedUrl || tt.inputUrl,
+            inputUrl: tt.inputUrl,
+          },
+        });
+      } catch (e) {
+        return res.json({ result: "unknown", error: e.message, provider: "tiktok" });
+      }
+    }
 
     // Roblox: always enrich with public profile (avatar + display name)
     let rbx = null;

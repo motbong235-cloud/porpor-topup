@@ -6,6 +6,7 @@ import { applyCoupon, money } from "../lib/store";
 import { GameTile, Icon } from "../components/Icons";
 import RobuxRain from "../components/RobuxRain";
 import RobloxProfileCard from "../components/RobloxProfileCard";
+import TikTokProfileCard from "../components/TikTokProfileCard";
 
 const DEFAULT_BANNER = "/images/banner-topup.svg";
 
@@ -256,6 +257,7 @@ export default function Game({ lang, addOrder, settings }) {
   const [checkedFor, setCheckedFor] = useState("");
   const [checking, setChecking] = useState(false);
   const [rbxProfile, setRbxProfile] = useState(null);
+  const [ttkProfile, setTtkProfile] = useState(null);
   const [packId, setPackId] = useState(null);
   const [qty, setQty] = useState(1);
   const [cat, setCat] = useState("all");
@@ -367,7 +369,7 @@ export default function Game({ lang, addOrder, settings }) {
       /roblox|robux/i.test(String(game.id || "")) ||
       /roblox|robux/i.test(String(game.name || "")));
   // Check ID is required for Robux Send and for any Roblox service that asks for a username
-  const needCheckId = !!(game && (game.deliveryType === "robux_send" || (isRobloxGame && needUsername)));
+  const needCheckId = !!(game && (game.deliveryType === "robux_send" || (isRobloxGame && needUsername) || (isTikTok && needUsername)));
 
   function verify() {
     if (userId.trim().length < 3) {
@@ -389,12 +391,13 @@ export default function Game({ lang, addOrder, settings }) {
     setUnverified(false);
     setPayErr("");
     setRbxProfile(null);
+    setTtkProfile(null);
     fetch("/api/verify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         slug: game.id,
-        playerId: userId.trim().replace(/^@/, ""),
+        playerId: isTikTok ? userId.trim() : userId.trim().replace(/^@/, ""),
         serverId: zoneId.trim() || server || undefined,
       }),
     })
@@ -402,7 +405,13 @@ export default function Game({ lang, addOrder, settings }) {
       .then((data) => {
         const ok = data.result === "valid" || data.result === "ok" || data.valid === true;
         if (ok) {
-          setNick(data.nickname || data.roblox?.displayName || data.roblox?.username || "OK");
+          setNick(data.nickname || data.tiktok?.displayName || data.tiktok?.username || data.roblox?.displayName || data.roblox?.username || "OK");
+          if (data.tiktok) {
+            setTtkProfile(data.tiktok);
+            // keep original video URL in userId; username stored on order server-side
+            setCheckedFor(key);
+            return;
+          }
           if (data.roblox) {
             setRbxProfile(data.roblox);
             // fix letter-case / @ so the order uses the real Roblox username
@@ -418,6 +427,7 @@ export default function Game({ lang, addOrder, settings }) {
           setNick("");
           setCheckedFor("");
           setRbxProfile(null);
+          setTtkProfile(null);
           setPayErr(
             isRobloxGame
               ? lang === "km"
@@ -480,11 +490,10 @@ export default function Game({ lang, addOrder, settings }) {
       if (needUsername) {
         const v = userId.trim();
         if (isTikTok) {
-          if (v.length < 8) {
+          if (v.length < 8 || !/tiktok\.com|vt\.tiktok|vm\.tiktok/i.test(v)) {
             return lang === "km" ? "សូមបញ្ចូល URL link video TikTok" : "Please enter TikTok video URL";
           }
-          // accept https link or @user — no Check ID
-          return "";
+          // require Check before pay
         }
         if (v.length < 3) {
           return lang === "km" ? "សូមបញ្ចូល Username" : "Please enter username";
@@ -540,7 +549,9 @@ export default function Game({ lang, addOrder, settings }) {
           zoneId: zoneId.trim(),
           server,
           nickname: nick || rbxProfile?.displayName || "",
-          rbxUsername: rbxProfile?.username || (needCheckId ? userId.trim().replace(/^@/, "") : undefined),
+          rbxUsername: rbxProfile?.username || (needCheckId && isRobloxGame ? userId.trim().replace(/^@/, "") : undefined),
+          ttkUsername: ttkProfile?.username || undefined,
+          ttkDisplayName: ttkProfile?.displayName || undefined,
           rbxDisplayName: rbxProfile?.displayName || nick || undefined,
           rbxUserId: rbxProfile?.userId != null ? rbxProfile.userId : undefined,
           rbxAvatarUrl: rbxProfile?.avatarUrl || undefined,
@@ -911,6 +922,7 @@ export default function Game({ lang, addOrder, settings }) {
                             setNick("");
                             setCheckedFor("");
                             setRbxProfile(null);
+                            setTtkProfile(null);
                             setPayErr("");
                           }}
                           onKeyDown={(e) => {
@@ -928,13 +940,15 @@ export default function Game({ lang, addOrder, settings }) {
                         disabled={checking || userId.trim().length < 3}
                         onClick={verify}
                       >
-                        {checking ? "…" : (lang === "km" ? "Check" : "Check")}
+                        {checking ? "…" : (isTikTok ? (lang === "km" ? "ពិនិត្យ Link" : "Check Link") : (lang === "km" ? "Check" : "Check"))}
                       </button>
                       ) : null}
                     </div>
                   </label>
 
-                  {needCheckId && rbxProfile ? (
+                  {needCheckId && ttkProfile ? (
+                    <TikTokProfileCard profile={ttkProfile} lang={lang} />
+                  ) : needCheckId && rbxProfile ? (
                     <RobloxProfileCard profile={rbxProfile} lang={lang} />
                   ) : nick ? (
                     <div className="dino-verify-ok">
