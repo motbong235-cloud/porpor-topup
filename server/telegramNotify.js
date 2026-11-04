@@ -126,8 +126,8 @@ function kaiChannelId() {
   return "";
 }
 export function isKaiNotifyReady() {
-  // Need token + at least one destination (order chat preferred)
-  return Boolean(kaiOrderBotToken() && (kaiChatId() || kaiChannelId()));
+  // TikTok Khmer → order bot private chat ONLY (never Porpor / Kai channel)
+  return Boolean(kaiOrderBotToken() && kaiChatId());
 }
 
 export function isNotifyReady() {
@@ -138,26 +138,34 @@ export function isLoginReady() {
 }
 
 
-export async function sendTelegramWithToken(token, chatId, text, extra = {}) {
+export async function sendTelegramWithToken(token, chatId, text, extra = {}, retries = 1) {
   if (!token || !chatId) return { ok: false, error: "not_configured" };
-  try {
-    const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: String(text).slice(0, 4000),
-        parse_mode: "HTML",
-        disable_web_page_preview: true,
-        ...extra,
-      }),
-      signal: AbortSignal.timeout(12000),
-    });
-    const data = await r.json().catch(() => ({}));
-    return { ok: !!data.ok, raw: data };
-  } catch (e) {
-    return { ok: false, error: e.message || String(e) };
+  let last = { ok: false, error: "unknown" };
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: String(text).slice(0, 4000),
+          parse_mode: "HTML",
+          disable_web_page_preview: true,
+          ...extra,
+        }),
+        signal: AbortSignal.timeout(12000),
+      });
+      const data = await r.json().catch(() => ({}));
+      last = { ok: !!data.ok, raw: data, error: data.description };
+      if (last.ok) return last;
+      // retry on flood / timeout style
+      if (attempt < retries) await new Promise((x) => setTimeout(x, 800));
+    } catch (e) {
+      last = { ok: false, error: e.message || String(e) };
+      if (attempt < retries) await new Promise((x) => setTimeout(x, 800));
+    }
   }
+  return last;
 }
 
 export async function sendTelegram(chatId, text, extra = {}) {
@@ -423,96 +431,55 @@ export function formatKaiOrderMsg(o, { forChannel = false, kind = "paid" } = {})
  * Other products → Porpor channel
  */
 export async function notifyOrder(kind, o) {
+  const k = String(kind || "").toLowerCase();
+
+  // ——— TikTok Khmer → ONLY @order_kaibot chat (never Porpor channel, never Kai channel)
   if (isKaiRouteOrder(o)) {
-    const k = String(kind || "").toLowerCase();
-    // Do not notify until customer paid
     if (k === "new" || k === "pending" || k === "created") {
-      console.log("[telegram] Kai route skip unpaid notify", o?.id, k);
+      console.log("[telegram] TikTok skip unpaid", o?.id);
       return { ok: true, skipped: "await_payment" };
     }
-    // queued / paid / processing / delivered / rejected all allowed
     if (!isKaiNotifyReady()) {
-      console.warn(
-        "[telegram] Kai NOT configured — set Admin: kaiOrderBotToken + kaiChatId (order bot) and/or kaiChannelId. env KAI_ORDER_BOT_TOKEN KAI_CHAT_ID KAI_CHANNEL_ID",
-        {
-          hasOrderToken: Boolean(kaiOrderBotToken()),
-          hasKaiToken: Boolean(kaiBotToken()),
-          chat: kaiChatId() || null,
-          channel: kaiChannelId() || null,
-          orderId: o?.id,
-        }
-      );
+      console.warn("[telegram] TikTok paid but kaiOrderBotToken/kaiChatId missing — NOT sending to Porpor channel", o?.id);
       return { ok: false, error: "kai_not_configured" };
     }
     const orderToken = kaiOrderBotToken();
-    const channelToken = kaiBotToken() || orderToken;
-    const results = [];
     const orderChat = kaiChatId();
-    const ch = kaiChannelId();
-
-    // 1) ORDER BOT chat — full link (required for admin work)
-    if (orderChat) {
-      const textBot = formatKaiOrderMsg(o, { forChannel: false, kind: k });
-      // Inline hint buttons (URL) — admin opens track / support; Done still via Porpor Admin
-      const site = String(process.env.PUBLIC_SITE_URL || process.env.RENDER_EXTERNAL_URL || "https://porportopup.com").replace(/\/$/, "");
-      const kb = {
-        inline_keyboard: [
-          [
-            { text: "🔎 Track Order", url: `${site}/?track=${encodeURIComponent(o.id)}` },
-          ],
-          [
-            { text: "💬 Support", url: "https://t.me/kairozen_support" },
-          ],
-        ],
-      };
-      let r1 = await sendTelegramWithToken(orderToken, orderChat, textBot, { reply_markup: kb });
-      // Retry with main kai token if order-bot token fails (chat may belong to other bot)
-      if (!r1.ok && channelToken && channelToken !== orderToken) {
-        console.warn("[telegram] Kai order-bot token failed, retry main kai token", r1.error || r1.raw);
-        r1 = await sendTelegramWithToken(channelToken, orderChat, textBot);
-      }
-      results.push(r1);
-      if (!r1.ok) {
-        console.warn("[telegram] Kai ORDER chat FAILED", orderChat, r1.error || r1.raw, r1);
-      } else {
-        console.log("[telegram] Kai ORDER chat OK →", orderChat, o.id, k);
-      }
+    const textBot = formatKaiOrderMsg(o, { forChannel: false, kind: k });
+    const r1 = await sendTelegramWithToken(orderToken, orderChat, textBot, {}, 2);
+    if (!r1.ok) {
+      console.warn("[telegram] TikTok ORDER chat FAILED", orderChat, r1.error || r1.raw);
     } else {
-      console.warn("[telegram] kaiChatId EMPTY — only channel will get message. Set Admin → Kai Order Chat ID");
+      console.log("[telegram] TikTok ORDER chat OK →", orderChat, o.id, k);
     }
-
-    // 2) CHANNEL — private link (public log)
-    if (ch) {
-      // skip if same as order chat (avoid duplicate in one chat)
-      if (orderChat && String(ch) === String(orderChat)) {
-        console.log("[telegram] Kai channel same as order chat — skip second send");
-      } else {
-        const textCh = formatKaiOrderMsg(o, { forChannel: true, kind: k });
-        const r2 = await sendTelegramWithToken(channelToken, ch, textCh);
-        results.push(r2);
-        if (!r2.ok) console.warn("[telegram] Kai channel failed", r2.error || r2.raw);
-        else console.log("[telegram] Kai channel →", ch, o.id, k);
-      }
-    }
-
-    const orderOk = results.some((r, i) => r.ok && orderChat);
-    if (orderChat && !results[0]?.ok) {
-      // Last resort: put order details on channel with warning so admin still sees link
-      if (ch && String(ch) !== String(orderChat)) {
-        const warn =
-          formatKaiOrderMsg(o, { forChannel: false, kind: k }) +
-          "\n\n⚠️ <i>Order Bot chat send failed — check kaiChatId + bot token (Admin must /start the bot)</i>";
-        await sendTelegramWithToken(channelToken, ch, warn).catch(() => {});
-      }
-    }
-    return results.find((r) => r.ok) || results[0] || { ok: false, error: orderChat ? "send_failed" : "no_order_chat" };
+    // Explicit: do not touch Porpor channel or Kai channel
+    return r1;
   }
-  // Porpor services only
-  if (String(kind).toLowerCase() === "new") {
-    // optional: still notify Porpor on new unpaid — keep previous behavior for non-TikTok
-    return notifyChannel(formatOrderMsg(kind, o));
+
+  // ——— All other Porpor services → Porpor channel only
+  if (!isNotifyReady()) {
+    console.warn("[telegram] Porpor channel not configured");
+    return { ok: false, error: "not_configured" };
   }
-  return notifyChannel(formatOrderMsg(kind, o));
+  // Robux uses richer template on paid
+  if ((k === "paid" || k === "queued") && isRobuxSendOrder(o)) {
+    const r = await notifyRobuxSend(o);
+    if (!r.ok) {
+      console.warn("[telegram] robux notify failed, retry text", r.error || r.raw);
+      return notifyChannel(formatOrderMsg(k === "queued" ? "paid" : kind, o));
+    }
+    return r;
+  }
+  const text = formatOrderMsg(kind, o);
+  let r = await notifyChannel(text);
+  if (!r.ok) {
+    console.warn("[telegram] Porpor channel send failed, retry once", r.error || r.raw);
+    await new Promise((x) => setTimeout(x, 600));
+    r = await notifyChannel(text);
+  }
+  if (r.ok) console.log("[telegram] Porpor channel OK", o?.id, k);
+  else console.warn("[telegram] Porpor channel FAILED", o?.id, k, r.error || r.raw);
+  return r;
 }
 
 export function formatOrderMsg(kind, o) {
