@@ -1252,19 +1252,18 @@ async function reconcilePendingPayments() {
   if (!khmerSystem.isPaymentReady()) return;
   const all = listOrders() || [];
   const now = Date.now();
-  // pending up to 2h after create (covers long QR + user left page)
+  // pending up to 48h (user paid, left page, admin delayed)
   const pending = all.filter((o) => {
     if (!o || !o.transactionId) return false;
     if (!(o.status === "pending" || (o.status === "failed" && !o.providerPaid))) return false;
     const age = now - (Number(o.createdAt) || 0);
-    return age >= 0 && age < 2 * 60 * 60 * 1000;
+    return age >= 0 && age < 48 * 60 * 60 * 1000;
   });
-  // oldest first, cap batch to avoid API hammer
   pending.sort((a, b) => (Number(a.createdAt) || 0) - (Number(b.createdAt) || 0));
-  const batch = pending.slice(0, 25);
+  const batch = pending.slice(0, 40);
   for (const o of batch) {
     await tryConfirmPayment(o, { source: "reconcile" });
-    await new Promise((r) => setTimeout(r, 200));
+    await new Promise((r) => setTimeout(r, 150));
   }
 }
 
@@ -1485,6 +1484,53 @@ app.patch("/api/admin/orders/:id", adminAuth, async (req, res) => {
     }
   } catch {}
   res.json(o);
+});
+
+
+/** Admin: re-check ABA payment for one order (stuck pending after real pay). */
+app.post("/api/admin/orders/:id/recheck-pay", adminAuth, async (req, res) => {
+  let o = getOrder(req.params.id);
+  if (!o) return res.status(404).json({ error: "not_found" });
+  const before = o.status;
+  o = await tryConfirmPayment(o, { source: "admin_recheck", ip: clientIp(req) });
+  res.json({
+    ok: true,
+    before,
+    after: o.status,
+    paid: o.status !== "pending" && o.status !== "failed",
+    order: o,
+    payStatusRaw: o.payStatusRaw || null,
+    note: o.note || null,
+  });
+});
+
+/** Admin: re-check all recent pending payments. */
+app.post("/api/admin/orders/recheck-pending", adminAuth, async (req, res) => {
+  await reconcilePendingPayments();
+  const pending = (listOrders() || []).filter((o) => o.status === "pending").length;
+  res.json({ ok: true, stillPending: pending });
+});
+
+/** Admin: force mark paid (when ABA paid but API check fails) then fulfill. */
+app.post("/api/admin/orders/:id/force-paid", adminAuth, async (req, res) => {
+  let o = getOrder(req.params.id);
+  if (!o) return res.status(404).json({ error: "not_found" });
+  if (o.status === "delivered" || o.status === "done") {
+    return res.json({ ok: true, order: o, skipped: "already_done" });
+  }
+  o = updateOrder(o.id, {
+    status: "paid",
+    paidAt: o.paidAt || Date.now(),
+    providerPaid: true,
+    note: ((o.note || "") + " | admin force-paid").trim(),
+  });
+  auditLog("payment_force", { orderId: o.id, ip: clientIp(req), admin: true });
+  try { tg.notifyOrder("paid", o).catch(() => {}); } catch {}
+  o = await fulfillTopup(o);
+  if (o && (o.status === "delivered" || o.status === "done")) {
+    try { tg.notifyOrder("delivered", o).catch(() => {}); } catch {}
+  }
+  res.json({ ok: true, order: o });
 });
 
 app.delete("/api/admin/orders/:id", adminAuth, (req, res) => {

@@ -41,10 +41,15 @@ export default function OrdersAdmin() {
 
   const shown = useMemo(() => {
     const s = q.trim().toLowerCase();
+    const sCompact = s.replace(/[\s-]/g, "");
     return list.filter((o) => {
       if (status && (o.status || "delivered") !== status) return false;
       if (!s) return true;
-      return [o.id, o.userId, o.gameName, o.nickname, o.packName, o.clientIp, o.paidIp].some((v) => String(v || "").toLowerCase().includes(s));
+      const id = String(o.id || "").toLowerCase();
+      const idCompact = id.replace(/[\s-]/g, "");
+      if (id.includes(s) || idCompact.includes(sCompact)) return true;
+      return [o.userId, o.gameName, o.nickname, o.packName, o.clientIp, o.paidIp, o.transactionId]
+        .some((v) => String(v || "").toLowerCase().includes(s));
     });
   }, [list, q, status]);
 
@@ -69,6 +74,50 @@ export default function OrdersAdmin() {
       load();
     } catch {
       toast("លុបមិនបាន", "bad");
+    }
+  }
+
+  async function recheckPay(id) {
+    setBusy(id);
+    try {
+      const r = await api(`/api/admin/orders/${id}/recheck-pay`, { method: "POST", body: "{}" });
+      if (r.paid || (r.after && r.after !== "pending")) {
+        toast(`បានបញ្ជាក់បង់ · ${r.after}`);
+      } else {
+        toast(`ABA នៅមិនទាន់ paid (status: ${r.after})`, "bad");
+      }
+      await load();
+    } catch {
+      toast("ពិនិត្យការបង់មិនបាន", "bad");
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function forcePaid(id) {
+    if (!confirm("កំណត់ថាបានបង់ដោយដៃ? (ប្រើពេល ABA ទទួលលុយហើយ តែប្រព័ន្ធអត់ update)")) return;
+    setBusy(id);
+    try {
+      await api(`/api/admin/orders/${id}/force-paid`, { method: "POST", body: "{}" });
+      toast("បានកំណត់ paid + fulfill");
+      await load();
+    } catch {
+      toast("force paid មិនបាន", "bad");
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function recheckAllPending() {
+    setBusy("all");
+    try {
+      const r = await api("/api/admin/orders/recheck-pending", { method: "POST", body: "{}" });
+      toast(`ពិនិត្យរួច · នៅ pending ${r.stillPending ?? "—"}`);
+      await load();
+    } catch {
+      toast("ពិនិត្យ pending មិនបាន", "bad");
+    } finally {
+      setBusy("");
     }
   }
 
@@ -101,8 +150,11 @@ export default function OrdersAdmin() {
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
         <div className="ad-search" style={{ flex: 1, marginBottom: 0 }}>
           <AIcon name="search" size={16} />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ស្វែងរក កូដ / Player ID / IP / ហ្គេម / ឈ្មោះ…" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ស្វែង Order ID / Player / IP / ហ្គេម… (ឧ. PORPOR940 ឬ PP-CFAB)" />
         </div>
+        <button type="button" className="ad-btn soft" disabled={busy === "all"} onClick={recheckAllPending}>
+          <AIcon name="refresh" size={15} /> ពិនិត្យ pending ទាំងអស់
+        </button>
         <a className="ad-btn soft" href="/api/admin/backup" download>
           <AIcon name="download" size={15} /> Backup ទិន្នន័យ
         </a>
@@ -206,6 +258,16 @@ export default function OrdersAdmin() {
                         <button type="button" className="ad-btn primary" disabled={busy === o.id} onClick={() => patch(o.id, { fulfill: true }, "បានបញ្ជូនទៅ Khmer TopUp ម្តងទៀត")}>
                           <AIcon name="bolt" size={15} /> បញ្ចូលហ្គេមម្តងទៀត
                         </button>
+                      ) : null}
+                      {st === "pending" || (st === "failed" && !o.paidAt) ? (
+                        <>
+                          <button type="button" className="ad-btn soft" disabled={busy === o.id} onClick={() => recheckPay(o.id)}>
+                            <AIcon name="refresh" size={15} /> ពិនិត្យ ABA
+                          </button>
+                          <button type="button" className="ad-btn" disabled={busy === o.id} onClick={() => forcePaid(o.id)}>
+                            <AIcon name="check" size={15} /> កំណត់បានបង់
+                          </button>
+                        </>
                       ) : null}
                       {canDeliver ? (
                         <button
