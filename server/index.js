@@ -862,6 +862,7 @@ app.post("/api/verify", limit("verify", { limit: 30, windowMs: 60_000 }), async 
             displayName: tt.displayName,
             authorUrl: tt.authorUrl,
             thumbnail: tt.thumbnail,
+            avatarUrl: tt.avatarUrl || null,
             title: tt.title,
             resolvedUrl: tt.resolvedUrl || tt.inputUrl,
             inputUrl: tt.inputUrl,
@@ -1186,6 +1187,7 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
           ttkDisplayName: tt.displayName || null,
           ttkAuthorUrl: tt.authorUrl || null,
           ttkThumbnail: tt.thumbnail || null,
+          ttkAvatarUrl: tt.avatarUrl || null,
           ttkResolvedUrl: tt.resolvedUrl || null,
           ttkTitle: tt.title || null,
         }) || order;

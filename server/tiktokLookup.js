@@ -1,18 +1,16 @@
 /**
- * Resolve TikTok video/profile link → username + display (for admin accuracy).
- * Uses URL parse + official oEmbed (no unofficial scrape API).
+ * Resolve TikTok video/profile link → username + display + avatar.
+ * Uses URL parse, oEmbed, and light HTML meta for profile image.
  */
 function cleanUrl(raw) {
   let u = String(raw || "").trim();
   if (!u) return "";
-  // strip trailing junk from shared text
   u = u.split(/\s+/)[0];
   u = u.replace(/[),.;]+$/g, "");
   if (!/^https?:\/\//i.test(u)) u = "https://" + u;
   return u.slice(0, 500);
 }
 
-/** @username from standard tiktok.com/@user/video/... */
 export function usernameFromTikTokUrl(url) {
   const u = cleanUrl(url);
   if (!u) return "";
@@ -37,7 +35,7 @@ async function resolveRedirect(url, maxHops = 4) {
         signal: AbortSignal.timeout(10000),
       });
       const loc = r.headers.get("location");
-      if (loc && (r.status === 301 || r.status === 302 || r.status === 303 || r.status === 307 || r.status === 308)) {
+      if (loc && [301, 302, 303, 307, 308].includes(r.status)) {
         current = loc.startsWith("http") ? loc : new URL(loc, current).href;
         continue;
       }
@@ -49,39 +47,82 @@ async function resolveRedirect(url, maxHops = 4) {
   return current;
 }
 
-/**
- * @returns {{
- *   valid: boolean,
- *   inputUrl: string,
- *   resolvedUrl: string,
- *   username: string,
- *   displayName: string,
- *   authorUrl: string,
- *   title: string,
- *   thumbnail: string,
- *   message?: string
- * }}
- */
+/** Try og:image / avatar from profile or video page HTML */
+async function fetchMetaImages(pageUrl) {
+  const out = { avatarUrl: "", thumbnail: "", displayName: "" };
+  try {
+    const r = await fetch(pageUrl, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        Accept: "text/html,application/xhtml+xml",
+      },
+      signal: AbortSignal.timeout(12000),
+      redirect: "follow",
+    });
+    if (!r.ok) return out;
+    const html = (await r.text()).slice(0, 180000);
+    const meta = (prop) => {
+      const re = new RegExp(
+        `<meta[^>]+(?:property|name)=["']${prop}["'][^>]+content=["']([^"']+)["']`,
+        "i",
+      );
+      const re2 = new RegExp(
+        `<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']${prop}["']`,
+        "i",
+      );
+      const m = html.match(re) || html.match(re2);
+      return m ? m[1].replace(/&amp;/g, "&") : "";
+    };
+    out.thumbnail = meta("og:image") || meta("twitter:image") || "";
+    out.displayName = meta("og:title") || "";
+    // TikTok often embeds avatar URLs in JSON
+    const av =
+      html.match(/"avatarLarger"\s*:\s*"([^"]+)"/) ||
+      html.match(/"avatarMedium"\s*:\s*"([^"]+)"/) ||
+      html.match(/"avatarThumb"\s*:\s*"([^"]+)"/);
+    if (av && av[1]) {
+      out.avatarUrl = av[1].replace(/\\u002F/g, "/").replace(/\\\//g, "/");
+    }
+    // sometimes cover is only video thumb — still useful
+    if (!out.avatarUrl && out.thumbnail && /tiktokcdn|musical\.ly|bytedance/i.test(out.thumbnail)) {
+      // keep as video cover; avatar stays empty
+    }
+  } catch (e) {
+    console.warn("[tiktok] meta fetch", e.message);
+  }
+  return out;
+}
+
 export async function lookupTikTokLink(rawUrl) {
   const inputUrl = cleanUrl(rawUrl);
   if (!inputUrl) {
-    return { valid: false, inputUrl: "", resolvedUrl: "", username: "", displayName: "", authorUrl: "", title: "", thumbnail: "", message: "empty_url" };
+    return {
+      valid: false,
+      inputUrl: "",
+      resolvedUrl: "",
+      username: "",
+      displayName: "",
+      authorUrl: "",
+      title: "",
+      thumbnail: "",
+      avatarUrl: "",
+      message: "empty_url",
+    };
   }
 
   let resolvedUrl = inputUrl;
-  // short links need redirect to reveal @user
   if (/\/\/(vt|vm|www\.)?tiktok\.com\//i.test(inputUrl) && !/@/.test(inputUrl)) {
     resolvedUrl = await resolveRedirect(inputUrl);
   }
 
   let username = usernameFromTikTokUrl(resolvedUrl) || usernameFromTikTokUrl(inputUrl);
-
   let displayName = "";
   let authorUrl = username ? `https://www.tiktok.com/@${username}` : "";
   let title = "";
   let thumbnail = "";
+  let avatarUrl = "";
 
-  // oEmbed — public TikTok endpoint
   try {
     const oe = `https://www.tiktok.com/oembed?url=${encodeURIComponent(resolvedUrl || inputUrl)}`;
     const r = await fetch(oe, {
@@ -103,6 +144,28 @@ export async function lookupTikTokLink(rawUrl) {
     console.warn("[tiktok] oembed failed", e.message);
   }
 
+  // Enrich avatar from profile page
+  const profilePage = username ? `https://www.tiktok.com/@${username}` : authorUrl;
+  if (profilePage) {
+    const meta = await fetchMetaImages(profilePage);
+    if (meta.avatarUrl) avatarUrl = meta.avatarUrl;
+    if (!thumbnail && meta.thumbnail) thumbnail = meta.thumbnail;
+    if (!displayName && meta.displayName) {
+      // og:title often "Name (@user) | TikTok"
+      displayName = String(meta.displayName)
+        .replace(/\s*[|·].*$/, "")
+        .replace(/\s*\(@[^)]+\)\s*$/, "")
+        .trim()
+        .slice(0, 120);
+    }
+  }
+  // Video page meta as fallback for cover
+  if (!thumbnail && resolvedUrl) {
+    const metaV = await fetchMetaImages(resolvedUrl);
+    if (metaV.thumbnail) thumbnail = metaV.thumbnail;
+    if (!avatarUrl && metaV.avatarUrl) avatarUrl = metaV.avatarUrl;
+  }
+
   const valid = Boolean(username || displayName || /tiktok\.com/i.test(resolvedUrl));
   return {
     valid,
@@ -113,6 +176,7 @@ export async function lookupTikTokLink(rawUrl) {
     authorUrl: authorUrl || (username ? `https://www.tiktok.com/@${username}` : ""),
     title,
     thumbnail,
+    avatarUrl: avatarUrl || "",
     message: valid ? "ok" : "unresolved",
   };
 }
