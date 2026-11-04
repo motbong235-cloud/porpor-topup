@@ -404,6 +404,7 @@ export function formatKaiOrderMsg(o, { forChannel = false, kind = "paid" } = {})
     `📦 ការបញ្ជា: ${status}`,
     `📅 Date: ${khNow()}`,
     "",
+    "🌐 <b>Source:</b> Porpor Topup (TikTok Khmer)",
     "អរគុណចំពោះការប្រើប្រាស់ ❤️",
   ];
   if (!forChannel) {
@@ -452,7 +453,19 @@ export async function notifyOrder(kind, o) {
     // 1) ORDER BOT chat — full link (required for admin work)
     if (orderChat) {
       const textBot = formatKaiOrderMsg(o, { forChannel: false, kind: k });
-      let r1 = await sendTelegramWithToken(orderToken, orderChat, textBot);
+      // Inline hint buttons (URL) — admin opens track / support; Done still via Porpor Admin
+      const site = String(process.env.PUBLIC_SITE_URL || process.env.RENDER_EXTERNAL_URL || "https://porportopup.com").replace(/\/$/, "");
+      const kb = {
+        inline_keyboard: [
+          [
+            { text: "🔎 Track Order", url: `${site}/?track=${encodeURIComponent(o.id)}` },
+          ],
+          [
+            { text: "💬 Support", url: "https://t.me/kairozen_support" },
+          ],
+        ],
+      };
+      let r1 = await sendTelegramWithToken(orderToken, orderChat, textBot, { reply_markup: kb });
       // Retry with main kai token if order-bot token fails (chat may belong to other bot)
       if (!r1.ok && channelToken && channelToken !== orderToken) {
         console.warn("[telegram] Kai order-bot token failed, retry main kai token", r1.error || r1.raw);

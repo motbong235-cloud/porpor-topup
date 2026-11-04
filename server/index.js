@@ -147,8 +147,8 @@ function adminAuth(req, res, next) {
 }
 
 function newCode() {
-  // Longer random id reduces IDOR / enumeration of track URLs
-  return `PP-${crypto.randomBytes(5).toString("hex").toUpperCase()}`;
+  // Format: PORPOR + 10 hex (e.g. PORPOR2A1CF23C37) — no hyphen
+  return `PORPOR${crypto.randomBytes(5).toString("hex").toUpperCase()}`;
 }
 
 function uniqueCode() {
