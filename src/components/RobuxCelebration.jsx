@@ -31,10 +31,9 @@ export default function RobuxCelebration({ count = 8 }) {
           }}
         >
           <svg viewBox="0 0 40 40" width="100%" height="100%" focusable="false">
-            <path d="M12 2.8h16L37.2 12v16L28 37.2H12L2.8 28V12z" fill="#fbbf24" stroke="#a16207" strokeWidth="2.4" />
-            <path d="M13.2 7.2h13.6l6 6v13.6l-6 6H13.2l-6-6V13.2z" fill="#fde68a" stroke="#fff7cc" strokeWidth="1.5" />
-            <path d="M15 13h11v14H15z" fill="#111827" />
-            <path d="M18 16h5v8h-5z" fill="#f8fafc" />
+            <path d="M12 2.8h16L37.2 12v16L28 37.2H12L2.8 28V12z" fill="#fbbf24" stroke="#a16207" strokeWidth="2.2" />
+            <path d="M13.2 7.2h13.6l6 6v13.6l-6 6H13.2l-6-6V13.2z" fill="#fde68a" stroke="#fcd34d" strokeWidth="1.2" />
+            <path d="M15.2 13.2h7.2c2.4 0 4 1.2 4 3.2 0 1.5-.8 2.6-2.2 3.1l2.6 5.3h-3.1l-2.3-4.8H18v4.8h-2.8V13.2zm2.8 2.2v3.2h4c1.1 0 1.7-.5 1.7-1.6s-.6-1.6-1.7-1.6h-4z" fill="#78350f" />
           </svg>
         </span>
       ))}

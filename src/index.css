@@ -7224,13 +7224,14 @@ html.dark .dino-info-note {
 }
 
 
-/* —— Robux falling coins —— */
+/* —— Robux falling coins (clean SVG, no black box) —— */
 .robux-rain {
   pointer-events: none;
   position: fixed;
   inset: 0;
   z-index: 2;
   overflow: hidden;
+  background: transparent !important;
 }
 .robux-rain-coin {
   position: absolute;
@@ -7239,22 +7240,27 @@ html.dark .dino-info-note {
   animation-name: robux-fall;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
-  will-change: transform;
-  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.35)) drop-shadow(0 2px 3px rgba(180, 120, 20, 0.45));
+  will-change: transform, opacity;
+  background: transparent !important;
+  /* soft gold glow only — no black shadow plate */
+  filter: drop-shadow(0 3px 6px rgba(180, 120, 20, 0.35));
 }
-.robux-rain-coin img {
+.robux-rain-coin svg {
+  display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  display: block;
-  border-radius: 20%;
+  background: transparent !important;
 }
 @keyframes robux-fall {
   0% {
-    transform: translate3d(0, -10vh, 0) rotate(0deg);
+    transform: translate3d(0, -10vh, 0) rotate(-12deg);
+    opacity: 0;
   }
+  8% { opacity: 1; }
+  90% { opacity: 0.85; }
   100% {
-    transform: translate3d(var(--drift, 12px), 110vh, 0) rotate(360deg);
+    transform: translate3d(var(--drift, 12px), 110vh, 0) rotate(320deg);
+    opacity: 0;
   }
 }
 
