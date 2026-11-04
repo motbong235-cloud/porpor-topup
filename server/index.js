@@ -1168,6 +1168,90 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
   }
 });
 
+
+/** Confirm provider payment + fulfill. Safe if user closed the page (no client poll). */
+const _payConfirmLock = new Set();
+
+async function tryConfirmPayment(order, meta = {}) {
+  if (!order || !order.id) return order;
+  if (_payConfirmLock.has(order.id)) return order;
+  const st0 = order.status;
+  if (!(st0 === "pending" || (st0 === "failed" && !order.providerPaid))) return order;
+  if (!order.transactionId || !khmerSystem.isPaymentReady()) return order;
+
+  _payConfirmLock.add(order.id);
+  try {
+    const pay = await khmerSystem.checkPayment(order.transactionId, { useKai: !!order.payViaKai });
+    console.log("[pay-reconcile]", order.id, pay.status, pay.paid, pay.error || "", meta.source || "");
+    if (!(assertPaymentProviderPaid(pay) && pay.paid === true && !pay.simulation && !pay.error)) {
+      return order;
+    }
+    const paidAmt = Number(pay.amount ?? pay.total ?? pay.paid_amount);
+    if (Number.isFinite(paidAmt) && paidAmt > 0 && Math.abs(paidAmt - Number(order.total)) > 0.05) {
+      console.warn("[pay] amount mismatch BLOCKED", order.id, paidAmt, order.total);
+      return updateOrder(order.id, {
+        note: `Amount mismatch blocked provider=${paidAmt} order=${order.total}`,
+      });
+    }
+    const fresh = getOrder(order.id);
+    if (!fresh) return order;
+    if (!(fresh.status === "pending" || (fresh.status === "failed" && !fresh.providerPaid))) {
+      return fresh;
+    }
+    let updated = updateOrder(fresh.id, {
+      status: "paid",
+      paidAt: Date.now(),
+      paidIp: meta.ip || fresh.paidIp || null,
+      providerPaid: true,
+      payStatusRaw: pay.status || "paid",
+      note: ((fresh.note || "") + (meta.source === "reconcile" ? " | auto-reconcile after client left" : "")).trim(),
+    });
+    auditLog("payment_ok", {
+      orderId: updated.id,
+      total: updated.total,
+      ip: meta.ip || null,
+      status: pay.status,
+      source: meta.source || "status",
+    });
+    try {
+      tg.notifyOrder("paid", updated).catch(() => {});
+    } catch {}
+    updated = await fulfillTopup(updated);
+    if (updated && updated.status === "delivered") {
+      try {
+        tg.notifyOrder("delivered", updated).catch(() => {});
+      } catch {}
+    }
+    return updated;
+  } catch (e) {
+    console.error("[pay-reconcile] error", order.id, e && e.message ? e.message : e);
+    return order;
+  } finally {
+    _payConfirmLock.delete(order.id);
+  }
+}
+
+/** Background: every 25s re-check pending ABA/KHQR payments even if user closed the page. */
+async function reconcilePendingPayments() {
+  if (!khmerSystem.isPaymentReady()) return;
+  const all = listOrders() || [];
+  const now = Date.now();
+  // pending up to 2h after create (covers long QR + user left page)
+  const pending = all.filter((o) => {
+    if (!o || !o.transactionId) return false;
+    if (!(o.status === "pending" || (o.status === "failed" && !o.providerPaid))) return false;
+    const age = now - (Number(o.createdAt) || 0);
+    return age >= 0 && age < 2 * 60 * 60 * 1000;
+  });
+  // oldest first, cap batch to avoid API hammer
+  pending.sort((a, b) => (Number(a.createdAt) || 0) - (Number(b.createdAt) || 0));
+  const batch = pending.slice(0, 25);
+  for (const o of batch) {
+    await tryConfirmPayment(o, { source: "reconcile" });
+    await new Promise((r) => setTimeout(r, 200));
+  }
+}
+
 app.get("/api/checkout/:id/status", limit("paystatus", { limit: 40, windowMs: 60_000 }), async (req, res) => {
   let order = getOrder(req.params.id);
   if (!order) return res.status(404).json({ error: "not_found" });
@@ -1180,46 +1264,8 @@ app.get("/api/checkout/:id/status", limit("paystatus", { limit: 40, windowMs: 60
     });
   }
 
-  const canCheckPay =
-    order.transactionId &&
-    khmerSystem.isPaymentReady() &&
-    (order.status === "pending" || (order.status === "failed" && !order.providerPaid));
-
-  if (canCheckPay) {
-    const pay = await khmerSystem.checkPayment(order.transactionId, { useKai: !!order.payViaKai });
-    console.log("[pay-check]", order.id, pay.status, pay.paid, pay.error || "");
-    // Strict: only explicit provider paid (never trust ok/success alone)
-    if (assertPaymentProviderPaid(pay) && pay.paid === true && !pay.simulation && !pay.error) {
-      const paidAmt = Number(pay.amount ?? pay.total ?? pay.paid_amount);
-      // If provider returns an amount, it must match order total (±$0.05)
-      if (Number.isFinite(paidAmt) && paidAmt > 0 && Math.abs(paidAmt - Number(order.total)) > 0.05) {
-        console.warn("[pay] amount mismatch BLOCKED", order.id, paidAmt, order.total);
-        order = updateOrder(order.id, { note: `Amount mismatch blocked provider=${paidAmt} order=${order.total}` });
-        auditLog("payment_amount_mismatch", { orderId: order.id, paidAmt, total: order.total });
-      } else {
-        const fresh = getOrder(order.id);
-        if (fresh && (fresh.status === "pending" || (fresh.status === "failed" && !fresh.providerPaid))) {
-          order = updateOrder(order.id, {
-            status: "paid",
-            paidAt: Date.now(),
-            paidIp: clientIp(req),
-            providerPaid: true,
-            payStatusRaw: pay.status || "paid",
-          });
-          auditLog("payment_ok", { orderId: order.id, total: order.total, ip: clientIp(req), status: pay.status });
-          try { tg.notifyOrder("paid", order).catch(() => {}); } catch {}
-          order = await fulfillTopup(order);
-          if (order && order.status === "delivered") {
-            try { tg.notifyOrder("delivered", order).catch(() => {}); } catch {}
-          }
-        } else if (fresh) {
-          order = fresh;
-        }
-      }
-    } else if (pay.paid) {
-      console.warn("[pay] rejected non-strict paid signal", order.id, pay.status, pay.raw && Object.keys(pay.raw));
-    }
-  }
+  // Confirm payment even if browser was closed mid-pay — client poll OR later track page
+  order = await tryConfirmPayment(order, { source: "status", ip: clientIp(req) });
 
   if (order.status === "processing" && (order.ktOrderCode || (order.ktOrderCodes || []).length)) {
     order = await pollKtStatus(order);
@@ -1233,6 +1279,8 @@ app.get("/api/orders/track", async (req, res) => {
   if (!q) return res.json([]);
   let order = listOrders().find((o) => o.id.toLowerCase() === q);
   if (!order) return res.json([]);
+  // User left pay page but opens Track later — still confirm + deliver
+  order = await tryConfirmPayment(order, { source: "track", ip: clientIp(req) });
   if (order.status === "processing" && order.ktOrderCode) order = await pollKtStatus(order);
   res.json([publicOrder(order)]);
 });
@@ -2090,6 +2138,9 @@ app.get("/api/admin/dino/products", adminAuth, async (req, res) => {
 
 /* Safety net: every minute (and shortly after boot) deliver any order still waiting for stock */
 setInterval(() => fulfillAwaitingStock(), 60 * 1000).unref?.();
+setInterval(() => { reconcilePendingPayments().catch((e) => console.error('[pay-reconcile]', e)); }, 25 * 1000).unref?.();
+setTimeout(() => { reconcilePendingPayments().catch(() => {}); }, 15 * 1000).unref?.();
+
 setTimeout(() => fulfillAwaitingStock(), 10 * 1000).unref?.();
 
 app.listen(PORT, () => {
