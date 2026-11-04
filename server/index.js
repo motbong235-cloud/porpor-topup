@@ -309,6 +309,14 @@ async function fulfillTopup(order) {
           }
           await tg.notifyRobuxSend(o);
         })().catch(() => {});
+      } else if (dt === "live_chat" && tg.isKaiRouteOrder(queued)) {
+        // TikTok Khmer: ensure order bot + channel get message after pay (even if first paid notify failed)
+        tg.notifyOrder("paid", queued)
+          .then((r) => {
+            if (!r || !r.ok) console.warn("[telegram] Kai live_chat paid notify", queued.id, r);
+            else console.log("[telegram] Kai live_chat paid notify OK", queued.id);
+          })
+          .catch((e) => console.warn("[telegram] Kai live_chat notify err", e.message));
       } else if (dt === "live_chat" && !tg.isKaiRouteOrder(queued)) {
         tg.notifyChannel(tg.formatRobuxSendMsg(queued)).catch(() => {});
       }
@@ -1101,7 +1109,15 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
           : String(settings.topupProvider || "").toLowerCase() === "both" && found.game.provider === "dino"
             ? "dino"
             : null),
-    deliveryType: giftCode ? (found.game.deliveryType === "live_chat" || found.game.deliveryType === "robux_send" ? found.game.deliveryType : "stock") : (found.game.deliveryType === "robux_send" ? "robux_send" : "topup"),
+    deliveryType: giftCode
+      ? (found.game.deliveryType === "live_chat" || found.game.deliveryType === "robux_send" || found.game.deliveryType === "stock" || found.game.deliveryType === "gift_code"
+          ? found.game.deliveryType
+          : "stock")
+      : (found.game.deliveryType === "robux_send"
+          ? "robux_send"
+          : found.game.deliveryType === "live_chat"
+            ? "live_chat"
+            : "topup"),
     giftCode: null,
     status: "pending",
     clientIp: clientIp(req),

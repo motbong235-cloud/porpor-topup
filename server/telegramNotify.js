@@ -102,7 +102,18 @@ export function isKaiRouteOrder(o) {
   const gid = String(o?.gameId || "").toLowerCase();
   const gname = String(o?.gameName || "").toLowerCase();
   const pack = String(o?.packName || "").toLowerCase();
-  const blob = `${gid} ${gname} ${pack}`;
+  const dt = String(o?.deliveryType || "").toLowerCase();
+  const blob = `${gid} ${gname} ${pack} ${dt}`;
+  // hard match common TikTok Khmer ids/names even if admin settings missing
+  if (
+    gid === "tiktok-khmer" ||
+    gid === "tiktok_khmer" ||
+    gname.includes("tiktok khmer") ||
+    gname.includes("tiktok-khmer") ||
+    /tiktok/.test(gid) && /khmer/.test(blob)
+  ) {
+    return true;
+  }
   return rules.some((r) => r && (gid === r || gid.includes(r) || gname.includes(r) || blob.includes(r)));
 }
 function kaiChannelId() {
@@ -418,8 +429,18 @@ export async function notifyOrder(kind, o) {
       console.log("[telegram] Kai route skip unpaid notify", o?.id, k);
       return { ok: true, skipped: "await_payment" };
     }
+    // queued / paid / processing / delivered / rejected all allowed
     if (!isKaiNotifyReady()) {
-      console.warn("[telegram] Kai route order but token/chat not set — NOT sending to Porpor channel");
+      console.warn(
+        "[telegram] Kai NOT configured — set Admin: kaiOrderBotToken + kaiChatId (order bot) and/or kaiChannelId. env KAI_ORDER_BOT_TOKEN KAI_CHAT_ID KAI_CHANNEL_ID",
+        {
+          hasOrderToken: Boolean(kaiOrderBotToken()),
+          hasKaiToken: Boolean(kaiBotToken()),
+          chat: kaiChatId() || null,
+          channel: kaiChannelId() || null,
+          orderId: o?.id,
+        }
+      );
       return { ok: false, error: "kai_not_configured" };
     }
     const orderToken = kaiOrderBotToken();
