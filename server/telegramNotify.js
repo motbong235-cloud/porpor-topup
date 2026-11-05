@@ -404,7 +404,7 @@ export function formatKaiOrderMsg(o, { forChannel = false, kind = "paid" } = {})
   const svc = qty > 1 ? `${label} x${qty} - $${price.toFixed(2)}` : `${label} - $${price.toFixed(2)}`;
   // Prefer explicit video URL fields; never force "Private" — admin needs the link
   const rawLink = String(
-    o.videoUrl || o.ttkVideoUrl || o.link || o.userId || ""
+    o.videoUrl || o.ttkVideoUrl || o.ttkResolvedUrl || o.link || o.userId || ""
   ).trim();
   let linkDisp = "—";
   if (rawLink && rawLink !== "gift" && !/^PP-/i.test(rawLink) && rawLink.length > 3) {
