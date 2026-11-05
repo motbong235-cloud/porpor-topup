@@ -402,12 +402,23 @@ export function formatKaiOrderMsg(o, { forChannel = false, kind = "paid" } = {})
     status = "កំពុងដំណើរការ ⏳";
   }
   const svc = qty > 1 ? `${label} x${qty} - $${price.toFixed(2)}` : `${label} - $${price.toFixed(2)}`;
-  const rawLink = String(o.userId || o.link || "").trim();
-  const linkDisp = forChannel
-    ? "Private"
-    : (rawLink && rawLink !== "gift" ? rawLink : "—");
-  const ttkUser = o.ttkUsername || usernameFromLink(rawLink) || "";
+  // Prefer explicit video URL fields; never force "Private" — admin needs the link
+  const rawLink = String(
+    o.videoUrl || o.ttkVideoUrl || o.link || o.userId || ""
+  ).trim();
+  let linkDisp = "—";
+  if (rawLink && rawLink !== "gift" && !/^PP-/i.test(rawLink) && rawLink.length > 3) {
+    // if looks like username only, still show; if URL keep as-is
+    linkDisp = rawLink;
+  }
+  const ttkUser = o.ttkUsername || usernameFromLink(rawLink) || usernameFromLink(o.link) || "";
   const ttkName = o.ttkDisplayName || "";
+  const videoLine =
+    linkDisp !== "—"
+      ? (linkDisp.startsWith("http")
+          ? `🔗 Video: ${esc(linkDisp)}`
+          : `🔗 Video: <code>${esc(linkDisp)}</code>`)
+      : "🔗 Video: <i>(no link)</i>";
   const lines = [
     title,
     "",
@@ -417,7 +428,7 @@ export function formatKaiOrderMsg(o, { forChannel = false, kind = "paid" } = {})
       ? `👤 TikTok: <b>@${esc(ttkUser)}</b>${ttkName && ttkName !== ttkUser ? ` · ${esc(ttkName)}` : ""}`
       : "👤 TikTok: <i>(parse username from link)</i>",
     ttkUser ? `🔗 Profile: https://www.tiktok.com/@${esc(ttkUser)}` : "",
-    `🔗 Video: ${forChannel ? linkDisp : `<code>${esc(linkDisp)}</code>`}`,
+    videoLine,
     `🎯 សេវាកម្ម: ${esc(svc)}`,
     `📋 Order ID: <code>${esc(o.id)}</code>`,
     `💵 តម្លៃសរុប: <b>$${price.toFixed(2)}</b>`,
@@ -425,7 +436,6 @@ export function formatKaiOrderMsg(o, { forChannel = false, kind = "paid" } = {})
     `📅 Date: ${khNow()}`,
     "",
     "🌐 <b>Source:</b> Porpor Topup (TikTok Khmer)",
-    "⚠️ Admin: ផ្ញើ likes/views ទៅ <b>@" + esc(ttkUser || "???") + "</b> តាម link ខាងលើ",
     "អរគុណចំពោះការប្រើប្រាស់ ❤️",
   ].filter(Boolean);
   if (!forChannel) {
