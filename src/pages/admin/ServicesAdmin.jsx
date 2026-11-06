@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AIcon, BannerManager, ImageSlot, PageHead, Switch, WideImageSlot, api, toast, usd } from "./ui";
 
-const blank = { enabled: false, showWhenOff: false, featured: false, markup: null, packages: null, image: "", banner: "", banners: [], packIcon: "", packImages: {} };
+const blank = { enabled: false, showWhenOff: false, featured: false, markup: null, packages: null, packPrices: {}, image: "", banner: "", banners: [], packIcon: "", packImages: {} };
 
 function sellPrice(cost, markup) {
   return Math.ceil(cost * (1 + (Number(markup) || 0) / 100) * 100 - 1e-9) / 100;
@@ -151,7 +151,7 @@ function GameCard({ g, s, defaultMarkup, isOpen, onToggleOpen, patch }) {
             <span>រូប</span>
             <span>កញ្ចប់</span>
             <span className="r">ដើម</span>
-            <span className="r">លក់</span>
+            <span className="r">លក់ $</span>
           </div>
           {g.packs.map((p) => {
             const custom = s.packImages?.[p.id] || "";
@@ -177,7 +177,27 @@ function GameCard({ g, s, defaultMarkup, isOpen, onToggleOpen, patch }) {
                   </small>
                 </div>
                 <span className="r muted">{usd(p.cost)}</span>
-                <span className="r price">{usd(sellPrice(p.cost, markup))}</span>
+                <span className="r price ad-pk-price-edit">
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    title="តម្លៃលក់ (ទុកចោល = តាម markup %)"
+                    placeholder={String(sellPrice(p.cost, markup))}
+                    value={
+                      s.packPrices && s.packPrices[p.id] != null && s.packPrices[p.id] !== ""
+                        ? s.packPrices[p.id]
+                        : ""
+                    }
+                    onChange={(e) => {
+                      const next = { ...(s.packPrices || {}) };
+                      const v = e.target.value;
+                      if (v === "" || v == null) delete next[p.id];
+                      else next[p.id] = v;
+                      patch(g.slug, { packPrices: Object.keys(next).length ? next : {} });
+                    }}
+                  />
+                </span>
               </div>
             );
           })}
@@ -806,7 +826,7 @@ function LocalServicesPanel() {
 
 
 function DinoPanel() {
-  const blankD = { enabled: false, showWhenOff: false, featured: false, markup: null, packages: null, image: "", banner: "", banners: [], packIcon: "", packImages: {} };
+  const blankD = { enabled: false, showWhenOff: false, featured: false, markup: null, packages: null, packPrices: {}, image: "", banner: "", banners: [], packIcon: "", packImages: {} };
   const [games, setGames] = useState(null);
   const [sel, setSel] = useState({ markupPercent: 0, games: {} });
   const [err, setErr] = useState("");

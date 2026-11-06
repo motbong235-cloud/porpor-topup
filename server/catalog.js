@@ -144,18 +144,28 @@ export async function storefront() {
     const markup = hasOwn ? Number(s.markup) : globalMarkup;
     const allowed = Array.isArray(s?.packages) ? new Set(s.packages.map(String)) : null;
 
+    const packPrices = (s && s.packPrices) || {};
     const packs = (g.packs || [])
       .filter((p) => p.inStock && (!allowed || allowed.has(p.id)))
-      .map((p) => ({
-        id: p.id,
-        name: p.name,
-        nameKm: p.name,
-        price: sellPrice(p.cost, markup),
-        cost: p.cost,
-        category: p.category,
-        bonus: p.bonus,
-        image: (s && (s.packImages?.[p.id] || s.packIcon)) || p.image || "",
-      }));
+      .map((p) => {
+        const pid = String(p.id);
+        const cost = Number(p.cost) || 0;
+        const fixed = packPrices[pid];
+        const price =
+          fixed != null && Number.isFinite(Number(fixed)) && Number(fixed) >= 0
+            ? Math.round(Number(fixed) * 100) / 100
+            : sellPrice(cost, markup);
+        return {
+          id: p.id,
+          name: p.name,
+          nameKm: p.name,
+          price,
+          cost,
+          category: p.category,
+          bonus: p.bonus,
+          image: (s && (s.packImages?.[p.id] || s.packIcon)) || p.image || "",
+        };
+      });
 
     // OFF games are hidden from the website unless the admin chose "show as OFF" for that game
     if (!isOpen && !s?.showWhenOff) continue;
@@ -216,17 +226,27 @@ export async function dinoStorefront() {
     const markup = hasOwn ? Number(s.markup) : globalMarkup;
     const allowed = Array.isArray(s?.packages) ? new Set(s.packages.map(String)) : null;
 
+    const packPrices = (s && s.packPrices) || {};
     const packs = (g.packs || [])
       .filter((p) => p.inStock !== false && (!allowed || allowed.has(String(p.id))))
-      .map((p) => ({
-        id: String(p.id),
-        name: p.name,
-        nameKm: p.name,
-        price: sellPrice(Number(p.cost) || 0, markup),
-        cost: Number(p.cost) || 0,
-        category: p.category || "Diamonds",
-        image: (s && (s.packImages?.[p.id] || s.packIcon)) || p.image || "",
-      }));
+      .map((p) => {
+        const pid = String(p.id);
+        const cost = Number(p.cost) || 0;
+        const fixed = packPrices[pid];
+        const price =
+          fixed != null && Number.isFinite(Number(fixed)) && Number(fixed) >= 0
+            ? Math.round(Number(fixed) * 100) / 100
+            : sellPrice(cost, markup);
+        return {
+          id: pid,
+          name: p.name,
+          nameKm: p.name,
+          price,
+          cost,
+          category: p.category || "Diamonds",
+          image: (s && (s.packImages?.[p.id] || s.packIcon)) || p.image || "",
+        };
+      });
 
     if (isOpen && !packs.length) continue;
 
@@ -344,12 +364,20 @@ export function sanitizeSelection(input) {
       const clean = cleanImg(url);
       if (clean && String(pid).length <= 60) packImages[String(pid)] = clean;
     }
+    const packPrices = {};
+    for (const [pid, pr] of Object.entries(v?.packPrices || {}).slice(0, 2000)) {
+      const n = Number(pr);
+      if (String(pid).length <= 80 && Number.isFinite(n) && n >= 0 && n <= 100000) {
+        packPrices[String(pid)] = Math.round(n * 100) / 100;
+      }
+    }
     out.games[slug] = {
       enabled: !!v?.enabled,
       showWhenOff: !!v?.showWhenOff,
       featured: !!v?.featured,
       markup: mkNum !== null && Number.isFinite(mkNum) ? Math.min(500, Math.max(0, mkNum)) : null,
       packages: Array.isArray(v?.packages) ? v.packages.map(String).slice(0, 2000) : null,
+      packPrices: Object.keys(packPrices).length ? packPrices : undefined,
       image: cleanImg(v?.image),
       banners: cleanBanners(v?.banners, v?.banner),
       banner: cleanBanners(v?.banners, v?.banner)[0] || "",

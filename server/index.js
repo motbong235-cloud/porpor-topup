@@ -412,7 +412,8 @@ async function fulfillTopup(order) {
         zoneId: order.zoneId || undefined,
         quantity: order.qty > 1 ? order.qty : undefined,
         reference: order.id,
-        maxPrice: order.total || undefined,
+        // supplier max = cost (not customer sell price)
+        maxPrice: (Number(order.cost) > 0 ? Number(order.cost) * (Number(order.qty) || 1) : undefined),
       });
       const remote = result.order || result;
       const st = dinoTopup.summarizeDinoStatus(remote.status);
@@ -1111,6 +1112,7 @@ app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000
   const isRes = catalog.isResellerUser(settings, tgUser);
   const fixedRp = isRes ? catalog.resellerFixedPrice(settings, found.pack.id) : null;
   const unitPrice = fixedRp != null ? fixedRp : Number(found.pack.price);
+  const unitCost = Number(found.pack.cost) || 0;
   const subtotal = round2(unitPrice * qty);
   const cp = calcCoupon(settings, body.coupon, subtotal);
   if (!cp.ok) return res.status(400).json({ error: cp.error });

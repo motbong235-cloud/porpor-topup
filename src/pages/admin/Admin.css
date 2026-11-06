@@ -2859,3 +2859,23 @@ button.ad-provider-card {
 .ad-vslot-alt { margin-top: 8px; }
 .ad-vslot-alt summary { cursor: pointer; font-size: 13px; color: var(--ad-ink-3); }
 @media (max-width: 640px) { .ad-vslot-preview video { max-width: 100%; } }
+
+
+/* Dino / Khmer editable sell price */
+.ad-pk-price-edit input {
+  width: 5.2rem;
+  max-width: 100%;
+  text-align: right;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.45rem;
+  border-radius: 8px;
+  border: 1px solid rgba(29, 106, 223, 0.35);
+  background: rgba(8, 32, 68, 0.55);
+  color: #e8f1ff;
+}
+.ad-pk-price-edit input:focus {
+  outline: none;
+  border-color: #1d6adf;
+  box-shadow: 0 0 0 2px rgba(29, 106, 223, 0.25);
+}
