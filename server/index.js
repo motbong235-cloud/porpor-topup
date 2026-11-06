@@ -827,10 +827,13 @@ app.post("/api/verify", limit("verify", { limit: 30, windowMs: 60_000 }), async 
       String(game.nameKm || "").toLowerCase().includes("tiktok");
     const isRoblox =
       game.deliveryType === "robux_send" ||
+      (game.provider === "dino" && (slugL.includes("roblox") || slugL.includes("robux") || slugL.includes("rbx"))) ||
       slugL.includes("roblox") ||
       slugL.includes("robux") ||
+      slugL.includes("rbx") ||
       nameL.includes("roblox") ||
-      nameL.includes("robux");
+      nameL.includes("robux") ||
+      nameL.includes("rbx");
 
     // TikTok Khmer: resolve video URL → @username (oEmbed + redirect)
     if (isTikTok) {
@@ -916,40 +919,70 @@ app.post("/api/verify", limit("verify", { limit: 30, windowMs: 60_000 }), async 
     }
 
     if (isRoblox) {
-      const ok = rbx?.valid === true && (supplier ? supplier.valid !== false : true);
-      if (!rbx?.valid && rbx?.unavailable) {
-        return res.json({ result: "unknown", message: rbx.message, provider: "roblox" });
-      }
-      if (!rbx?.valid) {
+      // Prefer public Roblox profile; if Roblox API blocked, accept Dino check-id when valid
+      if (rbx?.valid) {
         return res.json({
-          result: "invalid",
-          valid: false,
-          message: rbx?.message || "Invalid Roblox username",
+          result: "valid",
+          valid: true,
+          nickname: supplier?.nickname || rbx.displayName || rbx.username,
+          region: supplier?.region || null,
+          message: supplier?.message || null,
           provider: supplier?.provider || "roblox",
+          roblox: {
+            userId: rbx.userId,
+            username: rbx.username,
+            displayName: rbx.displayName,
+            verified: !!rbx.verified,
+            created: rbx.created || null,
+            about: rbx.about || "",
+            avatarUrl: rbx.avatarUrl || null,
+            friends: rbx.friends,
+            followers: rbx.followers,
+            followings: rbx.followings,
+            profileUrl: rbx.profileUrl || null,
+          },
+        });
+      }
+      if (supplier && supplier.valid === true) {
+        const uname = String(playerId || "").trim().replace(/^@/, "");
+        return res.json({
+          result: "valid",
+          valid: true,
+          nickname: supplier.nickname || uname,
+          region: supplier.region || null,
+          message: supplier.message || null,
+          provider: supplier.provider || "dino",
+          roblox: {
+            userId: null,
+            username: uname,
+            displayName: supplier.nickname || uname,
+            verified: false,
+            created: null,
+            about: "",
+            avatarUrl: null,
+            friends: null,
+            followers: null,
+            followings: null,
+            profileUrl: uname ? `https://www.roblox.com/search/users?keyword=${encodeURIComponent(uname)}` : null,
+          },
+        });
+      }
+      if (rbx?.unavailable) {
+        return res.json({
+          result: "unknown",
+          valid: false,
+          message: rbx.message || "Roblox lookup unavailable",
+          provider: "roblox",
         });
       }
       return res.json({
-        result: "valid",
-        valid: true,
-        nickname: supplier?.nickname || rbx.displayName || rbx.username,
-        region: supplier?.region || null,
-        message: supplier?.message || null,
+        result: "invalid",
+        valid: false,
+        message: rbx?.message || supplier?.message || "Invalid Roblox username",
         provider: supplier?.provider || "roblox",
-        roblox: {
-          userId: rbx.userId,
-          username: rbx.username,
-          displayName: rbx.displayName,
-          verified: !!rbx.verified,
-          avatarUrl: rbx.avatarUrl,
-          profileUrl: rbx.profileUrl,
-          created: rbx.created,
-          about: rbx.about || "",
-          friends: rbx.friends ?? null,
-          followers: rbx.followers ?? null,
-          followings: rbx.followings ?? null,
-        },
       });
     }
+
 
     if (supplier) {
       return res.json({

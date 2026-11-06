@@ -1,61 +1,118 @@
 /**
  * Public Roblox username → profile (no API key)
- * Returns avatar, display name, verified badge, join date, about text and
- * friends / followers / following counts — shown in the "Check ID" card.
+ * Hardened for server environments (Render): User-Agent, retries, alternate search.
  */
 
 const CACHE_MS = 60_000;
-const cache = new Map(); // lowercased username → { at, value }
+const cache = new Map();
 
-async function getJson(url, init = {}, timeoutMs = 8000) {
+const UA =
+  "Mozilla/5.0 (compatible; PorporTopup/1.0; +https://porportopup.com) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+
+async function getJson(url, init = {}, timeoutMs = 12000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
     const r = await fetch(url, {
       ...init,
-      headers: { Accept: "application/json", ...(init.headers || {}) },
-      signal: AbortSignal.timeout(timeoutMs),
+      headers: {
+        Accept: "application/json",
+        "User-Agent": UA,
+        ...(init.headers || {}),
+      },
+      signal: ctrl.signal,
     });
-    if (!r.ok) return null;
+    if (!r.ok) {
+      const t = await r.text().catch(() => "");
+      return { __http: r.status, __body: t.slice(0, 200) };
+    }
     return await r.json().catch(() => null);
-  } catch {
-    return null;
+  } catch (e) {
+    return { __error: e.message || "fetch_failed" };
+  } finally {
+    clearTimeout(timer);
   }
+}
+
+function isOkJson(j) {
+  return j && typeof j === "object" && !j.__http && !j.__error;
 }
 
 const num = (j) => (j && Number.isFinite(Number(j.count)) ? Number(j.count) : null);
 
+function normalizeName(username) {
+  return String(username || "")
+    .trim()
+    .replace(/^@/, "")
+    .replace(/\s+/g, "");
+}
+
+async function resolveUserId(name) {
+  // 1) Official batch username API
+  for (const excludeBanned of [false, true]) {
+    const j1 = await getJson(
+      "https://users.roblox.com/v1/usernames/users",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usernames: [name], excludeBannedUsers: excludeBanned }),
+      },
+      12000,
+    );
+    if (isOkJson(j1)) {
+      const user = (j1.data || []).find(
+        (u) => String(u.name || "").toLowerCase() === name.toLowerCase() || String(u.requestedUsername || "").toLowerCase() === name.toLowerCase(),
+      ) || (j1.data || [])[0];
+      if (user?.id) return { id: user.id, user };
+    }
+  }
+
+  // 2) Search fallback
+  const qs = encodeURIComponent(name);
+  const j2 = await getJson(`https://users.roblox.com/v1/users/search?keyword=${qs}&limit=10`, {}, 12000);
+  if (isOkJson(j2)) {
+    const hit = (j2.data || []).find((u) => String(u.name || "").toLowerCase() === name.toLowerCase());
+    if (hit?.id) return { id: hit.id, user: hit };
+  }
+
+  return null;
+}
+
 export async function lookupRobloxUsername(username) {
-  const name = String(username || "").trim().replace(/^@/, "");
+  const name = normalizeName(username);
+  // Roblox: 3–20 chars, letters/numbers/_ ; allow trailing space already stripped
   if (name.length < 3 || name.length > 20 || !/^[A-Za-z0-9_]+$/.test(name)) {
-    return { valid: false, username: name, message: "Invalid Roblox username" };
+    return {
+      valid: false,
+      username: name,
+      message: "Invalid Roblox username (3–20 letters, numbers, _ only — not Display Name)",
+    };
   }
 
   const key = name.toLowerCase();
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < CACHE_MS) return hit.value;
 
-  // 1) username → user id
-  const j1 = await getJson(
-    "https://users.roblox.com/v1/usernames/users",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ usernames: [name], excludeBannedUsers: true }),
-    },
-    10000,
-  );
-  if (!j1) {
-    // Roblox unreachable / rate limited — let the caller decide (do not cache)
-    return { valid: false, username: name, message: "Roblox lookup unavailable", unavailable: true };
-  }
-  const user = (j1.data || [])[0];
-  if (!user?.id) {
+  const resolved = await resolveUserId(name);
+  if (!resolved) {
+    // Distinguish network fail vs not found: try one HEAD-ish request
+    const probe = await getJson("https://users.roblox.com/v1/users/1", {}, 8000);
+    if (!isOkJson(probe)) {
+      return {
+        valid: false,
+        username: name,
+        message: "Roblox lookup unavailable (server blocked or timeout) — try again",
+        unavailable: true,
+      };
+    }
     const value = { valid: false, username: name, message: "User not found" };
     cache.set(key, { at: Date.now(), value });
     return value;
   }
-  const id = user.id;
 
-  // 2) details + avatar + counts in parallel (all optional)
+  const id = resolved.id;
+  const user = resolved.user || {};
+
   const [details, thumb, friends, followers, followings] = await Promise.all([
     getJson(`https://users.roblox.com/v1/users/${id}`),
     getJson(
@@ -66,28 +123,36 @@ export async function lookupRobloxUsername(username) {
     getJson(`https://friends.roblox.com/v1/users/${id}/followings/count`),
   ]);
 
-  if (details?.isBanned) {
+  const det = isOkJson(details) ? details : null;
+  if (det?.isBanned) {
     const value = { valid: false, username: name, message: "This Roblox account is banned" };
     cache.set(key, { at: Date.now(), value });
     return value;
   }
 
-  const about = String(details?.description || "").replace(/\s+/g, " ").trim().slice(0, 160);
+  const about = String(det?.description || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 160);
+
   const value = {
     valid: true,
     userId: id,
-    username: details?.name || user.name || name,
-    displayName: details?.displayName || user.displayName || user.name || name,
-    verified: !!(details?.hasVerifiedBadge ?? user.hasVerifiedBadge),
-    created: details?.created || null,
+    username: det?.name || user.name || name,
+    displayName: det?.displayName || user.displayName || user.name || name,
+    verified: !!(det?.hasVerifiedBadge ?? user.hasVerifiedBadge),
+    created: det?.created || null,
     about,
-    avatarUrl: thumb?.data?.[0]?.imageUrl || null,
-    friends: num(friends),
-    followers: num(followers),
-    followings: num(followings),
+    avatarUrl: (isOkJson(thumb) && thumb?.data?.[0]?.imageUrl) || null,
+    friends: num(isOkJson(friends) ? friends : null),
+    followers: num(isOkJson(followers) ? followers : null),
+    followings: num(isOkJson(followings) ? followings : null),
     profileUrl: `https://www.roblox.com/users/${id}/profile`,
   };
   cache.set(key, { at: Date.now(), value });
-  if (cache.size > 500) cache.delete(cache.keys().next().value);
+  if (cache.size > 500) {
+    const first = cache.keys().next().value;
+    if (first) cache.delete(first);
+  }
   return value;
 }
