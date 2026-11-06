@@ -333,12 +333,40 @@ export async function findPack(gameId, packId) {
 }
 
 export async function findGame(gameId) {
-  const local = localCatalog().find((g) => g.id === String(gameId));
+  const id = String(gameId);
+  const local = localCatalog().find((g) => g.id === id);
+  // Prefer an OPEN source (local override may be closed while Dino/Khmer is still listed on Home)
+  if (local && local.open !== false) return local;
+  const fromKt = (await storefront()).find((g) => String(g.id) === id);
+  if (fromKt && fromKt.open !== false) {
+    // keep local deliveryType / requireUsername when local exists
+    if (local) {
+      return {
+        ...fromKt,
+        deliveryType: local.deliveryType || fromKt.deliveryType,
+        requireUsername: local.requireUsername ?? fromKt.requireUsername,
+        name: local.name || fromKt.name,
+        nameKm: local.nameKm || fromKt.nameKm,
+      };
+    }
+    return fromKt;
+  }
+  const fromDino = (await dinoStorefront()).find((g) => String(g.id) === id);
+  if (fromDino && fromDino.open !== false) {
+    if (local) {
+      return {
+        ...fromDino,
+        deliveryType: local.deliveryType || fromDino.deliveryType,
+        requireUsername: local.requireUsername ?? true,
+        name: local.name || fromDino.name,
+        nameKm: local.nameKm || fromDino.nameKm,
+      };
+    }
+    return fromDino;
+  }
+  // last resort: closed local / any match (admin tools)
   if (local) return local;
-  const fromKt = (await storefront()).find((g) => String(g.id) === String(gameId));
-  if (fromKt) return fromKt;
-  const fromDino = (await dinoStorefront()).find((g) => String(g.id) === String(gameId));
-  return fromDino || null;
+  return fromKt || fromDino || null;
 }
 
 /** Only allow our own uploads or https URLs as image sources. */

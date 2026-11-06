@@ -816,8 +816,25 @@ app.post("/api/verify", limit("verify", { limit: 30, windowMs: 60_000 }), async 
   const { slug, playerId, serverId } = req.body || {};
   if (!slug || !playerId) return res.status(400).json({ result: "incomplete", message: "slug and playerId required" });
   try {
-    const game = await catalog.findGame(slug);
-    if (!game || game.open === false) return res.status(404).json({ result: "unknown", error: "game_unavailable" });
+    let game = await catalog.findGame(slug);
+    if (!game) return res.status(404).json({ result: "unknown", error: "game_unavailable" });
+    // Closed local product may still be sold via Dino/Khmer on Home — allow Check ID
+    if (game.open === false) {
+      const slugL0 = String(game.id || slug).toLowerCase();
+      const nameL0 = String(game.name || "").toLowerCase();
+      const looksRbx =
+        game.deliveryType === "robux_send" ||
+        slugL0.includes("roblox") ||
+        slugL0.includes("robux") ||
+        slugL0.includes("rbx") ||
+        nameL0.includes("roblox") ||
+        nameL0.includes("robux");
+      if (!looksRbx) {
+        return res.status(404).json({ result: "unknown", error: "game_unavailable" });
+      }
+      // treat as open for verification only
+      game = { ...game, open: true };
+    }
 
     const slugL = String(game.id || slug).toLowerCase();
     const nameL = String(game.name || "").toLowerCase();
