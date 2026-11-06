@@ -776,9 +776,13 @@ app.get("/api/version", (_req, res) => {
 app.get("/api/catalog", async (req, res) => {
   try {
     const settings = getSettings();
+    const t0 = Date.now();
     let games = await catalog.publicCatalog();
     const tgUser = tg.readTgSession(req.cookies?.porpor_tg);
     const applied = catalog.applyResellerToCatalog(games, settings, tgUser);
+    // Short browser/CDN cache — catalog changes are admin-side, 15s is fine
+    res.setHeader("Cache-Control", "public, max-age=15, stale-while-revalidate=60");
+    res.setHeader("X-Catalog-Ms", String(Date.now() - t0));
     res.json({
       games: applied.games,
       isReseller: applied.isReseller,

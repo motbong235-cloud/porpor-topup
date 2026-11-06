@@ -113,11 +113,19 @@ export async function fetchSupplierGames(force = false) {
 
 /** Call at startup so the first customer doesn't pay for the cold supplier request. */
 export function warmCatalog() {
-  if (!khmerTopup.isTopupReady()) return;
-  refresh().catch((e) => console.warn("[catalog] warm-up failed:", e.message));
-  setInterval(() => {
-    if (Date.now() - cache.at >= TTL - 5_000) refresh().catch(() => {});
-  }, TTL / 2).unref();
+  if (khmerTopup.isTopupReady()) {
+    refresh().catch((e) => console.warn("[catalog] warm-up failed:", e.message));
+    setInterval(() => {
+      if (Date.now() - cache.at >= TTL - 5_000) refresh().catch(() => {});
+    }, TTL / 2).unref();
+  }
+  try {
+    dinoTopup.warmDinoProducts?.();
+  } catch (e) {
+    console.warn("[catalog] dino warm failed:", e.message);
+  }
+  // Pre-build public catalog once
+  publicCatalog().catch((e) => console.warn("[catalog] public warm failed:", e.message));
 }
 
 export function rawSupplierGames() {
@@ -278,7 +286,14 @@ export async function dinoStorefront() {
 }
 
 
+let _publicCatCache = { at: 0, games: null };
+const PUBLIC_CAT_TTL_MS = 15_000;
+
 export async function publicCatalog() {
+  const now = Date.now();
+  if (_publicCatCache.games && now - _publicCatCache.at < PUBLIC_CAT_TTL_MS) {
+    return _publicCatCache.games;
+  }
   const [khmerGames, dinoGames] = await Promise.all([
     storefront().catch(() => []),
     dinoStorefront().catch(() => []),
@@ -313,7 +328,9 @@ export async function publicCatalog() {
     seen.add(id);
     merged.push({ ...g, packs: g.packs.map(({ cost, ...p }) => p) });
   }
-  return [...local, ...merged];
+  const mergedAll = [...local, ...merged];
+  _publicCatCache = { at: Date.now(), games: mergedAll };
+  return mergedAll;
 }
 
 export async function findPack(gameId, packId) {

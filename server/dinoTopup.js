@@ -90,10 +90,55 @@ export async function getBalance() {
   return api("/balance");
 }
 
+const PRODUCT_TTL_MS = 90_000;
+let _prodCache = { at: 0, key: "", data: null }; // key = game filter or ""
+let _prodInflight = null;
+
 export async function listProducts(game) {
   // No game param → full catalog (all games the key can order)
-  const q = game ? `?game=${encodeURIComponent(mapGameId(game))}` : "";
-  return api(`/products${q}`);
+  const g = game ? mapGameId(game) : "";
+  const cacheKey = g || "*";
+  const now = Date.now();
+  if (_prodCache.data && _prodCache.key === cacheKey && now - _prodCache.at < PRODUCT_TTL_MS) {
+    return _prodCache.data;
+  }
+  // Stale-while-revalidate for full catalog
+  if (_prodCache.data && _prodCache.key === cacheKey && now - _prodCache.at < PRODUCT_TTL_MS * 4) {
+    if (!_prodInflight) {
+      _prodInflight = (async () => {
+        try {
+          const q = g ? `?game=${encodeURIComponent(g)}` : "";
+          const data = await api(`/products${q}`);
+          _prodCache = { at: Date.now(), key: cacheKey, data };
+          return data;
+        } finally {
+          _prodInflight = null;
+        }
+      })();
+    }
+    return _prodCache.data;
+  }
+  if (_prodInflight && _prodCache.key === cacheKey) {
+    try {
+      return await _prodInflight;
+    } catch {
+      /* fall through */
+    }
+  }
+  const q = g ? `?game=${encodeURIComponent(g)}` : "";
+  const data = await api(`/products${q}`);
+  _prodCache = { at: Date.now(), key: cacheKey, data };
+  return data;
+}
+
+/** Warm Dino product cache at boot so first Home load is fast */
+export function warmDinoProducts() {
+  if (!isDinoReady()) return;
+  listProducts().catch((e) => console.warn("[dino] warm products failed:", e.message));
+  setInterval(() => {
+    if (!isDinoReady()) return;
+    listProducts().catch(() => {});
+  }, PRODUCT_TTL_MS).unref?.();
 }
 
 /** Normalize API payload → [{ id, name, packs: [...] }] */
