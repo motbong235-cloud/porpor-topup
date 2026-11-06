@@ -43,6 +43,9 @@ import {
   clientIp,
   clientUa,
   limit,
+  globalApiShield,
+  softBotGate,
+  securityHeaders,
   checkLoginAllowed,
   recordLoginFail,
   clearLoginFails,
@@ -94,6 +97,9 @@ const app = express();
 // Number of proxy hops in front of the app: Render = 1 (default). Behind Cloudflare + Render set TRUST_PROXY=2.
 const TRUST_PROXY = Number.isInteger(Number(process.env.TRUST_PROXY)) && process.env.TRUST_PROXY !== "" ? Number(process.env.TRUST_PROXY) : 1;
 app.set("trust proxy", TRUST_PROXY);
+// Edge hardening (before body parse for probes)
+app.use(securityHeaders(isProd));
+app.use(softBotGate);
 app.use(
   express.json({
     limit: "1mb",
@@ -105,38 +111,9 @@ app.use(
 );
 app.use(cookieParser());
 app.use(csrfGuard);
-// Basic abuse shield (per-IP)
-app.use("/api/", limit("api", { limit: 180, windowMs: 60_000 }));
-
-/* Security headers — HTTPS (Render/Cloudflare) + browser hardening */
-app.use((_req, res, next) => {
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-  if (isProd) {
-    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
-  }
-  // Telegram Login Widget needs script + iframe from telegram.org / oauth.telegram.org
-  res.setHeader(
-    "Content-Security-Policy",
-    [
-      "default-src 'self'",
-      "base-uri 'self'",
-      "frame-ancestors 'none'",
-      "object-src 'none'",
-      "img-src 'self' data: https: blob:",
-      "font-src 'self' https://fonts.gstatic.com data:",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "script-src 'self' https://telegram.org https://oauth.telegram.org",
-      "frame-src 'self' https://oauth.telegram.org https://telegram.org https://www.youtube.com https://www.youtube-nocookie.com",
-      "media-src 'self' https: blob:",
-      "connect-src 'self' https://telegram.org https://oauth.telegram.org",
-      "form-action 'self' https://oauth.telegram.org",
-    ].join("; "),
-  );
-  next();
-});
+// DDoS / flood shields (per-IP, in-memory — pair with Cloudflare)
+app.use("/api/", globalApiShield({ perMin: 100, burst: 20, burstMs: 5_000 }));
+app.use("/api/", limit("api", { limit: 90, windowMs: 60_000 }));
 
 
 function adminAuth(req, res, next) {
@@ -736,7 +713,7 @@ app.get("/api/chat/messages", (req, res) => {
   res.json(data);
 });
 
-app.post("/api/chat/messages", limit("chat_msg", { limit: 30, windowMs: 60_000 }), (req, res) => {
+app.post("/api/chat/messages", limit("chat_msg", { limit: 20, windowMs: 60_000 }), (req, res) => {
   const tid = chatToken(req, res);
   const type = String(req.body?.type || "text");
   const text = String(req.body?.text || "").trim();
@@ -812,7 +789,7 @@ app.get("/api/catalog", async (req, res) => {
   }
 });
 
-app.post("/api/verify", limit("verify", { limit: 30, windowMs: 60_000 }), async (req, res) => {
+app.post("/api/verify", limit("verify", { limit: 15, windowMs: 60_000 }), async (req, res) => {
   const { slug, playerId, serverId } = req.body || {};
   if (!slug || !playerId) return res.status(400).json({ result: "incomplete", message: "slug and playerId required" });
   try {
@@ -1076,7 +1053,7 @@ app.post("/api/auth/logout", (req, res) => {
   res.json({ ok: true });
 });
 
-app.post("/api/checkout/create", limit("checkout", { limit: 12, windowMs: 60_000 }), async (req, res, next) => {
+app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 }), async (req, res, next) => {
   try {
   const body = req.body || {};
   const settings = getSettings();
@@ -1404,7 +1381,7 @@ async function reconcilePendingPayments() {
   }
 }
 
-app.get("/api/checkout/:id/status", limit("paystatus", { limit: 40, windowMs: 60_000 }), async (req, res) => {
+app.get("/api/checkout/:id/status", limit("paystatus", { limit: 30, windowMs: 60_000 }), async (req, res) => {
   let order = getOrder(req.params.id);
   if (!order) return res.status(404).json({ error: "not_found" });
 
@@ -1437,7 +1414,7 @@ app.get("/api/orders/track", async (req, res) => {
   res.json([publicOrder(order)]);
 });
 
-app.post("/api/admin/login", limit("login", { limit: 20, windowMs: 60_000 }), (req, res) => {
+app.post("/api/admin/login", limit("login", { limit: 10, windowMs: 60_000 }), (req, res) => {
   const ip = clientIp(req);
   const allowed = checkLoginAllowed(ip);
   if (!allowed.ok) {
