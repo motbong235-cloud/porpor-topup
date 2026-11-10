@@ -19,6 +19,8 @@ export default function SettingsAdmin() {
   const [dirty, setDirty] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testOut, setTestOut] = useState("");
+  const [robuxTesting, setRobuxTesting] = useState(false);
+  const [robuxTest, setRobuxTest] = useState("");
 
   async function testPayment() {
     setTesting(true);
@@ -72,6 +74,14 @@ export default function SettingsAdmin() {
       if (!String(form.tgBotToken || "").trim()) {
         delete payload.tgBotToken;
       }
+      if (!String(form.robuxCookie || "").trim() || form.robuxCookie === "••••••••") {
+        delete payload.robuxCookie;
+      }
+      if (!String(form.robuxTotpSecret || "").trim() || form.robuxTotpSecret === "••••••••") {
+        delete payload.robuxTotpSecret;
+      }
+      payload.robuxAutoEnabled = !!form.robuxAutoEnabled;
+      if (form.robuxGroupId !== undefined) payload.robuxGroupId = form.robuxGroupId;
       const saved = await api("/api/admin/settings", {
         method: "PUT",
         body: JSON.stringify(payload),
@@ -97,6 +107,7 @@ export default function SettingsAdmin() {
         <a href="#set-brand" className="ad-seg-a">Logo / Banner</a>
         <a href="#set-tg" className="ad-seg-a">Telegram</a>
         <a href="#set-pay" className="ad-seg-a">Payment</a>
+        <a href="#set-robux" className="ad-seg-a">Robux Auto</a>
         <a href="#set-coupon" className="ad-seg-a">Coupon</a>
         <a href="#set-backup" className="ad-seg-a">Backup</a>
       </div>
@@ -293,7 +304,62 @@ export default function SettingsAdmin() {
         {testOut ? <pre style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "var(--bg)", border: "1px solid var(--line)", fontSize: 12, whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{testOut}</pre> : null}
       </section>
 
-      <section className="ad-card">
+      
+      <section className="ad-card" id="set-robux">
+        <h2>Robux Send Auto (Group Payout)</h2>
+        <p className="ad-hint">
+          បើបើក — បន្ទាប់ពីអតិថិជនបង់លុយ ប្រព័ន្ធព្យាយាមផ្ញើ Robux ពី <b>Group Community Funds</b>។
+          បើ Roblox ត្រូវ Challenge នឹងនៅ manual។ កុំ share Cookie ក្នុង chat។
+        </p>
+        <div className="ad-toggle-row">
+          <div>
+            <strong>បើក Auto Group Payout</strong>
+            <small>ត្រូវមាន Cookie + Group ID · Group ត្រូវមាន Robux</small>
+          </div>
+          <Switch checked={!!form.robuxAutoEnabled} onChange={(v) => set("robuxAutoEnabled", v)} label="Robux auto" />
+        </div>
+        <div className="ad-grid-2">
+          <Field label="Group ID" hint="ឧ. 981305109">
+            <input value={form.robuxGroupId || ""} onChange={(e) => set("robuxGroupId", e.target.value)} placeholder="981305109" autoComplete="off" />
+          </Field>
+          <Field label="TOTP Secret (2FA)" hint="ទុកទទេ = រក្សាចាស់">
+            <input type="password" value={form.robuxTotpSecret === "••••••••" ? "" : (form.robuxTotpSecret || "")} onChange={(e) => set("robuxTotpSecret", e.target.value)} placeholder={form.robuxTotpSecret ? "••••••••" : "Base32 secret"} autoComplete="new-password" />
+          </Field>
+        </div>
+        <Field label=".ROBLOSECURITY Cookie" hint="ទុកទទេពេល Save = មិនលុប cookie ចាស់">
+          <textarea
+            value={form.robuxCookie === "••••••••" ? "" : (form.robuxCookie || "")}
+            onChange={(e) => set("robuxCookie", e.target.value)}
+            placeholder={form.robuxCookie ? "(មានរួច — បំពេញម្ដងទៀតបើចង់ប្ដូរ)" : "_|WARNING:-DO-NOT-SHARE-THIS.…"}
+            rows={3}
+            autoComplete="off"
+            style={{ fontFamily: "monospace", fontSize: 12 }}
+          />
+        </Field>
+        <button
+          type="button"
+          className="ad-btn soft"
+          disabled={robuxTesting}
+          onClick={async () => {
+            setRobuxTesting(true);
+            setRobuxTest("");
+            try {
+              setRobuxTest(JSON.stringify(await api("/api/admin/robux-auto/test"), null, 2));
+            } catch {
+              setRobuxTest("test failed");
+            } finally {
+              setRobuxTesting(false);
+            }
+          }}
+        >
+          {robuxTesting ? "កំពុងពិនិត្យ…" : "ពិនិត្យ Group Funds / Cookie"}
+        </button>
+        {robuxTest ? (
+          <pre style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "var(--bg)", border: "1px solid var(--line)", fontSize: 12, whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{robuxTest}</pre>
+        ) : null}
+      </section>
+
+<section className="ad-card">
         <h2>ស្ថានភាពហាង</h2>
         <div className="ad-toggle-row">
           <div>

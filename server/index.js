@@ -36,6 +36,7 @@ import * as khmerTopup from "./khmerTopup.js";
 import * as dinoTopup from "./dinoTopup.js";
 import * as priceWatch from "./priceWatch.js";
 import * as robloxLookup from "./robloxLookup.js";
+import * as robloxPayout from "./robloxPayout.js";
 import * as tiktokLookup from "./tiktokLookup.js";
 import * as catalog from "./catalog.js";
 import { isGiftCodeProduct, localCatalog, DEFAULT_LOCAL_PRODUCTS, cleanBanners } from "./localProducts.js";
@@ -252,22 +253,23 @@ function fulfillAwaitingStock(packId) {
 async function fulfillTopup(order) {
   const dt = order.deliveryType || "topup";
 
-  // Robux Send / Live Chat — queue for admin; notify bot (no silent auto transfer)
+  // Robux Send / Live Chat — queue for admin; try Robux group auto-payout when enabled
   if (dt === "live_chat" || dt === "robux_send") {
+    const autoOn = dt === "robux_send" && robloxPayout.isRobuxAutoReady();
     const queued = updateOrder(order.id, {
       status: "queued",
       needsManual: true,
       note:
         dt === "robux_send"
-          ? "Robux Send — MANUAL only (not auto). Admin transfer via Live Chat / bot."
+          ? (autoOn
+              ? "Robux Send — auto group payout pending…"
+              : "Robux Send — MANUAL (auto off or not configured). Admin transfer via Live Chat / bot.")
           : "Live Chat / manual delivery — notify bot",
       paidAt: order.paidAt || Date.now(),
       queuedAt: Date.now(),
     });
-    // Telegram already notified on paid via formatOrderMsg → formatRobuxSendMsg
     try {
       if (dt === "robux_send") {
-        // Re-lookup profile so channel always has avatar + correct username
         (async () => {
           let o = queued;
           try {
@@ -285,10 +287,32 @@ async function fulfillTopup(order) {
           } catch (e) {
             console.warn("[robux] profile enrich failed", e.message);
           }
-          await tg.notifyRobuxSend(o);
+          await tg.notifyRobuxSend(o).catch(() => {});
+          if (robloxPayout.isRobuxAutoReady()) {
+            try {
+              const r = await robloxPayout.tryAutoRobuxSend(o);
+              if (r && r.ok) {
+                const done = updateOrder(o.id, {
+                  status: "delivered",
+                  needsManual: false,
+                  note: "Auto group payout OK",
+                  deliveredAt: Date.now(),
+                });
+                tg.notifyOrder("delivered", done || getOrder(o.id)).catch(() => {});
+                console.log("[robux-auto] delivered", o.id);
+              } else {
+                console.warn("[robux-auto]", o.id, r && r.error, r && r.detail);
+                updateOrder(o.id, {
+                  note: `Robux auto failed: ${(r && r.error) || "unknown"} — manual required`,
+                });
+              }
+            } catch (e) {
+              console.warn("[robux-auto]", e.message);
+              updateOrder(o.id, { note: `Robux auto error: ${e.message}` });
+            }
+          }
         })().catch(() => {});
       } else if (dt === "live_chat" && tg.isKaiRouteOrder(queued)) {
-        // TikTok Khmer: ensure order bot + channel get message after pay (even if first paid notify failed)
         tg.notifyOrder("paid", queued)
           .then((r) => {
             if (!r || !r.ok) console.warn("[telegram] Kai live_chat paid notify", queued.id, r);
@@ -1665,7 +1689,29 @@ function cleanImageUrl(v) {
 }
 
 app.get("/api/admin/settings", adminAuth, (_req, res) => {
-  res.json(getSettings());
+  const s = getSettings() || {};
+  // never send full cookie to browser listing — mask in GET
+  const out = { ...s };
+  if (out.robuxCookie) out.robuxCookie = "••••••••";
+  if (out.robuxTotpSecret) out.robuxTotpSecret = "••••••••";
+  res.json(out);
+});
+
+app.get("/api/admin/robux-auto/test", adminAuth, async (_req, res) => {
+  try {
+    const s = getSettings() || {};
+    const funds = await robloxPayout.checkGroupFunds();
+    res.json({
+      ready: robloxPayout.isRobuxAutoReady(),
+      enabled: !!s.robuxAutoEnabled,
+      groupId: s.robuxGroupId || null,
+      hasCookie: !!(s.robuxCookie && String(s.robuxCookie).length > 20),
+      hasTotp: !!(s.robuxTotpSecret && String(s.robuxTotpSecret).length > 8),
+      funds,
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message || String(e) });
+  }
 });
 
 app.put("/api/admin/settings", adminAuth, (req, res) => {
@@ -1675,6 +1721,7 @@ app.put("/api/admin/settings", adminAuth, (req, res) => {
     "supportEmail", "maintenance", "coupons", "autoTopup", "topupProvider", "logoUrl", "bannerUrls", "localProducts",
     "deliveryHours", "tickerSoldBase", "tickerSoldLabel", "resellers", "resellerPrices",
     "tgBotToken", "tgBotUsername", "tgChannelId",
+    "robuxAutoEnabled", "robuxCookie", "robuxGroupId", "robuxTotpSecret",
   ];
   const patch = {};
   for (const k of allowed) {
@@ -1709,6 +1756,22 @@ app.put("/api/admin/settings", adminAuth, (req, res) => {
     // empty string would wipe a previously saved token on accidental re-save
     if (!tok) delete patch.tgBotToken;
     else patch.tgBotToken = tok;
+  }
+  if (patch.robuxCookie !== undefined) {
+    const c = String(patch.robuxCookie || "").trim();
+    if (!c) delete patch.robuxCookie;
+    else patch.robuxCookie = c.slice(0, 4096);
+  }
+  if (patch.robuxTotpSecret !== undefined) {
+    const s = String(patch.robuxTotpSecret || "").trim().replace(/\s+/g, "");
+    if (!s) delete patch.robuxTotpSecret;
+    else patch.robuxTotpSecret = s.slice(0, 128);
+  }
+  if (patch.robuxGroupId !== undefined) {
+    patch.robuxGroupId = String(patch.robuxGroupId || "").replace(/\D/g, "").slice(0, 20);
+  }
+  if (patch.robuxAutoEnabled !== undefined) {
+    patch.robuxAutoEnabled = !!patch.robuxAutoEnabled;
   }
   if (patch.tgChannelId !== undefined) {
     patch.tgChannelId = String(patch.tgChannelId || "").trim().slice(0, 64);
