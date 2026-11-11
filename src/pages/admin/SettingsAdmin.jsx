@@ -221,7 +221,7 @@ export default function SettingsAdmin() {
           />
         </Field>
         <h3 style={{ marginTop: 16, fontSize: 14 }}>Kai- (TikTok route — optional)</h3>
-        <p className="ad-hint">QR ទាំងអស់ប្រើ RielPay។ Key ខាងក្រោមសម្រាប់ notify / legacy តែប៉ុណ្ណោះ (មិនបង្កើត QR)។</p>
+        <p className="ad-hint">សម្រាប់ notify Order Bot / Channel — មិនទាក់ទង QR បង់ប្រាក់។</p>
         <div className="ad-grid-2">
           <Field label="Kai ABA Profile Key">
             <input
