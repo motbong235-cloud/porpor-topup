@@ -83,7 +83,7 @@ export default function SettingsAdmin() {
       if (!String(form.rielpayWebhookSecret || "").trim() || form.rielpayWebhookSecret === "••••••••") {
         delete payload.rielpayWebhookSecret;
       }
-      if (form.paymentGateway) payload.paymentGateway = form.paymentGateway;
+      payload.paymentGateway = "rielpay";
       if (!String(form.robuxTotpSecret || "").trim() || form.robuxTotpSecret === "••••••••") {
         delete payload.robuxTotpSecret;
       }
@@ -222,8 +222,8 @@ export default function SettingsAdmin() {
             placeholder="tiktok-khmer,tiktok khmer"
           />
         </Field>
-        <h3 style={{ marginTop: 16, fontSize: 14 }}>QR ABA តែមួយជាមួយ Kai- (TikTok)</h3>
-        <p className="ad-hint">ដាក់ <b>Profile Key + Merchant ID</b> ដូចក្នុង bot Kai- → QR លើ website ចេញពី wallet/merchant តែមួយនឹង Kai-</p>
+        <h3 style={{ marginTop: 16, fontSize: 14 }}>Kai- (TikTok route — optional)</h3>
+        <p className="ad-hint">QR ទាំងអស់ប្រើ RielPay។ Key ខាងក្រោមសម្រាប់ notify / legacy តែប៉ុណ្ណោះ (មិនបង្កើត QR)។</p>
         <div className="ad-grid-2">
           <Field label="Kai ABA Profile Key">
             <input
@@ -305,20 +305,11 @@ export default function SettingsAdmin() {
 
 
       <section className="ad-card" id="set-rielpay">
-        <h2>RielPay (KHQR / ABA)</h2>
+        <h2>RielPay (KHQR) — វិធីទូទាត់តែមួយ</h2>
         <p className="ad-hint">
-          Gateway ពី <b>rielpays.com</b> — បង្កើត KHQR, លុយចូល ABA account អ្នក។
-          ជ្រើស <b>RielPay</b> ខាងក្រោមដើម្បីប្រើជំនួស Khmer System។ TikTok Khmer នៅប្រើ Kai ABA។
+          ប្រើ <b>rielpays.com</b> តែម្តង (លុប Khmer System payment ចេញ)។
+          បង្កើត KHQR · OPEN ABA Mobile · លុយចូល ABA account អ្នក។
         </p>
-        <Field label="Payment Gateway">
-          <select
-            value={form.paymentGateway || "khmer"}
-            onChange={(e) => set("paymentGateway", e.target.value)}
-          >
-            <option value="khmer">Khmer System (ABA PayWay បច្ចុប្បន្ន)</option>
-            <option value="rielpay">RielPay (rielpays.com)</option>
-          </select>
-        </Field>
         <div className="ad-grid-2">
           <Field label="RielPay API Key" hint="Dashboard → Stores → API keys (sk_…)">
             <input
@@ -363,11 +354,11 @@ export default function SettingsAdmin() {
       </section>
 
       <section className="ad-card" id="set-pay">
-        <h2>ពិនិត្យការតភ្ជាប់ការទូទាត់ (ABA PayWay)</h2>
-        <p className="ad-hint">សាកល្បងបង្កើត QR $0.01 ដោយប្រើ ABA_API_KEY / ABA_MERCHANT_ID ក្នុង Render ហើយបង្ហាញចម្លើយពិតរបស់ API</p>
-        <button type="button" className="ad-btn soft" onClick={testPayment} disabled={testing}>
-          {testing ? "កំពុងសាកល្បង…" : "សាកល្បងឥឡូវ"}
-        </button>
+        <h2>ការទូទាត់</h2>
+        <p className="ad-hint">
+          Website ប្រើ <b>RielPay</b> តែមួយ។ សាកល្បងនៅផ្នែក <a href="#set-rielpay">RielPay</a>។
+          Khmer System នៅប្រើសម្រាប់ <b>auto topup diamond</b> (មិនមែន QR)។
+        </p>
         {testOut ? <pre style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "var(--bg)", border: "1px solid var(--line)", fontSize: 12, whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{testOut}</pre> : null}
       </section>
 
