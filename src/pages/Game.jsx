@@ -552,7 +552,7 @@ export default function Game({ lang, addOrder, settings }) {
     not_configured: { km: "ការទូទាត់មិនទាន់រួចរាល់ សូមទាក់ទងអ្នកគ្រប់គ្រង", en: "Payments are not set up yet. Please contact support." },
     out_of_stock: { km: "អស់ស្តុកហើយ — សូមជ្រើស pack ផ្សេង ឬរង់ចាំ Admin ដាក់ស្តុក", en: "Out of stock — pick another pack or wait for restock" },
       qr_failed: { km: "មិនអាចបង្កើត QR បង់ប្រាក់បានទេ សូមទាក់ទងអ្នកគ្រប់គ្រងហាង", en: "Could not create the payment QR. Please contact the shop." },
-    trial_ended: { km: "RielPay trial ផុតហើយ — ត្រូវ Upgrade plan ក្នុង RielPay dashboard", en: "RielPay trial ended — upgrade your plan in the RielPay dashboard." },
+    trial_ended: { km: "ABA PayWay trial ផុតហើយ — ត្រូវ Upgrade plan ក្នុង dashboard ការទូទាត់", en: "ABA PayWay trial ended — please upgrade your payment plan." },
     pack_unavailable: { km: "កញ្ចប់នេះមិនមានលក់ទៀតទេ សូមជ្រើសកញ្ចប់ផ្សេង", en: "This package is no longer available." },
     coupon_invalid: { km: "កូដបញ្ចុះតម្លៃមិនត្រឹមត្រូវ", en: "Invalid coupon code." },
     coupon_min: { km: "ចំនួនទិញមិនដល់កម្រិតអប្បបរមានៃកូដនេះ", en: "Order is below this coupon's minimum." },
@@ -654,8 +654,8 @@ export default function Game({ lang, addOrder, settings }) {
       setPayErr(
         /failed to fetch|networkerror|load failed/i.test(m)
           ? (lang === "km"
-              ? "ភ្ជាប់ server មិនបាន — រង់ចាំ 10 វិនាទី រួចសាកម្តងទៀត (ពិនិត្យ Render + RIELPAY_API_KEY)"
-              : "Cannot reach server — wait 10s and retry (check Render + RIELPAY_API_KEY)")
+              ? "ភ្ជាប់ server មិនបាន — រង់ចាំ 10 វិនាទី រួចសាកម្តងទៀត"
+              : "Cannot reach server — wait 10s and retry")
           : (m || "Network error"),
       );
     } finally {

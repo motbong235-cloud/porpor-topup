@@ -306,29 +306,17 @@ export default function SettingsAdmin() {
         <h2>ការទូទាត់ — ABA PayWay</h2>
         <p className="ad-hint">
           TikTok Khmer និង QR បង់ប្រាក់ប្រើ <b>ABA PayWay</b>។
-          បំពេញ API Key ខាងក្រោម ឬដាក់ env <code>RIELPAY_API_KEY</code> លើ Render (env មានអាទិភាព)។
-          Webhook: <code>/api/webhook/rielpay</code>
+          បំពេញ API Key ខាងក្រោម (ទុកទទេពេល Save = រក្សាចាស់)។
         </p>
-        <div className="ad-grid-2">
-          <Field label="ABA PayWay API Key" hint="ទុកទទេពេល Save = រក្សាចាស់">
-            <input
-              type="password"
-              value={form.rielpayApiKey === "••••••••" ? "" : (form.rielpayApiKey || "")}
-              onChange={(e) => set("rielpayApiKey", e.target.value)}
-              placeholder={form.rielpayApiKey ? "••••••••" : "sk_..."}
-              autoComplete="new-password"
-            />
-          </Field>
-          <Field label="Webhook Secret (optional)" hint="ទុកទទេ = រក្សាចាស់">
-            <input
-              type="password"
-              value={form.rielpayWebhookSecret === "••••••••" ? "" : (form.rielpayWebhookSecret || "")}
-              onChange={(e) => set("rielpayWebhookSecret", e.target.value)}
-              placeholder={form.rielpayWebhookSecret ? "••••••••" : "whsec_..."}
-              autoComplete="new-password"
-            />
-          </Field>
-        </div>
+        <Field label="ABA PayWay API Key">
+          <input
+            type="password"
+            value={form.rielpayApiKey === "••••••••" ? "" : (form.rielpayApiKey || "")}
+            onChange={(e) => set("rielpayApiKey", e.target.value)}
+            placeholder={form.rielpayApiKey ? "••••••••" : "sk_..."}
+            autoComplete="new-password"
+          />
+        </Field>
         <button type="button" className="ad-btn ghost" disabled={testing} onClick={testPayment}>
           {testing ? "…" : "Test ABA PayWay"}
         </button>

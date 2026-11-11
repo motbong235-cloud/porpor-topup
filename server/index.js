@@ -1943,7 +1943,7 @@ app.put("/api/admin/settings", adminAuth, (req, res) => {
 });
 
 app.get("/api/admin/payment-test", adminAuth, async (_req, res) => {
-  res.json({ note: "Khmer System payment disabled — use /api/admin/rielpay-test", rielpay: await rielPay.diagnose() });
+  res.json({ note: "ABA PayWay", payment: await rielPay.diagnose() });
 });
 
 app.get("/api/admin/integrations", adminAuth, async (_req, res) => {
@@ -2545,7 +2545,7 @@ app.listen(PORT, () => {
     console.log("[security] HSTS + CSP headers enabled; use Cloudflare WAF in front of the domain");
   }
   try { rielPay.bindSettings(() => getSettings()); } catch (_) {}
-  console.log(`  RielPay payment: ${rielPay.isReady() ? "READY" : "NOT CONFIGURED"}`);
+  console.log(`  ABA PayWay: ${rielPay.isReady() ? "READY" : "NOT CONFIGURED"}`);
   console.log(`  Khmer System ABA: ${khmerSystemPay.isPaymentReady() ? "READY" : "NOT CONFIGURED"}`);
   console.log(`  Khmer TopUp auto:     ${khmerTopup.isTopupReady() ? "READY" : "NOT CONFIGURED"}`);
 });
