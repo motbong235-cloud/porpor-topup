@@ -34,14 +34,14 @@ export default function KhqrModal({
   const canvasRef = useRef(null);
   const autoAbaRef = useRef("");
   const [phase, setPhase] = useState("qr"); // qr | scanned | paid | exp
-  const [qrLibReady, setQrLibReady] = useState(!!window.qrcode);
+  const [qrLibReady, setQrLibReady] = useState(() => typeof window !== "undefined" && !!window.qrcode);
 
   useEffect(() => {
     if (!open) {
       setPhase("qr");
       return;
     }
-    if (window.qrcode) {
+    if (typeof window !== "undefined" && window.qrcode) {
       setQrLibReady(true);
       return;
     }
@@ -79,7 +79,7 @@ export default function KhqrModal({
     x.fillRect(0, 0, W, W);
 
     const payload = (qrString || "").trim();
-    if (payload && window.qrcode && !/^https?:\/\//i.test(payload) && !payload.startsWith("data:")) {
+    if (payload && typeof window !== "undefined" && window.qrcode && !/^https?:\/\//i.test(payload) && !payload.startsWith("data:")) {
       try {
         const q = window.qrcode(0, "H");
         q.addData(payload);
