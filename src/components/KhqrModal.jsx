@@ -52,7 +52,7 @@ export default function KhqrModal({
     document.head.appendChild(s);
   }, [open]);
 
-  // Auto-open ABA deeplink once per modal open (no button required)
+  // Auto-open ABA deeplink once — keep QR visible (do NOT switch to scanned)
   useEffect(() => {
     if (!open) {
       autoAbaRef.current = "";
@@ -61,12 +61,11 @@ export default function KhqrModal({
     const u = String(deeplink || "").trim();
     if (!u || autoAbaRef.current === u) return;
     autoAbaRef.current = u;
-    setPhase("scanned");
     const t = setTimeout(() => {
       try {
         onOpenAba?.(u);
       } catch {}
-    }, 200);
+    }, 400);
     return () => clearTimeout(t);
   }, [open, deeplink, onOpenAba]);
 
@@ -210,7 +209,36 @@ export default function KhqrModal({
 
           {phase === "qr" ? (
             <>
-              <canvas ref={canvasRef} className="kq-qr" width={640} height={640} />
+              {(qrString || qrImage) ? (
+                <>
+                  <canvas ref={canvasRef} className="kq-qr" width={640} height={640} />
+                  {qrImage && !qrString ? (
+                    <img
+                      className="kq-qr-img"
+                      src={
+                        qrImage.startsWith("data:") || qrImage.startsWith("http")
+                          ? qrImage
+                          : `data:image/png;base64,${qrImage}`
+                      }
+                      alt="KHQR"
+                      style={{
+                        width: "min(72vw, 280px)",
+                        height: "auto",
+                        margin: "0 auto 8px",
+                        display: "block",
+                        borderRadius: 12,
+                      }}
+                    />
+                  ) : null}
+                </>
+              ) : (
+                <div className="kq-scanned" style={{ padding: "24px 0" }}>
+                  <div className="kq-wait-spin" />
+                  <p className="kq-scan-title">
+                    {lang === "km" ? "កំពុងបង្កើត QR…" : "Generating QR…"}
+                  </p>
+                </div>
+              )}
               <div className="kq-scan">{lang === "km" ? "ស្កេនដើម្បីបង់" : "Scan to pay"}</div>
               <div className="kq-or">{lang === "km" ? "ឬ" : "or"}</div>
               <button type="button" className="kq-dl" onClick={downloadQr}>

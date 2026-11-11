@@ -638,7 +638,7 @@ export default function Game({ lang, addOrder, settings }) {
         data.payment.payUrl ||
         "";
       setPayDeeplink(abaLink);
-      setPayPhase(abaLink ? "scanned" : "qr");
+      setPayPhase("qr"); // always show QR; ABA may open in parallel
       setCheckoutId(data.order.id);
       setQrOpen(true);
       // Auto open ABA Mobile as soon as QR is created (no button)
