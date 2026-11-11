@@ -238,9 +238,11 @@ export default function KhqrModal({
                   {lang === "km" ? "ខ្ញុំបានស្កេនហើយ" : "I have scanned"}
                 </button>
               )}
-              <button type="button" className="kq-paid-btn" disabled={paying} onClick={onPaidClick}>
-                {paying ? "…" : lang === "km" ? "ខ្ញុំបានបង់ហើយ" : "I have paid"}
-              </button>
+              <p className="kq-note">
+                {lang === "km"
+                  ? "បង់រួច ប្រព័ន្ធរកឃើញស្វ័យប្រវត្តិ — មិនបាច់ចុចអ្វីទេ"
+                  : "After payment, status updates automatically — no button needed"}
+              </p>
               <button type="button" className="kq-cancel" onClick={onClose}>
                 {lang === "km" ? "បោះបង់" : "Cancel"}
               </button>
@@ -255,9 +257,11 @@ export default function KhqrModal({
                   : "Please confirm payment in your banking app"}
               </p>
               {orderId ? <p className="kq-order">Order · {orderId}</p> : null}
-              <button type="button" className="kq-paid-btn" disabled={paying} onClick={onPaidClick}>
-                {paying ? "…" : lang === "km" ? "ខ្ញុំបានបង់ហើយ" : "I have paid"}
-              </button>
+              <p className="kq-note">
+                {lang === "km"
+                  ? "កំពុងរង់ចាំការបញ្ជាក់បង់… នឹងប្តូរស្វ័យប្រវត្តិ"
+                  : "Waiting for payment confirmation… updates automatically"}
+              </p>
               <button type="button" className="kq-cancel" onClick={() => setPhase("qr")}>
                 {lang === "km" ? "មើល QR ម្ដងទៀត" : "Show QR again"}
               </button>
