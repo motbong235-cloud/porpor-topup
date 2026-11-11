@@ -587,15 +587,27 @@ export default function Game({ lang, addOrder, settings }) {
         setQrExpiresAt(expMs);
       }
       // Prefer native ABA deeplink so we never hit SPA /open-aba → admin by mistake
-      setPayDeeplink(
+      const abaLink =
         data.payment.deeplink ||
-          data.payment.openAbaUrl ||
-          data.payment.payUrl ||
-          "",
-      );
-      setPayPhase("qr");
+        data.payment.openAbaUrl ||
+        data.payment.payUrl ||
+        "";
+      setPayDeeplink(abaLink);
+      setPayPhase(abaLink ? "scanned" : "qr");
       setCheckoutId(data.order.id);
       setQrOpen(true);
+      // Auto open ABA Mobile as soon as QR is created (no button)
+      if (abaLink) {
+        try {
+          setTimeout(() => {
+            try {
+              window.location.assign(abaLink);
+            } catch {
+              window.location.href = abaLink;
+            }
+          }, 250);
+        } catch {}
+      }
     } catch (e) {
       setPayErr(e.message || "Network error");
     } finally {

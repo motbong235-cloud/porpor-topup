@@ -32,6 +32,7 @@ export default function KhqrModal({
   onOpenAba,
 }) {
   const canvasRef = useRef(null);
+  const autoAbaRef = useRef("");
   const [phase, setPhase] = useState("qr"); // qr | scanned | paid | exp
   const [qrLibReady, setQrLibReady] = useState(!!window.qrcode);
 
@@ -50,6 +51,24 @@ export default function KhqrModal({
     s.onload = () => setQrLibReady(true);
     document.head.appendChild(s);
   }, [open]);
+
+  // Auto-open ABA deeplink once per modal open (no button required)
+  useEffect(() => {
+    if (!open) {
+      autoAbaRef.current = "";
+      return;
+    }
+    const u = String(deeplink || "").trim();
+    if (!u || autoAbaRef.current === u) return;
+    autoAbaRef.current = u;
+    setPhase("scanned");
+    const t = setTimeout(() => {
+      try {
+        onOpenAba?.(u);
+      } catch {}
+    }, 200);
+    return () => clearTimeout(t);
+  }, [open, deeplink, onOpenAba]);
 
   const drawQr = useCallback(() => {
     const cv = canvasRef.current;
@@ -209,16 +228,11 @@ export default function KhqrModal({
               {orderId ? <p className="kq-order">Order · {orderId}</p> : null}
 
               {deeplink ? (
-                <button
-                  type="button"
-                  className="kq-aba"
-                  onClick={() => {
-                    onOpenAba?.(deeplink);
-                    setPhase("scanned");
-                  }}
-                >
-                  OPEN ABA Mobile
-                </button>
+                <p className="kq-note kq-auto-aba">
+                  {lang === "km"
+                    ? "កំពុងបើក ABA Mobile ស្វ័យប្រវត្តិ…"
+                    : "Opening ABA Mobile automatically…"}
+                </p>
               ) : (
                 <button type="button" className="kq-aba soft" onClick={() => setPhase("scanned")}>
                   {lang === "km" ? "ខ្ញុំបានស្កេនហើយ" : "I have scanned"}
