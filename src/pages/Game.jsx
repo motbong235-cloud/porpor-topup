@@ -639,7 +639,14 @@ export default function Game({ lang, addOrder, settings }) {
         } catch {}
       }
     } catch (e) {
-      setPayErr(e.message || "Network error");
+      const m = String((e && e.message) || e || "");
+      setPayErr(
+        /failed to fetch|networkerror|load failed/i.test(m)
+          ? (lang === "km"
+              ? "ភ្ជាប់ server មិនបាន — រង់ចាំ 10 វិនាទី រួចសាកម្តងទៀត (ពិនិត្យ Render + RIELPAY_API_KEY)"
+              : "Cannot reach server — wait 10s and retry (check Render + RIELPAY_API_KEY)")
+          : (m || "Network error"),
+      );
     } finally {
       setPaying(false);
     }
@@ -666,7 +673,13 @@ export default function Game({ lang, addOrder, settings }) {
       }
       setPayErr(lang === "km" ? "មិនទាន់ទទួលការបង់" : "Payment not received yet");
     } catch (e) {
-      setPayErr(e.message);
+      setPayErr(
+        /failed to fetch|networkerror|load failed/i.test(String(e && e.message))
+          ? (lang === "km"
+              ? "ភ្ជាប់ server មិនបាន — សូមរង់ចាំបន្តិច រួចសាកម្តងទៀត"
+              : "Cannot reach server — wait a moment and try again")
+          : String((e && e.message) || e),
+      );
     } finally {
       setPaying(false);
     }

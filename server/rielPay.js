@@ -83,13 +83,13 @@ export async function createPayment(amount, orderId, description = "") {
   };
 
   let lastErr = "unknown";
-  for (let attempt = 1; attempt <= 3; attempt++) {
+  for (let attempt = 1; attempt <= 2; attempt++) {
     try {
       const r = await fetch(`${baseUrl()}/v1/payments`, {
         method: "POST",
         headers,
         body: JSON.stringify(body),
-        signal: AbortSignal.timeout(Number(process.env.RIELPAY_TIMEOUT || 35) * 1000),
+        signal: AbortSignal.timeout(Number(process.env.RIELPAY_TIMEOUT || 18) * 1000),
       });
       const text = await r.text();
       let data;
@@ -97,7 +97,7 @@ export async function createPayment(amount, orderId, description = "") {
         data = JSON.parse(text);
       } catch {
         lastErr = `HTTP ${r.status} non-JSON: ${text.slice(0, 180)}`;
-        if (r.status >= 500 && attempt < 3) {
+        if (r.status >= 500 && attempt < 2) {
           await new Promise((x) => setTimeout(x, 800 * attempt));
           continue;
         }
@@ -111,7 +111,7 @@ export async function createPayment(amount, orderId, description = "") {
           data?.error ||
           data?.code ||
           `HTTP ${r.status}`;
-        if ((r.status === 429 || r.status >= 500) && attempt < 3) {
+        if ((r.status === 429 || r.status >= 500) && attempt < 2) {
           await new Promise((x) => setTimeout(x, 1000 * attempt));
           continue;
         }
@@ -147,7 +147,7 @@ export async function createPayment(amount, orderId, description = "") {
       };
     } catch (e) {
       lastErr = `${e.name || "Error"}: ${e.message}`;
-      if (attempt < 3) {
+      if (attempt < 2) {
         await new Promise((x) => setTimeout(x, 1000 * attempt));
         continue;
       }
