@@ -1266,7 +1266,11 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
   if (!qr.success) {
     console.error("[checkout] RielPay QR failed:", qr.error, JSON.stringify(qr.raw || {}));
     updateOrder(order.id, { status: "failed", note: `QR error (rielpay): ${qr.error}` });
-    return res.status(502).json({ error: "qr_failed", detail: qr.error });
+    return res.status(502).json({
+      error: "qr_failed",
+      detail: qr.error,
+      code: qr.code || "",
+    });
   }
   // QR lifetime: default / minimum 1 hour (3600s). Provider may return shorter —
   // we still expose at least 1h to the client countdown; actual bank QR may vary.

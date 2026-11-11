@@ -106,16 +106,29 @@ export async function createPayment(amount, orderId, description = "") {
       if (data && data.data && typeof data.data === "object") data = data.data;
 
       if (r.status >= 400) {
-        lastErr =
-          data?.message ||
-          data?.error ||
+        const errObj = data?.error;
+        const errCode =
+          (errObj && typeof errObj === "object" && errObj.code) ||
           data?.code ||
-          `HTTP ${r.status}`;
+          "";
+        const errMsg =
+          (errObj && typeof errObj === "object" && errObj.message) ||
+          (typeof errObj === "string" ? errObj : "") ||
+          data?.message ||
+          "";
+        lastErr = errCode && errMsg
+          ? `${errCode}: ${errMsg}`
+          : errMsg || errCode || `HTTP ${r.status}`;
         if ((r.status === 429 || r.status >= 500) && attempt < 2) {
           await new Promise((x) => setTimeout(x, 1000 * attempt));
           continue;
         }
-        return { success: false, error: String(lastErr), raw: data };
+        return {
+          success: false,
+          error: String(lastErr),
+          code: String(errCode || ""),
+          raw: data,
+        };
       }
 
       const id = data.id || data.payment_id || data.transaction_id || "";
