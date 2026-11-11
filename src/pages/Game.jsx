@@ -595,8 +595,18 @@ export default function Game({ lang, addOrder, settings }) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        const detailStr = String(data.detail || data.code || "");
+        if (/trial_ended|trial has ended/i.test(detailStr) || data.code === "trial_ended") {
+          setPayErr(ERRORS.trial_ended[lang]);
+          return;
+        }
         const known = ERRORS[data.error];
-        setPayErr(known ? known[lang] : (lang === "km" ? "បង់ប្រាក់មិនបាន សូមព្យាយាមម្តងទៀត" : "Checkout failed. Please try again.") + (data.error ? ` (${data.error})` : ""));
+        setPayErr(
+          known
+            ? known[lang]
+            : (lang === "km" ? "បង់ប្រាក់មិនបាន សូមព្យាយាមម្តងទៀត" : "Checkout failed. Please try again.") +
+              (data.detail ? ` — ${data.detail}` : data.error ? ` (${data.error})` : ""),
+        );
         return;
       }
       if (!data.payment?.qrImage && !data.payment?.qrString && !data.payment?.qr_string) {
