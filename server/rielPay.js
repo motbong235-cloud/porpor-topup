@@ -7,7 +7,6 @@
  * Env / settings: RIELPAY_API_KEY, RIELPAY_WEBHOOK_SECRET, RIELPAY_BASE_URL
  */
 import crypto from "crypto";
-import { getSettings } from "./store.js";
 
 const DEFAULT_BASE = "https://rielpays.com";
 
@@ -22,20 +21,11 @@ function baseUrl() {
 }
 
 export function apiKey() {
-  try {
-    const s = getSettings() || {};
-    const k = clean(s.rielpayApiKey || "");
-    if (k) return k;
-  } catch {}
+  // Admin UI disabled — key only from Render / env
   return clean(process.env.RIELPAY_API_KEY);
 }
 
 export function webhookSecret() {
-  try {
-    const s = getSettings() || {};
-    const k = clean(s.rielpayWebhookSecret || "");
-    if (k) return k;
-  } catch {}
   return clean(process.env.RIELPAY_WEBHOOK_SECRET);
 }
 

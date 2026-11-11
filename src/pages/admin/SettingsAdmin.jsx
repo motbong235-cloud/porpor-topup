@@ -77,13 +77,6 @@ export default function SettingsAdmin() {
       if (!String(form.robuxCookie || "").trim() || form.robuxCookie === "••••••••") {
         delete payload.robuxCookie;
       }
-      if (!String(form.rielpayApiKey || "").trim() || form.rielpayApiKey === "••••••••") {
-        delete payload.rielpayApiKey;
-      }
-      if (!String(form.rielpayWebhookSecret || "").trim() || form.rielpayWebhookSecret === "••••••••") {
-        delete payload.rielpayWebhookSecret;
-      }
-      payload.paymentGateway = "rielpay";
       if (!String(form.robuxTotpSecret || "").trim() || form.robuxTotpSecret === "••••••••") {
         delete payload.robuxTotpSecret;
       }
@@ -114,7 +107,6 @@ export default function SettingsAdmin() {
         <a href="#set-brand" className="ad-seg-a">Logo / Banner</a>
         <a href="#set-tg" className="ad-seg-a">Telegram</a>
         <a href="#set-pay" className="ad-seg-a">Payment</a>
-        <a href="#set-rielpay" className="ad-seg-a">RielPay</a>
         <a href="#set-robux" className="ad-seg-a">Robux Auto</a>
         <a href="#set-coupon" className="ad-seg-a">Coupon</a>
         <a href="#set-backup" className="ad-seg-a">Backup</a>
@@ -304,62 +296,13 @@ export default function SettingsAdmin() {
       </section>
 
 
-      <section className="ad-card" id="set-rielpay">
-        <h2>RielPay (KHQR) — វិធីទូទាត់តែមួយ</h2>
-        <p className="ad-hint">
-          ប្រើ <b>rielpays.com</b> តែម្តង (លុប Khmer System payment ចេញ)។
-          បង្កើត KHQR · OPEN ABA Mobile · លុយចូល ABA account អ្នក។
-        </p>
-        <div className="ad-grid-2">
-          <Field label="RielPay API Key" hint="Dashboard → Stores → API keys (sk_…)">
-            <input
-              type="password"
-              value={form.rielpayApiKey === "••••••••" ? "" : (form.rielpayApiKey || "")}
-              onChange={(e) => set("rielpayApiKey", e.target.value)}
-              placeholder={form.rielpayApiKey ? "••••••••" : "sk_…"}
-              autoComplete="new-password"
-            />
-          </Field>
-          <Field label="Webhook Secret" hint="optional — verify X-Webhook-Signature">
-            <input
-              type="password"
-              value={form.rielpayWebhookSecret === "••••••••" ? "" : (form.rielpayWebhookSecret || "")}
-              onChange={(e) => set("rielpayWebhookSecret", e.target.value)}
-              placeholder={form.rielpayWebhookSecret ? "••••••••" : "whsec_…"}
-              autoComplete="new-password"
-            />
-          </Field>
-        </div>
-        <p className="ad-hint">
-          Webhook URL: <code>https://YOUR_DOMAIN/api/webhook/rielpay</code>
-        </p>
-        <button
-          type="button"
-          className="ad-btn soft"
-          onClick={async () => {
-            setTesting(true);
-            setTestOut("");
-            try {
-              setTestOut(JSON.stringify(await api("/api/admin/rielpay-test"), null, 2));
-            } catch (e) {
-              setTestOut("test failed");
-            } finally {
-              setTesting(false);
-            }
-          }}
-          disabled={testing}
-        >
-          {testing ? "កំពុងសាក…" : "សាកល្បង RielPay ($0.05)"}
-        </button>
-      </section>
-
       <section className="ad-card" id="set-pay">
-        <h2>ការទូទាត់</h2>
+        <h2>ការទូទាត់ (RielPay)</h2>
         <p className="ad-hint">
-          Website ប្រើ <b>RielPay</b> តែមួយ។ សាកល្បងនៅផ្នែក <a href="#set-rielpay">RielPay</a>។
-          Khmer System នៅប្រើសម្រាប់ <b>auto topup diamond</b> (មិនមែន QR)។
+          QR ប្រើ <b>RielPay</b> — កំណត់តែនៅ <b>Render Environment</b>៖
+          <code>RIELPAY_API_KEY</code> · <code>RIELPAY_WEBHOOK_SECRET</code> (optional)។
+          មិនបំពេញក្នុង Admin។ Webhook: <code>/api/webhook/rielpay</code>
         </p>
-        {testOut ? <pre style={{ marginTop: 12, padding: 12, borderRadius: 12, background: "var(--bg)", border: "1px solid var(--line)", fontSize: 12, whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{testOut}</pre> : null}
       </section>
 
       

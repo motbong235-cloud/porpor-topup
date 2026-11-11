@@ -1775,8 +1775,6 @@ app.get("/api/admin/settings", adminAuth, (_req, res) => {
   const out = { ...s };
   if (out.robuxCookie) out.robuxCookie = "••••••••";
   if (out.robuxTotpSecret) out.robuxTotpSecret = "••••••••";
-  if (out.rielpayApiKey) out.rielpayApiKey = "••••••••";
-  if (out.rielpayWebhookSecret) out.rielpayWebhookSecret = "••••••••";
   res.json(out);
 });
 
@@ -1857,19 +1855,10 @@ app.put("/api/admin/settings", adminAuth, (req, res) => {
   if (patch.robuxAutoEnabled !== undefined) {
     patch.robuxAutoEnabled = !!patch.robuxAutoEnabled;
   }
-  if (patch.rielpayApiKey !== undefined) {
-    const k = String(patch.rielpayApiKey || "").trim();
-    if (!k || k === "••••••••") delete patch.rielpayApiKey;
-    else patch.rielpayApiKey = k.slice(0, 200);
-  }
-  if (patch.rielpayWebhookSecret !== undefined) {
-    const k = String(patch.rielpayWebhookSecret || "").trim();
-    if (!k || k === "••••••••") delete patch.rielpayWebhookSecret;
-    else patch.rielpayWebhookSecret = k.slice(0, 200);
-  }
-  if (patch.paymentGateway !== undefined) {
-    patch.paymentGateway = "rielpay";
-  }
+  // RielPay keys: env only (RIELPAY_API_KEY) — not stored via Admin
+  delete patch.rielpayApiKey;
+  delete patch.rielpayWebhookSecret;
+  delete patch.paymentGateway;
   if (patch.tgChannelId !== undefined) {
     patch.tgChannelId = String(patch.tgChannelId || "").trim().slice(0, 64);
   }
