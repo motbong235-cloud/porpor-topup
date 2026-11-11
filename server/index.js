@@ -582,7 +582,7 @@ app.get("/api/health", (_req, res) => {
   res.json({
     ok: true,
     name: "POR POR TOPUP",
-    payment: rielPay.isReady(),
+    payment: rielPay.isReady() || khmerSystemPay.isPaymentReady(),
     topup: khmerTopup.isTopupReady() || dinoTopup.isDinoReady(),
     dinoTopup: dinoTopup.isDinoReady(),
   });
@@ -591,8 +591,9 @@ app.get("/api/health", (_req, res) => {
 app.get("/api/integrations/status", (_req, res) => {
   const s = getSettings();
   res.json({
-    paymentReady: rielPay.isReady(),
+    paymentReady: rielPay.isReady() || khmerSystemPay.isPaymentReady(),
     rielpayReady: rielPay.isReady(),
+    abaReady: khmerSystemPay.isPaymentReady(),
     topupReady: khmerTopup.isTopupReady() || dinoTopup.isDinoReady(),
     khmerTopupReady: khmerTopup.isTopupReady(),
     dinoTopupReady: dinoTopup.isDinoReady(),
@@ -1090,8 +1091,11 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
   if (settings.maintenance) {
     return res.status(503).json({ error: "maintenance" });
   }
-  if (!rielPay.isReady()) {
-    return res.status(503).json({ error: "not_configured", detail: "RielPay API key missing" });
+  if (!rielPay.isReady() && !khmerSystemPay.isPaymentReady()) {
+    return res.status(503).json({
+      error: "not_configured",
+      detail: "No payment gateway ready — set ABA_API_KEY+ABA_MERCHANT_ID (Khmer System) or RIELPAY_API_KEY",
+    });
   }
   if (!body.gameId || !body.packId) {
     return res.status(400).json({ error: "invalid" });
@@ -1256,20 +1260,50 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
     }
   }
 
-  // Payment: RielPay only (Khmer System QR removed)
-  const qr = await rielPay.createPayment(
-    order.total,
-    order.id,
-    `${order.gameName || "Topup"} ${order.packName || ""}`.trim() || `Order ${order.id}`,
-  );
-  const usedGateway = "rielpay";
-  if (!qr.success) {
-    console.error("[checkout] RielPay QR failed:", qr.error, JSON.stringify(qr.raw || {}));
-    updateOrder(order.id, { status: "failed", note: `QR error (rielpay): ${qr.error}` });
+  // Payment gateway:
+  // - TikTok Khmer (kai route) → Khmer System ABA only
+  // - Other products → Khmer System if ready, else RielPay
+  let qr;
+  let usedGateway;
+  const preferAba = !!kaiRoute || !rielPay.isReady();
+  if (preferAba && khmerSystemPay.isPaymentReady()) {
+    const uname =
+      order.ttkUsername ||
+      String(order.userId || "").replace(/^@/, "").slice(0, 24) ||
+      order.id;
+    qr = await khmerSystemPay.createQr(order.total, order.id, uname);
+    usedGateway = "aba";
+    if (!qr.success) {
+      console.error("[checkout] Khmer System / ABA QR failed:", qr.error, JSON.stringify(qr.raw || {}));
+      // TikTok must stay on ABA — do not fall back to RielPay
+      if (kaiRoute) {
+        updateOrder(order.id, { status: "failed", note: `QR error (aba): ${qr.error}` });
+        return res.status(502).json({
+          error: "qr_failed",
+          detail: qr.error,
+          code: qr.code || "",
+          gateway: "aba",
+        });
+      }
+    }
+  }
+  if ((!qr || !qr.success) && rielPay.isReady() && !kaiRoute) {
+    qr = await rielPay.createPayment(
+      order.total,
+      order.id,
+      `${order.gameName || "Topup"} ${order.packName || ""}`.trim() || `Order ${order.id}`,
+    );
+    usedGateway = "rielpay";
+  }
+  if (!qr || !qr.success) {
+    const err = (qr && qr.error) || "no_payment_gateway";
+    console.error("[checkout] QR failed:", usedGateway || "none", err, JSON.stringify((qr && qr.raw) || {}));
+    updateOrder(order.id, { status: "failed", note: `QR error (${usedGateway || "none"}): ${err}` });
     return res.status(502).json({
       error: "qr_failed",
-      detail: qr.error,
-      code: qr.code || "",
+      detail: err,
+      code: (qr && qr.code) || "",
+      gateway: usedGateway || "",
     });
   }
   // QR lifetime: default / minimum 1 hour (3600s). Provider may return shorter —
@@ -1295,8 +1329,8 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
     openAbaUrl: openAba,
     expiresAt,
     payViaKai: false,
-    paymentGateway: "rielpay",
-    method: "rielpay_khqr",
+    paymentGateway: usedGateway === "aba" ? "aba" : "rielpay",
+    method: usedGateway === "aba" ? "aba_khqr" : "rielpay_khqr",
   });
   auditLog("checkout_create", { orderId: updated.id, total: updated.total, ip: clientIp(req) });
   try { tg.notifyOrder("new", updated).catch(() => {}); } catch {}
@@ -1330,13 +1364,25 @@ async function tryConfirmPayment(order, meta = {}) {
   if (_payConfirmLock.has(order.id)) return order;
   const st0 = order.status;
   if (!(st0 === "pending" || (st0 === "failed" && !order.providerPaid))) return order;
-  if (!order.transactionId || !rielPay.isReady()) return order;
+  if (!order.transactionId) return order;
+  const gw = String(order.paymentGateway || order.method || "").toLowerCase();
+  const useAba =
+    gw.includes("aba") ||
+    gw === "khmer" ||
+    gw === "khmer_system" ||
+    (!gw.includes("riel") && khmerSystemPay.isPaymentReady() && !rielPay.isReady());
+  if (useAba && !khmerSystemPay.isPaymentReady()) return order;
+  if (!useAba && !rielPay.isReady()) return order;
 
   _payConfirmLock.add(order.id);
   try {
-    const pay = await rielPay.checkPayment(order.transactionId);
-    console.log("[pay-reconcile]", order.id, pay.status, pay.paid, pay.error || "", meta.source || "");
-    if (!(assertPaymentProviderPaid(pay) && pay.paid === true && !pay.simulation && !pay.error)) {
+    const pay = useAba
+      ? await khmerSystemPay.checkPayment(order.transactionId)
+      : await rielPay.checkPayment(order.transactionId);
+    console.log("[pay-reconcile]", order.id, useAba ? "aba" : "rielpay", pay.status, pay.paid, pay.error || "", meta.source || "");
+    if (useAba) {
+      if (!(pay && pay.paid === true && !pay.simulation && !pay.error)) return order;
+    } else if (!(assertPaymentProviderPaid(pay) && pay.paid === true && !pay.simulation && !pay.error)) {
       return order;
     }
     const paidAmt = Number(pay.amount ?? pay.total ?? pay.paid_amount);
@@ -1404,7 +1450,7 @@ async function tryConfirmPayment(order, meta = {}) {
 
 /** Background: every 25s re-check pending ABA/KHQR payments even if user closed the page. */
 async function reconcilePendingPayments() {
-  if (!rielPay.isReady()) return;
+  if (!rielPay.isReady() && !khmerSystemPay.isPaymentReady()) return;
   const all = listOrders() || [];
   const now = Date.now();
   // pending up to 48h (user paid, left page, admin delayed)
@@ -2486,5 +2532,6 @@ app.listen(PORT, () => {
     console.log("[security] HSTS + CSP headers enabled; use Cloudflare WAF in front of the domain");
   }
   console.log(`  RielPay payment: ${rielPay.isReady() ? "READY" : "NOT CONFIGURED"}`);
+  console.log(`  Khmer System ABA: ${khmerSystemPay.isPaymentReady() ? "READY" : "NOT CONFIGURED"}`);
   console.log(`  Khmer TopUp auto:     ${khmerTopup.isTopupReady() ? "READY" : "NOT CONFIGURED"}`);
 });
