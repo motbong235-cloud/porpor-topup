@@ -1242,7 +1242,7 @@ export default function Game({ lang, addOrder, settings }) {
                   />
                 </div>
                 <div className="pay-choice-meta">
-                  <strong>ABA KHQR</strong>
+                  <strong>ABA PayWay</strong>
                   <span>{t(lang, "khqrHint")}</span>
                 </div>
                 <span className="pay-choice-check" aria-hidden>
@@ -1282,7 +1282,7 @@ export default function Game({ lang, addOrder, settings }) {
           amount={orderTotal || total}
           currency="USD"
           merchant={(settings && (settings.siteName || settings.brandName)) || "POR POR TOPUP"}
-          title="ABA KHQR"
+          title="ABA PayWay"
           orderId={checkoutId || ""}
           qrImage={liveQr || ""}
           qrString={liveQrString || ""}

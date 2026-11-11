@@ -1260,40 +1260,36 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
     }
   }
 
-  // Payment gateway:
-  // - TikTok Khmer (kai route) → Khmer System ABA only
-  // - Other products → Khmer System if ready, else RielPay
+  // Payment gateway (shown to users as "ABA PayWay"):
+  // - TikTok Khmer → RielPay (ABA PayWay) first
+  // - Fallback: Khmer System if RielPay not ready / fails (non-TikTok)
   let qr;
   let usedGateway;
-  const preferAba = !!kaiRoute || !rielPay.isReady();
-  if (preferAba && khmerSystemPay.isPaymentReady()) {
-    const uname =
-      order.ttkUsername ||
-      String(order.userId || "").replace(/^@/, "").slice(0, 24) ||
-      order.id;
-    qr = await khmerSystemPay.createQr(order.total, order.id, uname);
-    usedGateway = "aba";
-    if (!qr.success) {
-      console.error("[checkout] Khmer System / ABA QR failed:", qr.error, JSON.stringify(qr.raw || {}));
-      // TikTok must stay on ABA — do not fall back to RielPay
-      if (kaiRoute) {
-        updateOrder(order.id, { status: "failed", note: `QR error (aba): ${qr.error}` });
-        return res.status(502).json({
-          error: "qr_failed",
-          detail: qr.error,
-          code: qr.code || "",
-          gateway: "aba",
-        });
-      }
-    }
-  }
-  if ((!qr || !qr.success) && rielPay.isReady() && !kaiRoute) {
+  if (rielPay.isReady()) {
     qr = await rielPay.createPayment(
       order.total,
       order.id,
       `${order.gameName || "Topup"} ${order.packName || ""}`.trim() || `Order ${order.id}`,
     );
     usedGateway = "rielpay";
+    if (!qr.success) {
+      console.error("[checkout] ABA PayWay (RielPay) QR failed:", qr.error, JSON.stringify(qr.raw || {}));
+      if (kaiRoute) {
+        // TikTok stays on RielPay — no silent switch
+        updateOrder(order.id, { status: "failed", note: `QR error (aba_payway): ${qr.error}` });
+        return res.status(502).json({
+          error: "qr_failed",
+          detail: qr.error,
+          code: qr.code || "",
+          gateway: "aba_payway",
+        });
+      }
+    }
+  }
+  if ((!qr || !qr.success) && khmerSystemPay.isPaymentReady() && !kaiRoute) {
+    const uname = String(order.userId || order.id).replace(/^@/, "").slice(0, 24);
+    qr = await khmerSystemPay.createQr(order.total, order.id, uname);
+    usedGateway = "aba";
   }
   if (!qr || !qr.success) {
     const err = (qr && qr.error) || "no_payment_gateway";
@@ -1330,7 +1326,7 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
     expiresAt,
     payViaKai: false,
     paymentGateway: usedGateway === "aba" ? "aba" : "rielpay",
-    method: usedGateway === "aba" ? "aba_khqr" : "rielpay_khqr",
+    method: usedGateway === "aba" ? "aba_khqr" : "aba_payway",
   });
   auditLog("checkout_create", { orderId: updated.id, total: updated.total, ip: clientIp(req) });
   try { tg.notifyOrder("new", updated).catch(() => {}); } catch {}
@@ -1825,6 +1821,11 @@ app.get("/api/admin/settings", adminAuth, (_req, res) => {
   const out = { ...s };
   if (out.robuxCookie) out.robuxCookie = "••••••••";
   if (out.robuxTotpSecret) out.robuxTotpSecret = "••••••••";
+  if (out.rielpayApiKey) out.rielpayApiKey = "••••••••";
+  if (out.rielpayWebhookSecret) out.rielpayWebhookSecret = "••••••••";
+  // hint UI: env may override
+  out._paymentLabel = "ABA PayWay";
+  out._rielpayEnvSet = !!(process.env.RIELPAY_API_KEY && String(process.env.RIELPAY_API_KEY).length >= 8);
   res.json(out);
 });
 
@@ -1905,10 +1906,14 @@ app.put("/api/admin/settings", adminAuth, (req, res) => {
   if (patch.robuxAutoEnabled !== undefined) {
     patch.robuxAutoEnabled = !!patch.robuxAutoEnabled;
   }
-  // RielPay keys: env only (RIELPAY_API_KEY) — not stored via Admin
-  delete patch.rielpayApiKey;
-  delete patch.rielpayWebhookSecret;
-  delete patch.paymentGateway;
+  // ABA PayWay (RielPay) keys may be set in Admin Settings (or env overrides at runtime)
+  if (patch.rielpayApiKey === "" || patch.rielpayApiKey === "••••••••") {
+    delete patch.rielpayApiKey; // keep existing
+  }
+  if (patch.rielpayWebhookSecret === "" || patch.rielpayWebhookSecret === "••••••••") {
+    delete patch.rielpayWebhookSecret;
+  }
+  if ("paymentGateway" in patch) delete patch.paymentGateway;
   if (patch.tgChannelId !== undefined) {
     patch.tgChannelId = String(patch.tgChannelId || "").trim().slice(0, 64);
   }
@@ -1926,7 +1931,15 @@ app.put("/api/admin/settings", adminAuth, (req, res) => {
     }
     patch.resellerPrices = out;
   }
-  res.json(updateSettings(patch));
+  const saved = updateSettings(patch);
+  try { rielPay.bindSettings(() => getSettings()); } catch (_) {}
+  res.json({
+    ...saved,
+    rielpayApiKey: saved.rielpayApiKey ? "••••••••" : "",
+    rielpayWebhookSecret: saved.rielpayWebhookSecret ? "••••••••" : "",
+    robuxCookie: saved.robuxCookie ? "••••••••" : "",
+    robuxTotpSecret: saved.robuxTotpSecret ? "••••••••" : "",
+  });
 });
 
 app.get("/api/admin/payment-test", adminAuth, async (_req, res) => {
@@ -2531,6 +2544,7 @@ app.listen(PORT, () => {
   if (isProd) {
     console.log("[security] HSTS + CSP headers enabled; use Cloudflare WAF in front of the domain");
   }
+  try { rielPay.bindSettings(() => getSettings()); } catch (_) {}
   console.log(`  RielPay payment: ${rielPay.isReady() ? "READY" : "NOT CONFIGURED"}`);
   console.log(`  Khmer System ABA: ${khmerSystemPay.isPaymentReady() ? "READY" : "NOT CONFIGURED"}`);
   console.log(`  Khmer TopUp auto:     ${khmerTopup.isTopupReady() ? "READY" : "NOT CONFIGURED"}`);

@@ -20,13 +20,27 @@ function baseUrl() {
   return clean(process.env.RIELPAY_BASE_URL || DEFAULT_BASE).replace(/\/$/, "") || DEFAULT_BASE;
 }
 
+let _getSettings = null;
+/** Wire getSettings from server/index.js so Admin-saved keys work without restart issues. */
+export function bindSettings(fn) {
+  _getSettings = typeof fn === "function" ? fn : null;
+}
+
+function settingsBag() {
+  try {
+    return (_getSettings && _getSettings()) || {};
+  } catch {
+    return {};
+  }
+}
+
 export function apiKey() {
-  // Admin UI disabled — key only from Render / env
-  return clean(process.env.RIELPAY_API_KEY);
+  // Priority: Render env → Admin Settings (ABA PayWay)
+  return clean(process.env.RIELPAY_API_KEY || settingsBag().rielpayApiKey || "");
 }
 
 export function webhookSecret() {
-  return clean(process.env.RIELPAY_WEBHOOK_SECRET);
+  return clean(process.env.RIELPAY_WEBHOOK_SECRET || settingsBag().rielpayWebhookSecret || "");
 }
 
 export function isReady() {
@@ -62,7 +76,7 @@ async function qrImageFromString(qrString) {
 export async function createPayment(amount, orderId, description = "") {
   const key = apiKey();
   if (!key) {
-    return { success: false, error: "RIELPAY_API_KEY missing" };
+    return { success: false, error: "ABA PayWay API key missing — set in Admin Settings or RIELPAY_API_KEY" };
   }
   const amt = Math.round(Number(amount) * 100) / 100;
   if (!(amt > 0)) return { success: false, error: "invalid_amount" };

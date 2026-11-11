@@ -80,6 +80,12 @@ export default function SettingsAdmin() {
       if (!String(form.robuxTotpSecret || "").trim() || form.robuxTotpSecret === "••••••••") {
         delete payload.robuxTotpSecret;
       }
+      if (!String(form.rielpayApiKey || "").trim() || form.rielpayApiKey === "••••••••") {
+        delete payload.rielpayApiKey;
+      }
+      if (!String(form.rielpayWebhookSecret || "").trim() || form.rielpayWebhookSecret === "••••••••") {
+        delete payload.rielpayWebhookSecret;
+      }
       payload.robuxAutoEnabled = !!form.robuxAutoEnabled;
       if (form.robuxGroupId !== undefined) payload.robuxGroupId = form.robuxGroupId;
       const saved = await api("/api/admin/settings", {
@@ -297,12 +303,36 @@ export default function SettingsAdmin() {
 
 
       <section className="ad-card" id="set-pay">
-        <h2>ការទូទាត់ (RielPay)</h2>
+        <h2>ការទូទាត់ — ABA PayWay</h2>
         <p className="ad-hint">
-          QR ប្រើ <b>RielPay</b> — កំណត់តែនៅ <b>Render Environment</b>៖
-          <code>RIELPAY_API_KEY</code> · <code>RIELPAY_WEBHOOK_SECRET</code> (optional)។
-          មិនបំពេញក្នុង Admin។ Webhook: <code>/api/webhook/rielpay</code>
+          TikTok Khmer និង QR បង់ប្រាក់ប្រើ <b>ABA PayWay</b>។
+          បំពេញ API Key ខាងក្រោម ឬដាក់ env <code>RIELPAY_API_KEY</code> លើ Render (env មានអាទិភាព)។
+          Webhook: <code>/api/webhook/rielpay</code>
         </p>
+        <div className="ad-grid-2">
+          <Field label="ABA PayWay API Key" hint="ទុកទទេពេល Save = រក្សាចាស់">
+            <input
+              type="password"
+              value={form.rielpayApiKey === "••••••••" ? "" : (form.rielpayApiKey || "")}
+              onChange={(e) => set("rielpayApiKey", e.target.value)}
+              placeholder={form.rielpayApiKey ? "••••••••" : "sk_..."}
+              autoComplete="new-password"
+            />
+          </Field>
+          <Field label="Webhook Secret (optional)" hint="ទុកទទេ = រក្សាចាស់">
+            <input
+              type="password"
+              value={form.rielpayWebhookSecret === "••••••••" ? "" : (form.rielpayWebhookSecret || "")}
+              onChange={(e) => set("rielpayWebhookSecret", e.target.value)}
+              placeholder={form.rielpayWebhookSecret ? "••••••••" : "whsec_..."}
+              autoComplete="new-password"
+            />
+          </Field>
+        </div>
+        <button type="button" className="ad-btn ghost" disabled={testing} onClick={testPayment}>
+          {testing ? "…" : "Test ABA PayWay"}
+        </button>
+        {testOut ? <pre className="ad-pre">{testOut}</pre> : null}
       </section>
 
       
