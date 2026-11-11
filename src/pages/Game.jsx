@@ -227,12 +227,15 @@ export default function Game({ lang, addOrder, settings }) {
   const { games, loading } = useCatalog();
   const game = games.find((g) => g.id === id) || null;
   const isGift = !!(game && ["stock", "live_chat", "robux_send", "gift_code"].includes(game.deliveryType));
-  const isTikTok =
-    !!(game && (
-      String(game.id || "").toLowerCase().includes("tiktok") ||
-      String(game.name || "").toLowerCase().includes("tiktok") ||
-      String(game.nameKm || "").toLowerCase().includes("tiktok")
-    ));
+  const isTikTok = !!(game && (() => {
+    const blob = `${game.id || ""} ${game.name || ""} ${game.nameKm || ""} ${game.mark || ""}`.toLowerCase();
+    return (
+      blob.includes("tiktok") ||
+      blob.includes("ttk") ||
+      String(game.id || "").toLowerCase() === "tiktok-khmer" ||
+      String(game.id || "").toLowerCase() === "tiktok_khmer"
+    );
+  })());
   const isStock = !!(game && (game.deliveryType === "stock" || game.deliveryType === "gift_code"));
   const [showSafetyGuide, setShowSafetyGuide] = useState(false);
 
@@ -371,7 +374,12 @@ export default function Game({ lang, addOrder, settings }) {
       /roblox|robux/i.test(String(game.id || "")) ||
       /roblox|robux/i.test(String(game.name || "")));
   // Check ID is required for Robux Send and for any Roblox service that asks for a username
-  const needCheckId = !!(game && (game.deliveryType === "robux_send" || (isRobloxGame && needUsername) || (isTikTok && needUsername)));
+  // TikTok Khmer: URL only — no Check ID / Zone / Server (matches admin hint)
+  const needCheckId = !!(
+    game &&
+    !isTikTok &&
+    (game.deliveryType === "robux_send" || (isRobloxGame && needUsername))
+  );
 
   function verify() {
     if (userId.trim().length < 3) {
@@ -380,13 +388,21 @@ export default function Game({ lang, addOrder, settings }) {
       setRbxProfile(null);
       return;
     }
-    if (game.hasZone && !zoneId.trim() && !isRobloxGame) {
-      setPayErr(t(lang, "needZone"));
-      return;
-    }
-    if (game.servers?.length && !server && !isRobloxGame) {
-      setPayErr(t(lang, "needServer"));
-      return;
+    if (isTikTok) {
+      const v = userId.trim();
+      if (v.length < 8 || !/tiktok\.com|vt\.tiktok|vm\.tiktok/i.test(v)) {
+        setPayErr(lang === "km" ? "សូមបញ្ចូល URL link video TikTok ពេញ" : "Please enter a full TikTok video URL");
+        return;
+      }
+    } else {
+      if (game.hasZone && !zoneId.trim() && !isRobloxGame) {
+        setPayErr(t(lang, "needZone"));
+        return;
+      }
+      if (game.servers?.length && !server && !isRobloxGame) {
+        setPayErr(t(lang, "needServer"));
+        return;
+      }
     }
     const key = `${userId.trim()}|${zoneId.trim()}|${server}`;
     setChecking(true);
@@ -431,13 +447,17 @@ export default function Game({ lang, addOrder, settings }) {
           setRbxProfile(null);
           setTtkProfile(null);
           setPayErr(
-            isRobloxGame
+            isTikTok
               ? lang === "km"
-                ? "Username Roblox មិនត្រឹមត្រូវ (ប្រើ Username មិនមែន Display Name)"
-                : "Invalid Roblox username (use Username, not Display Name)"
-              : lang === "km"
-                ? "ID នេះមិនត្រឹមត្រូវ សូមពិនិត្យ User ID / Zone / Server ម្តងទៀត"
-                : "This ID is not valid. Please check your User ID / Zone / Server and try again.",
+                ? "Link TikTok មិនត្រឹមត្រូវ — ប្រើ URL video ពេញ (tiktok.com/@…/video/…)"
+                : "Invalid TikTok link — use full video URL (tiktok.com/@…/video/…)"
+              : isRobloxGame
+                ? lang === "km"
+                  ? "Username Roblox មិនត្រឹមត្រូវ (ប្រើ Username មិនមែន Display Name)"
+                  : "Invalid Roblox username (use Username, not Display Name)"
+                : lang === "km"
+                  ? "ID នេះមិនត្រឹមត្រូវ សូមពិនិត្យ User ID / Zone / Server ម្តងទៀត"
+                  : "This ID is not valid. Please check your User ID / Zone / Server and try again.",
           );
         } else {
           setNick("");
@@ -493,9 +513,11 @@ export default function Game({ lang, addOrder, settings }) {
         const v = userId.trim();
         if (isTikTok) {
           if (v.length < 8 || !/tiktok\.com|vt\.tiktok|vm\.tiktok/i.test(v)) {
-            return lang === "km" ? "សូមបញ្ចូល URL link video TikTok" : "Please enter TikTok video URL";
+            return lang === "km"
+              ? "សូមបញ្ចូល URL link video TikTok ពេញ"
+              : "Please enter a full TikTok video URL";
           }
-          // require Check before pay
+          return ""; // TikTok: no Check ID / Zone / Server
         }
         if (v.length < 3) {
           return lang === "km" ? "សូមបញ្ចូល Username" : "Please enter username";
@@ -507,6 +529,14 @@ export default function Game({ lang, addOrder, settings }) {
         if (!checkedFor || checkedFor !== key) {
           return lang === "km" ? "សូមចុច Check ID ដើម្បីពិនិត្យ profile" : "Please tap Check ID to verify profile";
         }
+      }
+      return "";
+    }
+    // auto topup games
+    if (isTikTok) {
+      const v = userId.trim();
+      if (v.length < 8 || !/tiktok\.com|vt\.tiktok|vm\.tiktok/i.test(v)) {
+        return lang === "km" ? "សូមបញ្ចូល URL link video TikTok ពេញ" : "Please enter a full TikTok video URL";
       }
       return "";
     }
