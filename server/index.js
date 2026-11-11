@@ -30,6 +30,7 @@ import {
   SHOP_HOURS,
 } from "./store.js";
 import * as khmerSystem from "./khmerSystem.js";
+import * as rielPay from "./rielPay.js";
 import * as khmerSystemPay from "./khmerSystemPay.js";
 import * as liveChat from "./liveChat.js";
 import * as khmerTopup from "./khmerTopup.js";
@@ -581,7 +582,7 @@ app.get("/api/health", (_req, res) => {
   res.json({
     ok: true,
     name: "POR POR TOPUP",
-    payment: khmerSystem.isPaymentReady(),
+    payment: khmerSystem.isPaymentReady() || rielPay.isReady(),
     topup: khmerTopup.isTopupReady() || dinoTopup.isDinoReady(),
     dinoTopup: dinoTopup.isDinoReady(),
   });
@@ -590,7 +591,8 @@ app.get("/api/health", (_req, res) => {
 app.get("/api/integrations/status", (_req, res) => {
   const s = getSettings();
   res.json({
-    paymentReady: khmerSystem.isPaymentReady(),
+    paymentReady: khmerSystem.isPaymentReady() || rielPay.isReady(),
+    rielpayReady: rielPay.isReady(),
     topupReady: khmerTopup.isTopupReady() || dinoTopup.isDinoReady(),
     khmerTopupReady: khmerTopup.isTopupReady(),
     dinoTopupReady: dinoTopup.isDinoReady(),
@@ -1254,10 +1256,28 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
     }
   }
 
-  const qr = await khmerSystem.createQr(order.total, order.id, `p${order.id}`, { useKai: kaiRoute });
+  // Payment gateway: settings.paymentGateway = "rielpay" | "khmer" (default)
+  // Kai TikTok route always uses Khmer System / Kai ABA credentials
+  const payGw = kaiRoute
+    ? "khmer"
+    : String((getSettings() || {}).paymentGateway || process.env.PAYMENT_GATEWAY || "khmer").toLowerCase();
+  let qr;
+  let usedGateway = "khmer";
+  if (payGw === "rielpay" && rielPay.isReady()) {
+    qr = await rielPay.createPayment(order.total, order.id, `${order.gameName || "Topup"} ${order.packName || ""}`.trim());
+    usedGateway = "rielpay";
+    if (!qr.success && khmerSystem.isPaymentReady()) {
+      console.warn("[checkout] RielPay failed, fallback Khmer System:", qr.error);
+      qr = await khmerSystem.createQr(order.total, order.id, `p${order.id}`, { useKai: false });
+      usedGateway = "khmer";
+    }
+  } else {
+    qr = await khmerSystem.createQr(order.total, order.id, `p${order.id}`, { useKai: kaiRoute });
+    usedGateway = kaiRoute ? "khmer_kai" : "khmer";
+  }
   if (!qr.success) {
-    console.error("[checkout] ABA PayWay QR failed:", qr.error, JSON.stringify(qr.raw || {}));
-    updateOrder(order.id, { status: "failed", note: `QR error: ${qr.error}` });
+    console.error("[checkout] QR failed:", usedGateway, qr.error, JSON.stringify(qr.raw || {}));
+    updateOrder(order.id, { status: "failed", note: `QR error (${usedGateway}): ${qr.error}` });
     return res.status(502).json({ error: "qr_failed", detail: qr.error });
   }
   // QR lifetime: default / minimum 1 hour (3600s). Provider may return shorter —
@@ -1283,7 +1303,8 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
     openAbaUrl: openAba,
     expiresAt,
     payViaKai: !!kaiRoute,
-    method: kaiRoute ? "khqr_kai" : (order.method || "khqr"),
+    paymentGateway: usedGateway.startsWith("riel") ? "rielpay" : "khmer",
+    method: usedGateway === "rielpay" ? "rielpay_khqr" : (kaiRoute ? "khqr_kai" : (order.method || "khqr")),
   });
   auditLog("checkout_create", { orderId: updated.id, total: updated.total, ip: clientIp(req) });
   try { tg.notifyOrder("new", updated).catch(() => {}); } catch {}
@@ -1321,7 +1342,10 @@ async function tryConfirmPayment(order, meta = {}) {
 
   _payConfirmLock.add(order.id);
   try {
-    const pay = await khmerSystem.checkPayment(order.transactionId, { useKai: !!order.payViaKai });
+    const pay =
+      order.paymentGateway === "rielpay"
+        ? await rielPay.checkPayment(order.transactionId)
+        : await khmerSystem.checkPayment(order.transactionId, { useKai: !!order.payViaKai });
     console.log("[pay-reconcile]", order.id, pay.status, pay.paid, pay.error || "", meta.source || "");
     if (!(assertPaymentProviderPaid(pay) && pay.paid === true && !pay.simulation && !pay.error)) {
       return order;
@@ -1408,6 +1432,69 @@ async function reconcilePendingPayments() {
     await new Promise((r) => setTimeout(r, 150));
   }
 }
+
+
+/* ---------- RielPay webhook ---------- */
+app.post("/api/webhook/rielpay", async (req, res) => {
+  try {
+    const raw = req.rawBody != null ? req.rawBody : JSON.stringify(req.body || {});
+    const sig = req.get("X-Webhook-Signature") || req.get("x-webhook-signature") || "";
+    if (rielPay.webhookSecret()) {
+      const v = rielPay.verifyWebhookSignature(raw, sig);
+      if (!v.ok) {
+        console.warn("[rielpay webhook] bad signature", v.error);
+        return res.status(400).json({ error: "invalid_signature" });
+      }
+    }
+    let body = req.body;
+    if (typeof body === "string") {
+      try { body = JSON.parse(body); } catch { body = {}; }
+    }
+    const eventType = body?.type || body?.event || "";
+    const data = body?.data || body?.payment || body;
+    const status = String(data?.status || "").toLowerCase();
+    const paid =
+      eventType === "payment.succeeded" ||
+      status === "paid" ||
+      status === "succeeded" ||
+      status === "success";
+    if (!paid) return res.json({ ok: true, ignored: true });
+    const payId = data?.id || data?.payment_id || "";
+    const orderId =
+      data?.metadata?.order_id ||
+      data?.metadata?.orderId ||
+      body?.metadata?.order_id ||
+      "";
+    let order = orderId ? getOrder(orderId) : null;
+    if (!order && payId) {
+      const all = listOrders() || [];
+      order = (Array.isArray(all) ? all : []).find(
+        (o) => o.transactionId === payId || (orderId && o.id === orderId)
+      );
+    }
+    if (!order) {
+      console.warn("[rielpay webhook] order not found", payId, orderId);
+      return res.json({ ok: true, found: false });
+    }
+    if (["paid", "processing", "delivered", "queued"].includes(order.status)) {
+      return res.json({ ok: true, already: order.status });
+    }
+    let updated = updateOrder(order.id, {
+      status: "paid",
+      paidAt: Date.now(),
+      providerPaid: true,
+      paymentGateway: "rielpay",
+      payStatusRaw: status || "paid",
+      transactionId: payId || order.transactionId,
+    });
+    updated = await fulfillTopup(updated);
+    try { tg.notifyOrder("paid", updated).catch(() => {}); } catch {}
+    return res.json({ ok: true, orderId: updated.id, status: updated.status });
+  } catch (e) {
+    console.error("[rielpay webhook]", e.message);
+    return res.status(500).json({ error: e.message });
+  }
+});
 
 app.get("/api/checkout/:id/status", limit("paystatus", { limit: 30, windowMs: 60_000 }), async (req, res) => {
   let order = getOrder(req.params.id);
@@ -1688,12 +1775,23 @@ function cleanImageUrl(v) {
   return "";
 }
 
+
+app.get("/api/admin/rielpay-test", adminAuth, async (_req, res) => {
+  try {
+    res.json(await rielPay.diagnose());
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.get("/api/admin/settings", adminAuth, (_req, res) => {
   const s = getSettings() || {};
   // never send full cookie to browser listing — mask in GET
   const out = { ...s };
   if (out.robuxCookie) out.robuxCookie = "••••••••";
   if (out.robuxTotpSecret) out.robuxTotpSecret = "••••••••";
+  if (out.rielpayApiKey) out.rielpayApiKey = "••••••••";
+  if (out.rielpayWebhookSecret) out.rielpayWebhookSecret = "••••••••";
   res.json(out);
 });
 
@@ -1722,6 +1820,7 @@ app.put("/api/admin/settings", adminAuth, (req, res) => {
     "deliveryHours", "tickerSoldBase", "tickerSoldLabel", "resellers", "resellerPrices",
     "tgBotToken", "tgBotUsername", "tgChannelId",
     "robuxAutoEnabled", "robuxCookie", "robuxGroupId", "robuxTotpSecret",
+    "paymentGateway", "rielpayApiKey", "rielpayWebhookSecret",
   ];
   const patch = {};
   for (const k of allowed) {
@@ -1772,6 +1871,20 @@ app.put("/api/admin/settings", adminAuth, (req, res) => {
   }
   if (patch.robuxAutoEnabled !== undefined) {
     patch.robuxAutoEnabled = !!patch.robuxAutoEnabled;
+  }
+  if (patch.rielpayApiKey !== undefined) {
+    const k = String(patch.rielpayApiKey || "").trim();
+    if (!k || k === "••••••••") delete patch.rielpayApiKey;
+    else patch.rielpayApiKey = k.slice(0, 200);
+  }
+  if (patch.rielpayWebhookSecret !== undefined) {
+    const k = String(patch.rielpayWebhookSecret || "").trim();
+    if (!k || k === "••••••••") delete patch.rielpayWebhookSecret;
+    else patch.rielpayWebhookSecret = k.slice(0, 200);
+  }
+  if (patch.paymentGateway !== undefined) {
+    const g = String(patch.paymentGateway || "khmer").toLowerCase();
+    patch.paymentGateway = ["khmer", "rielpay"].includes(g) ? g : "khmer";
   }
   if (patch.tgChannelId !== undefined) {
     patch.tgChannelId = String(patch.tgChannelId || "").trim().slice(0, 64);

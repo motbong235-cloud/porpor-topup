@@ -77,6 +77,13 @@ export default function SettingsAdmin() {
       if (!String(form.robuxCookie || "").trim() || form.robuxCookie === "••••••••") {
         delete payload.robuxCookie;
       }
+      if (!String(form.rielpayApiKey || "").trim() || form.rielpayApiKey === "••••••••") {
+        delete payload.rielpayApiKey;
+      }
+      if (!String(form.rielpayWebhookSecret || "").trim() || form.rielpayWebhookSecret === "••••••••") {
+        delete payload.rielpayWebhookSecret;
+      }
+      if (form.paymentGateway) payload.paymentGateway = form.paymentGateway;
       if (!String(form.robuxTotpSecret || "").trim() || form.robuxTotpSecret === "••••••••") {
         delete payload.robuxTotpSecret;
       }
@@ -107,6 +114,7 @@ export default function SettingsAdmin() {
         <a href="#set-brand" className="ad-seg-a">Logo / Banner</a>
         <a href="#set-tg" className="ad-seg-a">Telegram</a>
         <a href="#set-pay" className="ad-seg-a">Payment</a>
+        <a href="#set-rielpay" className="ad-seg-a">RielPay</a>
         <a href="#set-robux" className="ad-seg-a">Robux Auto</a>
         <a href="#set-coupon" className="ad-seg-a">Coupon</a>
         <a href="#set-backup" className="ad-seg-a">Backup</a>
@@ -293,6 +301,65 @@ export default function SettingsAdmin() {
             <textarea value={form.announcementEn || ""} onChange={(e) => set("announcementEn", e.target.value)} />
           </Field>
         </div>
+      </section>
+
+
+      <section className="ad-card" id="set-rielpay">
+        <h2>RielPay (KHQR / ABA)</h2>
+        <p className="ad-hint">
+          Gateway ពី <b>rielpays.com</b> — បង្កើត KHQR, លុយចូល ABA account អ្នក។
+          ជ្រើស <b>RielPay</b> ខាងក្រោមដើម្បីប្រើជំនួស Khmer System។ TikTok Khmer នៅប្រើ Kai ABA។
+        </p>
+        <Field label="Payment Gateway">
+          <select
+            value={form.paymentGateway || "khmer"}
+            onChange={(e) => set("paymentGateway", e.target.value)}
+          >
+            <option value="khmer">Khmer System (ABA PayWay បច្ចុប្បន្ន)</option>
+            <option value="rielpay">RielPay (rielpays.com)</option>
+          </select>
+        </Field>
+        <div className="ad-grid-2">
+          <Field label="RielPay API Key" hint="Dashboard → Stores → API keys (sk_…)">
+            <input
+              type="password"
+              value={form.rielpayApiKey === "••••••••" ? "" : (form.rielpayApiKey || "")}
+              onChange={(e) => set("rielpayApiKey", e.target.value)}
+              placeholder={form.rielpayApiKey ? "••••••••" : "sk_…"}
+              autoComplete="new-password"
+            />
+          </Field>
+          <Field label="Webhook Secret" hint="optional — verify X-Webhook-Signature">
+            <input
+              type="password"
+              value={form.rielpayWebhookSecret === "••••••••" ? "" : (form.rielpayWebhookSecret || "")}
+              onChange={(e) => set("rielpayWebhookSecret", e.target.value)}
+              placeholder={form.rielpayWebhookSecret ? "••••••••" : "whsec_…"}
+              autoComplete="new-password"
+            />
+          </Field>
+        </div>
+        <p className="ad-hint">
+          Webhook URL: <code>https://YOUR_DOMAIN/api/webhook/rielpay</code>
+        </p>
+        <button
+          type="button"
+          className="ad-btn soft"
+          onClick={async () => {
+            setTesting(true);
+            setTestOut("");
+            try {
+              setTestOut(JSON.stringify(await api("/api/admin/rielpay-test"), null, 2));
+            } catch (e) {
+              setTestOut("test failed");
+            } finally {
+              setTesting(false);
+            }
+          }}
+          disabled={testing}
+        >
+          {testing ? "កំពុងសាក…" : "សាកល្បង RielPay ($0.05)"}
+        </button>
       </section>
 
       <section className="ad-card" id="set-pay">
