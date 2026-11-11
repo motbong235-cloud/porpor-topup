@@ -449,8 +449,12 @@ export default function Game({ lang, addOrder, settings }) {
           setPayErr(
             isTikTok
               ? lang === "km"
-                ? "Link TikTok មិនត្រឹមត្រូវ — ប្រើ URL video ពេញ (tiktok.com/@…/video/…)"
-                : "Invalid TikTok link — use full video URL (tiktok.com/@…/video/…)"
+                ? (String(data.message || "").includes("username")
+                    ? "មិនអាន username ពី link បាន — សូមប្រើ link មាន @username (ឧ. tiktok.com/@user/video/…)"
+                    : "Link TikTok មិនត្រឹមត្រូវ — ប្រើ URL video ពេញ (tiktok.com/@user/video/…)")
+                : (String(data.message || "").includes("username")
+                    ? "Could not read username — use a link with @username (e.g. tiktok.com/@user/video/…)"
+                    : "Invalid TikTok link — use full video URL (tiktok.com/@user/video/…)")
               : isRobloxGame
                 ? lang === "km"
                   ? "Username Roblox មិនត្រឹមត្រូវ (ប្រើ Username មិនមែន Display Name)"
