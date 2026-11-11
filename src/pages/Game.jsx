@@ -1251,6 +1251,7 @@ export default function Game({ lang, addOrder, settings }) {
           </section>
         </aside>
       </div>
+    </div>
 
         <KhqrModal
           open={qrOpen}
