@@ -1286,7 +1286,7 @@ export default function Game({ lang, addOrder, settings }) {
           amount={orderTotal || total}
           currency="USD"
           merchant={(settings && (settings.siteName || settings.brandName)) || "POR POR TOPUP"}
-          title="ABA PayWay"
+          title="ABA KHQR"
           orderId={checkoutId || ""}
           qrImage={liveQr || ""}
           qrString={liveQrString || ""}

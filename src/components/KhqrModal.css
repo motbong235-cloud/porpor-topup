@@ -1,13 +1,12 @@
-/* Official KHQR payment sheet */
+/* Official ABA KHQR sheet — match khmer-system / ABA PayWay */
 .kq-ov {
   position: fixed;
   inset: 0;
-  background: rgba(5, 8, 20, 0.72);
+  background: rgba(8, 12, 28, 0.72);
   display: flex;
   align-items: flex-end;
   justify-content: center;
   z-index: 10050;
-  padding: 0;
   animation: kq-fade 0.18s ease;
 }
 @keyframes kq-fade {
@@ -17,90 +16,100 @@
 .kq {
   width: 100%;
   max-width: 400px;
-  max-height: min(96vh, 720px);
+  max-height: min(96vh, 740px);
   overflow: auto;
-  background: #fff;
-  border-radius: 20px 20px 0 0;
+  background: #ffffff;
+  border-radius: 18px 18px 0 0;
   position: relative;
   color: #0b1b3a;
   animation: kq-up 0.22s ease;
   -webkit-overflow-scrolling: touch;
-  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.28);
 }
 @keyframes kq-up {
-  from { transform: translateY(48px); }
+  from { transform: translateY(40px); }
   to { transform: none; }
 }
 @media (min-width: 520px) {
-  .kq-ov { align-items: center; padding: 20px; }
-  .kq { border-radius: 20px; }
+  .kq-ov { align-items: center; padding: 16px; }
+  .kq { border-radius: 18px; }
 }
 
+/* Red header + KHQR wordmark */
 .kq-head {
   background: #e1232e;
-  height: 78px;
-  display: grid;
-  place-items: center;
+  height: 88px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   position: relative;
+  gap: 6px;
+}
+.kq-head-bar {
+  width: 36px;
+  height: 3px;
+  background: #fff;
+  border-radius: 2px;
 }
 .kq-logo {
   color: #fff;
   font-weight: 800;
-  font-size: 28px;
-  letter-spacing: 3px;
-  border-top: 3px solid #fff;
-  padding-top: 3px;
+  font-size: 32px;
+  letter-spacing: 1px;
   line-height: 1;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
+/* white corner fold like official */
 .kq::after {
   content: "";
   position: absolute;
   right: 0;
-  top: 78px;
-  border-top: 28px solid #e1232e;
-  border-left: 28px solid transparent;
+  top: 88px;
+  border-top: 32px solid #e1232e;
+  border-left: 32px solid transparent;
   pointer-events: none;
   z-index: 1;
 }
 .kq-x {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 36px;
-  height: 36px;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
   border: 0;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.18);
   color: #fff;
-  font-size: 18px;
-  line-height: 1;
+  font-size: 16px;
   cursor: pointer;
-  z-index: 2;
+  z-index: 3;
+  line-height: 1;
 }
-.kq-x:active { background: rgba(255, 255, 255, 0.35); }
 
 .kq-body {
-  padding: 8px 22px 24px;
+  padding: 6px 24px 28px;
   text-align: center;
 }
 .kq-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 0 6px;
+  padding: 18px 0 4px;
 }
 .kq-row h2 {
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 500;
   margin: 0;
   color: #0b1b3a;
+  letter-spacing: -0.2px;
 }
 .kq-time {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 16px;
-  font-weight: 700;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 600;
   color: #0b1b3a;
   font-variant-numeric: tabular-nums;
 }
@@ -113,7 +122,7 @@
   fill: none;
   stroke-width: 3.5;
 }
-.kq-ring .bg { stroke: #dbe3ee; }
+.kq-ring .bg { stroke: #d5dde8; }
 .kq-ring .fg {
   stroke: #14b8c8;
   stroke-linecap: round;
@@ -121,43 +130,37 @@
 }
 
 .kq-m {
-  color: #6b7a99;
-  font-size: 13px;
-  letter-spacing: 0.6px;
-  margin-top: 4px;
+  color: #8b97ad;
+  font-size: 14px;
+  letter-spacing: 0.8px;
+  margin-top: 10px;
   text-transform: uppercase;
-  font-weight: 600;
+  font-weight: 500;
 }
 .kq-amt {
-  font-size: 36px;
+  font-size: 40px;
   font-weight: 800;
-  margin: 2px 0 12px;
-  line-height: 1.15;
+  margin: 2px 0 16px;
+  line-height: 1.1;
   color: #0b1b3a;
 }
 .kq-amt .c {
-  font-size: 15px;
-  color: #6b7a99;
+  font-size: 16px;
+  color: #8b97ad;
   font-weight: 600;
-  margin-left: 4px;
+  margin-left: 6px;
 }
 .kq-hr {
   border: 0;
   border-top: 2px dashed #d5dbe6;
-  margin: 0 0 16px;
+  margin: 0 0 20px;
 }
 
-/* QR frame */
 .kq-qr-wrap {
-  position: relative;
-  width: min(72vw, 260px);
-  margin: 0 auto 12px;
+  width: min(70vw, 248px);
+  margin: 0 auto 4px;
   aspect-ratio: 1;
   background: #fff;
-  border: 1px solid #e8edf5;
-  border-radius: 16px;
-  box-shadow: 0 8px 24px -12px rgba(8, 32, 68, 0.35);
-  overflow: hidden;
   display: grid;
   place-items: center;
 }
@@ -172,18 +175,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 24px;
-  color: #6b7a99;
+  gap: 12px;
+  color: #8b97ad;
   font-size: 14px;
+  padding: 40px 0;
 }
 .kq-wait-spin {
-  width: 36px;
-  height: 36px;
-  border: 3px solid #e5eaf3;
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e8edf5;
   border-top-color: #e1232e;
   border-radius: 50%;
-  animation: kq-spin 0.7s linear infinite;
+  animation: kq-spin 0.75s linear infinite;
 }
 @keyframes kq-spin {
   to { transform: rotate(360deg); }
@@ -191,70 +194,64 @@
 
 .kq-scan {
   font-weight: 700;
-  font-size: 16px;
-  margin-top: 4px;
+  font-size: 18px;
+  margin-top: 14px;
   color: #0b1b3a;
 }
 .kq-or {
-  color: #6b7a99;
-  margin: 6px 0;
-  font-size: 13px;
+  color: #8b97ad;
+  margin: 8px 0;
+  font-size: 15px;
 }
 .kq-dl {
   background: none;
   border: 0;
   color: #14b8c8;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
   cursor: pointer;
   display: inline-flex;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
-  padding: 6px 10px;
+  padding: 4px 8px;
 }
+.kq-dl svg { flex-shrink: 0; }
 .kq-note {
-  color: #6b7a99;
-  font-size: 13px;
-  margin-top: 8px;
+  color: #8b97ad;
+  font-size: 14px;
+  margin-top: 10px;
   line-height: 1.45;
+  max-width: 280px;
+  margin-left: auto;
+  margin-right: auto;
 }
 .kq-order {
   font-size: 12px;
-  color: #94a3b8;
-  margin-top: 6px;
+  color: #a0aec0;
+  margin-top: 10px;
   word-break: break-all;
 }
 .kq-cancel {
-  margin-top: 14px;
+  margin-top: 18px;
   width: 100%;
   padding: 12px;
-  border: 1px solid #e2e8f0;
+  border: 0;
   border-radius: 12px;
-  background: #f8fafc;
-  color: #475569;
+  background: transparent;
+  color: #64748b;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
 }
-.kq-cancel:active { background: #eef2f7; }
 
 .kq-state {
   display: none;
-  padding: 28px 16px;
+  padding: 36px 16px;
   text-align: center;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 17px;
 }
 .kq.paid .kq-body { display: none; }
 .kq.paid .kq-state.kq-ok { display: block; color: #059669; }
 .kq.exp .kq-body { display: none; }
 .kq.exp .kq-state.kq-bad { display: block; color: #dc2626; }
-
-.kq-scanned {
-  padding: 20px 8px;
-}
-.kq-scan-title {
-  font-weight: 700;
-  font-size: 16px;
-  margin: 10px 0 4px;
-}
