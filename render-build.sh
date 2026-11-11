@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 set -eu
 echo "==> Node $(node -v) npm $(npm -v)"
-echo "==> files:"; ls -la package.json vite.config.js index.html
 
-echo "==> npm install (no optional)"
-npm install --no-optional --no-audit --no-fund --legacy-peer-deps
+echo "==> npm install"
+npm install --no-audit --no-fund --legacy-peer-deps
 
-echo "==> which vite"
-ls -la node_modules/vite/package.json
-ls -la node_modules/.bin/vite || true
+# Fix Render + npm optional native bug (rollup linux binary)
+echo "==> ensure rollup linux binary"
+npm install @rollup/rollup-linux-x64-gnu@4.28.1 --no-audit --no-fund --legacy-peer-deps || true
+
+echo "==> vite version"
+node -p "require('vite/package.json').version"
 
 echo "==> build"
 node node_modules/vite/bin/vite.js build
