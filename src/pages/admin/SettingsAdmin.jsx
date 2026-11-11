@@ -305,8 +305,8 @@ export default function SettingsAdmin() {
       <section className="ad-card" id="set-pay">
         <h2>ការទូទាត់ — ABA PayWay</h2>
         <p className="ad-hint">
-          TikTok Khmer និង QR បង់ប្រាក់ប្រើ <b>ABA PayWay</b>។
-          បំពេញ API Key ខាងក្រោម (ទុកទទេពេល Save = រក្សាចាស់)។
+          <b>TikTok Khmer</b> និង QR បង់ប្រាក់ទាំងអស់ប្រើ key នេះ (<b>ABA PayWay</b>)។
+          បំពេញ API Key ខាងក្រោម — ក្រោយ Save ប្រើភ្លាម (ទុកទទេ = រក្សាចាស់)។
         </p>
         <Field label="ABA PayWay API Key">
           <input

@@ -31,6 +31,7 @@ import {
 } from "./store.js";
 import * as khmerSystem from "./khmerSystem.js";
 import * as rielPay from "./rielPay.js";
+try { rielPay.bindSettings(() => getSettings()); } catch (_) {}
 import * as khmerSystemPay from "./khmerSystemPay.js";
 import * as liveChat from "./liveChat.js";
 import * as khmerTopup from "./khmerTopup.js";

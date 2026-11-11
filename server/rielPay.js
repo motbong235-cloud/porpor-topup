@@ -35,12 +35,17 @@ function settingsBag() {
 }
 
 export function apiKey() {
-  // Priority: Render env → Admin Settings (ABA PayWay)
-  return clean(process.env.RIELPAY_API_KEY || settingsBag().rielpayApiKey || "");
+  // Priority: Admin Settings (ABA PayWay) → Render env
+  // TikTok Khmer / storefront use the key filled in Admin Settings
+  const fromAdmin = clean(settingsBag().rielpayApiKey || "");
+  if (fromAdmin.length >= 8) return fromAdmin;
+  return clean(process.env.RIELPAY_API_KEY || "");
 }
 
 export function webhookSecret() {
-  return clean(process.env.RIELPAY_WEBHOOK_SECRET || settingsBag().rielpayWebhookSecret || "");
+  const fromAdmin = clean(settingsBag().rielpayWebhookSecret || "");
+  if (fromAdmin) return fromAdmin;
+  return clean(process.env.RIELPAY_WEBHOOK_SECRET || "");
 }
 
 export function isReady() {
