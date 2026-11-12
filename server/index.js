@@ -1092,7 +1092,7 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
   if (settings.maintenance) {
     return res.status(503).json({ error: "maintenance" });
   }
-  if (!rielPay.isReady() && !khmerSystemPay.isPaymentReady()) {
+  if (!rielPay.isReady("settings") && !rielPay.isReady("env") && !khmerSystemPay.isPaymentReady()) {
     return res.status(503).json({
       error: "not_configured",
       detail: "No payment gateway ready — set ABA_API_KEY+ABA_MERCHANT_ID (Khmer System) or RIELPAY_API_KEY",
@@ -1261,31 +1261,42 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
     }
   }
 
-  // Payment gateway (shown to users as "ABA PayWay"):
-  // - TikTok Khmer → RielPay (ABA PayWay) first
-  // - Fallback: Khmer System if RielPay not ready / fails (non-TikTok)
+  // Payment keys:
+  // - TikTok Khmer (kaiRoute) → Admin Settings rielpayApiKey
+  // - Other services → Render env RIELPAY_API_KEY
   let qr;
   let usedGateway;
-  if (rielPay.isReady()) {
+  const keySource = kaiRoute ? "settings" : "env";
+  if (rielPay.isReady(keySource)) {
     qr = await rielPay.createPayment(
       order.total,
       order.id,
       `${order.gameName || "Topup"} ${order.packName || ""}`.trim() || `Order ${order.id}`,
+      { keySource },
     );
     usedGateway = "rielpay";
     if (!qr.success) {
-      console.error("[checkout] ABA PayWay (RielPay) QR failed:", qr.error, JSON.stringify(qr.raw || {}));
+      console.error("[checkout] ABA PayWay QR failed:", keySource, qr.error, JSON.stringify(qr.raw || {}));
       if (kaiRoute) {
-        // TikTok stays on RielPay — no silent switch
-        updateOrder(order.id, { status: "failed", note: `QR error (aba_payway): ${qr.error}` });
+        updateOrder(order.id, { status: "failed", note: `QR error (settings key): ${qr.error}` });
         return res.status(502).json({
           error: "qr_failed",
           detail: qr.error,
           code: qr.code || "",
           gateway: "aba_payway",
+          keySource,
         });
       }
     }
+  } else if (kaiRoute) {
+    console.error("[checkout] TikTok Khmer: no Admin Settings ABA PayWay key");
+    updateOrder(order.id, { status: "failed", note: "QR error: missing settings API key" });
+    return res.status(502).json({
+      error: "qr_failed",
+      detail: "TikTok Khmer requires ABA PayWay API Key in Admin Settings",
+      gateway: "aba_payway",
+      keySource: "settings",
+    });
   }
   if ((!qr || !qr.success) && khmerSystemPay.isPaymentReady() && !kaiRoute) {
     const uname = String(order.userId || order.id).replace(/^@/, "").slice(0, 24);
@@ -1321,6 +1332,7 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
     transactionId: qr.transaction_id,
     qrImage: qr.qr_image,
     qrString: qr.qr_string,
+    paymentKeySource: qr.keySource || keySource,
     payUrl: qr.pay_url || "",
     deeplink: qr.deeplink || qr.pay_url || "",
     openAbaUrl: openAba,
@@ -1375,7 +1387,7 @@ async function tryConfirmPayment(order, meta = {}) {
   try {
     const pay = useAba
       ? await khmerSystemPay.checkPayment(order.transactionId)
-      : await rielPay.checkPayment(order.transactionId);
+      : await rielPay.checkPayment(order.transactionId, { keySource: order.paymentKeySource || "auto" });
     console.log("[pay-reconcile]", order.id, useAba ? "aba" : "rielpay", pay.status, pay.paid, pay.error || "", meta.source || "");
     if (useAba) {
       if (!(pay && pay.paid === true && !pay.simulation && !pay.error)) return order;

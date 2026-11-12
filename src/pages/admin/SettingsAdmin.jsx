@@ -305,8 +305,9 @@ export default function SettingsAdmin() {
       <section className="ad-card" id="set-pay">
         <h2>ការទូទាត់ — ABA PayWay</h2>
         <p className="ad-hint">
-          <b>TikTok Khmer</b> និង QR បង់ប្រាក់ទាំងអស់ប្រើ key នេះ (<b>ABA PayWay</b>)។
-          បំពេញ API Key ខាងក្រោម — ក្រោយ Save ប្រើភ្លាម (ទុកទទេ = រក្សាចាស់)។
+          Key នេះសម្រាប់ <b>TikTok Khmer</b> តែប៉ុណ្ណោះ។
+          Service ផ្សេងប្រើ <code>RIELPAY_API_KEY</code> លើ Render។
+          បំពេញ API Key ខាងក្រោម — Save រួចប្រើភ្លាម (ទុកទទេ = រក្សាចាស់)។
         </p>
         <Field label="ABA PayWay API Key">
           <input

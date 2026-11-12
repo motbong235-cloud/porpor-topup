@@ -34,12 +34,19 @@ function settingsBag() {
   }
 }
 
-export function apiKey() {
-  // Priority: Admin Settings (ABA PayWay) → Render env
-  // TikTok Khmer / storefront use the key filled in Admin Settings
+/**
+ * @param {"settings"|"env"|"auto"} source
+ * - settings: Admin Settings only (TikTok Khmer)
+ * - env: Render RIELPAY_API_KEY only (other services)
+ * - auto: settings if set, else env
+ */
+export function apiKey(source = "auto") {
   const fromAdmin = clean(settingsBag().rielpayApiKey || "");
+  const fromEnv = clean(process.env.RIELPAY_API_KEY || "");
+  if (source === "settings") return fromAdmin;
+  if (source === "env") return fromEnv;
   if (fromAdmin.length >= 8) return fromAdmin;
-  return clean(process.env.RIELPAY_API_KEY || "");
+  return fromEnv;
 }
 
 export function webhookSecret() {
@@ -48,8 +55,8 @@ export function webhookSecret() {
   return clean(process.env.RIELPAY_WEBHOOK_SECRET || "");
 }
 
-export function isReady() {
-  return apiKey().length >= 8;
+export function isReady(source = "auto") {
+  return apiKey(source).length >= 8;
 }
 
 async function qrImageFromString(qrString) {
@@ -78,10 +85,17 @@ async function qrImageFromString(qrString) {
  * Create KHQR payment.
  * @returns {{ success, transaction_id, qr_image, qr_string, pay_url, deeplink, open_aba_url, expires_at, raw, error }}
  */
-export async function createPayment(amount, orderId, description = "") {
-  const key = apiKey();
+export async function createPayment(amount, orderId, description = "", opts = {}) {
+  const keySource = opts.keySource === "settings" || opts.keySource === "env" ? opts.keySource : "auto";
+  const key = apiKey(keySource);
   if (!key) {
-    return { success: false, error: "ABA PayWay API key missing — set in Admin Settings or RIELPAY_API_KEY" };
+    const hint =
+      keySource === "settings"
+        ? "set ABA PayWay API Key in Admin Settings (TikTok Khmer)"
+        : keySource === "env"
+          ? "set RIELPAY_API_KEY on Render (other services)"
+          : "set Admin Settings key or RIELPAY_API_KEY on Render";
+    return { success: false, error: `ABA PayWay API key missing — ${hint}`, keySource };
   }
   const amt = Math.round(Number(amount) * 100) / 100;
   if (!(amt > 0)) return { success: false, error: "invalid_amount" };
@@ -175,6 +189,7 @@ export async function createPayment(amount, orderId, description = "") {
         open_aba_url: String(deeplink || ""),
         expires_at: data.expires_at || data.expire_at || null,
         gateway: "rielpay",
+        keySource,
         raw: data,
       };
     } catch (e) {
@@ -185,51 +200,70 @@ export async function createPayment(amount, orderId, description = "") {
       }
     }
   }
-  return { success: false, error: lastErr };
+  return { success: false, error: lastErr, keySource };
 }
 
 /**
  * @returns {{ paid: boolean, status: string, amount?: number, raw?: object }}
  */
-export async function checkPayment(paymentId) {
-  const key = apiKey();
-  if (!key || !paymentId) {
+export async function checkPayment(paymentId, opts = {}) {
+  const keySource = opts.keySource === "settings" || opts.keySource === "env" ? opts.keySource : "auto";
+  const keysToTry = [];
+  if (keySource === "auto") {
+    for (const s of ["settings", "env"]) {
+      const k = apiKey(s);
+      if (k && !keysToTry.includes(k)) keysToTry.push(k);
+    }
+  } else {
+    const k = apiKey(keySource);
+    if (k) keysToTry.push(k);
+  }
+  if (!keysToTry.length || !paymentId) {
     return { paid: false, status: "no_key" };
   }
-  try {
-    const r = await fetch(`${baseUrl()}/v1/payments/${encodeURIComponent(paymentId)}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        Accept: "application/json",
-        "User-Agent": "PorporTopup-RielPay/1.0",
-      },
-      signal: AbortSignal.timeout(20000),
-    });
-    const text = await r.text();
-    let data;
+  let last = { paid: false, status: "unknown" };
+  for (const key of keysToTry) {
     try {
-      data = JSON.parse(text);
-    } catch {
-      return { paid: false, status: `http_${r.status}`, raw: { text: text.slice(0, 200) } };
+      const r = await fetch(`${baseUrl()}/v1/payments/${encodeURIComponent(paymentId)}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${key}`,
+          Accept: "application/json",
+          "User-Agent": "PorporTopup-RielPay/1.0",
+        },
+        signal: AbortSignal.timeout(20000),
+      });
+      const text = await r.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        last = { paid: false, status: `http_${r.status}`, raw: { text: text.slice(0, 200) } };
+        continue;
+      }
+      if (data && data.data && typeof data.data === "object") data = data.data;
+      const status = String(data.status || data.payment_status || "").toLowerCase();
+      const paid =
+        status === "paid" ||
+        status === "succeeded" ||
+        status === "success" ||
+        status === "completed" ||
+        !!data.paid;
+      if (r.status === 401 || r.status === 403) {
+        last = { paid: false, status: `http_${r.status}` };
+        continue;
+      }
+      return {
+        paid,
+        status: status || (paid ? "paid" : "pending"),
+        amount: data.amount != null ? Number(data.amount) : undefined,
+        raw: data,
+      };
+    } catch (e) {
+      last = { paid: false, status: "error", raw: { error: e.message } };
     }
-    if (data && data.data && typeof data.data === "object") data = data.data;
-    const status = String(data.status || data.payment_status || "").toLowerCase();
-    const paid =
-      status === "paid" ||
-      status === "succeeded" ||
-      status === "success" ||
-      status === "completed" ||
-      !!data.paid;
-    return {
-      paid,
-      status: status || (paid ? "paid" : "pending"),
-      amount: data.amount != null ? Number(data.amount) : undefined,
-      raw: data,
-    };
-  } catch (e) {
-    return { paid: false, status: "error", raw: { error: e.message } };
   }
+  return last;
 }
 
 /** Verify webhook signature (HMAC-SHA256 of raw body). Supports hex or v1= style. */
