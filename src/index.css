@@ -8458,3 +8458,29 @@ html.dark .dino-input-wrap {
     transform: none !important;
   }
 }
+
+
+/* Icon system — match Porpor navy / electric blue */
+.icon-svg {
+  display: inline-block;
+  vertical-align: -0.2em;
+  flex-shrink: 0;
+  color: currentColor;
+}
+.sec-title .icon-svg,
+.section-head .icon-svg {
+  color: #1d6adf;
+}
+.section-more .icon-svg,
+.si-chip-go .icon-svg,
+.si-group-link .icon-svg {
+  color: inherit;
+}
+.banner-nav .icon-svg {
+  color: #e8f1ff;
+}
+.header .icon-svg,
+.nav-item .icon-svg {
+  color: currentColor;
+  opacity: 0.92;
+}
