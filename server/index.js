@@ -2419,6 +2419,7 @@ if (fs.existsSync(DIST)) {
   );
   app.get("*", (req, res, next) => {
     if (req.path.startsWith("/api")) return next();
+    if (req.path.startsWith("/assets/") || /\.[a-z0-9]{2,5}$/i.test(req.path)) return res.status(404).end();
     const htmlPath = path.join(DIST, "index.html");
     try {
       let html = fs.readFileSync(htmlPath, "utf8");
