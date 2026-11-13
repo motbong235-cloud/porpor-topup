@@ -280,13 +280,50 @@ export default function Home({ lang, settings }) {
       </section>
 <OrderTicker data={ticker} lang={lang} />
 
+      {/* Special Items ABOVE events — clean text cards */}
+      {Array.isArray(settings?.specialItems) && settings.specialItems.length > 0 && (
+        <section className="section si-section">
+          <div className="section-head si-section-head">
+            <h2 className="sec-title">
+              <Icon name="package" size={18} />
+              <span>{lang === "km" ? "កញ្ចប់ពិសេស" : "Special Items"}</span>
+            </h2>
+            <Link to="/special" className="section-more">
+              <span>{lang === "km" ? "មើលទាំងអស់" : "See all"}</span>
+              <Icon name="chevR" size={16} />
+            </Link>
+          </div>
+          <div className="si-strip">
+            {settings.specialItems.map((it) => {
+              const title = lang === "km" && it.titleKm ? it.titleKm : it.title || it.titleKm;
+              const href = it.gameId
+                ? `/game/${encodeURIComponent(it.gameId)}${it.packId ? `?pack=${encodeURIComponent(it.packId)}` : ""}`
+                : "#games";
+              return (
+                <Link key={it.id || title} className="si-chip" to={href}>
+                  <span className="si-chip-badge">{it.badge || "SPECIAL"}</span>
+                  <strong className="si-chip-title">{title}</strong>
+                  {it.subtitle ? <span className="si-chip-sub">{it.subtitle}</span> : null}
+                  <span className="si-chip-row">
+                    <span className="si-chip-price">{money(Number(it.price) || 0)}</span>
+                    <span className="si-chip-go" aria-hidden>
+                      <Icon name="chevR" size={14} />
+                    </span>
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {spotlight.length > 0 && (
         <section className="section">
-          <div className="section-head">
-            <span className="star">
-              <Icon name="star" size={16} />
-            </span>
-            <h2>{t(lang, "special")}</h2>
+          <div className="section-head si-section-head">
+            <h2 className="sec-title">
+              <Icon name="star" size={18} />
+              <span>{t(lang, "special")}</span>
+            </h2>
           </div>
           <div className="events events-special events-row-3">
             {spotlight.filter((g) => g.open !== false).map((g) => {
@@ -318,58 +355,10 @@ export default function Home({ lang, settings }) {
         </section>
       )}
 
-
-      {/* Special Items — admin-curated packs (design: navy strip, not Nico clone) */}
-      {Array.isArray(settings?.specialItems) && settings.specialItems.length > 0 && (
-        <section className="section si-section">
-          <div className="section-head si-section-head">
-            <span className="star">
-              <Icon name="star" size={16} />
-            </span>
-            <h2 className="sec-title">
-              {lang === "km" ? "កញ្ចប់ពិសេស" : "Special Items"}
-            </h2>
-            <Link to="/special" className="section-more" onClick={(e) => e.stopPropagation()}>
-              {lang === "km" ? "មើលទាំងអស់" : "See all"}
-              <span aria-hidden> →</span>
-            </Link>
-          </div>
-          <p className="section-sub">
-            {lang === "km"
-              ? "កញ្ចប់ដែលហាងជ្រើស — ចុចដើម្បីទិញភ្លាម"
-              : "Hand-picked packs — tap to buy"}
-          </p>
-          <div className="si-strip">
-            {settings.specialItems.map((it) => {
-              const title = lang === "km" && it.titleKm ? it.titleKm : it.title || it.titleKm;
-              const href = it.gameId
-                ? `/game/${encodeURIComponent(it.gameId)}${it.packId ? `?pack=${encodeURIComponent(it.packId)}` : ""}`
-                : "#games";
-              return (
-                <Link key={it.id || title} className="si-card si-card-text" to={href}>
-                  <div className="si-card-inner">
-                    <span className="si-badge">{it.badge || "SPECIAL"}</span>
-                    <div className="si-meta">
-                      <strong className="si-title">{title}</strong>
-                      {it.subtitle ? <span className="si-sub">{it.subtitle}</span> : null}
-                      <span className="si-price">{money(Number(it.price) || 0)}</span>
-                    </div>
-                    <span className="si-cta">{lang === "km" ? "ទិញ" : "Buy"}</span>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
       {famous.length > 0 && (
       <section className="section">
         <div className="section-head">
-          <span className="star">
-            <Icon name="star" size={16} />
-          </span>
-          <h2 className="sec-title"><Icon name="star" size={18} /> {t(lang, "famous")}</h2>
+          <h2 className="sec-title"><Icon name="star" size={18} /> <span>{t(lang, "famous")}</span></h2>
         </div>
         <p className="section-sub">{t(lang, "famousSub")}</p>
         <div className="game-grid game-grid-3">
@@ -383,10 +372,7 @@ export default function Home({ lang, settings }) {
       <section className="section" id="games">
         <div className="toolbar">
           <div className="section-head" style={{ margin: 0 }}>
-            <span className="star">
-              <Icon name="star" size={16} />
-            </span>
-            <h2 className="sec-title"><Icon name="game" size={18} /> {t(lang, "all")}</h2>
+            <h2 className="sec-title"><Icon name="game" size={18} /> <span>{t(lang, "all")}</span></h2>
           </div>
           <input
             className="search-input"

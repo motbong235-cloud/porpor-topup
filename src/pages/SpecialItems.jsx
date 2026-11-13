@@ -70,8 +70,9 @@ export default function SpecialItems({ lang, settings }) {
               : "Pick a service to see curated packs for that game"}
           </p>
         </div>
-        <Link className="btn btn-ghost" to="/">
-          {lang === "km" ? "← ទំព័រដើម" : "← Home"}
+        <Link className="btn btn-ghost si-back" to="/">
+          <Icon name="chevL" size={16} />
+          <span>{lang === "km" ? "ទំព័រដើម" : "Home"}</span>
         </Link>
       </div>
 
@@ -134,7 +135,8 @@ export default function SpecialItems({ lang, settings }) {
                     </div>
                     {g ? (
                       <Link className="si-group-link" to={`/game/${encodeURIComponent(g.id)}`}>
-                        {lang === "km" ? "មើល service →" : "Open service →"}
+                        <span>{lang === "km" ? "មើល service" : "Open service"}</span>
+                        <Icon name="chevR" size={14} />
                       </Link>
                     ) : null}
                   </div>
@@ -148,16 +150,16 @@ export default function SpecialItems({ lang, settings }) {
                           }`
                         : "#";
                       return (
-                        <Link key={it.id || title + it.price} className="si-card si-card-page si-card-text" to={href}>
-                          <div className="si-card-inner">
-                            <span className="si-badge">{it.badge || "SPECIAL"}</span>
-                            <div className="si-meta">
-                              <strong className="si-title">{title}</strong>
-                              {it.subtitle ? <span className="si-sub">{it.subtitle}</span> : null}
-                              <span className="si-price">{money(Number(it.price) || 0)}</span>
-                            </div>
-                            <span className="si-cta">{lang === "km" ? "ទិញឥឡូវ" : "Buy now"}</span>
-                          </div>
+                        <Link key={it.id || title + it.price} className="si-chip si-chip-page" to={href}>
+                          <span className="si-chip-badge">{it.badge || "SPECIAL"}</span>
+                          <strong className="si-chip-title">{title}</strong>
+                          {it.subtitle ? <span className="si-chip-sub">{it.subtitle}</span> : null}
+                          <span className="si-chip-row">
+                            <span className="si-chip-price">{money(Number(it.price) || 0)}</span>
+                            <span className="si-chip-go" aria-hidden>
+                              <Icon name="chevR" size={14} />
+                            </span>
+                          </span>
                         </Link>
                       );
                     })}
