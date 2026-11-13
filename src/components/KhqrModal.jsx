@@ -1,3 +1,4 @@
+import { Icon } from "./Icons";
 import { useEffect, useRef, useState, useCallback } from "react";
 import "./KhqrModal.css";
 
@@ -250,7 +251,7 @@ export default function KhqrModal({
           ) : null}
         </div>
 
-        <div className="kq-state kq-ok">✓ {lang === "km" ? "ទូទាត់ជោគជ័យ" : "Payment successful"}</div>
+        <div className="kq-state kq-ok"><Icon name="check" size={18} /> {lang === "km" ? "ទូទាត់ជោគជ័យ" : "Payment successful"}</div>
         <div className="kq-state kq-bad">
           {lang === "km" ? "QR ផុតកំណត់ សូមបង្កើតថ្មី" : "QR expired — please create a new one"}
         </div>

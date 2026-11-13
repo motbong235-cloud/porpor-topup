@@ -1193,9 +1193,15 @@ export default function Game({ lang, addOrder, settings }) {
                           </span>
                           {p.badge ? <span className="dino-pack-badge">{p.badge}</span> : null}
                           <span className="dino-pack-add" aria-hidden>
-                            {packId === p.id
-                              ? (lang === "km" ? "✓ បានជ្រើស" : "✓ Selected")
-                              : (lang === "km" ? "+ ជ្រើស" : "+ Add")}
+                            {packId === p.id ? (
+                              <>
+                                <Icon name="check" size={14} /> {lang === "km" ? "បានជ្រើស" : "Selected"}
+                              </>
+                            ) : (
+                              <>
+                                <Icon name="plus" size={14} /> {lang === "km" ? "ជ្រើស" : "Add"}
+                              </>
+                            )}
                           </span>
                           {packId === p.id ? <span className="pack-tick" aria-hidden><Icon name="check" size={12} /></span> : null}
                         </button>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useCatalog } from "../lib/catalog";
 import { money } from "../lib/store";
@@ -293,15 +293,22 @@ export default function Home({ lang, settings }) {
               <Icon name="chevR" size={16} />
             </Link>
           </div>
-          <div className="si-strip">
-            {settings.specialItems.map((it) => {
+          <div className="si-strip" ref={siStripRef} onMouseEnter={() => { siPause.current = true; }} onMouseLeave={() => { siPause.current = false; }} onTouchStart={() => { siPause.current = true; }} onTouchEnd={() => { siPause.current = false; }}>
+            {/* duplicate list for seamless slow loop */}
+            {[0, 1].map((dup) =>
+              settings.specialItems.map((it, idx) => {
               const title = lang === "km" && it.titleKm ? it.titleKm : it.title || it.titleKm;
               const href = it.gameId
                 ? `/game/${encodeURIComponent(it.gameId)}${it.packId ? `?pack=${encodeURIComponent(it.packId)}` : ""}`
                 : "#games";
               return (
-                <Link key={it.id || title} className="si-chip" to={href}>
+                <Link key={`${dup}-${it.id || title}-${idx}`} className={"si-chip" + (it.image ? " has-img" : "")} to={href}>
                   <span className="si-chip-badge">{it.badge || "SPECIAL"}</span>
+                  {it.image ? (
+                    <span className="si-chip-img">
+                      <img src={it.image} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                    </span>
+                  ) : null}
                   <strong className="si-chip-title">{title}</strong>
                   {it.subtitle ? <span className="si-chip-sub">{it.subtitle}</span> : null}
                   <span className="si-chip-row">
@@ -312,7 +319,7 @@ export default function Home({ lang, settings }) {
                   </span>
                 </Link>
               );
-            })}
+            }))}
           </div>
         </section>
       )}

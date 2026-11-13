@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { PageHead, api, toast } from "./ui";
+import { AIcon, PageHead, api, toast } from "./ui";
 import { useCatalog } from "../../lib/catalog";
 
 /**
@@ -101,7 +101,19 @@ export default function SpecialItemsAdmin() {
     setDirty(true);
   }
 
+  function setImage(packId, image) {
+    setItems((list) =>
+      list.map((it) =>
+        String(it.gameId) === String(serviceId) && String(it.packId) === String(packId)
+          ? { ...it, image }
+          : it,
+      ),
+    );
+    setDirty(true);
+  }
+
   function setEnabled(packId, enabled) {
+
     setItems((list) =>
       list.map((it) =>
         String(it.gameId) === String(serviceId) && String(it.packId) === String(packId)
@@ -236,7 +248,7 @@ export default function SpecialItemsAdmin() {
                       className="si-pack-main"
                       onClick={() => togglePack(p)}
                     >
-                      <span className="si-pack-check">{on ? "✓" : "+"}</span>
+                      <span className="si-pack-check">{on ? <AIcon name="check" size={16} /> : <AIcon name="plus" size={16} />}</span>
                       <div className="si-pack-body">
                         <strong>{p.name}</strong>
                         <span className="si-pack-price">${Number(p.price || 0).toFixed(2)}</span>
@@ -255,6 +267,15 @@ export default function SpecialItemsAdmin() {
                             <option value="SALE">SALE</option>
                             <option value="NEW">NEW</option>
                           </select>
+                        </label>
+                        <label style={{ flex: "1 1 100%" }}>
+                          រូបកញ្ចប់ (URL)
+                          <input
+                            type="url"
+                            placeholder="https://… ស្រេចចិត្ត"
+                            value={row.image || ""}
+                            onChange={(e) => setImage(p.id, e.target.value)}
+                          />
                         </label>
                         <label className="si-pack-en">
                           <input

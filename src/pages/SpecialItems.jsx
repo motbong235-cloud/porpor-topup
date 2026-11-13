@@ -150,8 +150,13 @@ export default function SpecialItems({ lang, settings }) {
                           }`
                         : "#";
                       return (
-                        <Link key={it.id || title + it.price} className="si-chip si-chip-page" to={href}>
+                        <Link key={it.id || title + it.price} className={"si-chip si-chip-page" + (it.image ? " has-img" : "")} to={href}>
                           <span className="si-chip-badge">{it.badge || "SPECIAL"}</span>
+                          {it.image ? (
+                            <span className="si-chip-img">
+                              <img src={it.image} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                            </span>
+                          ) : null}
                           <strong className="si-chip-title">{title}</strong>
                           {it.subtitle ? <span className="si-chip-sub">{it.subtitle}</span> : null}
                           <span className="si-chip-row">

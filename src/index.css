@@ -8484,3 +8484,36 @@ html.dark .dino-input-wrap {
   color: currentColor;
   opacity: 0.92;
 }
+
+
+.si-chip-img {
+  display: block;
+  width: 100%;
+  height: 72px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #eef4ff, #dceaff);
+  margin: 2px 0 4px;
+}
+.si-chip-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.si-chip.has-img {
+  width: min(168px, 58vw);
+}
+.si-chip-page.has-img .si-chip-img { height: 88px; }
+.si-strip {
+  scroll-behavior: auto;
+}
+.dino-pack-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.kq-state.kq-ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
