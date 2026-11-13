@@ -593,7 +593,9 @@ app.get("/api/integrations/status", (_req, res) => {
   const s = getSettings();
   res.json({
     paymentReady: rielPay.isReady() || khmerSystemPay.isPaymentReady(),
-    rielpayReady: rielPay.isReady(),
+    rielpayReady: rielPay.isReady("auto"),
+    rielpayReadySettings: rielPay.isReady("settings"),
+    rielpayReadyEnv: rielPay.isReady("env"),
     abaReady: khmerSystemPay.isPaymentReady(),
     topupReady: khmerTopup.isTopupReady() || dinoTopup.isDinoReady(),
     khmerTopupReady: khmerTopup.isTopupReady(),
@@ -1095,7 +1097,7 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
   if (!rielPay.isReady("settings") && !rielPay.isReady("env") && !khmerSystemPay.isPaymentReady()) {
     return res.status(503).json({
       error: "not_configured",
-      detail: "No payment gateway ready — set ABA_API_KEY+ABA_MERCHANT_ID (Khmer System) or RIELPAY_API_KEY",
+      detail: "No payment key — TikTok needs Admin Settings ABA PayWay key; other services need RIELPAY_API_KEY on Render",
     });
   }
   if (!body.gameId || !body.packId) {
@@ -1113,11 +1115,12 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
         payment: {
           transactionId: prev.transactionId,
           qrImage: prev.qrImage,
-          qrString: prev.qrString,
+          qrString: prev.qrString || prev.qr_string || "",
           payUrl: prev.payUrl || "",
           deeplink: prev.openAbaUrl || prev.deeplink || prev.payUrl || "",
           openAbaUrl: prev.openAbaUrl || "",
           expiresAt: prev.expiresAt,
+          keySource: prev.paymentKeySource || "",
         },
       });
     }
@@ -1146,9 +1149,23 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
     }
   }
 
-  // Gift cards / local products do not need Khmer TopUp
-  if (!giftCode && !khmerTopup.isTopupReady()) {
-    return res.status(503).json({ error: "not_configured" });
+  // Only auto-topup games need Khmer TopUp / Dino API.
+  // TikTok Khmer, live_chat, robux, stock/gift never need supplier topup API to create QR.
+  {
+    const dt0 = String(found.game.deliveryType || "").toLowerCase();
+    const needsSupplierTopup =
+      !giftCode &&
+      dt0 !== "live_chat" &&
+      dt0 !== "robux_send" &&
+      dt0 !== "stock" &&
+      dt0 !== "gift_code" &&
+      !tg.isKaiRouteGame(found.game);
+    if (needsSupplierTopup && !khmerTopup.isTopupReady() && !(dinoTopup.isDinoReady && dinoTopup.isDinoReady())) {
+      return res.status(503).json({
+        error: "not_configured",
+        detail: "topup_api_missing",
+      });
+    }
   }
 
   const userId = String(body.userId || "").trim();
@@ -1220,15 +1237,18 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
           : String(settings.topupProvider || "").toLowerCase() === "both" && found.game.provider === "dino"
             ? "dino"
             : null),
-    deliveryType: giftCode
-      ? (found.game.deliveryType === "live_chat" || found.game.deliveryType === "robux_send" || found.game.deliveryType === "stock" || found.game.deliveryType === "gift_code"
-          ? found.game.deliveryType
-          : "stock")
-      : (found.game.deliveryType === "robux_send"
-          ? "robux_send"
-          : found.game.deliveryType === "live_chat"
-            ? "live_chat"
-            : "topup"),
+    deliveryType: (() => {
+      const dt = String(found.game.deliveryType || "").toLowerCase();
+      if (giftCode) {
+        if (["live_chat", "robux_send", "stock", "gift_code"].includes(dt)) return dt === "gift_code" ? "stock" : dt;
+        return "stock";
+      }
+      if (dt === "robux_send") return "robux_send";
+      if (dt === "live_chat") return "live_chat";
+      // TikTok Khmer always manual/live_chat — never auto supplier topup
+      if (tg.isKaiRouteGame(found.game)) return "live_chat";
+      return "topup";
+    })(),
     giftCode: null,
     status: "pending",
     clientIp: clientIp(req),
