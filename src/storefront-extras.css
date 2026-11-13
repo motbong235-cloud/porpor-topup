@@ -81,3 +81,96 @@
 .success-thanks p { margin: 4px 0 0; font-size: 13px; color: #64748b; }
 .success-thanks b { color: var(--brand-600, #2563eb); }
 .success-actions .success-home { background: #0b1220; color: #fff; }
+
+/* ===== Special packs — compact, pretty, auto-running marquee (same motion as the working-hours bar) ===== */
+.si-marquee {
+  overflow: hidden;
+  padding: 4px 0 10px;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+}
+.si-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: pp-marquee 40s linear infinite;
+  will-change: transform;
+}
+.si-marquee-set {
+  display: flex;
+  gap: 8px;
+  padding-right: 8px; /* equals gap → seamless -50% loop */
+}
+.si-marquee:hover .si-marquee-track,
+.si-marquee:active .si-marquee-track,
+.si-marquee:focus-within .si-marquee-track { animation-play-state: paused; }
+
+.si-marquee .si-chip,
+.si-grid .si-chip {
+  width: 132px;
+  gap: 4px;
+  padding: 9px 10px 9px 13px;
+  border-radius: 12px;
+  background: linear-gradient(160deg, var(--surface, #fff) 0%, color-mix(in srgb, var(--primary, #1d6adf) 6%, var(--surface, #fff)) 100%);
+  border: 1px solid color-mix(in srgb, var(--primary, #1d6adf) 16%, var(--line, #e6eef9));
+  box-shadow: 0 2px 8px rgba(8, 32, 68, 0.07);
+}
+.si-marquee .si-chip::before,
+.si-grid .si-chip::before { width: 3px; background: linear-gradient(180deg, var(--primary, #1d6adf), var(--primary-2, #5aa2ff)); }
+.si-marquee .si-chip-badge,
+.si-grid .si-chip-badge {
+  font-size: 0.55rem;
+  padding: 1px 6px;
+  border-radius: 999px;
+  letter-spacing: 0.05em;
+}
+.si-marquee .si-chip-title,
+.si-grid .si-chip-title {
+  font-size: 0.78rem;
+  line-height: 1.25;
+  color: var(--ink, #082044);
+}
+.si-marquee .si-chip-sub,
+.si-grid .si-chip-sub {
+  font-size: 0.64rem;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.si-marquee .si-chip-row,
+.si-grid .si-chip-row { padding-top: 2px; }
+.si-marquee .si-chip-price,
+.si-grid .si-chip-price { font-size: 0.9rem; color: var(--primary, #1d6adf); }
+.si-marquee .si-chip-go,
+.si-grid .si-chip-go { width: 22px; height: 22px; }
+.si-chip-img {
+  display: block;
+  width: 100%;
+  height: 52px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--primary, #1d6adf) 8%, var(--surface, #fff));
+}
+.si-chip-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* /special page: 2 compact columns on phone */
+.si-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.si-grid .si-chip { width: auto; min-height: 0; }
+@media (min-width: 560px) { .si-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 900px) { .si-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.si-page-hero { padding: 14px 14px; }
+.si-page-hero h1 { font-size: 1.15rem; }
+.si-page-lead { font-size: 0.8rem; }
+
+@media (min-width: 720px) {
+  .si-marquee .si-chip { width: 160px; }
+  .si-marquee-set { gap: 12px; padding-right: 12px; }
+}
+html.dark .si-marquee .si-chip,
+html.dark .si-grid .si-chip { box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35); }
+
+@media (prefers-reduced-motion: reduce) {
+  .si-marquee { overflow-x: auto; -webkit-mask-image: none; mask-image: none; scrollbar-width: none; }
+  .si-marquee-track { animation: none; }
+}
