@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Shell } from "./components/Shell";
 import { getPrefs, savePrefs } from "./lib/store";
 import Home from "./pages/Home";
+import SpecialItems from "./pages/SpecialItems";
 import Game from "./pages/Game";
 import Orders from "./pages/Orders";
 import Track from "./pages/Track";
@@ -14,6 +15,7 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import OrdersAdmin from "./pages/admin/OrdersAdmin";
 import SettingsAdmin from "./pages/admin/SettingsAdmin";
+import SpecialItemsAdmin from "./pages/admin/SpecialItemsAdmin";
 import ServicesAdmin from "./pages/admin/ServicesAdmin";
 import PricesAdmin from "./pages/admin/PricesAdmin";
 import ChatAdmin from "./pages/admin/ChatAdmin";
@@ -175,6 +177,7 @@ export default function App() {
           <Route path="prices" element={<PricesAdmin />} />
           <Route path="chat" element={<ChatAdmin />} />
           <Route path="settings" element={<SettingsAdmin />} />
+          <Route path="special-items" element={<SpecialItemsAdmin />} />
           <Route path="*" element={<Navigate to={`/${adminPath}`} replace />} />
         </Route>
         <Route path="/admin/*" element={<AdminLegacyRedirect adminPath={adminPath} />} />
@@ -190,6 +193,7 @@ export default function App() {
     <Shell lang={lang} theme={theme} setLang={setLang} setTheme={setTheme} settings={remoteSettings}>
       <Routes>
         <Route path="/" element={<Home lang={lang} settings={remoteSettings} />} />
+        <Route path="/special" element={<SpecialItems lang={lang} settings={remoteSettings} />} />
         <Route path="/game/:id" element={<Game lang={lang} addOrder={addOrder} settings={remoteSettings} />} />
         <Route path="/orders" element={<Orders lang={lang} orders={orders} />} />
         <Route path="/track" element={<Track lang={lang} settings={remoteSettings} />} />

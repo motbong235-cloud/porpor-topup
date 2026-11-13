@@ -8068,3 +8068,74 @@ html.dark .dino-input-wrap {
   .si-card { width: 210px; }
   .si-art { height: 100px; }
 }
+
+
+/* ===== Special Items full page ===== */
+.si-page { padding-bottom: 2rem; }
+.si-page-hero {
+  display: flex; flex-wrap: wrap; align-items: flex-start;
+  justify-content: space-between; gap: 12px;
+  margin: 12px 0 18px;
+}
+.si-page-kicker {
+  font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em;
+  color: #1d6adf; margin-bottom: 4px;
+}
+.si-page-hero h1 {
+  font-size: clamp(1.35rem, 3vw, 1.85rem); font-weight: 800;
+  letter-spacing: -0.02em; color: #082044;
+}
+.si-page-lead { color: #6b7280; margin-top: 6px; max-width: 36rem; font-size: 0.92rem; }
+.si-empty {
+  text-align: center; padding: 36px 16px; color: #6b7280;
+  display: grid; gap: 10px; place-items: center;
+}
+.si-tabs {
+  display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px;
+  scrollbar-width: none;
+}
+.si-tabs::-webkit-scrollbar { display: none; }
+.si-tab {
+  flex: 0 0 auto; border: 1px solid #dbe7f8; background: #fff;
+  color: #082044; font-weight: 700; font-size: 0.82rem;
+  padding: 8px 14px; border-radius: 999px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.si-tab.on {
+  background: #082044; color: #e8f1ff; border-color: #082044;
+}
+.si-tab-n {
+  font-size: 0.7rem; opacity: 0.85;
+  background: rgba(29,106,223,0.15); padding: 1px 7px; border-radius: 999px;
+}
+.si-tab.on .si-tab-n { background: rgba(232,241,255,0.15); }
+.si-groups { display: grid; gap: 22px; }
+.si-group-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-bottom: 12px;
+}
+.si-group-title { display: flex; align-items: center; gap: 10px; }
+.si-group-mark {
+  width: 40px; height: 40px; border-radius: 12px;
+  background: linear-gradient(145deg, #1d6adf, #082044);
+  color: #fff; font-weight: 800; display: grid; place-items: center;
+  font-size: 0.85rem;
+}
+.si-group-title h2 { font-size: 1.1rem; font-weight: 800; color: #082044; }
+.si-group-title p { font-size: 0.78rem; color: #6b7280; }
+.si-group-link { font-size: 0.85rem; font-weight: 700; color: #1d6adf; }
+.si-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+@media (min-width: 560px) {
+  .si-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 900px) {
+  .si-grid { grid-template-columns: repeat(4, 1fr); }
+}
+.si-card-page { width: auto; }
+.section-more {
+  margin-left: auto; font-size: 0.85rem; font-weight: 700; color: #1d6adf;
+}

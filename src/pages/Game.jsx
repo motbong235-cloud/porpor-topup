@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import KhqrModal from "../components/KhqrModal";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useCatalog } from "../lib/catalog";
 import { t } from "../lib/i18n";
 import { applyCoupon, money } from "../lib/store";
@@ -263,6 +263,14 @@ export default function Game({ lang, addOrder, settings }) {
   const [rbxProfile, setRbxProfile] = useState(null);
   const [ttkProfile, setTtkProfile] = useState(null);
   const [packId, setPackId] = useState(null);
+  const [searchParams] = useSearchParams();
+  // Preselect pack from /game/:id?pack= (Special Items links)
+  useEffect(() => {
+    const q = searchParams.get("pack");
+    if (!q || !game?.packs?.length) return;
+    const hit = game.packs.find((p) => String(p.id) === String(q));
+    if (hit) setPackId(hit.id);
+  }, [game?.id, game?.packs, searchParams]);
   const [qty, setQty] = useState(1);
   const [cat, setCat] = useState("all");
   const [coupon, setCoupon] = useState("");

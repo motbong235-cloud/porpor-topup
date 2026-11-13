@@ -329,6 +329,9 @@ export default function Home({ lang, settings }) {
             <h2 className="sec-title">
               {lang === "km" ? "កញ្ចប់ពិសេស" : "Special Items"}
             </h2>
+            <Link to="/special" className="section-more">
+              {lang === "km" ? "មើលទាំងអស់ →" : "See all →"}
+            </Link>
           </div>
           <p className="section-sub">
             {lang === "km"
