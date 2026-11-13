@@ -8370,3 +8370,91 @@ html.dark .dino-input-wrap {
 @media (min-width: 720px) {
   .si-chip { width: 168px; }
 }
+
+
+/* ===== Icon motion ===== */
+@keyframes icon-soft-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.12); opacity: 0.88; }
+}
+@keyframes icon-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+@keyframes icon-chev-nudge {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(3px); }
+}
+@keyframes icon-spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.sec-title .icon-svg {
+  display: inline-block;
+  vertical-align: -0.15em;
+  animation: icon-soft-pulse 2.4s ease-in-out infinite;
+  transform-origin: center;
+}
+.sec-title:hover .icon-svg {
+  animation: icon-bob 0.7s ease-in-out infinite;
+}
+
+.section-more .icon-svg {
+  display: inline-block;
+  transition: transform 0.2s ease;
+  animation: icon-chev-nudge 1.6s ease-in-out infinite;
+}
+.section-more:hover .icon-svg {
+  transform: translateX(4px);
+  animation: none;
+}
+
+.si-chip-go .icon-svg {
+  display: block;
+  transition: transform 0.2s ease;
+}
+.si-chip:hover .si-chip-go {
+  background: #1d6adf;
+  color: #fff;
+}
+.si-chip:hover .si-chip-go .icon-svg {
+  transform: translateX(2px);
+}
+
+.si-group-link .icon-svg {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+.si-group-link:hover .icon-svg {
+  transform: translateX(3px);
+}
+
+.banner-nav .icon-svg {
+  display: block;
+  transition: transform 0.18s ease;
+}
+.banner-nav:hover .icon-svg {
+  transform: scale(1.12);
+}
+.banner-nav.prev:hover .icon-svg { transform: translateX(-2px) scale(1.08); }
+.banner-nav.next:hover .icon-svg { transform: translateX(2px) scale(1.08); }
+
+.game-cta .icon-svg,
+.btn .icon-svg {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sec-title .icon-svg,
+  .section-more .icon-svg {
+    animation: none !important;
+  }
+  .si-chip:hover .si-chip-go .icon-svg,
+  .section-more:hover .icon-svg,
+  .si-group-link:hover .icon-svg,
+  .banner-nav:hover .icon-svg {
+    transform: none !important;
+  }
+}
