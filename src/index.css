@@ -8182,3 +8182,43 @@ html.dark .dino-input-wrap {
 @media (min-width: 720px) {
   .si-card-text { width: 176px; }
 }
+
+
+.si-section-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+.si-section-head .sec-title { flex: 1; }
+.section-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(29, 106, 223, 0.1);
+  color: #1d6adf !important;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.section-more:hover {
+  background: rgba(29, 106, 223, 0.18);
+}
+.si-page-hero {
+  background: linear-gradient(135deg, #082044 0%, #0c3a7a 100%);
+  color: #e8f1ff;
+  border-radius: 18px;
+  padding: 18px 16px;
+  margin-bottom: 16px;
+}
+.si-page-hero h1 { color: #fff; }
+.si-page-lead { color: rgba(232,241,255,0.75); }
+.si-page-hero .btn-ghost {
+  border-color: rgba(232,241,255,0.35);
+  color: #e8f1ff;
+}

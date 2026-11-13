@@ -322,15 +322,16 @@ export default function Home({ lang, settings }) {
       {/* Special Items — admin-curated packs (design: navy strip, not Nico clone) */}
       {Array.isArray(settings?.specialItems) && settings.specialItems.length > 0 && (
         <section className="section si-section">
-          <div className="section-head">
+          <div className="section-head si-section-head">
             <span className="star">
               <Icon name="star" size={16} />
             </span>
             <h2 className="sec-title">
               {lang === "km" ? "កញ្ចប់ពិសេស" : "Special Items"}
             </h2>
-            <Link to="/special" className="section-more">
-              {lang === "km" ? "មើលទាំងអស់ →" : "See all →"}
+            <Link to="/special" className="section-more" onClick={(e) => e.stopPropagation()}>
+              {lang === "km" ? "មើលទាំងអស់" : "See all"}
+              <span aria-hidden> →</span>
             </Link>
           </div>
           <p className="section-sub">

@@ -43,7 +43,7 @@ function PpConsoleRedirect({ adminPath }) {
   return <Navigate to={to} replace />;
 }
 
-const PUBLIC_FIRST = new Set(["", "game", "orders", "track", "success", "support", "reseller", "legal", "open-aba", "api", "uploads", "icons"]);
+const PUBLIC_FIRST = new Set(["", "game", "orders", "track", "success", "support", "reseller", "legal", "special", "open-aba", "api", "uploads", "icons"]);
 
 function pathLooksAdmin(pathname) {
   const seg = String(pathname || "").split("/").filter(Boolean)[0] || "";
@@ -157,7 +157,7 @@ export default function App() {
   // do NOT fall through to the public "*" route (it redirects to "/" before the admin path is known).
   const isKnownPublic =
     path === "/" ||
-    /^\/(game|orders|track|success|support|reseller|legal)(\/|$)/.test(path);
+    /^\/(game|orders|track|success|support|reseller|legal|special)(\/|$)/.test(path);
   if (!adminPathReady && !isAdminRoute && !isKnownPublic) {
     return (
       <div style={{ minHeight: "40vh", display: "grid", placeItems: "center", color: "#64748b" }}>
