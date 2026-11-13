@@ -318,6 +318,54 @@ export default function Home({ lang, settings }) {
         </section>
       )}
 
+
+      {/* Special Items — admin-curated packs (design: navy strip, not Nico clone) */}
+      {Array.isArray(settings?.specialItems) && settings.specialItems.length > 0 && (
+        <section className="section si-section">
+          <div className="section-head">
+            <span className="star">
+              <Icon name="star" size={16} />
+            </span>
+            <h2 className="sec-title">
+              {lang === "km" ? "កញ្ចប់ពិសេស" : "Special Items"}
+            </h2>
+          </div>
+          <p className="section-sub">
+            {lang === "km"
+              ? "កញ្ចប់ដែលហាងជ្រើស — ចុចដើម្បីទិញភ្លាម"
+              : "Hand-picked packs — tap to buy"}
+          </p>
+          <div className="si-strip">
+            {settings.specialItems.map((it) => {
+              const title = lang === "km" && it.titleKm ? it.titleKm : it.title || it.titleKm;
+              const href = it.gameId
+                ? `/game/${encodeURIComponent(it.gameId)}${it.packId ? `?pack=${encodeURIComponent(it.packId)}` : ""}`
+                : "#games";
+              return (
+                <Link key={it.id || title} className="si-card" to={href}>
+                  <div className="si-card-inner">
+                    <span className="si-badge">{it.badge || "SPECIAL"}</span>
+                    <div className="si-art">
+                      {it.image ? (
+                        <img src={it.image} alt="" loading="lazy" />
+                      ) : (
+                        <span className="si-art-fallback">{(title || "?").slice(0, 2).toUpperCase()}</span>
+                      )}
+                    </div>
+                    <div className="si-meta">
+                      <strong className="si-title">{title}</strong>
+                      {it.subtitle ? <span className="si-sub">{it.subtitle}</span> : null}
+                      <span className="si-price">{money(Number(it.price) || 0)}</span>
+                    </div>
+                    <span className="si-cta">{lang === "km" ? "ទិញ" : "Buy"}</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {famous.length > 0 && (
       <section className="section">
         <div className="section-head">

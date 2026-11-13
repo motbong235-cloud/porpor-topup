@@ -619,6 +619,23 @@ app.get("/api/settings", (_req, res) => {
     bannerUrls: Array.isArray(s.bannerUrls) ? s.bannerUrls : [],
     // Never list coupon codes publicly — validate only at checkout when user types a code
     couponsEnabled: Array.isArray(s.coupons) && s.coupons.length > 0,
+    specialItems: Array.isArray(s.specialItems)
+      ? s.specialItems
+          .filter((x) => x && x.enabled !== false)
+          .sort((a, b) => (Number(a.sort) || 0) - (Number(b.sort) || 0))
+          .slice(0, 24)
+          .map((x) => ({
+            id: String(x.id || ""),
+            title: String(x.title || "").slice(0, 80),
+            titleKm: String(x.titleKm || "").slice(0, 80),
+            subtitle: String(x.subtitle || "").slice(0, 100),
+            price: Number(x.price) || 0,
+            gameId: String(x.gameId || ""),
+            packId: String(x.packId || ""),
+            badge: String(x.badge || "SPECIAL").slice(0, 24),
+            image: String(x.image || "").slice(0, 500),
+          }))
+      : [],
   });
 });
 
@@ -1947,6 +1964,25 @@ app.put("/api/admin/settings", adminAuth, (req, res) => {
     delete patch.rielpayWebhookSecret;
   }
   if ("paymentGateway" in patch) delete patch.paymentGateway;
+  if (patch.specialItems !== undefined) {
+    const list = Array.isArray(patch.specialItems) ? patch.specialItems : [];
+    patch.specialItems = list
+      .slice(0, 40)
+      .map((x, i) => ({
+        id: String(x?.id || `si-${Date.now()}-${i}`).slice(0, 64),
+        enabled: x?.enabled !== false,
+        title: String(x?.title || "").slice(0, 80),
+        titleKm: String(x?.titleKm || "").slice(0, 80),
+        subtitle: String(x?.subtitle || "").slice(0, 100),
+        price: Math.max(0, Math.min(9999, Number(x?.price) || 0)),
+        gameId: String(x?.gameId || "").slice(0, 80),
+        packId: String(x?.packId || "").slice(0, 80),
+        badge: String(x?.badge || "SPECIAL").slice(0, 24),
+        image: String(x?.image || "").slice(0, 500),
+        sort: Number(x?.sort) || i,
+      }))
+      .filter((x) => x.title || x.titleKm);
+  }
   if (patch.tgChannelId !== undefined) {
     patch.tgChannelId = String(patch.tgChannelId || "").trim().slice(0, 64);
   }

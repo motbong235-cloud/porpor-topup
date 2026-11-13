@@ -54,6 +54,11 @@ const DEFAULT_SETTINGS = {
    * Example: { "12345": 0.95, "gift-robux-10": 8.5 }
    */
   resellerPrices: {},
+  /**
+   * Homepage "Special Items" — admin-curated packs (not whole games).
+   * { id, enabled, title, titleKm, subtitle, price, gameId, packId, badge, image, sort }
+   */
+  specialItems: [],
 };
 
 const LEGACY_KEYS = ["defaultWallet", "closedGames", "packageMap", "allowDemoPay"];

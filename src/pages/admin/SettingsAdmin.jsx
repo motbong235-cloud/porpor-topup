@@ -36,7 +36,12 @@ export default function SettingsAdmin() {
 
   useEffect(() => {
     api("/api/admin/settings")
-      .then((s) => setForm({ ...s, coupons: Array.isArray(s.coupons) ? s.coupons : [], bannerUrls: Array.isArray(s.bannerUrls) ? s.bannerUrls : [] }))
+      .then((s) => setForm({
+        ...s,
+        coupons: Array.isArray(s.coupons) ? s.coupons : [],
+        bannerUrls: Array.isArray(s.bannerUrls) ? s.bannerUrls : [],
+        specialItems: Array.isArray(s.specialItems) ? s.specialItems : [],
+      }))
       .catch(() => toast("មិនអាចទាញការកំណត់បានទេ", "bad"));
   }, []);
 
@@ -67,6 +72,7 @@ export default function SettingsAdmin() {
           topupProvider: form.topupProvider || "khmer",
           logoUrl: form.logoUrl || "",
           bannerUrls: (form.bannerUrls || []).filter(Boolean).slice(0, 5),
+          specialItems: Array.isArray(form.specialItems) ? form.specialItems : [],
           tgBotUsername: String(form.tgBotUsername || "").trim().replace(/^@/, ""),
           tgChannelId: String(form.tgChannelId || "").trim(),
         };
@@ -92,7 +98,12 @@ export default function SettingsAdmin() {
         method: "PUT",
         body: JSON.stringify(payload),
       });
-      setForm({ ...saved, coupons: Array.isArray(saved.coupons) ? saved.coupons : [], bannerUrls: Array.isArray(saved.bannerUrls) ? saved.bannerUrls : [] });
+      setForm({
+        ...saved,
+        coupons: Array.isArray(saved.coupons) ? saved.coupons : [],
+        bannerUrls: Array.isArray(saved.bannerUrls) ? saved.bannerUrls : [],
+        specialItems: Array.isArray(saved.specialItems) ? saved.specialItems : [],
+      });
       setDirty(false);
       toast("បានរក្សាទុកការកំណត់");
     } catch {
@@ -111,6 +122,7 @@ export default function SettingsAdmin() {
       <div className="ad-seg ad-seg-scroll">
         <a href="#set-shop" className="ad-seg-a">ហាង</a>
         <a href="#set-brand" className="ad-seg-a">Logo / Banner</a>
+        <a href="#set-special" className="ad-seg-a">Special Items</a>
         <a href="#set-tg" className="ad-seg-a">Telegram</a>
         <a href="#set-pay" className="ad-seg-a">Payment</a>
         <a href="#set-robux" className="ad-seg-a">Robux Auto</a>
@@ -139,7 +151,149 @@ export default function SettingsAdmin() {
         </Field>
       </section>
 
-      <section className="ad-card" id="set-tg">
+      
+      <section className="ad-card" id="set-special">
+        <h3 className="ad-card-title">Special Items · កញ្ចប់ពិសេស (Homepage)</h3>
+        <p className="ad-hint" style={{ marginBottom: 12 }}>
+          កំណត់កញ្ចប់ដាក់នៅទំព័រដើម (ខុសពី game card) — បញ្ចូល gameId + packId ដើម្បីភ្ជាប់ទៅទំព័រ top-up។
+        </p>
+        {(form.specialItems || []).map((it, i) => (
+          <div key={it.id || i} className="ad-row" style={{ flexWrap: "wrap", gap: 8, marginBottom: 12, padding: 12, border: "1px solid var(--ad-line, #e5e7eb)", borderRadius: 12 }}>
+            <Field label="Title (EN)">
+              <input
+                value={it.title || ""}
+                onChange={(e) => {
+                  const list = [...(form.specialItems || [])];
+                  list[i] = { ...list[i], title: e.target.value };
+                  set("specialItems", list);
+                }}
+              />
+            </Field>
+            <Field label="Title (KM)">
+              <input
+                value={it.titleKm || ""}
+                onChange={(e) => {
+                  const list = [...(form.specialItems || [])];
+                  list[i] = { ...list[i], titleKm: e.target.value };
+                  set("specialItems", list);
+                }}
+              />
+            </Field>
+            <Field label="Subtitle">
+              <input
+                value={it.subtitle || ""}
+                onChange={(e) => {
+                  const list = [...(form.specialItems || [])];
+                  list[i] = { ...list[i], subtitle: e.target.value };
+                  set("specialItems", list);
+                }}
+              />
+            </Field>
+            <Field label="Price $">
+              <input
+                type="number"
+                step="0.01"
+                value={it.price ?? ""}
+                onChange={(e) => {
+                  const list = [...(form.specialItems || [])];
+                  list[i] = { ...list[i], price: e.target.value };
+                  set("specialItems", list);
+                }}
+              />
+            </Field>
+            <Field label="Game ID">
+              <input
+                value={it.gameId || ""}
+                onChange={(e) => {
+                  const list = [...(form.specialItems || [])];
+                  list[i] = { ...list[i], gameId: e.target.value };
+                  set("specialItems", list);
+                }}
+              />
+            </Field>
+            <Field label="Pack ID">
+              <input
+                value={it.packId || ""}
+                onChange={(e) => {
+                  const list = [...(form.specialItems || [])];
+                  list[i] = { ...list[i], packId: e.target.value };
+                  set("specialItems", list);
+                }}
+              />
+            </Field>
+            <Field label="Badge">
+              <input
+                value={it.badge || "SPECIAL"}
+                onChange={(e) => {
+                  const list = [...(form.specialItems || [])];
+                  list[i] = { ...list[i], badge: e.target.value };
+                  set("specialItems", list);
+                }}
+              />
+            </Field>
+            <Field label="Image URL">
+              <input
+                value={it.image || ""}
+                onChange={(e) => {
+                  const list = [...(form.specialItems || [])];
+                  list[i] = { ...list[i], image: e.target.value };
+                  set("specialItems", list);
+                }}
+              />
+            </Field>
+            <label className="ad-field" style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <input
+                type="checkbox"
+                checked={it.enabled !== false}
+                onChange={(e) => {
+                  const list = [...(form.specialItems || [])];
+                  list[i] = { ...list[i], enabled: e.target.checked };
+                  set("specialItems", list);
+                }}
+              />
+              <span>Enabled</span>
+            </label>
+            <button
+              type="button"
+              className="ad-btn"
+              onClick={() => {
+                set(
+                  "specialItems",
+                  (form.specialItems || []).filter((_, j) => j !== i),
+                );
+              }}
+            >
+              លុប
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          className="ad-btn primary"
+          onClick={() => {
+            set("specialItems", [
+              ...(form.specialItems || []),
+              {
+                id: `si-${Date.now()}`,
+                enabled: true,
+                title: "",
+                titleKm: "",
+                subtitle: "",
+                price: 0,
+                gameId: "",
+                packId: "",
+                badge: "SPECIAL",
+                image: "",
+                sort: (form.specialItems || []).length,
+              },
+            ]);
+          }}
+        >
+          + បន្ថែម Special Item
+        </button>
+      </section>
+
+<section className="ad-card" id="set-tg">
         <h2>Telegram Login</h2>
         <div className="ad-grid-2">
           <Field label="Bot Username (គ្មាន @)" hint="BotFather → /setdomain = domain website">
