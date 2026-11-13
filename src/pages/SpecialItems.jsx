@@ -148,18 +148,9 @@ export default function SpecialItems({ lang, settings }) {
                           }`
                         : "#";
                       return (
-                        <Link key={it.id || title + it.price} className="si-card si-card-page" to={href}>
+                        <Link key={it.id || title + it.price} className="si-card si-card-page si-card-text" to={href}>
                           <div className="si-card-inner">
                             <span className="si-badge">{it.badge || "SPECIAL"}</span>
-                            <div className="si-art">
-                              {it.image ? (
-                                <img src={it.image} alt="" loading="lazy" />
-                              ) : (
-                                <span className="si-art-fallback">
-                                  {(title || "?").slice(0, 2).toUpperCase()}
-                                </span>
-                              )}
-                            </div>
                             <div className="si-meta">
                               <strong className="si-title">{title}</strong>
                               {it.subtitle ? <span className="si-sub">{it.subtitle}</span> : null}
