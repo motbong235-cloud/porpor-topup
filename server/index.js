@@ -1905,6 +1905,7 @@ app.put("/api/admin/settings", adminAuth, (req, res) => {
     "tgBotToken", "tgBotUsername", "tgChannelId",
     "robuxAutoEnabled", "robuxCookie", "robuxGroupId", "robuxTotpSecret",
     "paymentGateway", "rielpayApiKey", "rielpayWebhookSecret",
+    "specialItems",
   ];
   const patch = {};
   for (const k of allowed) {

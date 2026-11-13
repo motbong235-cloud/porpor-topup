@@ -1,75 +1,114 @@
 import { useEffect, useMemo, useState } from "react";
-import { AIcon, PageHead, api, toast } from "./ui";
+import { PageHead, api, toast } from "./ui";
 import { useCatalog } from "../../lib/catalog";
 
 /**
- * Admin: arrange special packages per service.
- * Saves into settings.specialItems (same field as Settings section).
+ * Easy admin: pick a service → tick packs to show as Special Items.
  */
 export default function SpecialItemsAdmin() {
   const { games, loading: catLoading } = useCatalog();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [serviceFilter, setServiceFilter] = useState("all");
   const [dirty, setDirty] = useState(false);
+  const [serviceId, setServiceId] = useState("");
+  const [q, setQ] = useState("");
 
   useEffect(() => {
     api("/api/admin/settings")
-      .then((s) => {
-        setItems(Array.isArray(s.specialItems) ? s.specialItems : []);
-      })
+      .then((s) => setItems(Array.isArray(s.specialItems) ? s.specialItems : []))
       .catch(() => toast("ទាញ settings មិនបាន", "bad"))
       .finally(() => setLoading(false));
   }, []);
 
-  const openGames = useMemo(
-    () => (games || []).filter((g) => g && g.id),
-    [games],
-  );
+  const openGames = useMemo(() => (games || []).filter((g) => g && g.id), [games]);
 
-  const packsFor = (gameId) => {
-    const g = openGames.find((x) => String(x.id) === String(gameId));
-    return Array.isArray(g?.packs) ? g.packs : [];
-  };
+  const filteredGames = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return openGames;
+    return openGames.filter(
+      (g) =>
+        String(g.name || "").toLowerCase().includes(s) ||
+        String(g.nameKm || "").toLowerCase().includes(s) ||
+        String(g.id || "").toLowerCase().includes(s),
+    );
+  }, [openGames, q]);
 
-  const filtered = useMemo(() => {
-    if (serviceFilter === "all") return items;
-    return items.filter((it) => String(it.gameId || "") === String(serviceFilter));
-  }, [items, serviceFilter]);
+  const counts = useMemo(() => {
+    const m = {};
+    for (const it of items) {
+      const k = String(it.gameId || "");
+      if (!k) continue;
+      m[k] = (m[k] || 0) + 1;
+    }
+    return m;
+  }, [items]);
 
-  function update(i, patch) {
-    // i is index in full items array
-    setItems((list) => list.map((row, j) => (j === i ? { ...row, ...patch } : row)));
+  const service = openGames.find((g) => String(g.id) === String(serviceId)) || null;
+  const packs = Array.isArray(service?.packs) ? service.packs : [];
+
+  const specialPackIds = useMemo(() => {
+    const set = new Set();
+    for (const it of items) {
+      if (String(it.gameId) === String(serviceId) && it.packId) set.add(String(it.packId));
+    }
+    return set;
+  }, [items, serviceId]);
+
+  function isOn(packId) {
+    return specialPackIds.has(String(packId));
+  }
+
+  function togglePack(pack) {
+    if (!service) return;
+    const pid = String(pack.id);
+    const on = isOn(pid);
+    if (on) {
+      setItems((list) =>
+        list.filter(
+          (it) => !(String(it.gameId) === String(service.id) && String(it.packId) === pid),
+        ),
+      );
+    } else {
+      setItems((list) => [
+        ...list,
+        {
+          id: `si-${Date.now()}-${pid}`,
+          enabled: true,
+          title: pack.name || "",
+          titleKm: pack.nameKm || pack.name || "",
+          subtitle: service.name || "",
+          price: Number(pack.price) || 0,
+          gameId: String(service.id),
+          packId: pid,
+          badge: "SPECIAL",
+          image: pack.image || service.image || "",
+          sort: list.length,
+        },
+      ]);
+    }
     setDirty(true);
   }
 
-  function addForService(gameId) {
-    const g = openGames.find((x) => String(x.id) === String(gameId));
-    const packs = packsFor(gameId);
-    const first = packs[0];
-    setItems((list) => [
-      ...list,
-      {
-        id: `si-${Date.now()}`,
-        enabled: true,
-        title: first?.name || g?.name || "",
-        titleKm: first?.nameKm || "",
-        subtitle: g?.name || "",
-        price: first?.price ?? 0,
-        gameId: String(gameId || ""),
-        packId: first?.id || "",
-        badge: "SPECIAL",
-        image: first?.image || g?.image || "",
-        sort: list.length,
-      },
-    ]);
-    setServiceFilter(String(gameId));
+  function setBadge(packId, badge) {
+    setItems((list) =>
+      list.map((it) =>
+        String(it.gameId) === String(serviceId) && String(it.packId) === String(packId)
+          ? { ...it, badge }
+          : it,
+      ),
+    );
     setDirty(true);
   }
 
-  function removeAt(globalIndex) {
-    setItems((list) => list.filter((_, j) => j !== globalIndex));
+  function setEnabled(packId, enabled) {
+    setItems((list) =>
+      list.map((it) =>
+        String(it.gameId) === String(serviceId) && String(it.packId) === String(packId)
+          ? { ...it, enabled }
+          : it,
+      ),
+    );
     setDirty(true);
   }
 
@@ -82,7 +121,7 @@ export default function SpecialItemsAdmin() {
       });
       setItems(Array.isArray(saved.specialItems) ? saved.specialItems : items);
       setDirty(false);
-      toast("បានរក្សាទុក Special Items");
+      toast("បានរក្សាទុក · ឃើញនៅ /special និង homepage");
     } catch {
       toast("រក្សាទុកមិនបាន", "bad");
     } finally {
@@ -99,206 +138,172 @@ export default function SpecialItemsAdmin() {
   }
 
   return (
-    <div className="ad-special-page">
+    <div className="si-admin">
       <PageHead
-        km="កញ្ចប់ពិសេសតាម Service"
-        en="Organize special packs per game service — shown on /special and homepage"
+        km="កញ្ចប់ពិសេស"
+        en="ជ្រើស service → ចុចកញ្ចប់ដើម្បីដាក់/ដកពី Special · user មើលនៅ /special"
       />
 
-      <div className="ad-card" style={{ marginBottom: 16 }}>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
-          <label className="ad-field" style={{ margin: 0, minWidth: 180 }}>
-            <span>តម្រង Service</span>
-            <select
-              value={serviceFilter}
-              onChange={(e) => setServiceFilter(e.target.value)}
-            >
-              <option value="all">ទាំងអស់ ({items.length})</option>
-              {openGames.map((g) => {
-                const n = items.filter((it) => String(it.gameId) === String(g.id)).length;
-                return (
-                  <option key={g.id} value={g.id}>
-                    {g.name} ({n})
-                  </option>
-                );
-              })}
-            </select>
-          </label>
-
-          <label className="ad-field" style={{ margin: 0, minWidth: 200 }}>
-            <span>បន្ថែមសម្រាប់ Service</span>
-            <select
-              defaultValue=""
-              onChange={(e) => {
-                const v = e.target.value;
-                if (v) addForService(v);
-                e.target.value = "";
-              }}
-              disabled={catLoading}
-            >
-              <option value="">— ជ្រើស service —</option>
-              {openGames.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <button
-            type="button"
-            className="ad-btn primary"
-            disabled={!dirty || saving}
-            onClick={save}
-            style={{ marginTop: 18 }}
-          >
-            {saving ? "…" : dirty ? "រក្សាទុក" : "រក្សាទុកហើយ"}
+      {/* sticky save */}
+      <div className="si-admin-bar">
+        <div className="si-admin-bar-info">
+          <b>{items.filter((x) => x.enabled !== false).length}</b> កញ្ចប់កំពុងបង្ហាញ
+          {dirty ? <span className="si-admin-dirty"> · មានការផ្លាស់ប្តូរ</span> : null}
+        </div>
+        <div className="si-admin-bar-actions">
+          {serviceId ? (
+            <button type="button" className="ad-btn" onClick={() => setServiceId("")}>
+              ← ត្រឡប់ជ្រើស Service
+            </button>
+          ) : null}
+          <button type="button" className="ad-btn primary" disabled={!dirty || saving} onClick={save}>
+            {saving ? "…" : "រក្សាទុក"}
           </button>
         </div>
-        <p className="ad-hint" style={{ marginTop: 10 }}>
-          ទំព័រ user: <code>/special</code> · homepage strip ប្រើ list តែមួយនេះ
-        </p>
       </div>
 
-      {filtered.length === 0 ? (
+      {/* STEP 1: pick service */}
+      {!serviceId ? (
         <div className="ad-card">
-          <p>មិនទាន់មាន item — ជ្រើស service ខាងលើដើម្បីបន្ថែមកញ្ចប់។</p>
+          <h3 className="ad-card-title">១. ជ្រើស Service</h3>
+          <p className="ad-hint">ចុច card មួយ — បន្ទាប់មកជ្រើសកញ្ចប់ដែលចង់ដាក់ Special</p>
+          <input
+            className="ad-input"
+            style={{ marginBottom: 12, maxWidth: 360 }}
+            placeholder="ស្វែងរក service…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
+          {catLoading ? (
+            <p>កំពុងទាញ catalog…</p>
+          ) : filteredGames.length === 0 ? (
+            <p>មិនឃើញ service — ពិនិត្យ Admin → សេវាហ្គេម</p>
+          ) : (
+            <div className="si-svc-grid">
+              {filteredGames.map((g) => {
+                const n = counts[String(g.id)] || 0;
+                return (
+                  <button
+                    key={g.id}
+                    type="button"
+                    className="si-svc-card"
+                    onClick={() => setServiceId(String(g.id))}
+                  >
+                    <div className="si-svc-art">
+                      {g.image ? (
+                        <img src={g.image} alt="" />
+                      ) : (
+                        <span>{String(g.name || "?").slice(0, 2).toUpperCase()}</span>
+                      )}
+                    </div>
+                    <div className="si-svc-meta">
+                      <strong>{g.name}</strong>
+                      <span className="si-svc-id">{g.id}</span>
+                      <span className={"si-svc-count" + (n ? " on" : "")}>
+                        {n ? `${n} កញ្ចប់ពិសេស` : "មិនទាន់មាន"}
+                      </span>
+                    </div>
+                    <span className="si-svc-go">→</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       ) : (
-        filtered.map((it) => {
-          const globalIndex = items.findIndex((x) => x === it || (x.id && x.id === it.id));
-          const packs = packsFor(it.gameId);
-          return (
-            <div key={it.id || globalIndex} className="ad-card" style={{ marginBottom: 12 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
-                <strong>
-                  #{globalIndex + 1} · {it.title || it.titleKm || "Untitled"}
-                </strong>
-                <button type="button" className="ad-btn" onClick={() => removeAt(globalIndex)}>
-                  លុប
-                </button>
-              </div>
-              <div className="ad-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                <label className="ad-field">
-                  <span>Service (gameId)</span>
-                  <select
-                    value={it.gameId || ""}
-                    onChange={(e) => {
-                      const gid = e.target.value;
-                      const packs2 = packsFor(gid);
-                      const p0 = packs2[0];
-                      update(globalIndex, {
-                        gameId: gid,
-                        packId: p0?.id || "",
-                        price: p0?.price ?? it.price,
-                        subtitle: openGames.find((g) => String(g.id) === gid)?.name || it.subtitle,
-                      });
-                    }}
-                  >
-                    <option value="">—</option>
-                    {openGames.map((g) => (
-                      <option key={g.id} value={g.id}>
-                        {g.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="ad-field">
-                  <span>Pack</span>
-                  <select
-                    value={it.packId || ""}
-                    onChange={(e) => {
-                      const pid = e.target.value;
-                      const p = packs.find((x) => String(x.id) === pid);
-                      update(globalIndex, {
-                        packId: pid,
-                        title: p?.name || it.title,
-                        price: p?.price ?? it.price,
-                        image: p?.image || it.image,
-                      });
-                    }}
-                  >
-                    <option value="">— ជ្រើស pack —</option>
-                    {packs.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name} · ${Number(p.price).toFixed(2)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="ad-field">
-                  <span>Title EN</span>
-                  <input
-                    value={it.title || ""}
-                    onChange={(e) => update(globalIndex, { title: e.target.value })}
-                  />
-                </label>
-                <label className="ad-field">
-                  <span>Title KM</span>
-                  <input
-                    value={it.titleKm || ""}
-                    onChange={(e) => update(globalIndex, { titleKm: e.target.value })}
-                  />
-                </label>
-                <label className="ad-field">
-                  <span>Subtitle</span>
-                  <input
-                    value={it.subtitle || ""}
-                    onChange={(e) => update(globalIndex, { subtitle: e.target.value })}
-                  />
-                </label>
-                <label className="ad-field">
-                  <span>Price $</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={it.price ?? ""}
-                    onChange={(e) => update(globalIndex, { price: e.target.value })}
-                  />
-                </label>
-                <label className="ad-field">
-                  <span>Badge</span>
-                  <input
-                    value={it.badge || "SPECIAL"}
-                    onChange={(e) => update(globalIndex, { badge: e.target.value })}
-                  />
-                </label>
-                <label className="ad-field">
-                  <span>Image URL</span>
-                  <input
-                    value={it.image || ""}
-                    onChange={(e) => update(globalIndex, { image: e.target.value })}
-                  />
-                </label>
-                <label className="ad-field" style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                  <input
-                    type="checkbox"
-                    checked={it.enabled !== false}
-                    onChange={(e) => update(globalIndex, { enabled: e.target.checked })}
-                  />
-                  <span>Enabled</span>
-                </label>
-                <label className="ad-field">
-                  <span>Sort</span>
-                  <input
-                    type="number"
-                    value={it.sort ?? 0}
-                    onChange={(e) => update(globalIndex, { sort: Number(e.target.value) || 0 })}
-                  />
-                </label>
-              </div>
+        /* STEP 2: packs for service */
+        <div className="ad-card">
+          <h3 className="ad-card-title">
+            ២. កញ្ចប់ · {service?.name || serviceId}
+          </h3>
+          <p className="ad-hint">
+            ចុចកញ្ចប់ដើម្បី <b>ដាក់ / ដក</b> ពី Special Items · ពណ៌ខៀវ = កំពុងបង្ហាញ
+          </p>
+          {packs.length === 0 ? (
+            <p>Service នេះគ្មាន pack ក្នុង catalog</p>
+          ) : (
+            <div className="si-pack-grid">
+              {packs.map((p) => {
+                const on = isOn(p.id);
+                const row = items.find(
+                  (it) =>
+                    String(it.gameId) === String(serviceId) && String(it.packId) === String(p.id),
+                );
+                return (
+                  <div key={p.id} className={"si-pack-card" + (on ? " on" : "")}>
+                    <button
+                      type="button"
+                      className="si-pack-main"
+                      onClick={() => togglePack(p)}
+                    >
+                      <span className="si-pack-check">{on ? "✓" : "+"}</span>
+                      <div className="si-pack-body">
+                        <strong>{p.name}</strong>
+                        <span className="si-pack-price">${Number(p.price || 0).toFixed(2)}</span>
+                      </div>
+                    </button>
+                    {on && row ? (
+                      <div className="si-pack-opts">
+                        <label>
+                          Badge
+                          <select
+                            value={row.badge || "SPECIAL"}
+                            onChange={(e) => setBadge(p.id, e.target.value)}
+                          >
+                            <option value="SPECIAL">SPECIAL</option>
+                            <option value="HOT">HOT</option>
+                            <option value="SALE">SALE</option>
+                            <option value="NEW">NEW</option>
+                          </select>
+                        </label>
+                        <label className="si-pack-en">
+                          <input
+                            type="checkbox"
+                            checked={row.enabled !== false}
+                            onChange={(e) => setEnabled(p.id, e.target.checked)}
+                          />
+                          បង្ហាញ
+                        </label>
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
             </div>
-          );
-        })
-      )}
-
-      {dirty && (
-        <div style={{ position: "sticky", bottom: 12, display: "flex", justifyContent: "flex-end" }}>
-          <button type="button" className="ad-btn primary" disabled={saving} onClick={save}>
-            {saving ? "…" : "រក្សាទុកការផ្លាស់ប្តូរ"}
-          </button>
+          )}
         </div>
       )}
+
+      {/* summary list */}
+      {items.length > 0 && !serviceId ? (
+        <div className="ad-card" style={{ marginTop: 14 }}>
+          <h3 className="ad-card-title">បញ្ជី Special ទាំងអស់</h3>
+          <div className="si-summary">
+            {items.map((it, i) => {
+              const g = openGames.find((x) => String(x.id) === String(it.gameId));
+              return (
+                <div key={it.id || i} className="si-summary-row">
+                  <span className={"si-dot" + (it.enabled === false ? " off" : "")} />
+                  <span className="si-summary-svc">{g?.name || it.gameId || "—"}</span>
+                  <span className="si-summary-title">{it.title || it.titleKm}</span>
+                  <span className="si-summary-price">${Number(it.price || 0).toFixed(2)}</span>
+                  <button
+                    type="button"
+                    className="ad-btn"
+                    style={{ padding: "4px 10px", fontSize: 12 }}
+                    onClick={() => {
+                      setItems((list) => list.filter((_, j) => j !== i));
+                      setDirty(true);
+                    }}
+                  >
+                    លុប
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
