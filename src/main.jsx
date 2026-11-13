@@ -4,9 +4,9 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import "./index.css";
 import "./storefront-extras.css";
-import "./dino-full-match.css";
-import "./dino-match-v2.css";
-import "./dino-desktop.css";
+import "./sf-full-match.css";
+import "./sf-match-v2.css";
+import "./sf-desktop.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

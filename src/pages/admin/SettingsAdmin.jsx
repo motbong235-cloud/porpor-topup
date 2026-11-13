@@ -21,6 +21,7 @@ export default function SettingsAdmin() {
   const [testOut, setTestOut] = useState("");
   const [robuxTesting, setRobuxTesting] = useState(false);
   const [robuxTest, setRobuxTest] = useState("");
+  const [provStatus, setProvStatus] = useState(null);
 
   async function testPayment() {
     setTesting(true);
@@ -33,6 +34,10 @@ export default function SettingsAdmin() {
       setTesting(false);
     }
   }
+
+  useEffect(() => {
+    api("/api/admin/topup-status").then(setProvStatus).catch(() => setProvStatus(null));
+  }, []);
 
   useEffect(() => {
     api("/api/admin/settings")
@@ -550,17 +555,22 @@ export default function SettingsAdmin() {
               {
                 id: "khmer",
                 title: "Khmer TopUp",
-                desc: "Env: KHMER_TOPUP_API_KEY · Catalog tab Khmer TopUp",
+                desc: "Catalog tab Khmer TopUp · Env: KHMER_TOPUP_API_KEY",
+                ready: provStatus?.khmer?.ready,
               },
               {
-                id: "dino",
-                title: "Dino Topups",
-                desc: "Env: DINO_TOPUP_API_KEY · Catalog tab Dino",
+                id: "fox",
+                title: "Fox Topup",
+                desc: "Catalog tab Fox Topup · Env: FOX_TOPUP_UID + FOX_TOPUP_API_KEY (+ API_SECRET)",
+                ready: provStatus?.fox?.ready,
+                extra:
+                  provStatus?.fox?.balance != null ? `Wallet $${Number(provStatus.fox.balance).toFixed(2)}` : "",
               },
               {
                 id: "both",
-                title: "Khmer + Dino",
-                desc: "រួមគ្នា — game បើកក្នុង tab Dino ប្រើ Dino, ផ្សេងទៀតប្រើ Khmer",
+                title: "Khmer + Fox",
+                desc: "រួមគ្នា — game ដែលបើកក្នុង tab Fox ប្រើ Fox, ផ្សេងទៀតប្រើ Khmer",
+                ready: provStatus ? provStatus.khmer?.ready && provStatus.fox?.ready : undefined,
               },
             ].map((opt) => {
               const cur = form.topupProvider || "khmer";
@@ -575,16 +585,33 @@ export default function SettingsAdmin() {
                 >
                   <span className={`ad-provider-radio${on ? " on" : ""}`} aria-hidden />
                   <span className="ad-provider-text">
-                    <strong>{opt.title}</strong>
+                    <strong>
+                      {opt.title}
+                      {opt.ready === undefined ? null : (
+                        <em className={`ad-prov-state${opt.ready ? " ok" : " off"}`}>
+                          {opt.ready ? "ភ្ជាប់រួច" : "មិនទាន់ភ្ជាប់"}
+                        </em>
+                      )}
+                    </strong>
                     <small>{opt.desc}</small>
+                    {opt.extra ? <span className="ad-prov-extra">{opt.extra}</span> : null}
                   </span>
                 </button>
               );
             })}
           </div>
           <p className="ad-muted" style={{ marginTop: 8 }}>
-            ចុចជ្រើស → រួចចុច <b>រក្សាទុកការកំណត់</b>។ Both = Dino សម្រាប់ game ដែល enable ក្នុង tab Dino។
+            ចុចជ្រើស → រួចចុច <b>រក្សាទុកការកំណត់</b>។ Both = Fox សម្រាប់ game ដែល enable ក្នុង tab Fox។
           </p>
+          <div className="ad-fox-webhook">
+            <strong>Fox Webhook</strong>
+            <code>{`${typeof window !== "undefined" ? window.location.origin : ""}/api/webhook/fox`}</code>
+            <small>
+              ដាក់ URL នេះក្នុង Fox → API Key → Webhook · កំណត់ <b>FOX_WEBHOOK_SECRET</b> លើ Render ·
+              events: order.success / partial / failed / refunded
+              {provStatus?.fox ? (provStatus.fox.webhook ? " · secret ✓" : " · secret មិនទាន់មាន") : ""}
+            </small>
+          </div>
         </div>
         <div className="ad-toggle-row">
           <div>

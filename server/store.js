@@ -38,7 +38,7 @@ const DEFAULT_SETTINGS = {
   ],
   /** When true and keys set, auto-order on Khmer TopUp after payment */
   autoTopup: true,
-  /** khmer | dino | both */
+  /** khmer | fox | both */
   topupProvider: "khmer",
   /** Which Khmer TopUp games/packages to sell (Admin → Services) */
   ktSelection: { markupPercent: 0, games: {} },

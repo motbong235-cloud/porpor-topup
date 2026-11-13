@@ -161,7 +161,7 @@ function ServiceHero({ game, lang, children }) {
 
   return (
     <div className="svc-top-stack" style={{ "--hue": game.hue || 210 }}>
-      {/* Promo banner strip (package page) — like Dino */}
+      {/* Promo banner strip (package page) — storefront */}
       {n > 0 ? (
         <div
           className="svc-promo-banner"
@@ -733,9 +733,9 @@ export default function Game({ lang, addOrder, settings }) {
       </nav>
       <ServiceHero game={game} lang={lang}>
         <div className="chips trust-row">
-          <span className="trust-chip"><img src="/dino-icons/icon-fast.svg" alt="" width={14} height={14} /> Fast</span>
-          <span className="trust-chip"><img src="/dino-icons/icon-safe.svg" alt="" width={14} height={14} /> Secure</span>
-          <span className="trust-chip"><img src="/dino-icons/icon-24hours.svg" alt="" width={14} height={14} /> 24/7</span>
+          <span className="trust-chip"><img src="/sf-icons/icon-fast.svg" alt="" width={14} height={14} /> Fast</span>
+          <span className="trust-chip"><img src="/sf-icons/icon-safe.svg" alt="" width={14} height={14} /> Secure</span>
+          <span className="trust-chip"><img src="/sf-icons/icon-24hours.svg" alt="" width={14} height={14} /> 24/7</span>
           <span className="trust-chip"><img src="/payments/khqr-mark.png" alt="" width={14} height={14} /> KHQR</span>
         </div>
       </ServiceHero>
@@ -851,17 +851,17 @@ export default function Game({ lang, addOrder, settings }) {
           ) : null}
 
           {!isGift && (
-          <section className="card dino-info-card">
-            <div className="dino-info-head">
-              <span className="dino-info-step">1</span>
-              <h2 className="dino-info-title">{lang === "km" ? "បញ្ចូលព័ត៌មាន" : "Enter Information"}</h2>
+          <section className="card sf-info-card">
+            <div className="sf-info-head">
+              <span className="sf-info-step">1</span>
+              <h2 className="sf-info-title">{lang === "km" ? "បញ្ចូលព័ត៌មាន" : "Enter Information"}</h2>
             </div>
 
-            <label className="dino-field">
-              <span className="dino-field-label">{String(t(lang, "playerId") || "User ID").toUpperCase()}</span>
-              <div className="dino-check-row">
-                <div className="dino-input-wrap">
-                  <span className="dino-input-ico" aria-hidden>
+            <label className="sf-field">
+              <span className="sf-field-label">{String(t(lang, "playerId") || "User ID").toUpperCase()}</span>
+              <div className="sf-check-row">
+                <div className="sf-input-wrap">
+                  <span className="sf-input-ico" aria-hidden>
                     <Icon name="user" size={16} />
                   </span>
                   <input
@@ -885,7 +885,7 @@ export default function Game({ lang, addOrder, settings }) {
                 </div>
                 <button
                   type="button"
-                  className="dino-check-btn"
+                  className="sf-check-btn"
                   disabled={checking || userId.trim().length < 3}
                   onClick={verify}
                 >
@@ -896,9 +896,9 @@ export default function Game({ lang, addOrder, settings }) {
             </label>
 
             {game.hasZone ? (
-              <label className="dino-field" style={{ marginTop: 12 }}>
-                <span className="dino-field-label">{(lang === "km" ? game.zoneLabelKm : game.zoneLabelEn) || "ZONE ID"}</span>
-                <div className="dino-input-wrap solo">
+              <label className="sf-field" style={{ marginTop: 12 }}>
+                <span className="sf-field-label">{(lang === "km" ? game.zoneLabelKm : game.zoneLabelEn) || "ZONE ID"}</span>
+                <div className="sf-input-wrap solo">
                   <input
                     value={zoneId}
                     inputMode="numeric"
@@ -914,9 +914,9 @@ export default function Game({ lang, addOrder, settings }) {
             ) : null}
 
             {game.servers?.length > 0 ? (
-              <label className="dino-field" style={{ marginTop: 12 }}>
-                <span className="dino-field-label">{t(lang, "server")}</span>
-                <div className="dino-input-wrap solo">
+              <label className="sf-field" style={{ marginTop: 12 }}>
+                <span className="sf-field-label">{t(lang, "server")}</span>
+                <div className="sf-input-wrap solo">
                   <select
                     value={server}
                     onChange={(e) => {
@@ -937,8 +937,8 @@ export default function Game({ lang, addOrder, settings }) {
             {rbxProfile ? (
               <RobloxProfileCard profile={rbxProfile} lang={lang} />
             ) : nick ? (
-              <div className="dino-verify-ok">
-                <span className="dino-verify-ok-dot"><Icon name="check" size={12} /></span>
+              <div className="sf-verify-ok">
+                <span className="sf-verify-ok-dot"><Icon name="check" size={12} /></span>
                 <div>
                   <strong>{nick}</strong>
                   <span>{lang === "km" ? "ID ត្រឹមត្រូវ" : "ID verified"}</span>
@@ -946,16 +946,16 @@ export default function Game({ lang, addOrder, settings }) {
               </div>
             ) : null}
             {unverified && !nick ? (
-              <div className="dino-verify-warn">
+              <div className="sf-verify-warn">
                 {lang === "km"
                   ? "មិនអាចពិនិត្យ ID ឥឡូវនេះបានទេ — អ្នកនៅតែអាចបន្តបាន សូមប្រាកដថា ID ត្រឹមត្រូវ។"
                   : "ID check is unavailable right now — you can still continue, just make sure the ID is correct."}
               </div>
             ) : null}
-            {payErr && !paying ? <div className="dino-verify-err">{payErr}</div> : null}
+            {payErr && !paying ? <div className="sf-verify-err">{payErr}</div> : null}
 
-            <div className="dino-info-note">
-              <span className="dino-info-note-ico" aria-hidden>i</span>
+            <div className="sf-info-note">
+              <span className="sf-info-note-ico" aria-hidden>i</span>
               <p>
                 {(lang === "km" ? game.idHintKm : game.idHintEn) ||
                   (lang === "km"
@@ -984,8 +984,8 @@ export default function Game({ lang, addOrder, settings }) {
                           : "USERNAME"}
                     </span>
                     <div className="rbx-check-row">
-                      <div className="dino-input-wrap" style={{ flex: 1 }}>
-                        <span className="dino-input-ico" aria-hidden>
+                      <div className="sf-input-wrap" style={{ flex: 1 }}>
+                        <span className="sf-input-ico" aria-hidden>
                           <Icon name="user" size={16} />
                         </span>
                         <input
@@ -1018,7 +1018,7 @@ export default function Game({ lang, addOrder, settings }) {
                       {needCheckId ? (
                       <button
                         type="button"
-                        className="dino-check-btn"
+                        className="sf-check-btn"
                         disabled={checking || userId.trim().length < 3}
                         onClick={verify}
                       >
@@ -1033,8 +1033,8 @@ export default function Game({ lang, addOrder, settings }) {
                   ) : needCheckId && rbxProfile ? (
                     <RobloxProfileCard profile={rbxProfile} lang={lang} />
                   ) : nick ? (
-                    <div className="dino-verify-ok">
-                      <span className="dino-verify-ok-dot"><Icon name="check" size={12} /></span>
+                    <div className="sf-verify-ok">
+                      <span className="sf-verify-ok-dot"><Icon name="check" size={12} /></span>
                       <div>
                         <strong>{nick}</strong>
                         <span>{lang === "km" ? "ID ត្រឹមត្រូវ" : "ID verified"}</span>
@@ -1064,11 +1064,11 @@ export default function Game({ lang, addOrder, settings }) {
           {isGift && isStock && needUsername ? (
             <section className="card">
               <h2 className="sec-title"><span className="step-no">1</span> {t(lang, "account")}</h2>
-              <label className="dino-field">
-                <span className="dino-field-label">{isRobloxGame ? "ROBLOX USERNAME" : "USERNAME"}</span>
-                <div className="dino-check-row">
-                  <div className="dino-input-wrap">
-                    <span className="dino-input-ico" aria-hidden>
+              <label className="sf-field">
+                <span className="sf-field-label">{isRobloxGame ? "ROBLOX USERNAME" : "USERNAME"}</span>
+                <div className="sf-check-row">
+                  <div className="sf-input-wrap">
+                    <span className="sf-input-ico" aria-hidden>
                       <Icon name="user" size={16} />
                     </span>
                     <input
@@ -1092,7 +1092,7 @@ export default function Game({ lang, addOrder, settings }) {
                     />
                   </div>
                   {needCheckId ? (
-                    <button type="button" className="dino-check-btn" disabled={checking || userId.trim().length < 3} onClick={verify}>
+                    <button type="button" className="sf-check-btn" disabled={checking || userId.trim().length < 3} onClick={verify}>
                       {checking ? "…" : "Check"}
                     </button>
                   ) : null}
@@ -1102,7 +1102,7 @@ export default function Game({ lang, addOrder, settings }) {
             </section>
           ) : null}
 
-          <section className="card packs-section dino-packs">
+          <section className="card packs-section sf-packs">
             <div className="pack-head">
               <h2 className="sec-title"><span className="step-no">2</span> {lang === "km" ? "ជ្រើសកញ្ចប់" : "Select Package"}</h2>
               <div className="qty">
@@ -1123,7 +1123,7 @@ export default function Game({ lang, addOrder, settings }) {
             ) : null}
             {(() => {
               const list = game.packs.filter((p) => cat === "all" || catLabel(p.category) === cat);
-              // group by category like Dino
+              // group by category storefront
               const groups = [];
               const map = new Map();
               for (const p of list) {
@@ -1137,15 +1137,15 @@ export default function Game({ lang, addOrder, settings }) {
               }
               const tones = ["tone-cream", "tone-lilac", "tone-mint", "tone-sky"];
               return groups.map((g) => (
-                <div className="dino-pack-group" key={g.key}>
+                <div className="sf-pack-group" key={g.key}>
                   {cat === "all" && groups.length > 1 ? (
-                    <div className="dino-pack-group-head">
-                      <span className="dino-pack-group-title">{g.key}</span>
-                      <span className="dino-pack-group-line" />
-                      <span className="dino-pack-group-count">{g.items.length}</span>
+                    <div className="sf-pack-group-head">
+                      <span className="sf-pack-group-title">{g.key}</span>
+                      <span className="sf-pack-group-line" />
+                      <span className="sf-pack-group-count">{g.items.length}</span>
                     </div>
                   ) : null}
-                  <div className="packs dino-pack-grid">
+                  <div className="packs sf-pack-grid">
                     {g.items.map((p, i) => {
                       const soldOut = isStock && p.inStock === false;
                       const tone = tones[i % tones.length];
@@ -1156,7 +1156,7 @@ export default function Game({ lang, addOrder, settings }) {
                           type="button"
                           disabled={soldOut}
                           aria-pressed={packId === p.id}
-                          className={`pack dino-pack ${tone}${ico ? " has-img" : ""}${packId === p.id ? " active" : ""}${soldOut ? " sold-out" : ""}`}
+                          className={`pack sf-pack ${tone}${ico ? " has-img" : ""}${packId === p.id ? " active" : ""}${soldOut ? " sold-out" : ""}`}
                           onClick={() => {
                             if (soldOut) return;
                             setPackId(p.id);
@@ -1180,19 +1180,19 @@ export default function Game({ lang, addOrder, settings }) {
                             } else setApplied(0);
                           }}
                         >
-                          <span className="dino-pack-icon" aria-hidden>
+                          <span className="sf-pack-icon" aria-hidden>
                             {ico ? (
                               <img src={ico} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} />
                             ) : (
-                              <span className="dino-pack-glyph">◆</span>
+                              <span className="sf-pack-glyph">◆</span>
                             )}
                           </span>
-                          <span className="dino-pack-meta">
-                            <span className="dino-pack-name">{lang === "km" ? (p.nameKm || p.name) : p.name}</span>
-                            <span className="dino-pack-price">{money(p.price)}</span>
+                          <span className="sf-pack-meta">
+                            <span className="sf-pack-name">{lang === "km" ? (p.nameKm || p.name) : p.name}</span>
+                            <span className="sf-pack-price">{money(p.price)}</span>
                           </span>
-                          {p.badge ? <span className="dino-pack-badge">{p.badge}</span> : null}
-                          <span className="dino-pack-add" aria-hidden>
+                          {p.badge ? <span className="sf-pack-badge">{p.badge}</span> : null}
+                          <span className="sf-pack-add" aria-hidden>
                             {packId === p.id ? (
                               <>
                                 <Icon name="check" size={14} /> {lang === "km" ? "បានជ្រើស" : "Selected"}

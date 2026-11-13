@@ -1,24 +1,23 @@
 /**
- * Cost price tracker for Khmer TopUp + Dino Topups — snapshot + diff (up / down)
+ * Cost price tracker for Khmer TopUp + Fox Topups — snapshot + diff (up / down)
  */
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import * as catalog from "./catalog.js";
-import * as dinoTopup from "./dinoTopup.js";
+import * as foxTopup from "./foxTopup.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "..", "data");
 const MAX_SNAPS = 60;
-const GAMES_DINO = ["ml", "ff", "pubg", "hok", "genshin", "roblox", "valorant", "codm", "aov", "wildrift", "lol", "steam", "delta", "blood-strike"];
 
 function ensure() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
 function fileFor(provider) {
-  const p = String(provider || "khmer").toLowerCase() === "dino" ? "dino" : "khmer";
-  return path.join(DATA_DIR, p === "dino" ? "dino-price-history.json" : "kt-price-history.json");
+  const p = String(provider || "khmer").toLowerCase() === "fox" ? "fox" : "khmer";
+  return path.join(DATA_DIR, p === "fox" ? "fox-price-history.json" : "kt-price-history.json");
 }
 
 function read(provider) {
@@ -71,39 +70,33 @@ async function fetchKhmerGames() {
   return catalog.fetchSupplierGames(true);
 }
 
-async function fetchDinoGames() {
-  if (!dinoTopup.isDinoReady()) {
-    throw Object.assign(new Error("DINO_TOPUP_API_KEY not set"), { code: "not_configured" });
+async function fetchFoxGames() {
+  if (!foxTopup.isFoxReady()) {
+    throw Object.assign(new Error("Fox Topup not configured (FOX_TOPUP_UID + FOX_TOPUP_API_KEY)"), { code: "not_configured" });
   }
-  let games = [];
-  try {
-    const data = await dinoTopup.listProducts();
-    games = dinoTopup.normalizeGamesPayload(data);
-  } catch {
-    games = [];
-  }
-  if (games.length < 8) {
-    const have = new Set(games.map((g) => String(g.slug).toLowerCase()));
-    for (const gid of GAMES_DINO) {
-      if (have.has(gid)) continue;
-      try {
-        const data = await dinoTopup.listProducts(gid);
-        for (const g of dinoTopup.normalizeGamesPayload(data)) {
-          const k = String(g.slug).toLowerCase();
-          if (have.has(k)) continue;
-          have.add(k);
-          games.push(g);
+  const raw = await foxTopup.listGames();
+  const games = foxTopup.normalizeGamesPayload(raw);
+  const arr = raw.games || raw.data?.games || (Array.isArray(raw.data) ? raw.data : Array.isArray(raw) ? raw : []);
+  const have = new Set(games.map((g) => String(g.slug)));
+  for (const g of arr) {
+    const code = String(g?.code || g?.id || g?.slug || "");
+    if (!code || have.has(code)) continue;
+    try {
+      for (const x of foxTopup.normalizeGamesPayload(await foxTopup.getGame(code))) {
+        if (!have.has(x.slug)) {
+          have.add(x.slug);
+          games.push(x);
         }
-      } catch {
-        /* skip */
       }
+    } catch {
+      /* skip */
     }
   }
   return games;
 }
 
 async function fetchGames(provider) {
-  return String(provider).toLowerCase() === "dino" ? fetchDinoGames() : fetchKhmerGames();
+  return String(provider).toLowerCase() === "fox" ? fetchFoxGames() : fetchKhmerGames();
 }
 
 export function diffSnapshots(prev, curr) {

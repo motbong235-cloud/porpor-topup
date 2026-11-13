@@ -1,12 +1,12 @@
 /* ============================================================
-   DINO MATCH v2 — loaded LAST (after index.css / dino-full-match.css)
+   STOREFRONT MATCH v2 — loaded LAST (after index.css / sf-full-match.css)
    Layout, density, radius, tiles and sections copied from
-   dinotopups.com. Palette stays Porpor blue (not Dino green).
+   the reference layout. Palette stays Porpor blue (not reference green).
    ============================================================ */
 
 :root {
   --dm-card: #ffffff;
-  --dm-ring: rgba(203, 213, 225, 0.65); /* slate-300/65 like dino ring-1 */
+  --dm-ring: rgba(203, 213, 225, 0.65); /* slate-300/65 like storefront ring-1 */
   --dm-soft: #eef4fc;
   --dm-r-card: 1rem;   /* rounded-2xl */
   --dm-r-in: 0.75rem;  /* rounded-xl  */
@@ -28,7 +28,7 @@ html, body {
 body { background: var(--dm-soft); transition: background-color .2s, color .2s; }
 html.dark body { background: #07111f; }
 
-/* ---------- Container: wide like dino (max 1440) ---------- */
+/* ---------- Container: wide like storefront (max 1440) ---------- */
 .container {
   max-width: 1440px !important;
   padding: 16px 12px 28px !important;
@@ -104,7 +104,7 @@ html.dark .header, html.dark .site-header { background: rgba(7, 17, 31, 0.9) !im
 }
 @media (min-width: 640px) { .sec-title { font-size: 16px !important; } }
 .section-sub, .count { font-size: 12px !important; color: var(--muted); margin: 0 0 10px !important; }
-.section-head .star { display: none; } /* dino has no star badge */
+.section-head .star { display: none; } /* storefront has no star badge */
 
 /* ---------- Search / filter pill ---------- */
 .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
@@ -126,7 +126,7 @@ html.dark .header, html.dark .site-header { background: rgba(7, 17, 31, 0.9) !im
 @media (min-width: 1024px) { .game-grid, .game-grid-3 { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; } }
 
 /* ---------- GAME TILE: square art + name + pill ---------- */
-.game-card, .game-card.dino-card {
+.game-card, .game-card.sf-card {
   position: relative;
   background: var(--dm-card) !important;
   border: none !important;
@@ -137,7 +137,7 @@ html.dark .header, html.dark .site-header { background: rgba(7, 17, 31, 0.9) !im
   overflow: hidden !important;
   transition: transform .2s, box-shadow .2s !important;
 }
-@media (min-width: 640px) { .game-card, .game-card.dino-card { padding: 8px !important; } }
+@media (min-width: 640px) { .game-card, .game-card.sf-card { padding: 8px !important; } }
 .game-card:hover:not(.disabled) {
   transform: translateY(-2px) !important;
   box-shadow: 0 0 0 1px var(--primary), var(--dm-shadow-hover) !important;
@@ -156,7 +156,7 @@ html.dark .header, html.dark .site-header { background: rgba(7, 17, 31, 0.9) !im
   display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
 }
 @media (min-width: 640px) { .game-name { font-size: 12px !important; } }
-.game-from { display: none !important; } /* dino tile shows no price line */
+.game-from { display: none !important; } /* storefront tile shows no price line */
 .game-cta {
   display: block; width: 100%; text-align: center;
   border-radius: 999px !important; padding: 4px 0 !important;
@@ -177,7 +177,7 @@ html.dark .game-cta.off { background: #1e293b; color: #94a3b8; }
 }
 .game-badge.hot { background: #ef4444; }
 .game-card.disabled .game-tile { filter: grayscale(1); opacity: .55; }
-/* skeleton like dino animate-pulse squares */
+/* skeleton like storefront animate-pulse squares */
 .game-card.skeleton { padding: 6px !important; }
 .sk-tile { aspect-ratio: 1 / 1; border-radius: var(--dm-r-in); background: #e2e8f0; animation: dm-pulse 1.6s ease-in-out infinite; }
 html.dark .sk-tile { background: #1e293b; }
@@ -202,23 +202,23 @@ html.dark .sk-tile { background: #1e293b; }
 .hot-name { font-size: 11px; font-weight: 700; display: block; }
 .hot-price { font-size: 10px; color: var(--muted); }
 
-/* ---------- Feature row = dino "card p-3.5 flex gap-3" ---------- */
-.dino-features {
+/* ---------- Feature row = storefront "card p-3.5 flex gap-3" ---------- */
+.sf-features {
   display: grid; grid-template-columns: 1fr; gap: 10px; margin: 6px 0 12px !important;
 }
-@media (min-width: 640px) { .dino-features { grid-template-columns: repeat(3, 1fr) !important; } }
-@media (min-width: 1024px) { .dino-features { grid-template-columns: repeat(4, 1fr) !important; } }
-.dino-feature {
+@media (min-width: 640px) { .sf-features { grid-template-columns: repeat(3, 1fr) !important; } }
+@media (min-width: 1024px) { .sf-features { grid-template-columns: repeat(4, 1fr) !important; } }
+.sf-feature {
   align-items: center !important; gap: 12px !important; padding: 14px !important;
   border: none !important; border-radius: var(--dm-r-card) !important;
   background: var(--dm-card) !important; box-shadow: 0 0 0 1px var(--dm-ring) !important;
   transition: transform .2s;
 }
-.dino-feature:hover { transform: translateY(-2px); }
-.dino-feature-ico { width: 36px !important; height: 36px !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; }
-.dino-feature-ico img { width: 36px; height: 36px; object-fit: contain; }
-.dino-feature strong { font-size: 13.5px !important; font-weight: 800; }
-.dino-feature p { font-size: 11.5px !important; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sf-feature:hover { transform: translateY(-2px); }
+.sf-feature-ico { width: 36px !important; height: 36px !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; }
+.sf-feature-ico img { width: 36px; height: 36px; object-fit: contain; }
+.sf-feature strong { font-size: 13.5px !important; font-weight: 800; }
+.sf-feature p { font-size: 11.5px !important; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ---------- Generic cards / buttons ---------- */
 .card {
@@ -237,13 +237,13 @@ html.dark .footer { background: #0b1626 !important; }
 
 /* ---------- Respect reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
-  .game-card, .hot-card, .dino-feature, .banner-dots button { transition: none !important; }
+  .game-card, .hot-card, .sf-feature, .banner-dots button { transition: none !important; }
   .game-grid > * { animation: none !important; }
 }
 
 
 /* ============================================================
-   THEME — Dino green palette, fonts, buttons, inputs, steps
+   THEME — reference green palette, fonts, buttons, inputs, steps
    ============================================================ */
 :root {
   --bg: #eef4fc;
@@ -269,7 +269,7 @@ html.dark {
 body, button, input, select, textarea { font-family: var(--font); }
 ::selection { background: #d9e8ff; color: #082044; }
 
-/* ---------- Primary button: dino 3D bottom edge ---------- */
+/* ---------- Primary button: storefront 3D bottom edge ---------- */
 .btn.bg-brand, .bg-brand.btn, button.bg-brand, a.bg-brand {
   background: var(--primary) !important;
   color: #fff !important;
@@ -292,7 +292,7 @@ body, button, input, select, textarea { font-family: var(--font); }
 html.dark .btn-ghost, html.dark .btn-soft { background: #0e1b2e; border-color: #1e3352; color: #fff; }
 
 /* ---------- Inputs: 2px border, green focus ---------- */
-.search-input, .dino-input-wrap, input.input, .input, .dino-field input, .dino-field select,
+.search-input, .sf-input-wrap, input.input, .input, .sf-field input, .sf-field select,
 .card input[type="text"], .card input[type="email"], .card input[type="tel"], .card input[type="number"], .card select {
   border: 2px solid #e2e8f0 !important;
   border-radius: .75rem !important;
@@ -300,19 +300,19 @@ html.dark .btn-ghost, html.dark .btn-soft { background: #0e1b2e; border-color: #
   font-size: 13.5px;
   color: var(--ink);
 }
-html.dark .search-input, html.dark .dino-input-wrap, html.dark .input, html.dark .card input, html.dark .card select {
+html.dark .search-input, html.dark .sf-input-wrap, html.dark .input, html.dark .card input, html.dark .card select {
   background: #0e1b2e !important; border-color: #1e3352 !important; color: #fff;
 }
-.search-input:focus, .dino-input-wrap:focus-within, .input:focus,
+.search-input:focus, .sf-input-wrap:focus-within, .input:focus,
 .card input:focus, .card select:focus {
   border-color: var(--primary) !important;
   box-shadow: 0 0 0 3px rgba(29, 106, 223, .15) !important;
   outline: none;
 }
-.dino-input-wrap input { border: none !important; box-shadow: none !important; background: transparent !important; }
-.dino-field-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #94a3b8; }
+.sf-input-wrap input { border: none !important; box-shadow: none !important; background: transparent !important; }
+.sf-field-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #94a3b8; }
 
-/* ---------- Cards: dino shadow ---------- */
+/* ---------- Cards: storefront shadow ---------- */
 .card {
   box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 6px 18px -10px rgba(8, 32, 68, .12), 0 0 0 1px var(--dm-ring) !important;
 }
@@ -329,7 +329,7 @@ html.dark .crumb span { color: #e2e8f0; }
 }
 .container:has(.layout-2) { max-width: 1180px !important; }
 
-/* Step headers: green numbered circle + dashed rule (dino) */
+/* Step headers: green numbered circle + dashed rule (storefront) */
 .sec-title .step-no {
   width: 24px; height: 24px; border-radius: 999px;
   display: inline-flex; align-items: center; justify-content: center;
@@ -344,7 +344,7 @@ html.dark .crumb span { color: #e2e8f0; }
 }
 html.dark .layout-2 .card > .sec-title:first-child::after { border-color: #334155; }
 
-/* Packages: dino ring selection */
+/* Packages: storefront ring selection */
 .pack, button.pack {
   border: none !important; border-radius: .75rem !important; background: var(--dm-card) !important;
   box-shadow: 0 0 0 1px var(--dm-ring) !important; transition: box-shadow .15s, transform .15s !important;
@@ -366,7 +366,7 @@ html.dark .pay-choice { box-shadow: 0 0 0 2px #334155 !important; }
 .summary .row.total { font-size: 14px; font-weight: 800; color: var(--primary-dark); }
 html.dark .summary .row.total { color: #7db6ff; }
 
-/* Messages (dino rose / amber / green boxes) */
+/* Messages (storefront rose / amber / green boxes) */
 .msg.err { background: #fff1f2; box-shadow: inset 0 0 0 1px #fecdd3; color: #9f1239; border-radius: .75rem; padding: 12px 16px; font-weight: 600; font-size: 13px; }
 .msg.ok  { background: #e7f1ff; box-shadow: inset 0 0 0 1px #b8d6ff; color: #083a8a; border-radius: .75rem; padding: 12px 16px; font-weight: 600; font-size: 13px; }
 
@@ -391,7 +391,7 @@ html.dark .chip, html.dark .trust-chip, html.dark .safety-chip { color: #7db6ff;
 
 
 /* ============================================================
-   v4 — Dino-style visuals in Porpor BLUE
+   v4 — Storefront visuals in Porpor BLUE
    header (hamburger left + logo image), banner + hero card,
    tinted package cards with "+ Add", dark payment panel,
    thank-you image, chat bubble
@@ -440,10 +440,10 @@ html.dark .chip, html.dark .trust-chip, html.dark .safety-chip { color: #7db6ff;
 .svc-hero.below-banner .svc-blurb { color: var(--muted); font-size: 12.5px; }
 
 /* ---------- Package cards: tinted, blue border, "+ Add" ---------- */
-.dino-pack-grid.packs { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 12px !important; }
-@media (min-width: 640px) { .dino-pack-grid.packs { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }
-@media (min-width: 1280px) { .dino-pack-grid.packs { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; } }
-button.pack.dino-pack {
+.sf-pack-grid.packs { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 12px !important; }
+@media (min-width: 640px) { .sf-pack-grid.packs { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }
+@media (min-width: 1280px) { .sf-pack-grid.packs { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; } }
+button.pack.sf-pack {
   position: relative;
   display: grid !important;
   grid-template-columns: 56px minmax(0, 1fr);
@@ -457,38 +457,38 @@ button.pack.dino-pack {
   box-shadow: none !important;
   min-height: 0;
 }
-html.dark button.pack.dino-pack { border-color: #27476f !important; }
-button.pack.dino-pack:hover:not(:disabled) { border-color: var(--primary) !important; transform: translateY(-1px) !important; box-shadow: 0 8px 18px -10px rgba(29,106,223,.5) !important; }
-button.pack.dino-pack.active { border-color: var(--primary) !important; box-shadow: 0 0 0 2px var(--primary) !important; }
-.dino-pack-icon { grid-area: ico; width: 56px !important; height: 56px !important; display: grid; place-items: center; background: transparent !important; box-shadow: none !important; border: none !important; }
-.dino-pack-icon img { width: 56px !important; height: 56px !important; object-fit: contain !important; }
-.dino-pack-glyph { font-size: 30px; color: var(--primary); }
-.dino-pack-meta { grid-area: meta; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.dino-pack-name { font-size: 14px !important; font-weight: 700 !important; line-height: 1.2; color: #0b1220; word-break: break-word; }
-.dino-pack-price { font-size: 17px !important; font-weight: 800 !important; color: #0b1220 !important; }
-html.dark .dino-pack-name, html.dark .dino-pack-price { color: var(--ink) !important; }
-.dino-pack-add {
+html.dark button.pack.sf-pack { border-color: #27476f !important; }
+button.pack.sf-pack:hover:not(:disabled) { border-color: var(--primary) !important; transform: translateY(-1px) !important; box-shadow: 0 8px 18px -10px rgba(29,106,223,.5) !important; }
+button.pack.sf-pack.active { border-color: var(--primary) !important; box-shadow: 0 0 0 2px var(--primary) !important; }
+.sf-pack-icon { grid-area: ico; width: 56px !important; height: 56px !important; display: grid; place-items: center; background: transparent !important; box-shadow: none !important; border: none !important; }
+.sf-pack-icon img { width: 56px !important; height: 56px !important; object-fit: contain !important; }
+.sf-pack-glyph { font-size: 30px; color: var(--primary); }
+.sf-pack-meta { grid-area: meta; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sf-pack-name { font-size: 14px !important; font-weight: 700 !important; line-height: 1.2; color: #0b1220; word-break: break-word; }
+.sf-pack-price { font-size: 17px !important; font-weight: 800 !important; color: #0b1220 !important; }
+html.dark .sf-pack-name, html.dark .sf-pack-price { color: var(--ink) !important; }
+.sf-pack-add {
   grid-area: add; display: flex; align-items: center; justify-content: center;
   height: 40px; border-radius: .9rem; font-size: 14px; font-weight: 800; color: #fff;
   background: var(--pp-btn-dark); box-shadow: 0 3px 0 0 #083a8a; transition: background .15s, transform .15s, box-shadow .15s;
 }
-button.pack.dino-pack:hover:not(:disabled) .dino-pack-add { background: var(--primary); }
-button.pack.dino-pack:active:not(:disabled) .dino-pack-add { transform: translateY(2px); box-shadow: 0 1px 0 0 #083a8a; }
-button.pack.dino-pack.active .dino-pack-add { background: #0f9d6e; box-shadow: 0 3px 0 0 #0a7a55; }
-.dino-pack-badge {
+button.pack.sf-pack:hover:not(:disabled) .sf-pack-add { background: var(--primary); }
+button.pack.sf-pack:active:not(:disabled) .sf-pack-add { transform: translateY(2px); box-shadow: 0 1px 0 0 #083a8a; }
+button.pack.sf-pack.active .sf-pack-add { background: #0f9d6e; box-shadow: 0 3px 0 0 #0a7a55; }
+.sf-pack-badge {
   position: absolute; top: -10px; left: 12px; padding: 2px 10px; border-radius: 8px 8px 0 0;
   background: #0a4cb5; color: #fff; font-size: 11px; font-weight: 800; letter-spacing: .02em; white-space: nowrap;
 }
-button.pack.dino-pack .pack-tick { display: none !important; }
-button.pack.dino-pack.sold-out { opacity: .55; }
-button.pack.dino-pack.sold-out .dino-pack-add { background: #94a3b8; box-shadow: 0 3px 0 0 #7b8aa0; }
+button.pack.sf-pack .pack-tick { display: none !important; }
+button.pack.sf-pack.sold-out { opacity: .55; }
+button.pack.sf-pack.sold-out .sf-pack-add { background: #94a3b8; box-shadow: 0 3px 0 0 #7b8aa0; }
 
 /* group head with count pill */
-.dino-pack-group-head { display: flex; align-items: center; gap: 10px; margin: 6px 0 10px; }
-.dino-pack-group-line { flex: 1; border-top: 2px dashed #dbe6f3; }
-html.dark .dino-pack-group-line { border-color: #1e3352; }
-.dino-pack-group-count { min-width: 28px; height: 28px; border-radius: 999px; display: grid; place-items: center; background: #eef4fc; color: #5c6e88; font-size: 12px; font-weight: 800; }
-html.dark .dino-pack-group-count { background: #14263f; color: #9aafc8; }
+.sf-pack-group-head { display: flex; align-items: center; gap: 10px; margin: 6px 0 10px; }
+.sf-pack-group-line { flex: 1; border-top: 2px dashed #dbe6f3; }
+html.dark .sf-pack-group-line { border-color: #1e3352; }
+.sf-pack-group-count { min-width: 28px; height: 28px; border-radius: 999px; display: grid; place-items: center; background: #eef4fc; color: #5c6e88; font-size: 12px; font-weight: 800; }
+html.dark .sf-pack-group-count { background: #14263f; color: #9aafc8; }
 
 /* ---------- Payment: dark blue panel ---------- */
 .card.pay-section.pay-dark {
@@ -568,14 +568,14 @@ body { font-size: 14px; line-height: 1.45; }
 .layout-2 > div { display: flex; flex-direction: column; }
 .crumb { font-size: 12px; margin: 0 0 10px; }
 
-/* Step titles: normal case like dino, consistent size */
+/* Step titles: normal case like storefront, consistent size */
 .sec-title, .section-head h2, .pack-head .sec-title {
   text-transform: none !important; letter-spacing: -0.01em !important;
   font-size: 15px !important; font-weight: 800 !important; margin: 0 0 12px;
 }
 @media (min-width: 640px) { .sec-title, .pack-head .sec-title { font-size: 16px !important; } }
 .sec-title .step-no { width: 24px !important; height: 24px !important; font-size: 12px !important; }
-.dino-field-label, .field-label, label.lbl { font-size: 11px !important; letter-spacing: .08em; text-transform: uppercase; }
+.sf-field-label, .field-label, label.lbl { font-size: 11px !important; letter-spacing: .08em; text-transform: uppercase; }
 .svc-hero.below-banner h1 { font-size: 20px !important; }
 @media (min-width: 640px) { .svc-hero.below-banner h1 { font-size: 24px !important; } }
 .svc-hero.below-banner .svc-hero-text { min-width: 0; }
@@ -617,7 +617,7 @@ body { font-size: 14px; line-height: 1.45; }
 .pay-dark .msg.err { margin: 12px 0 0; }
 .pay-terms { margin: 12px 0 4px !important; font-size: 12.5px !important; }
 
-/* Thank-you block: website logo + script text (dino layout) */
+/* Thank-you block: website logo + script text (storefront layout) */
 .pay-thanks { display: flex !important; align-items: center; justify-content: center; gap: 14px; width: 100% !important; margin: 14px 0 0 !important; }
 .pay-thanks-logo {
   width: 92px; height: 92px; object-fit: contain; flex: none;
@@ -632,7 +632,7 @@ body { font-size: 14px; line-height: 1.45; }
 }
 @media (min-width: 1024px) { .pay-thanks-logo { width: 76px; height: 76px; } .pay-thanks-text span:first-child { font-size: 26px; } .pay-thanks-text span:last-child { font-size: 18px; } }
 
-/* ---------- Footer: dark navy like dino ---------- */
+/* ---------- Footer: dark navy like storefront ---------- */
 .footer {
   background: linear-gradient(180deg, #082044 0%, #061830 100%) !important;
   color: #e3efff; border-top: none !important; margin-top: 28px; padding-top: 28px;

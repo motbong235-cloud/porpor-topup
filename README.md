@@ -89,7 +89,10 @@ Prices are always calculated on the server (supplier cost + markup − coupon); 
 |----------|---------|
 | `ABA_API_KEY` | ABA PayWay payment |
 | `ABA_MERCHANT_ID` | ABA PayWay merchant |
-| `KHMER_TOPUP_API_KEY` | Game catalog + auto delivery |
+| `KHMER_TOPUP_API_KEY` | Khmer TopUp game catalog + auto delivery |
+| `FOX_TOPUP_UID` + `FOX_TOPUP_API_KEY` | Fox Topup catalog (`X-Uid` / `X-Api-Key`) |
+| `FOX_TOPUP_API_SECRET` | Fox Topup signed + encrypted routes (orders, Check ID) |
+| `FOX_WEBHOOK_SECRET` | Verifies `X-Fox-Signature` on `POST /api/webhook/fox` |
 | `ADMIN_PASSWORD` | Admin panel |
 
 All three keys are required — there is no demo mode. Without them the store shows no games / checkout returns `not_configured`.
@@ -99,7 +102,11 @@ All three keys are required — there is no demo mode. Without them the store sh
 Admin → Services: tick a game to sell it, expand it to choose individual packages, optionally set a per-game markup or mark it Featured.
 If a game list looks empty or wrong, use **Raw API sample** on that page to see what Khmer TopUp returns.
 
-Docs: [Khmer TopUp API](https://khmer-topup.com/api-docs)
+Docs: [Khmer TopUp API](https://khmer-topup.com/api-docs) · Fox Topup API: `https://reseller.topupfoxbot.com`
+
+### Fox Topup
+Admin → Settings → Top-up provider: **Khmer TopUp**, **Fox Topup** or **Khmer + Fox**. Admin → Services → **Fox Topup** tab works exactly like the Khmer tab (enable games, pick packages, markup, fixed prices, images, banners; autosaves). Admin → Prices tracks cost changes for both providers.
+The HMAC signature and AES-GCM envelope live in `server/foxTopup.js` (`signRequest` / `encryptBody`) — adjust only there if the official client differs.
 
 
 ## Images (Admin → Services)
@@ -123,8 +130,8 @@ Set either in Render env or Admin → Settings:
 Bot must be **admin** of the channel.
 
 
-## Dino-style UI (v2)
-- `src/dino-match-v2.css` loads last and copies dinotopups.com layout: 1440px container, 16/6 banner, 3→6 column square game tiles, flat white header/footer, card ring style. Palette stays Porpor blue.
+## Storefront UI (v2)
+- `src/sf-match-v2.css` loads last and defines the storefront layout: 1440px container, 16/6 banner, 3→6 column square game tiles, flat white header/footer, card ring style. Palette stays Porpor blue.
 
 ## Push from Termux
 ```bash
@@ -133,6 +140,6 @@ unzip porpor-topup-v2.zip && cd porpor-topup-main
 bash termux-push.sh "your commit message"
 ```
 
-## Dino-style visuals, Porpor blue (v4)
+## Storefront visuals, Porpor blue (v4)
 - Original artwork in `public/images/`: `porpor-logo.svg` (header + chat bubble), `banner-topup.svg` (default game banner), `thank-you-banner.svg` (payment panel). Replace these files with your own images using the same names, or set banners/logo in Admin.
 - Package cards use the package image; if none, Robux games fall back to `/icons/robux-coin.webp`, other games to the game image. Optional `badge` text on a package shows a pill (e.g. HOT).

@@ -32,14 +32,14 @@
 .footer-links-col a:hover .icon-svg { opacity: 1; transform: translateX(2px); }
 .success-livechat, .btn-soft, .pw-aba-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
 .btn.bg-brand { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
-.pack-tick .icon-svg, .dino-verify-ok-dot .icon-svg, .rbx-ok-badge .icon-svg, .robux-qg-pin .icon-svg { display: block; stroke-width: 3; }
+.pack-tick .icon-svg, .sf-verify-ok-dot .icon-svg, .rbx-ok-badge .icon-svg, .robux-qg-pin .icon-svg { display: block; stroke-width: 3; }
 
 /* TikTok tutorial video helpers */
 .tt-video-open { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 12px; font-weight: 600; color: var(--primary, #1d6adf); text-decoration: none; }
 .tt-video-link { display: inline-flex; margin-top: 4px; text-decoration: none; }
 .tt-tutorial video { display: block; }
 
-/* ---- Roblox profile card (Check ID) — dino style ---- */
+/* ---- Roblox profile card (Check ID) — storefront style ---- */
 .rbx-card { margin-top: 12px; border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px var(--brand-200, #bfdbfe), 0 1px 2px rgba(15,23,42,.06); padding: 10px 12px; }
 .rbx-card-main { display: flex; align-items: center; gap: 12px; }
 .rbx-card-avatar { position: relative; flex: none; width: 56px; height: 56px; }
@@ -56,11 +56,11 @@
 .rbx-card-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #eef2f7; text-align: center; }
 .rbx-card-stats b { display: block; font-size: 15px; color: #0f172a; }
 .rbx-card-stats span { font-size: 11px; color: #64748b; }
-.dino-verify-warn, .dino-verify-err { margin-top: 10px; padding: 9px 12px; border-radius: 12px; font-size: 12.5px; line-height: 1.4; }
-.dino-verify-warn { background: #fffbeb; color: #92400e; box-shadow: 0 0 0 1px #fde68a; }
-.dino-verify-err { background: #fef2f2; color: #b91c1c; box-shadow: 0 0 0 1px #fecaca; }
+.sf-verify-warn, .sf-verify-err { margin-top: 10px; padding: 9px 12px; border-radius: 12px; font-size: 12.5px; line-height: 1.4; }
+.sf-verify-warn { background: #fffbeb; color: #92400e; box-shadow: 0 0 0 1px #fde68a; }
+.sf-verify-err { background: #fef2f2; color: #b91c1c; box-shadow: 0 0 0 1px #fecaca; }
 
-/* ---- Order success page — dino style ---- */
+/* ---- Order success page — storefront style ---- */
 .success-status { display: inline-flex; align-items: center; gap: 6px; }
 .success-status i { width: 7px; height: 7px; border-radius: 50%; background: #10b981; }
 .success-status.ok { color: #047857; }

@@ -6,7 +6,7 @@ import { money } from "../lib/store";
 import RobuxRain from "../components/RobuxRain";
 
 /**
- * Payment Successful page (like dinotopups):
+ * Payment Successful page (storefront):
  * - Shows order summary
  * - Live Chat → Telegram admin with Order ID + amount prefilled
  * - Customer does not fill anything else

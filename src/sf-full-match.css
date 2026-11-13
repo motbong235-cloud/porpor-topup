@@ -1,17 +1,17 @@
 
 /* ============================================================
-   FULL Dino layout match for Porpor Topup
-   Structure/spacing/radius/shadows like dinotopups.com
-   Palette remains Porpor blue/navy (never Dino green)
+   FULL Storefront layout match for Porpor Topup
+   Structure/spacing/radius/shadows storefront.com
+   Palette remains Porpor blue/navy (never reference green)
    ============================================================ */
 
 :root {
-  --dino-radius: 1.25rem;
-  --dino-radius-lg: 1.5rem;
-  --dino-radius-xl: 1.75rem;
-  --dino-shadow: 0 4px 20px -8px rgba(8, 32, 68, 0.14), 0 1px 3px rgba(8, 32, 68, 0.06);
-  --dino-shadow-lg: 0 16px 40px -16px rgba(8, 32, 68, 0.22);
-  --dino-border: #e4edf7;
+  --sf-radius: 1.25rem;
+  --sf-radius-lg: 1.5rem;
+  --sf-radius-xl: 1.75rem;
+  --sf-shadow: 0 4px 20px -8px rgba(8, 32, 68, 0.14), 0 1px 3px rgba(8, 32, 68, 0.06);
+  --sf-shadow-lg: 0 16px 40px -16px rgba(8, 32, 68, 0.22);
+  --sf-border: #e4edf7;
 }
 
 /* ---- Shell / Header ---- */
@@ -28,7 +28,7 @@
   backdrop-filter: blur(16px) saturate(1.25);
   -webkit-backdrop-filter: blur(16px) saturate(1.25);
   background: rgba(255, 255, 255, 0.82) !important;
-  border-bottom: 1px solid var(--dino-border) !important;
+  border-bottom: 1px solid var(--sf-border) !important;
   box-shadow: 0 1px 0 rgba(255,255,255,.5) inset, 0 4px 16px -12px rgba(8,32,68,.12);
 }
 html.dark .header {
@@ -55,7 +55,7 @@ html.dark .header {
   height: 36px;
   border-radius: 12px;
   object-fit: cover;
-  box-shadow: var(--dino-shadow);
+  box-shadow: var(--sf-shadow);
 }
 
 /* ---- Container ---- */
@@ -70,11 +70,11 @@ html.dark .header {
 /* ---- Banner ---- */
 .banner.banner-v2 {
   position: relative;
-  border-radius: var(--dino-radius-xl) !important;
+  border-radius: var(--sf-radius-xl) !important;
   overflow: hidden;
   min-height: 168px;
-  box-shadow: var(--dino-shadow-lg) !important;
-  border: 1px solid var(--dino-border);
+  box-shadow: var(--sf-shadow-lg) !important;
+  border: 1px solid var(--sf-border);
   margin-bottom: 18px;
 }
 @media (min-width: 640px) {
@@ -90,7 +90,7 @@ html.dark .header {
   background: rgba(255,255,255,.9) !important;
   color: var(--navy) !important;
   border: none !important;
-  box-shadow: var(--dino-shadow);
+  box-shadow: var(--sf-shadow);
 }
 .banner-dots {
   gap: 6px;
@@ -106,34 +106,34 @@ html.dark .header {
   background: #fff;
 }
 
-/* ---- Feature row (Dino trust) ---- */
-.dino-features {
+/* ---- Feature row (Storefront trust) ---- */
+.sf-features {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   margin: 4px 0 22px;
 }
 @media (min-width: 768px) {
-  .dino-features {
+  .sf-features {
     grid-template-columns: repeat(4, 1fr);
     gap: 12px;
   }
 }
-.dino-feature {
+.sf-feature {
   display: flex;
   gap: 10px;
   align-items: flex-start;
   padding: 14px 12px;
-  border-radius: var(--dino-radius);
+  border-radius: var(--sf-radius);
   background: #fff;
-  border: 1px solid var(--dino-border);
-  box-shadow: var(--dino-shadow);
+  border: 1px solid var(--sf-border);
+  box-shadow: var(--sf-shadow);
 }
-html.dark .dino-feature {
+html.dark .sf-feature {
   background: var(--surface);
   border-color: var(--line);
 }
-.dino-feature-ico {
+.sf-feature-ico {
   flex: none;
   width: 44px;
   height: 44px;
@@ -143,17 +143,17 @@ html.dark .dino-feature {
   background: linear-gradient(145deg, #eef5ff, #dceaff);
   box-shadow: inset 0 1px 0 #fff;
 }
-html.dark .dino-feature-ico {
+html.dark .sf-feature-ico {
   background: rgba(29, 106, 223, 0.15);
 }
-.dino-feature strong {
+.sf-feature strong {
   display: block;
   font-size: 13px;
   font-weight: 800;
   letter-spacing: -0.01em;
   margin-bottom: 2px;
 }
-.dino-feature p {
+.sf-feature p {
   margin: 0;
   font-size: 11.5px;
   line-height: 1.35;
@@ -204,25 +204,25 @@ html.dark .dino-feature-ico {
 }
 
 .game-card,
-.game-card.dino-card {
+.game-card.sf-card {
   display: flex !important;
   flex-direction: column !important;
-  border-radius: var(--dino-radius) !important;
+  border-radius: var(--sf-radius) !important;
   overflow: hidden !important;
   background: #fff !important;
-  border: 1px solid var(--dino-border) !important;
-  box-shadow: var(--dino-shadow) !important;
+  border: 1px solid var(--sf-border) !important;
+  box-shadow: var(--sf-shadow) !important;
   text-decoration: none !important;
   color: inherit !important;
   transition: transform .2s ease, box-shadow .2s ease !important;
 }
 .game-card:hover:not(.disabled),
-.game-card.dino-card:hover:not(.disabled) {
+.game-card.sf-card:hover:not(.disabled) {
   transform: translateY(-3px) !important;
-  box-shadow: var(--dino-shadow-lg) !important;
+  box-shadow: var(--sf-shadow-lg) !important;
 }
 .game-card .game-tile,
-.game-card.dino-card .game-tile,
+.game-card.sf-card .game-tile,
 .game-card-art {
   aspect-ratio: 1 / 1 !important;
   width: 100% !important;
@@ -282,10 +282,10 @@ html.dark .dino-feature-ico {
 
 /* Hot / event cards */
 .event-card.hot-card {
-  border-radius: var(--dino-radius) !important;
+  border-radius: var(--sf-radius) !important;
   overflow: hidden !important;
-  border: 1px solid var(--dino-border) !important;
-  box-shadow: var(--dino-shadow) !important;
+  border: 1px solid var(--sf-border) !important;
+  box-shadow: var(--sf-shadow) !important;
   background: #fff !important;
 }
 .hot-art {
@@ -313,10 +313,10 @@ html.dark .dino-feature-ico {
 .search-input {
   min-height: 42px;
   border-radius: 999px !important;
-  border: 1.5px solid var(--dino-border) !important;
+  border: 1.5px solid var(--sf-border) !important;
   padding: 0 16px !important;
   background: #fff !important;
-  box-shadow: var(--dino-shadow);
+  box-shadow: var(--sf-shadow);
   min-width: min(100%, 220px);
 }
 .search-input:focus {
@@ -329,10 +329,10 @@ html.dark .dino-feature-ico {
 .promise {
   margin: 28px 0 12px;
   padding: 22px 18px;
-  border-radius: var(--dino-radius-xl);
+  border-radius: var(--sf-radius-xl);
   background: linear-gradient(160deg, #0b2a55 0%, #1d6adf 100%);
   color: #fff;
-  box-shadow: var(--dino-shadow-lg);
+  box-shadow: var(--sf-shadow-lg);
   text-align: center;
 }
 .promise h2 {
@@ -384,10 +384,10 @@ html.dark .dino-feature-ico {
 
 /* Service hero */
 .service-hero, .game-hero {
-  border-radius: var(--dino-radius-lg) !important;
+  border-radius: var(--sf-radius-lg) !important;
   overflow: hidden;
-  border: 1px solid var(--dino-border);
-  box-shadow: var(--dino-shadow);
+  border: 1px solid var(--sf-border);
+  box-shadow: var(--sf-shadow);
   background: #fff;
   margin-bottom: 14px;
 }
@@ -397,51 +397,51 @@ html.dark .dino-feature-ico {
 .packs-section,
 .pay-section,
 .card.summary,
-.dino-info-card,
+.sf-info-card,
 .enter-info-card {
-  border-radius: var(--dino-radius-lg) !important;
-  border: 1px solid var(--dino-border) !important;
-  box-shadow: var(--dino-shadow) !important;
+  border-radius: var(--sf-radius-lg) !important;
+  border: 1px solid var(--sf-border) !important;
+  box-shadow: var(--sf-shadow) !important;
   background: #fff !important;
 }
 
 /* Packs */
-.dino-packs.packs-section { padding: 14px !important; }
-.dino-pack-group-title {
+.sf-packs.packs-section { padding: 14px !important; }
+.sf-pack-group-title {
   font-size: 12px !important;
   font-weight: 800 !important;
   text-transform: uppercase;
   letter-spacing: .04em;
   color: var(--muted);
 }
-.dino-pack-grid.packs {
+.sf-pack-grid.packs {
   display: grid !important;
   grid-template-columns: repeat(2, minmax(0,1fr)) !important;
   gap: 10px !important;
 }
-button.pack.dino-pack {
+button.pack.sf-pack {
   border-radius: 16px !important;
   min-height: 68px !important;
   border: 1.5px solid #e2eaf5 !important;
   background: #fbfcfe !important;
   box-shadow: 0 2px 6px rgba(8,32,68,.05) !important;
 }
-button.pack.dino-pack.tone-cream { background: #fbf7ee !important; }
-button.pack.dino-pack.tone-lilac { background: #f5f2fb !important; }
-button.pack.dino-pack.tone-mint  { background: #eef8f4 !important; }
-button.pack.dino-pack.tone-sky   { background: #eef5fc !important; }
-button.pack.dino-pack.active {
+button.pack.sf-pack.tone-cream { background: #fbf7ee !important; }
+button.pack.sf-pack.tone-lilac { background: #f5f2fb !important; }
+button.pack.sf-pack.tone-mint  { background: #eef8f4 !important; }
+button.pack.sf-pack.tone-sky   { background: #eef5fc !important; }
+button.pack.sf-pack.active {
   border-color: var(--primary) !important;
   background: #f0f6ff !important;
   box-shadow: 0 0 0 1px var(--primary), 0 8px 18px -10px rgba(29,106,223,.4) !important;
 }
-.dino-pack-icon {
+.sf-pack-icon {
   width: 46px !important;
   height: 46px !important;
   border-radius: 14px !important;
   background: #fff !important;
 }
-.dino-pack-price { color: var(--primary) !important; font-weight: 850 !important; }
+.sf-pack-price { color: var(--primary) !important; font-weight: 850 !important; }
 
 /* Qty control */
 .qty-row, .qty-control {
@@ -453,7 +453,7 @@ button.pack.dino-pack.active {
   width: 36px;
   height: 36px;
   border-radius: 12px;
-  border: 1.5px solid var(--dino-border);
+  border: 1.5px solid var(--sf-border);
   background: #fff;
   font-weight: 800;
 }
@@ -503,7 +503,7 @@ button.pack.dino-pack.active {
 .card.summary .row.total {
   padding-top: 10px;
   margin-top: 4px;
-  border-top: 1px dashed var(--dino-border);
+  border-top: 1px dashed var(--sf-border);
   font-weight: 850;
   font-size: 15px;
 }
@@ -529,12 +529,12 @@ button.btn-primary {
 /* Payment modal / QR */
 .pw-card, .pw-modal-card {
   border-radius: 24px !important;
-  box-shadow: var(--dino-shadow-lg) !important;
-  border: 1px solid var(--dino-border) !important;
+  box-shadow: var(--sf-shadow-lg) !important;
+  border: 1px solid var(--sf-border) !important;
 }
 .pw-qr {
   border-radius: 16px;
-  border: 1px solid var(--dino-border);
+  border: 1px solid var(--sf-border);
   padding: 8px;
   background: #fff;
 }
@@ -570,9 +570,9 @@ button.btn-primary {
 
 /* Success */
 .success-card {
-  border-radius: var(--dino-radius-xl) !important;
-  box-shadow: var(--dino-shadow-lg) !important;
-  border: 1px solid var(--dino-border) !important;
+  border-radius: var(--sf-radius-xl) !important;
+  box-shadow: var(--sf-shadow-lg) !important;
+  border: 1px solid var(--sf-border) !important;
   padding: 24px !important;
   text-align: center;
 }
@@ -585,7 +585,7 @@ button.btn-primary {
   padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
   background: rgba(255,255,255,.92);
   backdrop-filter: blur(12px);
-  border-top: 1px solid var(--dino-border);
+  border-top: 1px solid var(--sf-border);
   box-shadow: 0 -8px 24px rgba(8,32,68,.1);
 }
 
@@ -600,9 +600,9 @@ button.btn-primary {
 
 /* Dark */
 html.dark .game-card,
-html.dark .game-card.dino-card,
+html.dark .game-card.sf-card,
 html.dark .event-card.hot-card,
-html.dark .dino-feature,
+html.dark .sf-feature,
 html.dark .game-page .card,
 html.dark .packs-section,
 html.dark .card.summary {
@@ -642,15 +642,15 @@ html.dark .search-input {
 }
 
 /* Pack cards equal width/height, full cell */
-.dino-pack-grid.packs,
-.packs.dino-pack-grid {
+.sf-pack-grid.packs,
+.packs.sf-pack-grid {
   display: grid !important;
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   gap: 10px !important;
   width: 100% !important;
   align-items: stretch !important;
 }
-button.pack.dino-pack {
+button.pack.sf-pack {
   width: 100% !important;
   max-width: 100% !important;
   min-width: 0 !important;
@@ -659,11 +659,11 @@ button.pack.dino-pack {
   box-sizing: border-box !important;
   align-self: stretch !important;
 }
-.dino-pack-meta {
+.sf-pack-meta {
   flex: 1 1 auto !important;
   min-width: 0 !important;
 }
-.dino-pack-name {
+.sf-pack-name {
   white-space: normal !important;
   display: -webkit-box !important;
   -webkit-line-clamp: 2 !important;
@@ -672,10 +672,10 @@ button.pack.dino-pack {
   line-height: 1.25 !important;
   font-size: 12.5px !important;
 }
-.dino-pack-group {
+.sf-pack-group {
   width: 100% !important;
 }
-.dino-packs.packs-section {
+.sf-packs.packs-section {
   width: 100% !important;
   max-width: 100% !important;
   box-sizing: border-box !important;

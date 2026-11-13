@@ -34,7 +34,7 @@ export default function PricesAdmin() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [data, setData] = useState(null);
-  const [provider, setProvider] = useState("khmer"); // khmer | dino
+  const [provider, setProvider] = useState("khmer"); // khmer | fox
   const [filter, setFilter] = useState("all"); // all | up | down | new
   const [q, setQ] = useState("");
 
@@ -49,8 +49,8 @@ export default function PricesAdmin() {
       setErr(
         msg.includes("KHMER")
           ? "មិនទាន់កំណត់ KHMER_TOPUP_API_KEY"
-          : msg.includes("DINO")
-            ? "មិនទាន់កំណត់ DINO_TOPUP_API_KEY"
+          : msg.includes("Fox")
+            ? "មិនទាន់កំណត់ FOX_TOPUP_UID / FOX_TOPUP_API_KEY"
             : msg || "ទាញតម្លៃមិនបាន",
       );
       setData(null);
@@ -120,7 +120,7 @@ export default function PricesAdmin() {
 
   return (
     <div className="ad-page-prices">
-      <PageHead km="តាមដានតម្លៃ" en="Khmer TopUp & Dino cost watch — up / down">
+      <PageHead km="តាមដានតម្លៃ" en="Khmer TopUp & Fox Topup cost watch — up / down">
         <div className="ad-row-btns">
           <button type="button" className="ad-btn soft" onClick={load} disabled={loading}>
             <AIcon name="refresh" size={15} /> ផ្ទុកឡើងវិញ
@@ -135,14 +135,14 @@ export default function PricesAdmin() {
         <button type="button" role="tab" className={provider === "khmer" ? "on" : ""} onClick={() => setProvider("khmer")}>
           Khmer TopUp
         </button>
-        <button type="button" role="tab" className={provider === "dino" ? "on" : ""} onClick={() => setProvider("dino")}>
-          Dino Topups
+        <button type="button" role="tab" className={provider === "fox" ? "on" : ""} onClick={() => setProvider("fox")}>
+          Fox Topup
         </button>
       </div>
 
       <p className="ad-px-lead">
         ប្រៀបធៀប <b>តម្លៃដើម (cost)</b> ពី{" "}
-        <b>{provider === "dino" ? "Dino Topups" : "Khmer TopUp"}</b> នឹង snapshot មុន — ឃើញថ្លៃឡើង / ធ្លាក់
+        <b>{provider === "fox" ? "Fox Topup" : "Khmer TopUp"}</b> នឹង snapshot មុន — ឃើញថ្លៃឡើង / ធ្លាក់
         (ប្រវត្តិដាច់ពីគ្នា)
       </p>
 
@@ -202,7 +202,7 @@ export default function PricesAdmin() {
 
       {loading ? (
         <div className="ad-loading">
-          <span className="ad-spin" /> {provider === "dino" ? "កំពុងទាញតម្លៃពី Dino…" : "កំពុងទាញតម្លៃពី Khmer TopUp…"}
+          <span className="ad-spin" /> {provider === "fox" ? "កំពុងទាញតម្លៃពី Fox Topup…" : "កំពុងទាញតម្លៃពី Khmer TopUp…"}
         </div>
       ) : list.length === 0 ? (
         <div className="ad-px-empty">

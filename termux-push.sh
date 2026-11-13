@@ -9,7 +9,7 @@ set -euo pipefail
 REPO_URL="https://github.com/motbong235-cloud/porpor-topup.git"
 BRANCH="main"
 GH_USER_DEFAULT="motbong235-cloud"
-MSG="${1:-style: match dino layout (grid 3-6 cols, tiles, banner, cards)}"
+MSG="${1:-feat: Fox Topup supplier + storefront cleanup}"
 
 cd "$(dirname "$0")"
 

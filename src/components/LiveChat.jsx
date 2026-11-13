@@ -261,7 +261,7 @@ export function LiveChat({ lang = "km", openSignal = 0, logoUrl = "" }) {
         </header>
 
         <div className="msgr-list" ref={listRef}>
-          {/* Pinned guide — Dino-style */}
+          {/* Pinned guide — Storefront */}
           <div className={`msgr-pin${pinOpen ? " open" : ""}`}>
             <button type="button" className="msgr-pin-head" onClick={() => setPinOpen((v) => !v)}>
               <span className="msgr-pin-ico"><Icon name="bell" size={16} /></span>

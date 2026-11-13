@@ -1,4 +1,4 @@
-/* Dino-style order summary inside the payment panel (desktop + mobile) */
+/* Storefront order summary inside the payment panel (desktop + mobile) */
 .pay-aside .od-box { margin-top: 12px; background: #fff; border-radius: 14px; padding: 12px 14px; color: #0f172a; }
 .pay-aside .od-head { font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 6px; letter-spacing: .02em; }
 .pay-aside .od-row { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: 13.5px; border-top: 1px dashed #e2e8f0; }

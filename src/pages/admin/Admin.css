@@ -2468,7 +2468,7 @@ html.dark .ad-chat-bubble { background: var(--ad-card); }
 }
 
 
-/* Provider split (Khmer vs Dino) */
+/* Provider split (Khmer vs Fox) */
 .ad-provider-split { margin-top: 16px; }
 .ad-provider-title {
   font-size: 13px;
@@ -2502,8 +2502,8 @@ html.dark .ad-chat-bubble { background: var(--ad-card); }
 .ad-provider-card strong { display: block; font-size: 14px; margin-bottom: 4px; }
 .ad-provider-card small { display: block; font-size: 12px; color: var(--ad-ink-2); line-height: 1.4; }
 
-/* Dino panel */
-.ad-dino {
+/* Fox panel */
+.ad-fox {
   border: 1px solid var(--ad-line);
   border-radius: 18px;
   background: var(--ad-card);
@@ -2512,21 +2512,21 @@ html.dark .ad-chat-bubble { background: var(--ad-card); }
   gap: 14px;
   box-shadow: 0 8px 24px rgba(11, 27, 51, 0.04);
 }
-.ad-dino-head {
+.ad-fox-head {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 14px;
   align-items: flex-start;
 }
-.ad-dino-head h2 {
+.ad-fox-head h2 {
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 1.1rem;
   font-weight: 800;
 }
-.ad-dino-badge {
+.ad-fox-badge {
   display: inline-grid;
   place-items: center;
   padding: 4px 10px;
@@ -2537,12 +2537,12 @@ html.dark .ad-chat-bubble { background: var(--ad-card); }
   background: #0b1b33;
   color: #7dd3fc;
 }
-.ad-dino-head p {
+.ad-fox-head p {
   margin-top: 4px;
   font-size: 13px;
   color: var(--ad-ink-3);
 }
-.ad-dino-bal {
+.ad-fox-bal {
   text-align: right;
   padding: 10px 14px;
   border-radius: 14px;
@@ -2550,25 +2550,25 @@ html.dark .ad-chat-bubble { background: var(--ad-card); }
   border: 1px solid var(--ad-line);
   min-width: 120px;
 }
-.ad-dino-bal small {
+.ad-fox-bal small {
   display: block;
   font-size: 11px;
   font-weight: 700;
   color: var(--ad-ink-3);
 }
-.ad-dino-bal strong {
+.ad-fox-bal strong {
   display: block;
   font-size: 1.35rem;
   font-weight: 850;
   color: var(--ad-ink);
 }
-.ad-dino-bal strong.muted { opacity: 0.4; }
-.ad-dino-bal span {
+.ad-fox-bal strong.muted { opacity: 0.4; }
+.ad-fox-bal span {
   font-size: 11px;
   color: var(--ad-ink-3);
   font-weight: 700;
 }
-.ad-dino-note {
+.ad-fox-note {
   padding: 12px 14px;
   border-radius: 12px;
   background: var(--ad-blue-soft);
@@ -2577,14 +2577,14 @@ html.dark .ad-chat-bubble { background: var(--ad-card); }
   color: var(--ad-ink-2);
   line-height: 1.5;
 }
-.ad-dino-note p + p { margin-top: 6px; }
-.ad-dino-toolbar {
+.ad-fox-note p + p { margin-top: 6px; }
+.ad-fox-toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   align-items: flex-end;
 }
-.ad-dino-toolbar label {
+.ad-fox-toolbar label {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -2592,7 +2592,7 @@ html.dark .ad-chat-bubble { background: var(--ad-card); }
   font-weight: 700;
   color: var(--ad-ink-2);
 }
-.ad-dino-toolbar select {
+.ad-fox-toolbar select {
   height: 40px;
   border-radius: 10px;
   border: 1px solid var(--ad-line);
@@ -2601,17 +2601,17 @@ html.dark .ad-chat-bubble { background: var(--ad-card); }
   color: var(--ad-ink);
   font: inherit;
 }
-.ad-dino-table-wrap {
+.ad-fox-table-wrap {
   overflow: auto;
   border: 1px solid var(--ad-line);
   border-radius: 14px;
 }
-.ad-dino-table {
+.ad-fox-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
 }
-.ad-dino-table th {
+.ad-fox-table th {
   text-align: left;
   padding: 10px 12px;
   background: var(--ad-paper);
@@ -2621,31 +2621,31 @@ html.dark .ad-chat-bubble { background: var(--ad-card); }
   border-bottom: 1px solid var(--ad-line);
   white-space: nowrap;
 }
-.ad-dino-table td {
+.ad-fox-table td {
   padding: 10px 12px;
   border-bottom: 1px solid var(--ad-line);
   color: var(--ad-ink);
 }
-.ad-dino-table tr:last-child td { border-bottom: 0; }
-.ad-dino-table code {
+.ad-fox-table tr:last-child td { border-bottom: 0; }
+.ad-fox-table code {
   font-size: 11px;
   padding: 2px 6px;
   border-radius: 6px;
   background: var(--ad-paper);
   border: 1px solid var(--ad-line);
 }
-.ad-dino-table .r { text-align: right; font-variant-numeric: tabular-nums; }
-.ad-dino-table .muted { color: var(--ad-ink-3); }
+.ad-fox-table .r { text-align: right; font-variant-numeric: tabular-nums; }
+.ad-fox-table .muted { color: var(--ad-ink-3); }
 
 
-.ad-dino-head-bar {
+.ad-fox-head-bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 14px;
   margin-bottom: 4px;
 }
-.ad-dino-head-bar .ad-dino-bal {
+.ad-fox-head-bar .ad-fox-bal {
   text-align: left;
   min-width: 100px;
 }
@@ -2861,7 +2861,7 @@ button.ad-provider-card {
 @media (max-width: 640px) { .ad-vslot-preview video { max-width: 100%; } }
 
 
-/* Dino / Khmer editable sell price */
+/* Storefront / Khmer editable sell price */
 .ad-pk-price-edit input {
   width: 5.2rem;
   max-width: 100%;
@@ -2947,3 +2947,80 @@ button.ad-provider-card {
 .si-summary-svc { font-weight: 700; color: #082044; min-width: 90px; }
 .si-summary-title { flex: 1; color: #374151; }
 .si-summary-price { font-weight: 800; color: #1d6adf; }
+
+
+/* ============ Fox Topup admin — polished ============ */
+.ad-fox-hero {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  margin-bottom: 14px;
+  border-radius: 20px;
+  color: #fff;
+  background:
+    radial-gradient(120% 140% at 100% 0%, rgba(255, 149, 0, 0.35) 0%, rgba(255, 149, 0, 0) 55%),
+    linear-gradient(135deg, #0b1b33 0%, #14336b 100%);
+  box-shadow: 0 14px 34px rgba(11, 27, 51, 0.22);
+  overflow: hidden;
+}
+.ad-fox-hero-brand { display: flex; align-items: center; gap: 12px; }
+.ad-fox-logo {
+  display: grid; place-items: center;
+  width: 46px; height: 46px; border-radius: 14px; font-size: 26px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+.ad-fox-hero-brand strong { display: block; font-size: 1.15rem; font-weight: 850; letter-spacing: 0.01em; }
+.ad-fox-hero-brand small { display: block; margin-top: 2px; font-size: 12px; opacity: 0.72; }
+.ad-fox-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.ad-fox-stat {
+  padding: 10px 12px; border-radius: 14px;
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+.ad-fox-stat small { display: block; font-size: 11px; font-weight: 700; opacity: 0.7; }
+.ad-fox-stat strong { display: block; margin-top: 2px; font-size: 1.3rem; font-weight: 850; font-variant-numeric: tabular-nums; }
+.ad-fox-stat strong.muted { opacity: 0.45; }
+.ad-fox-checks { display: flex; flex-wrap: wrap; gap: 8px; }
+.ad-fox-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 11px; border-radius: 999px;
+  font-size: 12px; font-weight: 750;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+.ad-fox-pill i { width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
+.ad-fox-pill.ok i { background: #34d399; box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.25); }
+.ad-fox-pill.warn i { background: #fbbf24; box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.25); }
+.ad-fox-pill.bad i { background: #f87171; box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.25); }
+.ad-fox-hint { font-size: 12.5px; line-height: 1.55; opacity: 0.82; margin: 0; }
+.ad-fox-hint code {
+  padding: 1px 6px; border-radius: 6px; font-size: 11.5px;
+  background: rgba(255, 255, 255, 0.14);
+}
+@media (max-width: 480px) {
+  .ad-fox-stat strong { font-size: 1.05rem; }
+}
+
+/* provider cards — status pills + webhook box */
+.ad-provider-card strong { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ad-prov-state {
+  font-style: normal; font-size: 10.5px; font-weight: 800;
+  padding: 2px 8px; border-radius: 999px; letter-spacing: 0.02em;
+}
+.ad-prov-state.ok { color: #047857; background: rgba(16, 185, 129, 0.14); }
+.ad-prov-state.off { color: #b45309; background: rgba(245, 158, 11, 0.16); }
+.ad-prov-extra { font-size: 12px; font-weight: 800; color: var(--ad-blue); }
+.ad-fox-webhook {
+  margin-top: 12px; padding: 12px 14px; border-radius: 14px;
+  border: 1px dashed var(--ad-line); background: var(--ad-paper);
+  display: grid; gap: 6px;
+}
+.ad-fox-webhook strong { font-size: 13px; }
+.ad-fox-webhook code {
+  display: block; padding: 8px 10px; border-radius: 10px; font-size: 12px;
+  background: var(--ad-card); border: 1px solid var(--ad-line);
+  word-break: break-all; user-select: all;
+}
+.ad-fox-webhook small { font-size: 12px; line-height: 1.5; color: var(--ad-ink-2); }

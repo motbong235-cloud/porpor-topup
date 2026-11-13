@@ -4641,7 +4641,7 @@ html:not(.dark) .msgr-composer input[type="text"] {
 .livechat-fab { z-index: 55 !important; }
 
 
-/* ===== Live Chat pin + New Order card (Dino-style) ===== */
+/* ===== Live Chat pin + New Order card (Storefront) ===== */
 .msgr-pin {
   margin: 10px 10px 6px;
   border-radius: 12px;
@@ -5752,7 +5752,7 @@ html.dark .enter-info-field input {
 
 
 
-/* ===== Header Telegram user icon (Dino-style, Porpor blue) ===== */
+/* ===== Header Telegram user icon (Storefront, Porpor blue) ===== */
 .header-user-btn {
   width: 40px;
   height: 40px;
@@ -5859,7 +5859,7 @@ html.dark .game-card {
   box-shadow: 0 6px 14px rgba(29, 106, 223, 0.28);
 }
 
-/* Game page promo banner strip (like Dino package page) */
+/* Game page promo banner strip (package page) */
 .svc-hero.has-banner {
   border-radius: 18px;
   overflow: hidden;
@@ -6178,8 +6178,8 @@ html.dark .drawer { background: var(--surface); }
 }
 
 
-/* ===== Product cards — Dino layout, Porpor blue ===== */
-.game-card.dino-card {
+/* ===== Product cards — Storefront layout, Porpor blue ===== */
+.game-card.sf-card {
   display: flex;
   flex-direction: column;
   padding: 0;
@@ -6189,7 +6189,7 @@ html.dark .drawer { background: var(--surface); }
   border: 1px solid #e6edf5;
   box-shadow: 0 4px 14px rgba(15, 40, 80, 0.06);
 }
-html.dark .game-card.dino-card {
+html.dark .game-card.sf-card {
   background: var(--surface);
   border-color: var(--line);
 }
@@ -6197,7 +6197,7 @@ html.dark .game-card.dino-card {
   position: relative;
   padding: 0;
 }
-.game-card.dino-card .game-tile {
+.game-card.sf-card .game-tile {
   aspect-ratio: 1;
   border-radius: 0;
   width: 100%;
@@ -6209,7 +6209,7 @@ html.dark .game-card.dino-card {
   gap: 6px;
   align-items: stretch;
 }
-.game-card.dino-card .game-name {
+.game-card.sf-card .game-name {
   margin: 0;
   text-align: center;
   font-size: 12px;
@@ -6225,7 +6225,7 @@ html.dark .game-card.dino-card {
   font-weight: 650;
   color: #1d6adf;
 }
-.game-card.dino-card .game-cta {
+.game-card.sf-card .game-cta {
   margin: 2px 0 0;
   padding: 8px 8px;
   border-radius: 999px;
@@ -6234,18 +6234,18 @@ html.dark .game-card.dino-card {
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
-.game-card.dino-card .game-cta.on {
+.game-card.sf-card .game-cta.on {
   background: linear-gradient(100deg, #3d8bff, #1d6adf);
   color: #fff;
   box-shadow: 0 4px 12px rgba(29, 106, 223, 0.28);
 }
-.game-card.dino-card .game-badge {
+.game-card.sf-card .game-badge {
   top: 8px;
   left: 8px;
   right: auto;
 }
 
-/* Package cards — 2-col chips like Dino */
+/* Package cards — 2-col chips storefront */
 .packs {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -6459,7 +6459,7 @@ html.dark .rbx-hint-warn {
 
 
 /* ============================================================
-   Package grid — Dino-style readable cards (full name, clear price)
+   Package grid — Storefront readable cards (full name, clear price)
    ============================================================ */
 .game-page .packs,
 .packs {
@@ -6858,28 +6858,28 @@ html, body, #root {
 }
 
 
-/* ===== Dino-style package cards ===== */
-.dino-packs.packs-section {
+/* ===== Storefront package cards ===== */
+.sf-packs.packs-section {
   padding: 16px 14px !important;
   border-radius: 20px !important;
   background: #fff !important;
   border: 1px solid #e8eef6 !important;
 }
-html.dark .dino-packs.packs-section {
+html.dark .sf-packs.packs-section {
   background: var(--surface) !important;
   border-color: var(--line) !important;
 }
 
-.dino-pack-group {
+.sf-pack-group {
   margin-top: 14px;
 }
-.dino-pack-group-head {
+.sf-pack-group-head {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 10px;
 }
-.dino-pack-group-title {
+.sf-pack-group-title {
   font-size: 12px;
   font-weight: 850;
   letter-spacing: 0.06em;
@@ -6887,18 +6887,18 @@ html.dark .dino-packs.packs-section {
   color: #7a8ba3;
   white-space: nowrap;
 }
-.dino-pack-group-line {
+.sf-pack-group-line {
   flex: 1;
   height: 1px;
   background: linear-gradient(90deg, #dbe5f2, transparent);
 }
-.dino-pack-group-count {
+.sf-pack-group-count {
   font-size: 12px;
   font-weight: 800;
   color: #9aabbf;
 }
 
-.dino-pack-grid.packs {
+.sf-pack-grid.packs {
   display: grid !important;
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   gap: 10px !important;
@@ -6906,17 +6906,17 @@ html.dark .dino-packs.packs-section {
   margin: 0 !important;
 }
 @media (min-width: 720px) {
-  .dino-pack-grid.packs {
+  .sf-pack-grid.packs {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
 }
 @media (min-width: 1024px) {
-  .dino-pack-grid.packs {
+  .sf-pack-grid.packs {
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   }
 }
 
-button.pack.dino-pack {
+button.pack.sf-pack {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
@@ -6935,25 +6935,25 @@ button.pack.dino-pack {
   position: relative;
   overflow: hidden !important;
 }
-button.pack.dino-pack.tone-cream { background: #fbf6ea !important; }
-button.pack.dino-pack.tone-lilac { background: #f3f0fb !important; }
-button.pack.dino-pack.tone-mint  { background: #eef8f3 !important; }
-button.pack.dino-pack.tone-sky   { background: #eef5fc !important; }
-html.dark button.pack.dino-pack.tone-cream { background: #2a2618 !important; }
-html.dark button.pack.dino-pack.tone-lilac { background: #221f2e !important; }
-html.dark button.pack.dino-pack.tone-mint  { background: #1a2620 !important; }
-html.dark button.pack.dino-pack.tone-sky   { background: #1a2430 !important; }
+button.pack.sf-pack.tone-cream { background: #fbf6ea !important; }
+button.pack.sf-pack.tone-lilac { background: #f3f0fb !important; }
+button.pack.sf-pack.tone-mint  { background: #eef8f3 !important; }
+button.pack.sf-pack.tone-sky   { background: #eef5fc !important; }
+html.dark button.pack.sf-pack.tone-cream { background: #2a2618 !important; }
+html.dark button.pack.sf-pack.tone-lilac { background: #221f2e !important; }
+html.dark button.pack.sf-pack.tone-mint  { background: #1a2620 !important; }
+html.dark button.pack.sf-pack.tone-sky   { background: #1a2430 !important; }
 
-button.pack.dino-pack.active {
+button.pack.sf-pack.active {
   border-color: #1d6adf !important;
   box-shadow: 0 0 0 1px #1d6adf, 0 6px 16px rgba(29, 106, 223, 0.12) !important;
   background: #f0f6ff !important;
 }
-html.dark button.pack.dino-pack.active {
+html.dark button.pack.sf-pack.active {
   background: rgba(29, 106, 223, 0.18) !important;
 }
 
-.dino-pack-icon {
+.sf-pack-icon {
   flex: none;
   width: 40px;
   height: 40px;
@@ -6963,28 +6963,28 @@ html.dark button.pack.dino-pack.active {
   background: rgba(255, 255, 255, 0.65);
   overflow: hidden;
 }
-html.dark .dino-pack-icon {
+html.dark .sf-pack-icon {
   background: rgba(0, 0, 0, 0.25);
 }
-.dino-pack-icon img {
+.sf-pack-icon img {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
-.dino-pack-glyph {
+.sf-pack-glyph {
   font-size: 16px;
   color: #c4a35a;
   font-weight: 900;
 }
 
-.dino-pack-meta {
+.sf-pack-meta {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
-.dino-pack-name {
+.sf-pack-name {
   font-size: 13px;
   font-weight: 750;
   line-height: 1.25;
@@ -6993,15 +6993,15 @@ html.dark .dino-pack-icon {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-html.dark .dino-pack-name { color: var(--ink); }
-.dino-pack-price {
+html.dark .sf-pack-name { color: var(--ink); }
+.sf-pack-price {
   font-size: 14px;
   font-weight: 850;
   color: #1d6adf;
   font-variant-numeric: tabular-nums;
 }
 
-button.pack.dino-pack .pack-tick {
+button.pack.sf-pack .pack-tick {
   position: absolute;
   top: 6px;
   right: 6px;
@@ -7017,19 +7017,19 @@ button.pack.dino-pack .pack-tick {
   line-height: 1;
 }
 
-/* ===== Check ID / Enter Information — Dino layout, Porpor blue ===== */
-.dino-info-card {
+/* ===== Check ID / Enter Information — Storefront layout, Porpor blue ===== */
+.sf-info-card {
   padding: 18px 16px !important;
   border-radius: 20px !important;
   background: #fff !important;
   border: 1px solid #e8eef6 !important;
 }
-html.dark .dino-info-card {
+html.dark .sf-info-card {
   background: var(--surface) !important;
   border-color: var(--line) !important;
 }
 
-.dino-info-head {
+.sf-info-head {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -7037,10 +7037,10 @@ html.dark .dino-info-card {
   padding-bottom: 12px;
   border-bottom: 1px dashed #d7e2f0;
 }
-html.dark .dino-info-head {
+html.dark .sf-info-head {
   border-bottom-color: var(--line);
 }
-.dino-info-step {
+.sf-info-step {
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -7053,7 +7053,7 @@ html.dark .dino-info-head {
   flex: none;
   box-shadow: 0 4px 12px rgba(29, 106, 223, 0.35);
 }
-.dino-info-title {
+.sf-info-title {
   margin: 0;
   font-size: 16px;
   font-weight: 800;
@@ -7061,12 +7061,12 @@ html.dark .dino-info-head {
   letter-spacing: 0;
   text-transform: none;
 }
-html.dark .dino-info-title { color: var(--ink); }
+html.dark .sf-info-title { color: var(--ink); }
 
-.dino-field {
+.sf-field {
   display: block;
 }
-.dino-field-label {
+.sf-field-label {
   display: block;
   font-size: 11px;
   font-weight: 800;
@@ -7075,14 +7075,14 @@ html.dark .dino-info-title { color: var(--ink); }
   margin-bottom: 8px;
 }
 
-.dino-check-row {
+.sf-check-row {
   display: flex;
   gap: 8px;
   align-items: stretch;
   width: 100%;
   min-width: 0;
 }
-.dino-input-wrap {
+.sf-input-wrap {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -7095,26 +7095,26 @@ html.dark .dino-info-title { color: var(--ink); }
   min-height: 48px;
   box-sizing: border-box;
 }
-.dino-input-wrap.solo {
+.sf-input-wrap.solo {
   width: 100%;
 }
-html.dark .dino-input-wrap {
+html.dark .sf-input-wrap {
   background: rgba(255,255,255,0.04);
   border-color: var(--line);
 }
-.dino-input-wrap:focus-within {
+.sf-input-wrap:focus-within {
   border-color: #1d6adf;
   box-shadow: 0 0 0 3px rgba(29, 106, 223, 0.15);
   background: #fff;
 }
-.dino-input-ico {
+.sf-input-ico {
   flex: none;
   color: #8fa3bc;
   display: grid;
   place-items: center;
 }
-.dino-input-wrap input,
-.dino-input-wrap select {
+.sf-input-wrap input,
+.sf-input-wrap select {
   flex: 1;
   min-width: 0;
   border: none !important;
@@ -7127,7 +7127,7 @@ html.dark .dino-input-wrap {
   color: inherit;
   width: 100%;
 }
-.dino-check-btn {
+.sf-check-btn {
   flex: none;
   border: none;
   border-radius: 14px;
@@ -7141,16 +7141,16 @@ html.dark .dino-input-wrap {
   white-space: nowrap;
   box-shadow: 0 4px 14px rgba(29, 106, 223, 0.3);
 }
-.dino-check-btn:disabled {
+.sf-check-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
   box-shadow: none;
 }
-.dino-check-btn:not(:disabled):active {
+.sf-check-btn:not(:disabled):active {
   transform: scale(0.98);
 }
 
-.dino-verify-ok {
+.sf-verify-ok {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -7160,11 +7160,11 @@ html.dark .dino-input-wrap {
   background: #eef8f3;
   border: 1px solid #b7e4cf;
 }
-html.dark .dino-verify-ok {
+html.dark .sf-verify-ok {
   background: #0f2a22;
   border-color: #1a4a3a;
 }
-.dino-verify-ok-dot {
+.sf-verify-ok-dot {
   width: 22px;
   height: 22px;
   border-radius: 50%;
@@ -7176,17 +7176,17 @@ html.dark .dino-verify-ok {
   font-weight: 900;
   flex: none;
 }
-.dino-verify-ok strong {
+.sf-verify-ok strong {
   display: block;
   font-size: 14px;
   font-weight: 800;
 }
-.dino-verify-ok span {
+.sf-verify-ok span {
   font-size: 12px;
   color: #5a6b82;
 }
 
-.dino-info-note {
+.sf-info-note {
   display: flex;
   gap: 10px;
   align-items: flex-start;
@@ -7197,12 +7197,12 @@ html.dark .dino-verify-ok {
   border: 1px solid #f5c2c2;
   color: #9b1c1c;
 }
-html.dark .dino-info-note {
+html.dark .sf-info-note {
   background: #2a1215;
   border-color: #5c2430;
   color: #f5b5b5;
 }
-.dino-info-note-ico {
+.sf-info-note-ico {
   flex: none;
   width: 20px;
   height: 20px;
@@ -7216,7 +7216,7 @@ html.dark .dino-info-note {
   font-style: italic;
   margin-top: 1px;
 }
-.dino-info-note p {
+.sf-info-note p {
   margin: 0;
   font-size: 13px;
   line-height: 1.4;
@@ -7301,8 +7301,8 @@ html.dark .dino-info-note {
 }
 
 /* =========================================================
-   Dino layout refresh — shapes/spacing/shadows from dinotopups
-   Colors stay Porpor navy/blue (do not use Dino green)
+   Storefront layout refresh — shapes/spacing/shadows from the reference layout
+   Colors stay Porpor navy/blue (do not use reference green)
    ========================================================= */
 
 :root {
@@ -7342,10 +7342,10 @@ body {
   gap: 12px;
 }
 
-/* Cards — Dino soft rounded */
+/* Cards — Soft rounded */
 .card,
 .enter-info-card,
-.dino-info-card,
+.sf-info-card,
 .packs-section,
 .game-page .card {
   border-radius: var(--radius-lg) !important;
@@ -7355,7 +7355,7 @@ body {
 }
 
 /* Home game cards — taller art, soft body */
-.game-card.dino-card,
+.game-card.sf-card,
 .game-card {
   border-radius: var(--radius-lg) !important;
   overflow: hidden;
@@ -7364,18 +7364,18 @@ body {
   box-shadow: var(--shadow-soft) !important;
   transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease !important;
 }
-.game-card.dino-card:hover:not(.disabled),
+.game-card.sf-card:hover:not(.disabled),
 .game-card.card-hover:hover:not(.disabled) {
   transform: translateY(-4px) !important;
   box-shadow: var(--shadow-lift) !important;
   border-color: color-mix(in srgb, var(--primary) 35%, var(--line)) !important;
 }
-.game-card.dino-card .game-tile,
+.game-card.sf-card .game-tile,
 .game-card .game-tile {
   border-radius: 0 !important;
   aspect-ratio: 1 / 1;
 }
-.game-card.dino-card .game-card-body,
+.game-card.sf-card .game-card-body,
 .game-card .game-card-body {
   padding: 12px 12px 14px !important;
 }
@@ -7426,22 +7426,22 @@ body {
   color: var(--muted) !important;
 }
 
-/* Packs — horizontal Dino chips, 2-col */
-.dino-packs.packs-section {
+/* Packs — horizontal chips, 2-col */
+.sf-packs.packs-section {
   padding: 16px !important;
 }
-.dino-pack-grid.packs {
+.sf-pack-grid.packs {
   display: grid !important;
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   gap: 10px !important;
   width: 100% !important;
 }
 @media (max-width: 380px) {
-  .dino-pack-grid.packs {
+  .sf-pack-grid.packs {
     grid-template-columns: 1fr !important;
   }
 }
-button.pack.dino-pack {
+button.pack.sf-pack {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
@@ -7455,51 +7455,51 @@ button.pack.dino-pack {
   box-shadow: 0 2px 8px -4px rgba(8, 32, 68, 0.1) !important;
   transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.15s ease !important;
 }
-button.pack.dino-pack:hover:not(:disabled) {
+button.pack.sf-pack:hover:not(:disabled) {
   transform: translateY(-1px);
   border-color: color-mix(in srgb, var(--primary) 40%, #e2eaf5) !important;
 }
-button.pack.dino-pack.active {
+button.pack.sf-pack.active {
   border-color: var(--primary) !important;
   box-shadow: 0 0 0 1px var(--primary), 0 8px 18px -10px rgba(29, 106, 223, 0.45) !important;
   background: #f3f8ff !important;
 }
-.dino-pack-icon {
+.sf-pack-icon {
   width: 44px !important;
   height: 44px !important;
   border-radius: 14px !important;
   background: #fff !important;
   box-shadow: 0 2px 6px rgba(8, 32, 68, 0.08);
 }
-.dino-pack-name {
+.sf-pack-name {
   font-size: 12.5px !important;
   font-weight: 750 !important;
 }
-.dino-pack-price {
+.sf-pack-price {
   font-size: 15px !important;
   font-weight: 850 !important;
   color: var(--primary) !important;
 }
 
-/* Enter info / Check row — Dino form shape */
-.dino-info-card,
+/* Enter info / Check row — Form shape */
+.sf-info-card,
 .enter-info-card {
   padding: 18px 16px !important;
 }
-.dino-input-wrap,
-.rbx-check-row .dino-input-wrap {
+.sf-input-wrap,
+.rbx-check-row .sf-input-wrap {
   border-radius: 14px !important;
   border: 1.5px solid #dce6f3 !important;
   background: #f7faff !important;
   min-height: 48px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.dino-input-wrap:focus-within {
+.sf-input-wrap:focus-within {
   border-color: var(--primary) !important;
   box-shadow: 0 0 0 3px rgba(29, 106, 223, 0.15) !important;
   background: #fff !important;
 }
-.dino-check-btn {
+.sf-check-btn {
   border-radius: 14px !important;
   min-height: 48px !important;
   padding: 0 16px !important;
@@ -7509,7 +7509,7 @@ button.pack.dino-pack.active {
   border: none !important;
   box-shadow: 0 6px 14px -6px rgba(29, 106, 223, 0.55) !important;
 }
-.dino-check-btn:disabled {
+.sf-check-btn:disabled {
   opacity: 0.45 !important;
   box-shadow: none !important;
 }
@@ -7600,35 +7600,35 @@ button.btn.bg-brand {
 }
 
 /* Dark mode stay coherent */
-html.dark .game-card.dino-card,
+html.dark .game-card.sf-card,
 html.dark .game-card,
 html.dark .event-card.hot-card {
   background: var(--surface) !important;
   border-color: var(--line) !important;
 }
-html.dark button.pack.dino-pack.active {
+html.dark button.pack.sf-pack.active {
   background: rgba(29, 106, 223, 0.18) !important;
 }
-html.dark .dino-input-wrap {
+html.dark .sf-input-wrap {
   background: color-mix(in srgb, var(--surface) 80%, #000) !important;
   border-color: var(--line) !important;
 }
 
-.games.dino-games,
+.games.sf-games,
 .games-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 @media (min-width: 640px) {
-  .games.dino-games,
+  .games.sf-games,
   .games-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px;
   }
 }
 @media (min-width: 960px) {
-  .games.dino-games,
+  .games.sf-games,
   .games-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -8507,7 +8507,7 @@ html.dark .dino-input-wrap {
 .si-strip {
   scroll-behavior: auto;
 }
-.dino-pack-add {
+.sf-pack-add {
   display: inline-flex;
   align-items: center;
   gap: 4px;
