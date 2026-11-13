@@ -181,6 +181,32 @@ export default function Home({ lang, settings }) {
   const ticker = useTicker();
   const [slide, setSlide] = useState(0);
   const [filter, setFilter] = useState("");
+  const siStripRef = useRef(null);
+  const siPause = useRef(false);
+
+  // Slow auto-scroll for Special Items (pause on hover/touch)
+  useEffect(() => {
+    const el = siStripRef.current;
+    if (!el) return undefined;
+    let raf = 0;
+    let last = performance.now();
+    const speed = 0.28;
+    const tick = (now) => {
+      const dt = Math.min(32, now - last);
+      last = now;
+      try {
+        if (!siPause.current && el.scrollWidth > el.clientWidth + 8) {
+          el.scrollLeft += speed * dt;
+          const half = el.scrollWidth / 2;
+          if (half > 0 && el.scrollLeft >= half) el.scrollLeft -= half;
+        }
+      } catch (_) {}
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [settings?.specialItems?.length]);
+
   const famous = useMemo(() => games.filter((g) => g.famous), [games]);
   // Special Events (top): always put TikTok Khmer first when present
   const spotlight = useMemo(() => {
@@ -205,12 +231,12 @@ export default function Home({ lang, settings }) {
   const filtered = useMemo(() => {
     const q = filter.trim().toLowerCase();
     if (!q) return games;
-    return games.filter(
-      (g) =>
-        g.name.toLowerCase().includes(q) ||
-        g.mark.toLowerCase().includes(q) ||
-        g.nameKm.toLowerCase().includes(q),
-    );
+    return games.filter((g) => {
+      const name = String(g?.name || "").toLowerCase();
+      const mark = String(g?.mark || "").toLowerCase();
+      const nameKm = String(g?.nameKm || "").toLowerCase();
+      return name.includes(q) || mark.includes(q) || nameKm.includes(q);
+    });
   }, [games, filter]);
 
   const custom = (settings && Array.isArray(settings.bannerUrls) ? settings.bannerUrls : []).filter(Boolean);
@@ -334,7 +360,8 @@ export default function Home({ lang, settings }) {
           </div>
           <div className="events events-special events-row-3">
             {spotlight.filter((g) => g.open !== false).map((g) => {
-              const min = Math.min(...(g.packs || []).map((p) => p.price));
+              const prices = (g.packs || []).map((p) => Number(p.price)).filter((n) => Number.isFinite(n));
+              const min = prices.length ? Math.min(...prices) : 0;
               return (
                 <Link key={g.id} className="event-card hot-card" to={`/game/${g.id}`}>
                   <div className="hot-art game-tile" style={{ "--h": g.hue }}>
