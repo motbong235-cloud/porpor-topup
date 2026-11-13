@@ -181,31 +181,6 @@ export default function Home({ lang, settings }) {
   const ticker = useTicker();
   const [slide, setSlide] = useState(0);
   const [filter, setFilter] = useState("");
-  const siStripRef = useRef(null);
-  const siPause = useRef(false);
-
-  // Slow auto-scroll for Special Items (pause on hover/touch)
-  useEffect(() => {
-    const el = siStripRef.current;
-    if (!el) return undefined;
-    let raf = 0;
-    let last = performance.now();
-    const speed = 0.28;
-    const tick = (now) => {
-      const dt = Math.min(32, now - last);
-      last = now;
-      try {
-        if (!siPause.current && el.scrollWidth > el.clientWidth + 8) {
-          el.scrollLeft += speed * dt;
-          const half = el.scrollWidth / 2;
-          if (half > 0 && el.scrollLeft >= half) el.scrollLeft -= half;
-        }
-      } catch (_) {}
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [settings?.specialItems?.length]);
 
   const famous = useMemo(() => games.filter((g) => g.famous), [games]);
   // Special Events (top): always put TikTok Khmer first when present
@@ -319,34 +294,46 @@ export default function Home({ lang, settings }) {
               <Icon name="chevR" size={16} />
             </Link>
           </div>
-          <div className="si-strip" ref={siStripRef} onMouseEnter={() => { siPause.current = true; }} onMouseLeave={() => { siPause.current = false; }} onTouchStart={() => { siPause.current = true; }} onTouchEnd={() => { siPause.current = false; }}>
-            {/* duplicate list for seamless slow loop */}
-            {[0, 1].map((dup) =>
-              settings.specialItems.map((it, idx) => {
-              const title = lang === "km" && it.titleKm ? it.titleKm : it.title || it.titleKm;
-              const href = it.gameId
-                ? `/game/${encodeURIComponent(it.gameId)}${it.packId ? `?pack=${encodeURIComponent(it.packId)}` : ""}`
-                : "#games";
-              return (
-                <Link key={`${dup}-${it.id || title}-${idx}`} className={"si-chip" + (it.image ? " has-img" : "")} to={href}>
-                  <span className="si-chip-badge">{it.badge || "SPECIAL"}</span>
-                  {it.image ? (
-                    <span className="si-chip-img">
-                      <img src={it.image} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} />
-                    </span>
-                  ) : null}
-                  <strong className="si-chip-title">{title}</strong>
-                  {it.subtitle ? <span className="si-chip-sub">{it.subtitle}</span> : null}
-                  <span className="si-chip-row">
-                    <span className="si-chip-price">{money(Number(it.price) || 0)}</span>
-                    <span className="si-chip-go" aria-hidden>
-                      <Icon name="chevR" size={14} />
-                    </span>
-                  </span>
-                </Link>
-              );
-            }))}
-          </div>
+          {(() => {
+            const list = settings.specialItems.filter((it) => it && it.enabled !== false);
+            // enough chips per set so the loop is seamless even with only a few packs
+            const set = list.length && list.length < 6 ? Array.from({ length: Math.ceil(6 / list.length) }).flatMap(() => list) : list;
+            const speed = { animationDuration: `${Math.max(28, set.length * 4)}s` };
+            return (
+              <div className="si-marquee" aria-label="special packs">
+                <div className="si-marquee-track" style={speed}>
+                  {[0, 1].map((dup) => (
+                    <div className="si-marquee-set" key={dup} aria-hidden={dup === 1 ? true : undefined}>
+                      {set.map((it, idx) => {
+                        const title = lang === "km" && it.titleKm ? it.titleKm : it.title || it.titleKm;
+                        const href = it.gameId
+                          ? `/game/${encodeURIComponent(it.gameId)}${it.packId ? `?pack=${encodeURIComponent(it.packId)}` : ""}`
+                          : "#games";
+                        return (
+                          <Link key={`${dup}-${it.id || title}-${idx}`} tabIndex={dup === 1 ? -1 : undefined} className={"si-chip" + (it.image ? " has-img" : "")} to={href}>
+                            <span className="si-chip-badge">{it.badge || "SPECIAL"}</span>
+                            {it.image ? (
+                              <span className="si-chip-img">
+                                <img src={it.image} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                              </span>
+                            ) : null}
+                            <strong className="si-chip-title">{title}</strong>
+                            {it.subtitle ? <span className="si-chip-sub">{it.subtitle}</span> : null}
+                            <span className="si-chip-row">
+                              <span className="si-chip-price">{money(Number(it.price) || 0)}</span>
+                              <span className="si-chip-go" aria-hidden>
+                                <Icon name="chevR" size={12} />
+                              </span>
+                            </span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
         </section>
       )}
 
