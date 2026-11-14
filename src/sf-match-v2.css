@@ -895,3 +895,75 @@ html.dark .sf-check-btn:disabled {
     width: 100%;
   }
 }
+
+/* ── Service card badges: compact HOT / OFF ── */
+.game-card {
+  position: relative;
+}
+.game-badge {
+  position: absolute !important;
+  top: 8px !important;
+  left: 8px !important;
+  right: auto !important;
+  z-index: 3 !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 4px;
+  width: auto !important;
+  max-width: max-content !important;
+  margin: 0 !important;
+  padding: 3px 8px !important;
+  border-radius: 999px !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.06em !important;
+  line-height: 1.2 !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18) !important;
+}
+.game-badge.hot {
+  background: linear-gradient(105deg, #ff6b35 0%, #f43f5e 100%) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+}
+.game-badge-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+  animation: badge-pulse 1.6s ease-in-out infinite;
+}
+@keyframes badge-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.85); }
+}
+.game-badge.off {
+  background: rgba(15, 23, 42, 0.72) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  letter-spacing: 0.08em !important;
+}
+html.dark .game-badge.off {
+  background: rgba(0, 0, 0, 0.65) !important;
+}
+/* hot strip cards */
+.hot-badge {
+  position: absolute !important;
+  top: 8px !important;
+  left: 8px !important;
+  width: auto !important;
+  max-width: max-content !important;
+  padding: 3px 8px !important;
+  border-radius: 999px !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.06em !important;
+  background: linear-gradient(105deg, #ff6b35, #f43f5e) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18) !important;
+}

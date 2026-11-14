@@ -54,7 +54,7 @@ export const dict = {
     topup: "បញ្ចូល",
     off: "OFF",
     maintenance: "ថែទាំ",
-    hot: "ពេញនិយម",
+    hot: "HOT",
     years: "៥+ ឆ្នាំ · ទុកចិត្តបាន",
     trusted:
       "ហាងបញ្ចូលហ្គេមសម្រាប់កម្ពុជា — តម្លៃច្បាស់ លេខបញ្ជាទិញតាមដានបាន។",
@@ -215,7 +215,7 @@ export const dict = {
     topup: "TOPUP",
     off: "OFF",
     maintenance: "MAINTENANCE",
-    hot: "Hot",
+    hot: "HOT",
     years: "5+ Years · Trusted",
     trusted:
       "A Cambodia game top-up shop — clear prices and an order code you can track.",

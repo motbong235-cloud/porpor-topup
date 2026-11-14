@@ -28,9 +28,12 @@ function minPackPrice(game) {
 
 function GameCard({ game, lang, famous }) {
   const badge = !game.open ? (
-    <span className="game-badge off">{t(lang, "off")}</span>
+    <span className="game-badge off" aria-label="Offline">OFF</span>
   ) : famous ? (
-    <span className="game-badge hot">{t(lang, "hot")}</span>
+    <span className="game-badge hot" aria-label={t(lang, "hot")}>
+      <span className="game-badge-dot" aria-hidden />
+      HOT
+    </span>
   ) : null;
   const from = minPackPrice(game);
 
