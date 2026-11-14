@@ -2555,6 +2555,11 @@ app.post("/api/webhook/fox", async (req, res) => {
   }
 });
 
+app.get("/api/admin/fox/debug", adminAuth, async (_req, res) => {
+  const [me, games] = await Promise.all([foxTopup.probe("/users/me"), foxTopup.probe("/games")]);
+  res.json({ uid: process.env.FOX_TOPUP_UID ? "env" : "default", me, games });
+});
+
 app.get("/api/admin/topup-status", adminAuth, async (_req, res) => {
   const out = {
     khmer: { ready: khmerTopup.isTopupReady() },

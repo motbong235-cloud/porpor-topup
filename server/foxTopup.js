@@ -4,7 +4,7 @@
  * Docs: https://reseller.topupfoxbot.com
  *
  * Env:
- *   FOX_TOPUP_UID         numeric reseller id   (header X-Uid)
+ *   FOX_TOPUP_UID         numeric reseller id   (header X-Uid) — optional, defaults to 287
  *   FOX_TOPUP_API_KEY     api key               (header X-Api-Key)
  *   FOX_TOPUP_API_SECRET  api secret            (HMAC signing + AES-GCM body encryption)
  *   FOX_WEBHOOK_SECRET    webhook secret        (X-Fox-Signature: sha256=<hmac>)
@@ -22,9 +22,26 @@ import crypto from "crypto";
 
 const BASE = (process.env.FOX_TOPUP_URL || "https://api.topupfoxbot.com/v1").replace(/\/$/, "");
 
-const uid = () => (process.env.FOX_TOPUP_UID || process.env.FOX_UID || "").trim();
-const key = () => (process.env.FOX_TOPUP_API_KEY || process.env.FOX_API_KEY || "").trim();
-const secret = () => (process.env.FOX_TOPUP_API_SECRET || process.env.FOX_API_SECRET || "").trim();
+/**
+ * Credentials. Simplest setup: only FOX_TOPUP_API_KEY (UID defaults to your reseller id 287).
+ * FOX_TOPUP_API_KEY also accepts "uid:apikey" or "uid:apikey:secret" in ONE variable.
+ */
+const DEFAULT_UID = "287";
+function creds() {
+  const raw = (process.env.FOX_TOPUP_API_KEY || process.env.FOX_API_KEY || "").trim();
+  const parts = raw.split(":").map((x) => x.trim());
+  let u = "", k = raw, sec = "";
+  if (parts.length === 2) [u, k] = parts;
+  else if (parts.length >= 3) [u, k, sec] = parts;
+  return {
+    uid: (process.env.FOX_TOPUP_UID || process.env.FOX_UID || u || (k ? DEFAULT_UID : "")).trim(),
+    key: k,
+    secret: (process.env.FOX_TOPUP_API_SECRET || process.env.FOX_API_SECRET || sec || "").trim(),
+  };
+}
+const uid = () => creds().uid;
+const key = () => creds().key;
+const secret = () => creds().secret;
 
 export function isFoxReady() {
   return Boolean(uid() && key());
@@ -270,4 +287,19 @@ export function summarizeFoxStatus(status) {
   if (s === "partial") return { status: "partial", done: true };
   if (s === "failed" || s === "refunded") return { status: "failed", done: true };
   return { status: "processing", done: false };
+}
+
+/** Diagnostics: raw status + first bytes of a plain GET (never echoes credentials). */
+export async function probe(path) {
+  if (!isFoxReady()) return { path, error: "not_configured" };
+  try {
+    const r = await fetch(`${BASE}${path}`, {
+      headers: { "X-Uid": uid(), "X-Api-Key": key(), Accept: "application/json" },
+      signal: AbortSignal.timeout(15000),
+    });
+    const text = await r.text();
+    return { path, status: r.status, ok: r.ok, body: text.slice(0, 1800) };
+  } catch (e) {
+    return { path, error: e.message };
+  }
 }

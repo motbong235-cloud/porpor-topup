@@ -837,6 +837,7 @@ function FoxPanel() {
   const [balance, setBalance] = useState(null);
   const [skipped, setSkipped] = useState([]);
   const [gameCount, setGameCount] = useState(0);
+  const [dbg, setDbg] = useState("");
 
   const [rev, setRev] = useState(0);
   const [savedRev, setSavedRev] = useState(0);
@@ -1029,7 +1030,23 @@ function FoxPanel() {
         <button type="button" className="ad-btn soft sm" onClick={load}>
           <AIcon name="refresh" size={14} /> ទាញពី Fox Topup
         </button>
+        <button
+          type="button"
+          className="ad-btn soft sm"
+          onClick={async () => {
+            setDbg("កំពុងពិនិត្យ…");
+            try {
+              setDbg(JSON.stringify(await api("/api/admin/fox/debug"), null, 2));
+            } catch (e) {
+              setDbg(String(e.message));
+            }
+          }}
+        >
+          Raw API
+        </button>
       </div>
+
+      {dbg ? <pre className="ad-raw">{dbg}</pre> : null}
 
       {!games ? (
         <div className="ad-loading"><span className="ad-spin" /> កំពុងទាញបញ្ជីពី Fox Topup…</div>
