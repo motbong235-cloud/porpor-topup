@@ -969,9 +969,16 @@ function FoxPanel() {
           <AIcon name="search" size={16} />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ស្វែងរកឈ្មោះហ្គេម Fox…" />
         </div>
-        <div className="ad-fox-wallet" title="Wallet balance from Fox">
+        <div className="ad-fox-wallet" title={bal?.source ? `source: ${bal.source}` : "Wallet balance from Fox"}>
           <small>Wallet</small>
-          <strong>{bal?.balance != null ? `$${Number(bal.balance).toFixed(2)}` : "—"}</strong>
+          <strong>
+            {bal?.balance != null && Number.isFinite(Number(bal.balance))
+              ? `$${Number(bal.balance).toFixed(2)}`
+              : "—"}
+          </strong>
+          {bal?.profile?.username ? (
+            <em className="ad-fox-acc">{String(bal.profile.username)}</em>
+          ) : null}
         </div>
         <label className="ad-inline big">
           បូកថែមទូទៅ %
@@ -1011,6 +1018,16 @@ function FoxPanel() {
         <pre className="ad-raw" onClick={() => setRaw("")}>
           {raw}
         </pre>
+      ) : null}
+
+      {bal && Number(bal.balance) === 0 ? (
+        <p className="ad-fox-bal-tip">
+          Wallet បង្ហាញ <b>$0.00</b>
+          {bal.profile?.username ? <> · account: <code>{bal.profile.username}</code></> : null}
+          {bal.source ? <> · source: <code>{bal.source}</code></> : null}
+          ។ បើដាក់លុយហើយនៅ 0 — ពិនិត្យថា UID/API key ត្រូវនឹងគណនីដែលដាក់លុយ (API wallet ≠ website wallet បើមានគណនីផ្សេង)។
+          ចុច «ទាញពី Fox» ដើម្បី refresh។
+        </p>
       ) : null}
 
       {!games && !err ? (

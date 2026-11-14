@@ -185,11 +185,107 @@ export async function getProfile() {
   return apiGet("/users/me");
 }
 
+/** Walk object for first numeric balance-like field */
+function pickBalance(obj, depth = 0) {
+  if (obj == null || depth > 5) return null;
+  if (typeof obj === "number" && Number.isFinite(obj)) return obj;
+  if (typeof obj === "string") {
+    const n = Number(String(obj).replace(/[$,\s]/g, ""));
+    return Number.isFinite(n) ? n : null;
+  }
+  if (typeof obj !== "object") return null;
+  const prefer = [
+    "balance",
+    "wallet_balance",
+    "walletBalance",
+    "available_balance",
+    "availableBalance",
+    "credit",
+    "credits",
+    "amount",
+    "usd",
+    "money",
+  ];
+  for (const k of prefer) {
+    if (obj[k] != null && typeof obj[k] !== "object") {
+      const n = pickBalance(obj[k], depth + 1);
+      if (n != null) return n;
+    }
+  }
+  // nested wallet / account objects
+  for (const k of ["wallet", "account", "user", "data", "profile", "reseller"]) {
+    if (obj[k] && typeof obj[k] === "object") {
+      const n = pickBalance(obj[k], depth + 1);
+      if (n != null) return n;
+    }
+  }
+  return null;
+}
+
 export async function getBalance() {
-  const me = await getProfile();
-  const u = me.user || me.data || me;
-  const bal = u.balance ?? u.wallet ?? u.credit ?? me.balance ?? null;
-  return { ok: true, balance: bal != null ? Number(bal) : null, profile: u };
+  const tried = [];
+  let me = null;
+  let bal = null;
+  let source = "";
+
+  // 1) /users/me
+  try {
+    me = await getProfile();
+    tried.push({ path: "/users/me", ok: true });
+    bal = pickBalance(me);
+    if (bal != null) source = "/users/me";
+  } catch (e) {
+    tried.push({ path: "/users/me", ok: false, error: e.message });
+  }
+
+  // 2) alternate endpoints if still null
+  if (bal == null) {
+    for (const path of ["/wallet", "/balance", "/account", "/users/me/wallet"]) {
+      try {
+        const d = await apiGet(path);
+        tried.push({ path, ok: true });
+        const n = pickBalance(d);
+        if (n != null) {
+          bal = n;
+          source = path;
+          if (!me) me = d;
+          break;
+        }
+      } catch (e) {
+        tried.push({ path, ok: false, error: e.message || String(e.code || e.status || "") });
+      }
+    }
+  }
+
+  // If still null but profile has explicit 0
+  if (bal == null && me) {
+    const u = me.user || me.data || me;
+    if (u.balance === 0 || u.wallet === 0 || u.credit === 0) {
+      bal = 0;
+      source = "explicit-zero";
+    }
+  }
+
+  const u = (me && (me.user || me.data || me)) || {};
+  return {
+    ok: true,
+    balance: bal != null && Number.isFinite(Number(bal)) ? Number(bal) : null,
+    source,
+    profile: {
+      id: u.id || u.uid || u.user_id || null,
+      username: u.username || u.name || u.email || null,
+      email: u.email || null,
+      // small raw snapshot for admin debug (no secrets)
+      rawKeys: u && typeof u === "object" ? Object.keys(u).slice(0, 20) : [],
+      rawBalanceFields: {
+        balance: u.balance,
+        wallet: typeof u.wallet === "object" ? u.wallet : u.wallet,
+        credit: u.credit,
+        credits: u.credits,
+      },
+    },
+    tried,
+  };
 }
 
 const TTL_MS = 90_000;

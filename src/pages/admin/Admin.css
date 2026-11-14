@@ -3060,3 +3060,38 @@ html.dark .ad-fox-wallet strong { color: #ffedd5; }
   flex-wrap: wrap;
   gap: 10px;
 }
+
+.ad-fox-wallet em.ad-fox-acc {
+  display: block;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  color: #9a3412;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+html.dark .ad-fox-wallet em.ad-fox-acc { color: #fdba74; }
+.ad-fox-bal-tip {
+  margin: 8px 0 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+.ad-fox-bal-tip code {
+  font-size: 11px;
+  background: rgba(0,0,0,.06);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+html.dark .ad-fox-bal-tip {
+  background: #431407;
+  border-color: #9a3412;
+  color: #fdba74;
+}
