@@ -858,7 +858,7 @@ export default function Game({ lang, addOrder, settings }) {
             </div>
 
             <label className="sf-field">
-              <span className="sf-field-label">{String(t(lang, "playerId") || "User ID").toUpperCase()}</span>
+              <span className="sf-field-label">{lang === "km" ? "User ID / Username" : String(t(lang, "playerId") || "User ID")}</span>
               <div className="sf-check-row">
                 <div className="sf-input-wrap">
                   <span className="sf-input-ico" aria-hidden>
