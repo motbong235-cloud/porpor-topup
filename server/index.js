@@ -2182,6 +2182,9 @@ app.get("/api/admin/fox-games", adminAuth, async (req, res) => {
   }
   try {
     const data = await foxTopup.listProductsCached();
+    if (req.query.raw) {
+      return res.json({ raw: data, selection: getSettings().foxSelection || { markupPercent: 0, games: {} } });
+    }
     const games = foxTopup.normalizeGamesPayload(data);
     res.json({ games, selection: getSettings().foxSelection || { markupPercent: 0, games: {} } });
   } catch (e) {

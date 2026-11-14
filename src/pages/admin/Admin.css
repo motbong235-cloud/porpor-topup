@@ -3024,3 +3024,39 @@ button.ad-provider-card {
   word-break: break-all; user-select: all;
 }
 .ad-fox-webhook small { font-size: 12px; line-height: 1.5; color: var(--ad-ink-2); }
+
+/* Fox panel — match Khmer TopUp toolbar */
+.ad-fox-wallet {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 72px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fff7ed, #ffedd5);
+  border: 1px solid #fed7aa;
+  line-height: 1.2;
+}
+.ad-fox-wallet small {
+  font-size: 10px;
+  color: #9a3412;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.ad-fox-wallet strong {
+  font-size: 15px;
+  color: #c2410c;
+  font-weight: 700;
+}
+html.dark .ad-fox-wallet {
+  background: linear-gradient(135deg, #431407, #7c2d12);
+  border-color: #9a3412;
+}
+html.dark .ad-fox-wallet small { color: #fdba74; }
+html.dark .ad-fox-wallet strong { color: #ffedd5; }
+.fox-bal-bar {
+  flex-wrap: wrap;
+  gap: 10px;
+}

@@ -826,113 +826,217 @@ function LocalServicesPanel() {
 
 
 
+
 function FoxPanel() {
-  const [games, setGames] = useState([]);
+  const [games, setGames] = useState(null);
   const [sel, setSel] = useState({ markupPercent: 0, games: {} });
   const [bal, setBal] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [q, setQ] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [open, setOpen] = useState("");
+  const [raw, setRaw] = useState("");
+  const [rev, setRev] = useState(0);
+  const [savedRev, setSavedRev] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [saveErr, setSaveErr] = useState(false);
+  const revRef = useRef(0);
+  const selRef = useRef(sel);
+  selRef.current = sel;
 
   function load() {
-    setLoading(true);
     setErr("");
+    setGames(null);
     Promise.all([
       api("/api/admin/fox-games").then((d) => {
-        setGames(d.games || []);
-        if (d.selection) setSel(d.selection);
+        const list = (d.games || []).map((g) => ({
+          ...g,
+          slug: g.slug || g.foxId || String(g.id || "").replace(/^fox_/, ""),
+          packs: (g.packs || []).map((p) => ({
+            ...p,
+            cost: Number(p.cost ?? p.price) || 0,
+            inStock: p.inStock !== false,
+          })),
+        }));
+        setGames(list);
+        setSel({
+          markupPercent: d.selection?.markupPercent ?? 0,
+          games: d.selection?.games || {},
+        });
+        revRef.current = 0;
+        setRev(0);
+        setSavedRev(0);
       }),
       api("/api/admin/fox/balance").then(setBal).catch(() => setBal(null)),
-    ])
-      .catch((e) => setErr(e.message || "Fox API error — ពិនិត្យ env FOX_TOPUP_*"))
-      .finally(() => setLoading(false));
+    ]).catch((e) => setErr(e.message || "Fox API error — ពិនិត្យ FOX_TOPUP_UID / KEY / SECRET"));
   }
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
-  async function save() {
+  const save = useCallback(async () => {
+    const myRev = revRef.current;
     setSaving(true);
+    setSaveErr(false);
     try {
-      await api("/api/admin/fox-selection", { method: "PUT", body: JSON.stringify(sel) });
-      toast("រក្សាទុក Fox រួច", "ok");
-    } catch (e) {
-      toast(e.message || "Save failed", "bad");
+      await api("/api/admin/fox-selection", { method: "PUT", body: JSON.stringify(selRef.current) });
+      setSavedRev(myRev);
+    } catch {
+      setSaveErr(true);
+      toast("រក្សាទុកមិនបានទេ សូមព្យាយាមម្តងទៀត", "bad");
     } finally {
       setSaving(false);
     }
+  }, []);
+
+  useEffect(() => {
+    if (rev === savedRev || saveErr) return;
+    const t = setTimeout(save, 700);
+    return () => clearTimeout(t);
+  }, [rev, savedRev, save, saveErr]);
+
+  const unsaved = rev !== savedRev;
+  useEffect(() => {
+    if (!unsaved) return;
+    const h = (e) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", h);
+    return () => window.removeEventListener("beforeunload", h);
+  }, [unsaved]);
+
+  function touch() {
+    revRef.current += 1;
+    setRev(revRef.current);
+    setSaveErr(false);
   }
 
-  function toggle(id, on) {
-    const key = String(id).replace(/^fox_/, "");
-    setSel((s) => ({
-      ...s,
-      games: { ...s.games, [key]: { ...(s.games?.[key] || {}), enabled: on } },
-    }));
+  const patch = useCallback((slug, p) => {
+    setSel((s) => ({ ...s, games: { ...s.games, [slug]: { ...blank, ...(s.games[slug] || {}), ...p } } }));
+    revRef.current += 1;
+    setRev(revRef.current);
+    setSaveErr(false);
+  }, []);
+
+  async function showRaw() {
+    try {
+      const d = await api("/api/admin/fox-games?raw=1");
+      setRaw(JSON.stringify(d.raw || d.games || d, null, 2).slice(0, 4000));
+    } catch (e) {
+      setRaw(String(e.message));
+    }
   }
 
-  const filtered = games.filter((g) => {
-    const qq = q.trim().toLowerCase();
-    if (!qq) return true;
-    return String(g.name || "").toLowerCase().includes(qq) || String(g.foxId || g.id || "").toLowerCase().includes(qq);
-  });
+  const enabledCount = Object.values(sel.games || {}).filter((g) => g.enabled).length;
+
+  const list = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    return (games || []).filter((g) => {
+      const on = !!sel.games[g.slug]?.enabled;
+      if (filter === "on" && !on) return false;
+      if (filter === "off" && on) return false;
+      return !s || String(g.name).toLowerCase().includes(s) || String(g.slug).toLowerCase().includes(s);
+    });
+  }, [games, q, filter, sel.games]);
+
+  const stateLabel = saveErr ? (
+    <button type="button" className="ad-save err" onClick={save}>
+      <AIcon name="alert" size={14} /> រក្សាទុកមិនបាន — ចុចសាកម្តងទៀត
+    </button>
+  ) : saving ? (
+    <span className="ad-save">
+      <span className="ad-spin" /> កំពុងរក្សាទុក…
+    </span>
+  ) : unsaved ? (
+    <span className="ad-save wait">មានការផ្លាស់ប្តូរ…</span>
+  ) : (
+    <span className="ad-save ok">
+      <AIcon name="check" size={14} /> បានរក្សាទុករួច
+    </span>
+  );
 
   return (
-    <div className="ad-dino-panel">
-      <PageHead km="Fox Topup" en="topupfoxbot.com · enable games · markup">
-        <button type="button" className="ad-btn" onClick={save} disabled={saving}>
-          {saving ? "…" : "រក្សាទុក"}
-        </button>
+    <>
+      <PageHead km="Fox Topup" en="Games from TopupFox API · enable · markup · banners">
+        {stateLabel}
       </PageHead>
-      <header className="ad-dino-head-bar">
-        <div className="ad-dino-bal">
-          <small>Wallet Fox</small>
+
+      {err ? <p className="ad-error">{err}</p> : null}
+
+      <section className="ad-card ad-toolbar fox-bal-bar">
+        <div className="ad-search grow">
+          <AIcon name="search" size={16} />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ស្វែងរកឈ្មោះហ្គេម Fox…" />
+        </div>
+        <div className="ad-fox-wallet" title="Wallet balance from Fox">
+          <small>Wallet</small>
           <strong>{bal?.balance != null ? `$${Number(bal.balance).toFixed(2)}` : "—"}</strong>
         </div>
-        <p className="ad-muted">
-          Env: <code>FOX_TOPUP_UID</code> · <code>FOX_TOPUP_API_KEY</code> · <code>FOX_TOPUP_API_SECRET</code>
-          {" "}· Settings provider = <b>Fox</b> ឬ <b>All</b>
-        </p>
-      </header>
-      {err ? <p className="ad-error">{err}</p> : null}
-      <div className="ad-toolbar">
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ស្វែងរក Fox games…" />
-        <label>
-          Markup %
+        <label className="ad-inline big">
+          បូកថែមទូទៅ %
           <input
             type="number"
-            value={sel.markupPercent || 0}
-            onChange={(e) => setSel((s) => ({ ...s, markupPercent: Number(e.target.value) || 0 }))}
-            style={{ width: 80 }}
+            min="0"
+            step="0.5"
+            value={sel.markupPercent}
+            onChange={(e) => {
+              setSel((s) => ({ ...s, markupPercent: e.target.value }));
+              touch();
+            }}
           />
         </label>
-        <button type="button" className="ad-btn ghost" onClick={load}>
-          <AIcon name="refresh" size={14} /> Refresh
+      </section>
+
+      <div className="ad-chips">
+        {[
+          ["all", "ទាំងអស់", games?.length || 0],
+          ["on", "កំពុងលក់", enabledCount],
+          ["off", "មិនលក់", Math.max(0, (games?.length || 0) - enabledCount)],
+        ].map(([k, label, n]) => (
+          <button key={k} type="button" className={`ad-chip${filter === k ? " active" : ""}`} onClick={() => setFilter(k)}>
+            {label} <em>{n}</em>
+          </button>
+        ))}
+        <span className="grow" />
+        <button type="button" className="ad-btn soft sm" onClick={load}>
+          <AIcon name="refresh" size={14} /> ទាញពី Fox
+        </button>
+        <button type="button" className="ad-btn soft sm" onClick={showRaw}>
+          Raw API
         </button>
       </div>
-      {loading ? (
-        <div className="ad-loading"><span className="ad-spin" /> កំពុងទាញ Fox…</div>
-      ) : filtered.length === 0 ? (
-        <p className="ad-empty card">មិនមាន game — ពិនិត្យ API key / secret</p>
-      ) : (
-        <div className="ad-dino-list">
-          {filtered.map((g) => {
-            const key = String(g.foxId || g.id || "").replace(/^fox_/, "");
-            const on = !!sel.games?.[key]?.enabled;
-            return (
-              <div key={g.id} className={"ad-dino-row" + (on ? " on" : "")}>
-                <label className="ad-check">
-                  <input type="checkbox" checked={on} onChange={(e) => toggle(key, e.target.checked)} />
-                  <span>
-                    <strong>{g.name}</strong>
-                    <small>{key} · {g.packs?.length || 0} packs</small>
-                  </span>
-                </label>
-              </div>
-            );
-          })}
+
+      {raw ? (
+        <pre className="ad-raw" onClick={() => setRaw("")}>
+          {raw}
+        </pre>
+      ) : null}
+
+      {!games && !err ? (
+        <div className="ad-loading">
+          <span className="ad-spin" /> កំពុងទាញបញ្ជីហ្គេម Fox…
         </div>
-      )}
-    </div>
+      ) : null}
+      {games && !err && games.length === 0 ? (
+        <p className="ad-empty card">Fox មិនបានផ្តល់ហ្គេមទេ — ពិនិត្យ API key / secret ក្នុង Render</p>
+      ) : null}
+      {games && games.length > 0 && list.length === 0 ? <p className="ad-empty card">រកមិនឃើញហ្គេមទេ</p> : null}
+
+      <div className="ad-games">
+        {list.map((g) => (
+          <GameCard
+            key={g.slug}
+            g={g}
+            s={{ ...blank, ...(sel.games[g.slug] || {}) }}
+            defaultMarkup={sel.markupPercent}
+            isOpen={open === g.slug}
+            onToggleOpen={() => setOpen(open === g.slug ? "" : g.slug)}
+            patch={patch}
+          />
+        ))}
+      </div>
+    </>
   );
 }
 
