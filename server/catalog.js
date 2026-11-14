@@ -4,6 +4,7 @@
  */
 import { getSettings } from "./store.js";
 import * as khmerTopup from "./khmerTopup.js";
+import * as dinoTopup from "./dinoTopup.js";
 import * as foxTopup from "./foxTopup.js";
 import { localCatalog, findLocalPack, cleanBanners } from "./localProducts.js";
 
@@ -120,9 +121,10 @@ export function warmCatalog() {
     }, TTL / 2).unref();
   }
   try {
+    dinoTopup.warmDinoProducts?.();
     foxTopup.warmFoxProducts?.();
   } catch (e) {
-    console.warn("[catalog] fox warm failed:", e.message);
+    console.warn("[catalog] dino warm failed:", e.message);
   }
   // Pre-build public catalog once
   publicCatalog().catch((e) => console.warn("[catalog] public warm failed:", e.message));
@@ -207,20 +209,20 @@ export async function storefront() {
 }
 
 
-/** Fox games the admin enabled (foxSelection) — for storefront */
-export async function foxStorefront() {
-  if (!foxTopup.isFoxReady()) return [];
+/** Dino games the admin enabled (dinoSelection) — for storefront */
+export async function dinoStorefront() {
+  if (!dinoTopup.isDinoReady()) return [];
   const settings = getSettings();
-  const sel = settings.foxSelection || {};
+  const sel = settings.dinoSelection || {};
   const globalMarkup = Number(sel.markupPercent) || 0;
-  // Always list enabled Fox games on Home when API key is set.
+  // Always list enabled Dino games on Home when API key is set.
   // topupProvider only controls which API is used for auto-fulfill after pay.
   let supplier = [];
   try {
-    const data = await foxTopup.listGames();
-    supplier = foxTopup.normalizeGamesPayload(data);
+    const data = await dinoTopup.listProducts();
+    supplier = dinoTopup.normalizeGamesPayload(data);
   } catch (e) {
-    console.warn("[catalog] fox list failed:", e.message);
+    console.warn("[catalog] dino list failed:", e.message);
     return [];
   }
 
@@ -277,8 +279,8 @@ export async function foxStorefront() {
       servers: [],
       idHintKm: "",
       idHintEn: "",
-      provider: "fox",
-      foxId: g.slug,
+      provider: "dino",
+      dinoId: g.slug,
       packs: packs,
     });
   }
@@ -294,8 +296,9 @@ export async function publicCatalog() {
   if (_publicCatCache.games && now - _publicCatCache.at < PUBLIC_CAT_TTL_MS) {
     return _publicCatCache.games;
   }
-  const [khmerGames, foxGames] = await Promise.all([
+  const [khmerGames, dinoGames, foxGames] = await Promise.all([
     storefront().catch(() => []),
+    dinoStorefront().catch(() => []),
     foxStorefront().catch(() => []),
   ]);
 
@@ -306,7 +309,7 @@ export async function publicCatalog() {
       packs: g.packs.map(({ cost, ...p }) => p),
     }));
 
-  // Merge: local first, then Khmer, then Fox (skip fox slug already present from Khmer)
+  // Merge: local first, then Khmer, then Dino (skip dino slug already present from Khmer)
   const seen = new Set(local.map((g) => String(g.id)));
   const merged = [];
   for (const g of khmerGames) {
@@ -315,9 +318,9 @@ export async function publicCatalog() {
     seen.add(id);
     merged.push({ ...g, packs: g.packs.map(({ cost, ...p }) => p), provider: g.provider || "khmer" });
   }
-  for (const g of foxGames) {
+  for (const g of dinoGames) {
     const id = String(g.id);
-    // Both mode: if same slug enabled on both, prefer Fox when fox open
+    // Both mode: if same slug enabled on both, prefer Dino when dino open
     if (seen.has(id)) {
       const idx = merged.findIndex((x) => String(x.id) === id);
       if (idx >= 0 && g.open) {
@@ -328,6 +331,12 @@ export async function publicCatalog() {
     seen.add(id);
     merged.push({ ...g, packs: g.packs.map(({ cost, ...p }) => p) });
   }
+  for (const g of foxGames) {
+    const id = String(g.id);
+    if (seen.has(id)) continue;
+    seen.add(id);
+    merged.push({ ...g, packs: g.packs.map(({ cost, ...p }) => p), provider: "fox" });
+  }
   const mergedAll = [...local, ...merged];
   _publicCatCache = { at: Date.now(), games: mergedAll };
   return mergedAll;
@@ -336,13 +345,14 @@ export async function publicCatalog() {
 export async function findPack(gameId, packId) {
   const local = findLocalPack(gameId, packId);
   if (local) return local;
-  // Prefer full public catalog (Khmer + Fox)
+  // Prefer full public catalog (Khmer + Dino)
   const all = await publicCatalog();
   const game = all.find((g) => String(g.id) === String(gameId));
   if (!game) return null;
   // re-fetch with cost for checkout: try storefronts that keep cost
   const withCost =
     (await storefront()).find((g) => String(g.id) === String(gameId)) ||
+    (await dinoStorefront()).find((g) => String(g.id) === String(gameId)) ||
     (await foxStorefront()).find((g) => String(g.id) === String(gameId));
   const g = withCost || game;
   const pack = (g.packs || []).find((p) => String(p.id) === String(packId));
@@ -352,7 +362,7 @@ export async function findPack(gameId, packId) {
 export async function findGame(gameId) {
   const id = String(gameId);
   const local = localCatalog().find((g) => g.id === id);
-  // Prefer an OPEN source (local override may be closed while Fox/Khmer is still listed on Home)
+  // Prefer an OPEN source (local override may be closed while Dino/Khmer is still listed on Home)
   if (local && local.open !== false) return local;
   const fromKt = (await storefront()).find((g) => String(g.id) === id);
   if (fromKt && fromKt.open !== false) {
@@ -368,22 +378,22 @@ export async function findGame(gameId) {
     }
     return fromKt;
   }
-  const fromFox = (await foxStorefront()).find((g) => String(g.id) === id);
-  if (fromFox && fromFox.open !== false) {
+  const fromDino = (await dinoStorefront()).find((g) => String(g.id) === id);
+  if (fromDino && fromDino.open !== false) {
     if (local) {
       return {
-        ...fromFox,
-        deliveryType: local.deliveryType || fromFox.deliveryType,
+        ...fromDino,
+        deliveryType: local.deliveryType || fromDino.deliveryType,
         requireUsername: local.requireUsername ?? true,
-        name: local.name || fromFox.name,
-        nameKm: local.nameKm || fromFox.nameKm,
+        name: local.name || fromDino.name,
+        nameKm: local.nameKm || fromDino.nameKm,
       };
     }
-    return fromFox;
+    return fromDino;
   }
   // last resort: closed local / any match (admin tools)
   if (local) return local;
-  return fromKt || fromFox || null;
+  return fromKt || fromDino || null;
 }
 
 /** Only allow our own uploads or https URLs as image sources. */
@@ -472,3 +482,59 @@ export function applyResellerToCatalog(games, settings, tgUser) {
   }));
   return { games: out, isReseller: true };
 }
+
+
+/** Fox Topup games the admin enabled (foxSelection) */
+export async function foxStorefront() {
+  if (!foxTopup.isFoxReady()) return [];
+  const settings = getSettings();
+  const sel = settings.foxSelection || {};
+  const globalMarkup = Number(sel.markupPercent) || 0;
+  let supplier = [];
+  try {
+    const data = await foxTopup.listProductsCached();
+    supplier = foxTopup.normalizeGamesPayload(data);
+  } catch (e) {
+    console.warn("[catalog] fox list failed:", e.message);
+    return [];
+  }
+  const out = [];
+  for (const g of supplier) {
+    const key = g.foxId || String(g.id || "").replace(/^fox_/, "");
+    const s = sel.games?.[key] || sel.games?.[g.id] || sel.games?.[String(key).toLowerCase()];
+    if (!s?.enabled) continue;
+    const hasOwn = s && s.markup !== undefined && s.markup !== null && s.markup !== "" && Number.isFinite(Number(s.markup));
+    const markup = hasOwn ? Number(s.markup) : globalMarkup;
+    const packPrices = (s && s.packPrices) || {};
+    const packs = (g.packs || []).map((p) => {
+      const pid = String(p.id);
+      const cost = Number(p.cost) || Number(p.price) || 0;
+      const fixed = packPrices[pid];
+      const price =
+        fixed != null && Number.isFinite(Number(fixed)) && Number(fixed) >= 0
+          ? Math.round(Number(fixed) * 100) / 100
+          : Math.round(cost * (1 + markup / 100) * 100) / 100;
+      return {
+        ...p,
+        id: pid,
+        foxId: p.foxId || pid,
+        price,
+        cost,
+        image: p.image || s?.packImages?.[pid] || g.image || "",
+      };
+    });
+    out.push({
+      ...g,
+      id: g.id.startsWith("fox_") ? g.id : `fox_${key}`,
+      name: s?.title || g.name,
+      nameKm: s?.titleKm || g.nameKm || g.name,
+      image: s?.image || g.image,
+      open: true,
+      famous: !!s?.famous,
+      provider: "fox",
+      packs,
+    });
+  }
+  return out;
+}
+

@@ -1,122 +1,140 @@
 /**
- * Fox Topup (Fox Store) reseller API
+ * TopupFox (topupfoxbot.com) Reseller API
  * Base: https://api.topupfoxbot.com/v1
- * Docs: https://reseller.topupfoxbot.com
+ * Auth headers: X-Uid, X-Api-Key
+ * Signed routes: HMAC-SHA256 with api_secret
+ * Encrypted routes/responses: AES-256-GCM (key = SHA256(api_secret))
  *
  * Env:
- *   FOX_TOPUP_UID         numeric reseller id   (header X-Uid) — optional, defaults to 287
- *   FOX_TOPUP_API_KEY     api key               (header X-Api-Key)
- *   FOX_TOPUP_API_SECRET  api secret            (HMAC signing + AES-GCM body encryption)
- *   FOX_WEBHOOK_SECRET    webhook secret        (X-Fox-Signature: sha256=<hmac>)
- *
- * Route kinds (from the docs):
- *   API Key   → plain GET with X-Uid + X-Api-Key         (users/me, games, balance/deposits)
- *   Signed    → + HMAC signature                          (orders, rotate)
- *   Encrypted → + HMAC signature + AES-GCM encrypted body (games/{code}/lookup)
- *
- * NOTE: the plain "API Key" routes follow the docs exactly. The exact HMAC canonical string
- * and AES-GCM envelope are implemented in signRequest()/encryptBody() below — those two
- * functions are the ONLY place to adjust if the Python / Node client in the docs differs.
+ *   FOX_TOPUP_UID        — numeric uid from Fox dashboard
+ *   FOX_TOPUP_API_KEY    — api key
+ *   FOX_TOPUP_API_SECRET — api secret (signing + transport crypto)
+ *   FOX_TOPUP_URL        — optional override (default api.topupfoxbot.com/v1)
  */
 import crypto from "crypto";
 
 const BASE = (process.env.FOX_TOPUP_URL || "https://api.topupfoxbot.com/v1").replace(/\/$/, "");
 
-/**
- * Credentials. Simplest setup: only FOX_TOPUP_API_KEY (UID defaults to your reseller id 287).
- * FOX_TOPUP_API_KEY also accepts "uid:apikey" or "uid:apikey:secret" in ONE variable.
- */
-const DEFAULT_UID = "287";
-function creds() {
-  const raw = (process.env.FOX_TOPUP_API_KEY || process.env.FOX_API_KEY || "").trim();
-  const parts = raw.split(":").map((x) => x.trim());
-  let u = "", k = raw, sec = "";
-  if (parts.length === 2) [u, k] = parts;
-  else if (parts.length >= 3) [u, k, sec] = parts;
-  return {
-    uid: (process.env.FOX_TOPUP_UID || process.env.FOX_UID || u || (k ? DEFAULT_UID : "")).trim(),
-    key: k,
-    secret: (process.env.FOX_TOPUP_API_SECRET || process.env.FOX_API_SECRET || sec || "").trim(),
-  };
+function uid() {
+  return String(process.env.FOX_TOPUP_UID || process.env.FOX_UID || "").trim();
 }
-const uid = () => creds().uid;
-const key = () => creds().key;
-const secret = () => creds().secret;
+function apiKey() {
+  return String(process.env.FOX_TOPUP_API_KEY || process.env.FOX_API_KEY || "").trim();
+}
+function apiSecret() {
+  return String(process.env.FOX_TOPUP_API_SECRET || process.env.FOX_API_SECRET || "").trim();
+}
 
 export function isFoxReady() {
-  return Boolean(uid() && key());
-}
-export function isFoxSigningReady() {
-  return isFoxReady() && Boolean(secret());
+  return Boolean(uid() && apiKey() && apiSecret());
 }
 
-/* ---------- signing / encryption (adjust here if the official client differs) ---------- */
-
-function signRequest(method, path, rawBody) {
-  const ts = String(Math.floor(Date.now() / 1000));
-  const nonce = crypto.randomBytes(12).toString("hex");
-  const bodyHash = crypto.createHash("sha256").update(rawBody || "").digest("hex");
-  const canonical = [ts, nonce, method, `/v1${path.split("?")[0]}`, bodyHash].join("\n");
-  const sig = crypto.createHmac("sha256", secret()).update(canonical).digest("hex");
-  return { "X-Timestamp": ts, "X-Nonce": nonce, "X-Signature": sig };
+function transportKey() {
+  return crypto.createHash("sha256").update(apiSecret(), "utf8").digest();
 }
 
-function encryptBody(rawJson) {
-  const aesKey = crypto.createHash("sha256").update(secret()).digest(); // 32 bytes
+/** Base64url helpers */
+function b64uEncode(buf) {
+  return Buffer.from(buf)
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+}
+function b64uDecode(str) {
+  const s = String(str).replace(/-/g, "+").replace(/_/g, "/");
+  const pad = s.length % 4 === 0 ? "" : "=".repeat(4 - (s.length % 4));
+  return Buffer.from(s + pad, "base64");
+}
+
+/** Encrypt JSON body for Encrypted routes → { _enc:1, data } */
+export function encryptPayload(obj) {
+  const key = transportKey();
   const iv = crypto.randomBytes(12);
-  const c = crypto.createCipheriv("aes-256-gcm", aesKey, iv);
-  const ct = Buffer.concat([c.update(rawJson, "utf8"), c.final()]);
-  const tag = c.getAuthTag();
-  return JSON.stringify({
-    iv: iv.toString("base64"),
-    data: ct.toString("base64"),
-    tag: tag.toString("base64"),
-  });
+  const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
+  const plain = Buffer.from(JSON.stringify(obj), "utf8");
+  const enc = Buffer.concat([cipher.update(plain), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  // iv(12) + ciphertext + tag(16)
+  return { _enc: 1, data: b64uEncode(Buffer.concat([iv, enc, tag])) };
 }
 
-function decryptMaybe(data) {
-  if (!data || typeof data !== "object" || !data.iv || !data.data || !data.tag) return data;
-  try {
-    const aesKey = crypto.createHash("sha256").update(secret()).digest();
-    const d = crypto.createDecipheriv("aes-256-gcm", aesKey, Buffer.from(data.iv, "base64"));
-    d.setAuthTag(Buffer.from(data.tag, "base64"));
-    const txt = Buffer.concat([d.update(Buffer.from(data.data, "base64")), d.final()]).toString("utf8");
-    return JSON.parse(txt);
-  } catch {
-    return data;
-  }
+/** Decrypt { _enc:1, data } or pass-through plain JSON */
+export function decryptResponse(body) {
+  if (!body || typeof body !== "object") return body;
+  if (!body._enc || !body.data) return body;
+  const key = transportKey();
+  const raw = b64uDecode(body.data);
+  if (raw.length < 12 + 16) throw new Error("fox: encrypted payload too short");
+  const iv = raw.subarray(0, 12);
+  const tag = raw.subarray(raw.length - 16);
+  const data = raw.subarray(12, raw.length - 16);
+  const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
+  decipher.setAuthTag(tag);
+  const plain = Buffer.concat([decipher.update(data), decipher.final()]).toString("utf8");
+  return JSON.parse(plain);
 }
 
-/* ---------- transport ---------- */
+function signBody(rawBody) {
+  return crypto.createHmac("sha256", apiSecret()).update(rawBody, "utf8").digest("hex");
+}
 
-async function api(path, { method = "GET", body, signed = false, encrypted = false } = {}) {
+/**
+ * @param {string} path
+ * @param {{ method?: string, body?: object, signed?: boolean, encrypted?: boolean }} opts
+ */
+async function api(path, opts = {}) {
   if (!isFoxReady()) {
-    throw Object.assign(new Error("FOX_TOPUP_UID / FOX_TOPUP_API_KEY not set"), { code: "not_configured" });
+    throw Object.assign(new Error("FOX_TOPUP_UID / FOX_TOPUP_API_KEY / FOX_TOPUP_API_SECRET not set"), {
+      code: "not_configured",
+    });
   }
-  if ((signed || encrypted) && !secret()) {
-    throw Object.assign(new Error("FOX_TOPUP_API_SECRET not set"), { code: "not_configured" });
+  const method = String(opts.method || "GET").toUpperCase();
+  let payload = opts.body;
+  if (opts.encrypted && payload != null) {
+    payload = encryptPayload(payload);
   }
-  method = method.toUpperCase();
-  let raw = body != null ? JSON.stringify(body) : "";
+  const rawBody = payload != null ? JSON.stringify(payload) : "";
   const headers = {
     "X-Uid": uid(),
-    "X-Api-Key": key(),
+    "X-Api-Key": apiKey(),
     Accept: "application/json",
   };
-  if (encrypted && raw) raw = encryptBody(raw);
-  if (signed || encrypted) Object.assign(headers, signRequest(method, path, raw));
-  if (raw) headers["Content-Type"] = "application/json";
+  if (rawBody) headers["Content-Type"] = "application/json";
+  if (opts.signed && rawBody) {
+    headers["X-Signature"] = signBody(rawBody);
+  }
 
   const r = await fetch(`${BASE}${path}`, {
     method,
     headers,
-    body: raw || undefined,
-    signal: AbortSignal.timeout(method === "POST" ? 35000 : 15000),
+    body: rawBody || undefined,
+    signal: AbortSignal.timeout(method === "POST" ? 40000 : 18000),
   });
-  let data = await r.json().catch(() => ({}));
-  data = decryptMaybe(data);
+  const text = await r.text();
+  let data = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    data = { raw: text };
+  }
+  try {
+    data = decryptResponse(data);
+  } catch (e) {
+    if (data?._enc) {
+      const err = new Error(`fox decrypt failed: ${e.message}`);
+      err.status = r.status;
+      err.code = "DECRYPT_FAILED";
+      throw err;
+    }
+  }
   if (!r.ok) {
-    const msg = data?.error?.message || data?.message || data?.detail || data?.error || `HTTP ${r.status}`;
+    const msg =
+      data?.error?.message ||
+      data?.message ||
+      data?.error ||
+      (typeof data?.error === "string" ? data.error : null) ||
+      `HTTP ${r.status}`;
     const err = new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
     err.status = r.status;
     err.code = data?.error?.code || data?.code || `HTTP_${r.status}`;
@@ -126,180 +144,158 @@ async function api(path, { method = "GET", body, signed = false, encrypted = fal
   return data;
 }
 
-/* ---------- account ---------- */
-
-export async function getProfile() {
+export async function getMe() {
   return api("/users/me");
 }
 
 export async function getBalance() {
-  const me = await getProfile();
-  const u = me.user || me.data || me;
-  const bal = u.balance ?? u.wallet ?? u.credit ?? me.balance ?? null;
-  return { ok: true, balance: bal != null ? Number(bal) : null, profile: u };
+  // Fox uses profile balance via /users/me
+  const me = await getMe();
+  const bal =
+    me?.balance ??
+    me?.wallet ??
+    me?.data?.balance ??
+    me?.user?.balance ??
+    null;
+  return { balance: bal, raw: me };
 }
 
-/* ---------- catalogue (cached, stale-while-revalidate) ---------- */
-
-const TTL_MS = 90_000;
-let _cache = { at: 0, data: null };
-let _inflight = null;
-
-async function fetchCatalog() {
-  const data = await api("/games");
-  _cache = { at: Date.now(), data };
-  return data;
+export async function listDeposits() {
+  return api("/balance/deposits");
 }
 
 export async function listGames() {
-  const now = Date.now();
-  if (_cache.data && now - _cache.at < TTL_MS) return _cache.data;
-  if (_cache.data && now - _cache.at < TTL_MS * 4) {
-    if (!_inflight) {
-      _inflight = fetchCatalog().finally(() => {
-        _inflight = null;
-      });
-      _inflight.catch(() => {});
-    }
-    return _cache.data;
-  }
-  if (_inflight) {
-    try {
-      return await _inflight;
-    } catch {
-      /* fall through */
-    }
-  }
-  return fetchCatalog();
+  return api("/games");
 }
 
 export async function getGame(code) {
   return api(`/games/${encodeURIComponent(code)}`);
 }
 
-export function warmFoxProducts() {
-  if (!isFoxReady()) return;
-  listGames().catch((e) => console.warn("[fox] warm failed:", e.message));
-  setInterval(() => {
-    if (isFoxReady()) listGames().catch(() => {});
-  }, TTL_MS).unref?.();
+/** Validate player / server id where the game needs one */
+export async function lookup(code, fields = {}) {
+  return api(`/games/${encodeURIComponent(code)}/lookup`, {
+    method: "POST",
+    body: fields,
+    encrypted: true,
+    signed: true,
+  });
 }
 
-/** Normalize API payload → [{ slug, name, packs: [...] }] */
-export function normalizeGamesPayload(data) {
-  const out = [];
-  if (!data || typeof data !== "object") return out;
-  let list =
-    data.games ||
-    data.data?.games ||
-    (Array.isArray(data.data) ? data.data : null) ||
-    (Array.isArray(data) ? data : null);
-  if (!list && (data.code || data.items)) list = [data.game || data];
-  if (!Array.isArray(list)) list = [];
-
-  for (const g of list) {
-    if (!g || typeof g !== "object") continue;
-    const slug = String(g.code || g.id || g.slug || "").trim();
-    let items = g.items || g.packages || g.products || g.packs || [];
-    if (!Array.isArray(items)) items = [];
-    const packs = items
-      .map((p) => {
-        const price = Number(p.price ?? p.reseller_price ?? p.cost ?? p.amount ?? NaN);
-        return {
-          id: String(p.code ?? p.id ?? p.item_code ?? ""),
-          name: String(p.name || p.title || p.label || p.code || ""),
-          cost: price,
-          price,
-          category: String(p.category || p.group || "Diamonds"),
-          inStock:
-            p.available !== false && p.in_stock !== false && p.open !== false && p.active !== false && p.unavailable !== true,
-          image: String(p.image || p.icon || ""),
-        };
-      })
-      .filter((p) => p.id && Number.isFinite(p.cost));
-
-    const fields = g.fields || g.inputs || g.required_fields || g.required_inputs || [];
-    const fieldNames = (Array.isArray(fields) ? fields : Object.keys(fields || {})).map((f) =>
-      String(typeof f === "string" ? f : f?.name || f?.key || "").toLowerCase(),
-    );
-    const needsZone =
-      !!(g.needs_zone_id || g.needsZone || g.requires_server) ||
-      fieldNames.some((n) => /zone|server/.test(n));
-
-    if (!slug || !packs.length) continue;
-    out.push({
-      slug,
-      name: String(g.name || g.title || slug),
-      open: g.open !== false && g.active !== false && g.enabled !== false,
-      needsZone,
-      packs,
-      provider: "fox",
-      image: String(g.image || g.icon || g.logo || ""),
-    });
-  }
-  return out;
-}
-
-/* ---------- player lookup + orders ---------- */
-
-export async function checkId(game, playerId, zoneId) {
-  const body = { player_id: String(playerId) };
-  if (zoneId) body.zone_id = String(zoneId);
-  return api(`/games/${encodeURIComponent(game)}/lookup`, { method: "POST", body, encrypted: true });
-}
-
-export async function placeOrder({ game, product, playerId, zoneId, quantity, reference }) {
+/**
+ * Place order
+ * @param {{ gameCode: string, itemCode: string, player_id?: string, server_id?: string, reference?: string }} o
+ */
+export async function placeOrder(o) {
   const body = {
-    game_code: String(game),
-    item_code: String(product),
-    player_id: String(playerId),
-    reference: String(reference),
+    game_code: o.gameCode || o.game_code,
+    item_code: o.itemCode || o.item_code,
   };
-  if (zoneId) body.zone_id = String(zoneId);
-  if (quantity && Number(quantity) > 1) body.quantity = Number(quantity);
-  return api("/orders", { method: "POST", body, signed: true });
+  if (o.player_id || o.playerId) body.player_id = String(o.player_id || o.playerId);
+  if (o.server_id || o.serverId) body.server_id = String(o.server_id || o.serverId);
+  if (o.reference) body.reference = String(o.reference);
+  // alternate field names some SDKs use
+  if (!body.game_code && o.gameCode) body.gameCode = o.gameCode;
+  if (!body.item_code && o.itemCode) body.itemCode = o.itemCode;
+
+  return api("/orders", {
+    method: "POST",
+    body,
+    signed: true,
+    encrypted: true,
+  });
 }
 
-export async function getOrder(idOrRef) {
-  return api(`/orders/${encodeURIComponent(idOrRef)}`, { signed: true });
+export async function orderStatus(id) {
+  return api(`/orders/${encodeURIComponent(id)}`, { signed: true });
 }
 
 export async function listOrders() {
   return api("/orders", { signed: true });
 }
 
-/** Webhook: X-Fox-Signature: sha256=<hmac> — HMAC-SHA256 of the RAW body with webhook_secret */
-export function verifyWebhookSignature(rawBody, signature, whSecret) {
-  if (!whSecret || !signature) return false;
-  const want = crypto.createHmac("sha256", whSecret).update(rawBody).digest("hex");
-  const got = String(signature).replace(/^sha256=/i, "").trim();
-  try {
-    return crypto.timingSafeEqual(Buffer.from(want), Buffer.from(got));
-  } catch {
-    return false;
-  }
-}
+/** Normalize Fox games list → [{ id, name, packs }] for storefront */
+export function normalizeGamesPayload(data) {
+  const out = [];
+  const list =
+    (Array.isArray(data) && data) ||
+    data?.games ||
+    data?.data?.games ||
+    (Array.isArray(data?.data) && data.data) ||
+    [];
+  if (!Array.isArray(list)) return out;
 
-/** order lifecycle: queued → processing → success / partial / failed / refunded */
-export function summarizeFoxStatus(status) {
-  const s = String(status || "").toLowerCase();
-  if (s === "success") return { status: "done", done: true };
-  if (s === "partial") return { status: "partial", done: true };
-  if (s === "failed" || s === "refunded") return { status: "failed", done: true };
-  return { status: "processing", done: false };
-}
-
-/** Diagnostics: raw status + first bytes of a plain GET (never echoes credentials). */
-export async function probe(path) {
-  if (!isFoxReady()) return { path, error: "not_configured" };
-  try {
-    const r = await fetch(`${BASE}${path}`, {
-      headers: { "X-Uid": uid(), "X-Api-Key": key(), Accept: "application/json" },
-      signal: AbortSignal.timeout(15000),
+  for (const g of list) {
+    if (!g || typeof g !== "object") continue;
+    const id = String(g.code || g.id || g.slug || "").trim();
+    if (!id) continue;
+    const name = g.name || g.title || id;
+    let items = g.items || g.packages || g.packs || g.products || [];
+    if (!Array.isArray(items) && Array.isArray(g.categories)) {
+      items = [];
+      for (const c of g.categories) {
+        for (const it of c.items || c.packages || []) items.push(it);
+      }
+    }
+    const packs = (Array.isArray(items) ? items : []).map((p, i) => {
+      const pid = String(p.code || p.item_code || p.id || `p${i}`);
+      return {
+        id: pid,
+        dinoId: pid, // reuse field name used by order path
+        foxId: pid,
+        name: p.name || p.title || pid,
+        nameKm: p.name_km || p.nameKm || p.name || pid,
+        price: Number(p.price ?? p.reseller_price ?? p.amount ?? 0),
+        cost: Number(p.cost ?? p.price ?? 0),
+        image: p.image || p.icon || "",
+        badge: p.badge || "",
+      };
     });
-    const text = await r.text();
-    return { path, status: r.status, ok: r.ok, body: text.slice(0, 1800) };
-  } catch (e) {
-    return { path, error: e.message };
+    out.push({
+      id: `fox_${id}`,
+      foxId: id,
+      dinoId: id,
+      name,
+      nameKm: g.name_km || g.nameKm || name,
+      image: g.image || g.icon || g.logo || "",
+      open: true,
+      famous: false,
+      provider: "fox",
+      packs,
+      mark: String(name).slice(0, 2).toUpperCase(),
+      hue: 210,
+    });
   }
+  return out;
+}
+
+export function summarizeFoxStatus(st) {
+  const s = String(st || "").toLowerCase();
+  if (["success", "completed", "done", "ok"].includes(s)) return { status: "done", done: true };
+  if (["failed", "error", "cancelled", "canceled", "refunded"].includes(s))
+    return { status: "failed", done: true };
+  if (["partial"].includes(s)) return { status: "partial", done: true };
+  if (["queued", "pending", "processing", "in_progress", "review"].includes(s))
+    return { status: "processing", done: false };
+  return { status: s || "processing", done: false };
+}
+
+const CACHE_TTL = 90_000;
+let _cache = { at: 0, data: null };
+
+export async function listProductsCached() {
+  const now = Date.now();
+  if (_cache.data && now - _cache.at < CACHE_TTL) return _cache.data;
+  const data = await listGames();
+  _cache = { at: now, data };
+  return data;
+}
+
+export function warmFoxProducts() {
+  if (!isFoxReady()) return;
+  listProductsCached().catch((e) => console.warn("[fox] warm failed:", e.message));
+  setInterval(() => {
+    if (!isFoxReady()) return;
+    listProductsCached().catch(() => {});
+  }, CACHE_TTL).unref?.();
 }
