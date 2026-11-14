@@ -4,7 +4,6 @@
  */
 import { getSettings } from "./store.js";
 import * as khmerTopup from "./khmerTopup.js";
-import * as dinoTopup from "./dinoTopup.js";
 import * as foxTopup from "./foxTopup.js";
 import { localCatalog, findLocalPack, cleanBanners } from "./localProducts.js";
 
@@ -121,10 +120,8 @@ export function warmCatalog() {
     }, TTL / 2).unref();
   }
   try {
-    dinoTopup.warmDinoProducts?.();
     foxTopup.warmFoxProducts?.();
   } catch (e) {
-    console.warn("[catalog] dino warm failed:", e.message);
   }
   // Pre-build public catalog once
   publicCatalog().catch((e) => console.warn("[catalog] public warm failed:", e.message));
@@ -209,83 +206,6 @@ export async function storefront() {
 }
 
 
-/** Dino games the admin enabled (dinoSelection) — for storefront */
-export async function dinoStorefront() {
-  if (!dinoTopup.isDinoReady()) return [];
-  const settings = getSettings();
-  const sel = settings.dinoSelection || {};
-  const globalMarkup = Number(sel.markupPercent) || 0;
-  // Always list enabled Dino games on Home when API key is set.
-  // topupProvider only controls which API is used for auto-fulfill after pay.
-  let supplier = [];
-  try {
-    const data = await dinoTopup.listProducts();
-    supplier = dinoTopup.normalizeGamesPayload(data);
-  } catch (e) {
-    console.warn("[catalog] dino list failed:", e.message);
-    return [];
-  }
-
-  const out = [];
-  for (const g of supplier) {
-    const s = sel.games?.[g.slug] || sel.games?.[String(g.slug).toLowerCase()];
-    const isOpen = !!s?.enabled;
-    if (!isOpen && !s?.showWhenOff) continue;
-
-    const hasOwn = s && s.markup !== undefined && s.markup !== null && s.markup !== "" && Number.isFinite(Number(s.markup));
-    const markup = hasOwn ? Number(s.markup) : globalMarkup;
-    const allowed = Array.isArray(s?.packages) ? new Set(s.packages.map(String)) : null;
-
-    const packPrices = (s && s.packPrices) || {};
-    const packs = (g.packs || [])
-      .filter((p) => p.inStock !== false && (!allowed || allowed.has(String(p.id))))
-      .map((p) => {
-        const pid = String(p.id);
-        const cost = Number(p.cost) || 0;
-        const fixed = packPrices[pid];
-        const price =
-          fixed != null && Number.isFinite(Number(fixed)) && Number(fixed) >= 0
-            ? Math.round(Number(fixed) * 100) / 100
-            : sellPrice(cost, markup);
-        return {
-          id: pid,
-          name: p.name,
-          nameKm: p.name,
-          price,
-          cost,
-          category: p.category || "Diamonds",
-          image: (s && (s.packImages?.[p.id] || s.packIcon)) || p.image || "",
-        };
-      });
-
-    if (isOpen && !packs.length) continue;
-
-    out.push({
-      id: g.slug,
-      name: g.name,
-      nameKm: g.name,
-      image: (s && s.image) || g.image || "",
-      banners: cleanBanners(s?.banners, s?.banner),
-      banner: cleanBanners(s?.banners, s?.banner)[0] || "",
-      mark: markOf(g.name),
-      hue: hueOf(g.slug),
-      famous: !!(s && s.featured),
-      hot: !!(s && s.featured),
-      open: isOpen,
-      showWhenOff: !!s?.showWhenOff,
-      hasZone: !!g.needsZone,
-      zoneLabelKm: "Zone ID",
-      zoneLabelEn: "Zone ID",
-      servers: [],
-      idHintKm: "",
-      idHintEn: "",
-      provider: "dino",
-      dinoId: g.slug,
-      packs: packs,
-    });
-  }
-  return out;
-}
 
 
 let _publicCatCache = { at: 0, games: null };
@@ -296,9 +216,8 @@ export async function publicCatalog() {
   if (_publicCatCache.games && now - _publicCatCache.at < PUBLIC_CAT_TTL_MS) {
     return _publicCatCache.games;
   }
-  const [khmerGames, dinoGames, foxGames] = await Promise.all([
+  const [khmerGames, foxGames] = await Promise.all([
     storefront().catch(() => []),
-    dinoStorefront().catch(() => []),
     foxStorefront().catch(() => []),
   ]);
 
@@ -309,7 +228,7 @@ export async function publicCatalog() {
       packs: g.packs.map(({ cost, ...p }) => p),
     }));
 
-  // Merge: local first, then Khmer, then Dino (skip dino slug already present from Khmer)
+  // Merge: local, Khmer, Fox
   const seen = new Set(local.map((g) => String(g.id)));
   const merged = [];
   for (const g of khmerGames) {
@@ -317,19 +236,6 @@ export async function publicCatalog() {
     if (seen.has(id)) continue;
     seen.add(id);
     merged.push({ ...g, packs: g.packs.map(({ cost, ...p }) => p), provider: g.provider || "khmer" });
-  }
-  for (const g of dinoGames) {
-    const id = String(g.id);
-    // Both mode: if same slug enabled on both, prefer Dino when dino open
-    if (seen.has(id)) {
-      const idx = merged.findIndex((x) => String(x.id) === id);
-      if (idx >= 0 && g.open) {
-        merged[idx] = { ...g, packs: g.packs.map(({ cost, ...p }) => p) };
-      }
-      continue;
-    }
-    seen.add(id);
-    merged.push({ ...g, packs: g.packs.map(({ cost, ...p }) => p) });
   }
   for (const g of foxGames) {
     const id = String(g.id);
@@ -345,14 +251,13 @@ export async function publicCatalog() {
 export async function findPack(gameId, packId) {
   const local = findLocalPack(gameId, packId);
   if (local) return local;
-  // Prefer full public catalog (Khmer + Dino)
+  // Prefer full public catalog
   const all = await publicCatalog();
   const game = all.find((g) => String(g.id) === String(gameId));
   if (!game) return null;
   // re-fetch with cost for checkout: try storefronts that keep cost
   const withCost =
     (await storefront()).find((g) => String(g.id) === String(gameId)) ||
-    (await dinoStorefront()).find((g) => String(g.id) === String(gameId)) ||
     (await foxStorefront()).find((g) => String(g.id) === String(gameId));
   const g = withCost || game;
   const pack = (g.packs || []).find((p) => String(p.id) === String(packId));
@@ -362,7 +267,7 @@ export async function findPack(gameId, packId) {
 export async function findGame(gameId) {
   const id = String(gameId);
   const local = localCatalog().find((g) => g.id === id);
-  // Prefer an OPEN source (local override may be closed while Dino/Khmer is still listed on Home)
+  // Prefer open source
   if (local && local.open !== false) return local;
   const fromKt = (await storefront()).find((g) => String(g.id) === id);
   if (fromKt && fromKt.open !== false) {
@@ -378,22 +283,9 @@ export async function findGame(gameId) {
     }
     return fromKt;
   }
-  const fromDino = (await dinoStorefront()).find((g) => String(g.id) === id);
-  if (fromDino && fromDino.open !== false) {
-    if (local) {
-      return {
-        ...fromDino,
-        deliveryType: local.deliveryType || fromDino.deliveryType,
-        requireUsername: local.requireUsername ?? true,
-        name: local.name || fromDino.name,
-        nameKm: local.nameKm || fromDino.nameKm,
-      };
-    }
-    return fromDino;
-  }
   // last resort: closed local / any match (admin tools)
   if (local) return local;
-  return fromKt || fromDino || null;
+  return fromKt || null;
 }
 
 /** Only allow our own uploads or https URLs as image sources. */
@@ -500,7 +392,7 @@ export async function foxStorefront() {
   }
   const out = [];
   for (const g of supplier) {
-    const key = g.foxId || String(g.id || "").replace(/^fox_/, "");
+    const key = g.foxId || g.slug || String(g.id || "").replace(/^fox_/, "");
     const s = sel.games?.[key] || sel.games?.[g.id] || sel.games?.[String(key).toLowerCase()];
     if (!s?.enabled) continue;
     const hasOwn = s && s.markup !== undefined && s.markup !== null && s.markup !== "" && Number.isFinite(Number(s.markup));
@@ -525,7 +417,9 @@ export async function foxStorefront() {
     });
     out.push({
       ...g,
-      id: g.id.startsWith("fox_") ? g.id : `fox_${key}`,
+      id: (g.id && String(g.id).startsWith("fox_")) ? g.id : `fox_${key}`,
+      foxId: key,
+      slug: key,
       name: s?.title || g.name,
       nameKm: s?.titleKm || g.nameKm || g.name,
       image: s?.image || g.image,

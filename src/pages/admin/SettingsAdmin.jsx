@@ -553,11 +553,6 @@ export default function SettingsAdmin() {
                 desc: "Env: KHMER_TOPUP_API_KEY · Catalog tab Khmer TopUp",
               },
               {
-                id: "dino",
-                title: "Dino Topups",
-                desc: "Env: DINO_TOPUP_API_KEY · Catalog tab Dino",
-              },
-              {
                 id: "fox",
                 title: "Fox Topup",
                 desc: "Env: FOX_TOPUP_UID + API_KEY + API_SECRET · topupfoxbot.com",
@@ -565,7 +560,7 @@ export default function SettingsAdmin() {
               {
                 id: "both",
                 title: "All providers",
-                desc: "Fox/Dino game ដែល enable ប្រើ API របស់វា · ផ្សេងទៀត Khmer",
+                desc: "Fox game ដែល enable ប្រើ API របស់វា · ផ្សេងទៀត Khmer",
               },
             ].map((opt) => {
               const cur = form.topupProvider || "khmer";
@@ -588,7 +583,7 @@ export default function SettingsAdmin() {
             })}
           </div>
           <p className="ad-muted" style={{ marginTop: 8 }}>
-            ចុចជ្រើស → រួចចុច <b>រក្សាទុកការកំណត់</b>។ Both = Fox/Dino សម្រាប់ game ដែល enable ក្នុង tab រៀងៗ · ផ្សេងទៀត Khmer។
+            ចុចជ្រើស → រួចចុច <b>រក្សាទុកការកំណត់</b>។ Both = Fox សម្រាប់ game ដែល enable ក្នុង tab រៀងៗ · ផ្សេងទៀត Khmer។
           </p>
         </div>
         <div className="ad-toggle-row">

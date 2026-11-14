@@ -35,7 +35,6 @@ try { rielPay.bindSettings(() => getSettings()); } catch (_) {}
 import * as khmerSystemPay from "./khmerSystemPay.js";
 import * as liveChat from "./liveChat.js";
 import * as khmerTopup from "./khmerTopup.js";
-import * as dinoTopup from "./dinoTopup.js";
 import * as foxTopup from "./foxTopup.js";
 import * as priceWatch from "./priceWatch.js";
 import * as robloxLookup from "./robloxLookup.js";
@@ -368,34 +367,28 @@ async function fulfillTopup(order) {
     return updateOrder(order.id, { status: "paid", note: "autoTopup disabled — fulfill manually" });
   }
 
-  // Provider: "khmer" | "dino" | "fox" | "both"
+  // Provider: "khmer" | "fox" | "both"
   const pref = String(settings.topupProvider || order.topupProvider || "khmer").toLowerCase();
-  let useDino = false;
   let useFox = false;
   let useKhmer = false;
-  if (pref === "dino") {
-    useDino = dinoTopup.isDinoReady();
-  } else if (pref === "fox") {
+  if (pref === "fox") {
     useFox = foxTopup.isFoxReady();
   } else if (pref === "both") {
-    const dinoSel = settings.dinoSelection?.games || {};
     const foxSel = settings.foxSelection?.games || {};
-    const slug = String(order.gameId || order.dinoGame || order.foxGame || "");
-    const dinoEnabled = !!(dinoSel[slug]?.enabled || dinoSel[order.dinoGame]?.enabled);
-    const foxEnabled = !!(foxSel[slug]?.enabled || foxSel[order.foxGame]?.enabled || order.topupProvider === "fox" || order.provider === "fox");
-    const forceDino = order.topupProvider === "dino" || dinoEnabled;
-    const forceFox = order.topupProvider === "fox" || foxEnabled || String(order.gameId || "").startsWith("fox_");
-    if (forceFox && foxTopup.isFoxReady()) useFox = true;
-    else if (forceDino && dinoTopup.isDinoReady()) useDino = true;
+    const slug = String(order.gameId || order.foxGame || "");
+    const foxEnabled = !!(
+      foxSel[slug]?.enabled ||
+      foxSel[order.foxGame]?.enabled ||
+      order.topupProvider === "fox" ||
+      order.provider === "fox" ||
+      String(order.gameId || "").startsWith("fox_")
+    );
+    if (foxEnabled && foxTopup.isFoxReady()) useFox = true;
     else if (khmerTopup.isTopupReady()) useKhmer = true;
-    else if (dinoTopup.isDinoReady()) useDino = true;
     else if (foxTopup.isFoxReady()) useFox = true;
   } else {
-    // default khmer; still route explicit fox/dino orders
     if (order.topupProvider === "fox" || order.provider === "fox" || String(order.gameId || "").startsWith("fox_")) {
       useFox = foxTopup.isFoxReady();
-    } else if (order.topupProvider === "dino" || order.provider === "dino") {
-      useDino = dinoTopup.isDinoReady();
     } else {
       useKhmer = khmerTopup.isTopupReady();
     }
@@ -413,51 +406,6 @@ async function fulfillTopup(order) {
     });
   }
 
-  if (useDino) {
-    const product = order.dinoProduct || order.packId;
-    const game = order.dinoGame || order.gameId;
-    if (!product || !game) {
-      return updateOrder(order.id, {
-        status: "paid",
-        note: "Dino product/game missing on order — fulfill manually",
-      });
-    }
-    updateOrder(order.id, { status: "processing", topupProvider: "dino" });
-    try {
-      const result = await dinoTopup.placeOrder({
-        game,
-        product,
-        playerId: order.userId,
-        zoneId: order.zoneId || undefined,
-        quantity: order.qty > 1 ? order.qty : undefined,
-        reference: order.id,
-        // supplier max = cost (not customer sell price)
-        maxPrice: (Number(order.cost) > 0 ? Number(order.cost) * (Number(order.qty) || 1) : undefined),
-      });
-      const remote = result.order || result;
-      const st = dinoTopup.summarizeDinoStatus(remote.status);
-      return updateOrder(order.id, {
-        status: st.done ? (st.status === "failed" ? "paid" : st.status === "done" ? "done" : st.status) : "processing",
-        paidAt: order.paidAt || Date.now(),
-        providerPaid: true,
-        topupProvider: "dino",
-        dinoOrderId: remote.order_id || remote.id || null,
-        dinoReference: remote.reference || order.id,
-        dinoStatus: remote.status || null,
-        note: `Dino ${remote.order_id || remote.reference || ""} · ${remote.status || ""}`,
-        needsManual: st.status === "failed",
-      });
-    } catch (e) {
-      return updateOrder(order.id, {
-        status: "paid",
-        paidAt: order.paidAt || Date.now(),
-        providerPaid: true,
-        topupProvider: "dino",
-        note: `Dino topup error: ${e.message} — fulfill manually`,
-        needsManual: true,
-      });
-    }
-  }
 
 
   if (useFox) {
@@ -643,8 +591,7 @@ app.get("/api/health", (_req, res) => {
     ok: true,
     name: "POR POR TOPUP",
     payment: rielPay.isReady() || khmerSystemPay.isPaymentReady(),
-    topup: khmerTopup.isTopupReady() || dinoTopup.isDinoReady(),
-    dinoTopup: dinoTopup.isDinoReady(),
+    topup: khmerTopup.isTopupReady(),
   });
 });
 
@@ -656,9 +603,8 @@ app.get("/api/integrations/status", (_req, res) => {
     rielpayReadySettings: rielPay.isReady("settings"),
     rielpayReadyEnv: rielPay.isReady("env"),
     abaReady: khmerSystemPay.isPaymentReady(),
-    topupReady: khmerTopup.isTopupReady() || dinoTopup.isDinoReady() || foxTopup.isFoxReady(),
+    topupReady: khmerTopup.isTopupReady() || foxTopup.isFoxReady(),
     khmerTopupReady: khmerTopup.isTopupReady(),
-    dinoTopupReady: dinoTopup.isDinoReady(),
     foxTopupReady: foxTopup.isFoxReady(),
     topupProvider: s.topupProvider || "khmer",
     autoTopup: !!s.autoTopup,
@@ -995,27 +941,8 @@ app.post("/api/verify", limit("verify", { limit: 15, windowMs: 60_000 }), async 
     const pref = String(getSettings().topupProvider || "khmer").toLowerCase();
     let supplier = null;
     try {
-      if (dinoTopup.isDinoReady() && (pref === "dino" || isRoblox)) {
-        // Prefer Dino check-id for roblox when key exists
-        const gameKey = isRoblox ? "roblox" : game.dinoId || slug;
-        try {
-          const data = await dinoTopup.checkId(gameKey, playerId, serverId);
-          supplier = {
-            provider: "dino",
-            valid: !!data.valid,
-            nickname: data.nickname || null,
-            region: data.region || null,
-            message: data.message || null,
-            unavailable: !!data.unavailable,
-          };
-        } catch (e) {
-          if (pref === "dino" && !isRoblox) throw e;
-          // roblox can continue with public lookup only
-        }
-      }
       if (!supplier && khmerTopup.isTopupReady() && !isRoblox) {
         const data = await khmerTopup.verifyAccount(slug, playerId, serverId);
-        // normalize Khmer response
         const result = data.result || (data.valid ? "valid" : data.valid === false ? "invalid" : "unknown");
         return res.json({ ...data, result: result === "ok" ? "valid" : result });
       }
@@ -1056,7 +983,7 @@ app.post("/api/verify", limit("verify", { limit: 15, windowMs: 60_000 }), async 
           nickname: supplier.nickname || uname,
           region: supplier.region || null,
           message: supplier.message || null,
-          provider: supplier.provider || "dino",
+          provider: supplier.provider || "roblox",
           roblox: {
             userId: null,
             username: uname,
@@ -1100,7 +1027,7 @@ app.post("/api/verify", limit("verify", { limit: 15, windowMs: 60_000 }), async 
       });
     }
 
-    if (!khmerTopup.isTopupReady() && !dinoTopup.isDinoReady()) {
+    if (!khmerTopup.isTopupReady() && !foxTopup.isFoxReady()) {
       return res.status(503).json({ result: "unknown", error: "topup_not_configured" });
     }
     return res.json({ result: "unknown", message: "no_check" });
@@ -1237,7 +1164,7 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
       dt0 !== "stock" &&
       dt0 !== "gift_code" &&
       !tg.isKaiRouteGame(found.game);
-    if (needsSupplierTopup && !khmerTopup.isTopupReady() && !(dinoTopup.isDinoReady && dinoTopup.isDinoReady())) {
+    if (needsSupplierTopup && !khmerTopup.isTopupReady() && !foxTopup.isFoxReady()) {
       return res.status(503).json({
         error: "not_configured",
         detail: "topup_api_missing",
@@ -1305,20 +1232,14 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
     method: "khqr",
     coupon: cp.code,
     ktPackageId: giftCode ? null : Number(found.pack.id) || null,
-    dinoGame: giftCode ? null : (found.game.provider === "fox" ? null : (found.game.dinoId || found.game.id || null)),
-    dinoProduct: giftCode ? null : (found.game.provider === "fox" ? null : (found.pack.dinoId || found.pack.id || null)),
+    dinoGame: null,
+    dinoProduct: null,
     foxGame: giftCode ? null : (found.game.provider === "fox" ? (found.game.foxId || String(found.game.id || "").replace(/^fox_/, "")) : null),
     foxProduct: giftCode ? null : (found.game.provider === "fox" ? (found.pack.foxId || found.pack.id) : null),
     topupProvider: giftCode
       ? null
-      : (found.game.provider === "fox"
+      : (found.game.provider === "fox" || String(settings.topupProvider || "").toLowerCase() === "fox"
           ? "fox"
-          : found.game.provider === "dino" || String(settings.topupProvider || "").toLowerCase() === "dino"
-          ? "dino"
-          : String(settings.topupProvider || "").toLowerCase() === "fox"
-            ? "fox"
-          : String(settings.topupProvider || "").toLowerCase() === "both" && found.game.provider === "dino"
-            ? "dino"
           : String(settings.topupProvider || "").toLowerCase() === "both" && found.game.provider === "fox"
             ? "fox"
             : null),
@@ -1981,7 +1902,7 @@ app.put("/api/admin/settings", adminAuth, (req, res) => {
   }
   if (patch.topupProvider !== undefined) {
     const v = String(patch.topupProvider || "khmer").toLowerCase();
-    patch.topupProvider = ["khmer", "dino", "fox", "both"].includes(v) ? v : "khmer";
+    patch.topupProvider = ["khmer", "fox", "both"].includes(v) ? v : "khmer";
   }
   if (patch.logoUrl !== undefined) patch.logoUrl = cleanImageUrl(patch.logoUrl);
   if (patch.logoUrl !== undefined) branding.clearBrandingCache();
@@ -2289,92 +2210,12 @@ app.put("/api/admin/fox-selection", adminAuth, (req, res) => {
   res.json({ ok: true, foxSelection });
 });
 
-app.get("/api/admin/dino-games", adminAuth, async (req, res) => {
-  if (!dinoTopup.isDinoReady()) {
-    return res.status(503).json({ error: "DINO_TOPUP_API_KEY not set" });
-  }
-  try {
-    const want = String(req.query.game || "").trim();
-    const skipped = [];
-    let games = [];
 
-    if (want) {
-      try {
-        const data = await dinoTopup.listProducts(want);
-        games = dinoTopup.normalizeGamesPayload(data);
-      } catch (e) {
-        skipped.push({ game: want, error: e.message });
-      }
-    } else {
-      // 1) Full catalog without filter (docs: game optional)
-      try {
-        const data = await dinoTopup.listProducts();
-        games = dinoTopup.normalizeGamesPayload(data);
-      } catch (e) {
-        skipped.push({ game: "*", error: e.message });
-      }
 
-      // 2) If API returned few games, merge common ids individually
-      const known = [
-        "ml", "ff", "pubg", "hok", "genshin", "roblox",
-        "valorant", "codm", "aov", "wildrift", "lol",
-        "steam", "itunes", "google-play", "delta", "blood-strike",
-        "honor", "zepeto", "magic-chess", "lifeafter", "identity-v",
-      ];
-      const have = new Set(games.map((g) => String(g.slug).toLowerCase()));
-      if (games.length < 8) {
-        for (const gid of known) {
-          if (have.has(gid)) continue;
-          try {
-            const data = await dinoTopup.listProducts(gid);
-            for (const g of dinoTopup.normalizeGamesPayload(data)) {
-              const key = String(g.slug).toLowerCase();
-              if (have.has(key)) continue;
-              have.add(key);
-              games.push(g);
-            }
-          } catch (e) {
-            skipped.push({ game: gid, error: e.message || e.code || "fail" });
-          }
-        }
-      }
-    }
-
-    // de-dupe by slug
-    const seen = new Set();
-    const uniq = [];
-    for (const g of games) {
-      const k = String(g.slug).toLowerCase();
-      if (seen.has(k)) continue;
-      seen.add(k);
-      uniq.push(g);
-    }
-
-    res.json({
-      games: uniq,
-      count: uniq.length,
-      skipped: skipped.slice(0, 30),
-      selection: getSettings().dinoSelection || { markupPercent: 0, games: {} },
-    });
-  } catch (e) {
-    res.status(502).json({ error: e.message });
-  }
-});
-
-app.put("/api/admin/dino-selection", adminAuth, (req, res) => {
-  const selection = catalog.sanitizeSelection(req.body);
-  updateSettings({ dinoSelection: selection });
-  res.json({ selection });
-});
-
-/* ---------- Price watch (Khmer + Dino) ---------- */
 app.get("/api/admin/kt-prices", adminAuth, async (req, res) => {
   const provider = String(req.query.provider || "khmer").toLowerCase() === "dino" ? "dino" : "khmer";
   if (provider === "khmer" && !khmerTopup.isTopupReady()) {
     return res.status(503).json({ error: "KHMER_TOPUP_API_KEY not set" });
-  }
-  if (provider === "dino" && !dinoTopup.isDinoReady()) {
-    return res.status(503).json({ error: "DINO_TOPUP_API_KEY not set" });
   }
   try {
     const data = await priceWatch.latestChanges(provider);
@@ -2389,9 +2230,6 @@ app.post("/api/admin/kt-prices/snapshot", adminAuth, async (req, res) => {
   const provider = String(req.body?.provider || req.query.provider || "khmer").toLowerCase() === "dino" ? "dino" : "khmer";
   if (provider === "khmer" && !khmerTopup.isTopupReady()) {
     return res.status(503).json({ error: "KHMER_TOPUP_API_KEY not set" });
-  }
-  if (provider === "dino" && !dinoTopup.isDinoReady()) {
-    return res.status(503).json({ error: "DINO_TOPUP_API_KEY not set" });
   }
   try {
     const r = await priceWatch.takeSnapshot(provider, { force: true });
@@ -2645,62 +2483,6 @@ app.post("/api/robux/complete", express.json(), (req, res) => {
 
 
 
-// —— Dino Topups webhook (order.updated) ——
-app.post("/api/webhook/dino", async (req, res) => {
-  try {
-    const secret = (process.env.DINO_WEBHOOK_SECRET || getSettings().dinoWebhookSecret || "").trim();
-    // Unsigned webhooks are never accepted (anyone could otherwise change order status)
-    if (!secret) return res.status(503).json({ ok: false, error: "webhook_secret_not_set" });
-    const raw = typeof req.rawBody === "string" ? req.rawBody : "";
-    const ts = req.headers["x-dino-timestamp"];
-    const sig = req.headers["x-dino-signature"];
-    if (!raw || !dinoTopup.verifyWebhookSignature(raw, ts, sig, secret)) {
-      return res.status(401).json({ ok: false, error: "bad_signature" });
-    }
-    const event = typeof req.body === "object" && req.body ? req.body : JSON.parse(raw || "{}");
-    const data = event.data?.order || event.order || event.data || {};
-    const ref = data.reference || data.order_id;
-    if (ref) {
-      const orders = typeof listOrders === "function" ? listOrders() : getOrders();
-      const list = Array.isArray(orders) ? orders : (orders?.orders || []);
-      const o = list.find((x) => x.id === ref || x.dinoOrderId === data.order_id || x.dinoReference === String(ref));
-      // Only orders that really were paid may be changed by a provider webhook
-      const payable = o && (o.providerPaid || ["paid", "processing", "queued", "done", "delivered"].includes(o.status));
-      if (o && payable) {
-        const st = dinoTopup.summarizeDinoStatus(data.status);
-        updateOrder(o.id, {
-          dinoStatus: data.status,
-          dinoOrderId: data.order_id || o.dinoOrderId,
-          status: data.status === "success" ? "done" : data.status === "failed" ? "paid" : st.done ? o.status : "processing",
-          note: `Dino webhook: ${data.status}`,
-          needsManual: data.status === "failed",
-        });
-      }
-    }
-    res.status(200).json({ ok: true });
-  } catch (e) {
-    console.error("dino webhook", e.message);
-    res.status(200).json({ ok: true });
-  }
-});
-
-app.get("/api/admin/dino/balance", adminAuth, async (_req, res) => {
-  if (!dinoTopup.isDinoReady()) return res.status(503).json({ ok: false, error: "not_configured" });
-  try {
-    res.json({ ok: true, ...(await dinoTopup.getBalance()) });
-  } catch (e) {
-    res.status(502).json({ ok: false, error: e.message });
-  }
-});
-
-app.get("/api/admin/dino/products", adminAuth, async (req, res) => {
-  if (!dinoTopup.isDinoReady()) return res.status(503).json({ ok: false, error: "not_configured" });
-  try {
-    res.json(await dinoTopup.listProducts(req.query.game));
-  } catch (e) {
-    res.status(502).json({ ok: false, error: e.message });
-  }
-});
 
 /* Safety net: every minute (and shortly after boot) deliver any order still waiting for stock */
 setInterval(() => fulfillAwaitingStock(), 60 * 1000).unref?.();
