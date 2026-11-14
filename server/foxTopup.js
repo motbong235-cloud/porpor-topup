@@ -44,7 +44,8 @@ const key = () => creds().key;
 const secret = () => creds().secret;
 
 export function isFoxReady() {
-  return Boolean(uid() && key());
+  // Secret is required: all Fox responses use AES-GCM {_enc:1} envelope keyed by SHA256(secret)
+  return Boolean(uid() && key() && secret());
 }
 export function isFoxSigningReady() {
   return isFoxReady() && Boolean(secret());
@@ -61,30 +62,66 @@ function signRequest(method, path, rawBody) {
   return { "X-Timestamp": ts, "X-Nonce": nonce, "X-Signature": sig };
 }
 
+/** Official Fox envelope: {_enc:1, data: base64url(iv12 || ciphertext||tag16)} key=SHA256(secret) */
+function b64urlToBuf(s) {
+  let b = String(s || "").replace(/-/g, "+").replace(/_/g, "/");
+  while (b.length % 4) b += "=";
+  return Buffer.from(b, "base64");
+}
+function bufToB64url(buf) {
+  return Buffer.from(buf).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+function aesKeyFromSecret() {
+  return crypto.createHash("sha256").update(secret()).digest(); // 32 bytes
+}
+
 function encryptBody(rawJson) {
-  const aesKey = crypto.createHash("sha256").update(secret()).digest(); // 32 bytes
+  if (!secret()) throw Object.assign(new Error("FOX_TOPUP_API_SECRET not set"), { code: "not_configured" });
+  const key = aesKeyFromSecret();
   const iv = crypto.randomBytes(12);
-  const c = crypto.createCipheriv("aes-256-gcm", aesKey, iv);
-  const ct = Buffer.concat([c.update(rawJson, "utf8"), c.final()]);
+  const c = crypto.createCipheriv("aes-256-gcm", key, iv);
+  const ct = Buffer.concat([c.update(String(rawJson), "utf8"), c.final()]);
   const tag = c.getAuthTag();
-  return JSON.stringify({
-    iv: iv.toString("base64"),
-    data: ct.toString("base64"),
-    tag: tag.toString("base64"),
-  });
+  const packed = Buffer.concat([iv, ct, tag]);
+  return JSON.stringify({ _enc: 1, data: bufToB64url(packed) });
 }
 
 function decryptMaybe(data) {
-  if (!data || typeof data !== "object" || !data.iv || !data.data || !data.tag) return data;
-  try {
-    const aesKey = crypto.createHash("sha256").update(secret()).digest();
-    const d = crypto.createDecipheriv("aes-256-gcm", aesKey, Buffer.from(data.iv, "base64"));
-    d.setAuthTag(Buffer.from(data.tag, "base64"));
-    const txt = Buffer.concat([d.update(Buffer.from(data.data, "base64")), d.final()]).toString("utf8");
-    return JSON.parse(txt);
-  } catch {
-    return data;
+  if (!data || typeof data !== "object") return data;
+  // Official {_enc:1, data:"..."}
+  if (data._enc && typeof data.data === "string") {
+    if (!secret()) return data;
+    try {
+      const key = aesKeyFromSecret();
+      const buf = b64urlToBuf(data.data);
+      if (buf.length <= 12 + 16) return data;
+      const iv = buf.subarray(0, 12);
+      const tag = buf.subarray(buf.length - 16);
+      const ct = buf.subarray(12, buf.length - 16);
+      const d = crypto.createDecipheriv("aes-256-gcm", key, iv);
+      d.setAuthTag(tag);
+      const txt = Buffer.concat([d.update(ct), d.final()]).toString("utf8");
+      return JSON.parse(txt);
+    } catch (e) {
+      const err = new Error("Fox decrypt failed: " + (e.message || "bad secret"));
+      err.code = "DECRYPT_FAILED";
+      err.cause = e;
+      throw err;
+    }
   }
+  // Legacy {iv,data,tag}
+  if (data.iv && data.data && data.tag && secret()) {
+    try {
+      const key = aesKeyFromSecret();
+      const d = crypto.createDecipheriv("aes-256-gcm", key, Buffer.from(data.iv, "base64"));
+      d.setAuthTag(Buffer.from(data.tag, "base64"));
+      const txt = Buffer.concat([d.update(Buffer.from(data.data, "base64")), d.final()]).toString("utf8");
+      return JSON.parse(txt);
+    } catch {
+      return data;
+    }
+  }
+  return data;
 }
 
 /* ---------- transport ---------- */
@@ -115,14 +152,6 @@ async function api(path, { method = "GET", body, signed = false, encrypted = fal
   });
   let data = await r.json().catch(() => ({}));
   data = decryptMaybe(data);
-  // If server returned encrypted envelope we could not open → bad secret or wrong key
-  if (data && data._enc && data.data && !data.games && !data.user && !Array.isArray(data)) {
-    const err = new Error("Fox response still encrypted — ពិនិត្យ FOX_TOPUP_UID / API_KEY / API_SECRET");
-    err.status = r.status || 401;
-    err.code = "DECRYPT_OR_AUTH";
-    err.data = data;
-    throw err;
-  }
   if (!r.ok) {
     const msg = data?.error?.message || data?.message || data?.detail || data?.error || `HTTP ${r.status}`;
     const err = new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
