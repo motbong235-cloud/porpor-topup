@@ -1,40 +1,27 @@
 /**
- * Fox Topup (Fox Store) reseller API
+ * TopupFox Reseller API — based on official reseller_client.mjs
  * Base: https://api.topupfoxbot.com/v1
- * Docs: https://reseller.topupfoxbot.com
  *
  * Env:
- *   FOX_TOPUP_UID         numeric reseller id   (header X-Uid) — optional, defaults to 287
- *   FOX_TOPUP_API_KEY     api key               (header X-Api-Key)
- *   FOX_TOPUP_API_SECRET  api secret            (HMAC signing + AES-GCM body encryption)
- *   FOX_WEBHOOK_SECRET    webhook secret        (X-Fox-Signature: sha256=<hmac>)
+ *   FOX_TOPUP_UID         reseller id (X-Uid)
+ *   FOX_TOPUP_API_KEY     api key
+ *   FOX_TOPUP_API_SECRET  api secret (AES + HMAC)
  *
- * Route kinds (from the docs):
- *   API Key   → plain GET with X-Uid + X-Api-Key         (users/me, games, balance/deposits)
- *   Signed    → + HMAC signature                          (orders, rotate)
- *   Encrypted → + HMAC signature + AES-GCM encrypted body (games/{code}/lookup)
- *
- * NOTE: the plain "API Key" routes follow the docs exactly. The exact HMAC canonical string
- * and AES-GCM envelope are implemented in signRequest()/encryptBody() below — those two
- * functions are the ONLY place to adjust if the Python / Node client in the docs differs.
+ * AES key = SHA256("fox-transport-v1:" + api_secret)
+ * Envelope: { _enc:1, token: apiKey, data: base64url(nonce12 || ct || tag16) }
  */
 import crypto from "crypto";
 
 const BASE = (process.env.FOX_TOPUP_URL || "https://api.topupfoxbot.com/v1").replace(/\/$/, "");
 
-/**
- * Credentials. Simplest setup: only FOX_TOPUP_API_KEY (UID defaults to your reseller id 287).
- * FOX_TOPUP_API_KEY also accepts "uid:apikey" or "uid:apikey:secret" in ONE variable.
- */
-const DEFAULT_UID = "287";
 function creds() {
   const raw = (process.env.FOX_TOPUP_API_KEY || process.env.FOX_API_KEY || "").trim();
-  const parts = raw.split(":").map((x) => x.trim());
+  const parts = raw.split(":").map((x) => x.trim()).filter(Boolean);
   let u = "", k = raw, sec = "";
   if (parts.length === 2) [u, k] = parts;
   else if (parts.length >= 3) [u, k, sec] = parts;
   return {
-    uid: (process.env.FOX_TOPUP_UID || process.env.FOX_UID || u || (k ? DEFAULT_UID : "")).trim(),
+    uid: (process.env.FOX_TOPUP_UID || process.env.FOX_UID || u || "").trim(),
     key: k,
     secret: (process.env.FOX_TOPUP_API_SECRET || process.env.FOX_API_SECRET || sec || "").trim(),
   };
@@ -44,114 +31,97 @@ const key = () => creds().key;
 const secret = () => creds().secret;
 
 export function isFoxReady() {
-  // Secret is required: all Fox responses use AES-GCM {_enc:1} envelope keyed by SHA256(secret)
   return Boolean(uid() && key() && secret());
 }
 export function isFoxSigningReady() {
-  return isFoxReady() && Boolean(secret());
+  return isFoxReady();
 }
 
-/* ---------- signing / encryption (adjust here if the official client differs) ---------- */
-
-function signRequest(method, path, rawBody) {
-  const ts = String(Math.floor(Date.now() / 1000));
-  const nonce = crypto.randomBytes(12).toString("hex");
-  const bodyHash = crypto.createHash("sha256").update(rawBody || "").digest("hex");
-  const canonical = [ts, nonce, method, `/v1${path.split("?")[0]}`, bodyHash].join("\n");
-  const sig = crypto.createHmac("sha256", secret()).update(canonical).digest("hex");
-  return { "X-Timestamp": ts, "X-Nonce": nonce, "X-Signature": sig };
+function aesKey() {
+  return crypto.createHash("sha256").update(`fox-transport-v1:${secret()}`).digest();
 }
 
-/** Official Fox envelope: {_enc:1, data: base64url(iv12 || ciphertext||tag16)} key=SHA256(secret) */
-function b64urlToBuf(s) {
-  let b = String(s || "").replace(/-/g, "+").replace(/_/g, "/");
-  while (b.length % 4) b += "=";
-  return Buffer.from(b, "base64");
-}
-function bufToB64url(buf) {
-  return Buffer.from(buf).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-}
-function aesKeyFromSecret() {
-  return crypto.createHash("sha256").update(secret()).digest(); // 32 bytes
+function enc(obj) {
+  const nonce = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv("aes-256-gcm", aesKey(), nonce);
+  const plain = Buffer.from(JSON.stringify(obj));
+  const ciphertext = Buffer.concat([cipher.update(plain), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  const data = Buffer.concat([nonce, ciphertext, tag]).toString("base64url");
+  return { _enc: 1, token: key(), data };
 }
 
-function encryptBody(rawJson) {
-  if (!secret()) throw Object.assign(new Error("FOX_TOPUP_API_SECRET not set"), { code: "not_configured" });
-  const key = aesKeyFromSecret();
-  const iv = crypto.randomBytes(12);
-  const c = crypto.createCipheriv("aes-256-gcm", key, iv);
-  const ct = Buffer.concat([c.update(String(rawJson), "utf8"), c.final()]);
-  const tag = c.getAuthTag();
-  const packed = Buffer.concat([iv, ct, tag]);
-  return JSON.stringify({ _enc: 1, data: bufToB64url(packed) });
+function dec(obj) {
+  if (!obj || obj._enc !== 1) return obj;
+  const buf = Buffer.from(obj.data, "base64url");
+  if (buf.length <= 28) throw Object.assign(new Error("Invalid encrypted payload"), { code: "DECRYPT_FAILED" });
+  const nonce = buf.subarray(0, 12);
+  const tag = buf.subarray(buf.length - 16);
+  const ciphertext = buf.subarray(12, buf.length - 16);
+  const decipher = crypto.createDecipheriv("aes-256-gcm", aesKey(), nonce);
+  decipher.setAuthTag(tag);
+  try {
+    return JSON.parse(Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString());
+  } catch (e) {
+    throw Object.assign(new Error("Fox decrypt failed: " + (e.message || "bad secret")), {
+      code: "DECRYPT_FAILED",
+    });
+  }
 }
 
-function decryptMaybe(data) {
-  if (!data || typeof data !== "object") return data;
-  // Official {_enc:1, data:"..."}
-  if (data._enc && typeof data.data === "string") {
-    if (!secret()) return data;
-    try {
-      const key = aesKeyFromSecret();
-      const buf = b64urlToBuf(data.data);
-      if (buf.length <= 12 + 16) return data;
-      const iv = buf.subarray(0, 12);
-      const tag = buf.subarray(buf.length - 16);
-      const ct = buf.subarray(12, buf.length - 16);
-      const d = crypto.createDecipheriv("aes-256-gcm", key, iv);
-      d.setAuthTag(tag);
-      const txt = Buffer.concat([d.update(ct), d.final()]).toString("utf8");
-      return JSON.parse(txt);
-    } catch (e) {
-      const err = new Error("Fox decrypt failed: " + (e.message || "bad secret"));
-      err.code = "DECRYPT_FAILED";
-      err.cause = e;
+function basePath() {
+  try {
+    return new URL(BASE).pathname.replace(/\/+$/, "") || "/v1";
+  } catch {
+    return "/v1";
+  }
+}
+
+function sign(method, path, business = {}) {
+  const sorted = Object.fromEntries(Object.entries(business).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
+  const bodyStr = method === "GET" ? "" : JSON.stringify(sorted);
+  const bodyHash = crypto.createHash("sha256").update(bodyStr).digest("hex");
+  const reqTime = String(Date.now());
+  const nonce = crypto.randomUUID();
+  const msg = [method, basePath() + path, bodyHash, reqTime, nonce, key()].join("\n");
+  const signature = crypto.createHmac("sha256", secret()).update(msg).digest("hex");
+  return { ...business, req_time: reqTime, nonce, hash: bodyHash, token: key(), signature };
+}
+
+async function apiGet(path, { signed = false } = {}) {
+  if (!isFoxReady()) {
+    throw Object.assign(new Error("FOX_TOPUP_UID / API_KEY / API_SECRET not set"), { code: "not_configured" });
+  }
+  const headers = { "X-Uid": String(uid()), Accept: "application/json" };
+  let url = `${BASE}${path}`;
+  if (signed) {
+    const p = sign("GET", path, {});
+    url +=
+      "?" +
+      new URLSearchParams({
+        req_time: p.req_time,
+        nonce: p.nonce,
+        hash: p.hash,
+        token: p.token,
+        signature: p.signature,
+      });
+  } else {
+    headers["X-Api-Key"] = key();
+  }
+  const r = await fetch(url, { headers, signal: AbortSignal.timeout(15000) });
+  const raw = await r.json().catch(() => ({}));
+  let data;
+  try {
+    data = dec(raw);
+  } catch (e) {
+    if (!r.ok) {
+      const err = new Error(`Fox HTTP ${r.status} (decrypt also failed — check API_SECRET)`);
+      err.status = r.status;
+      err.code = "HTTP_" + r.status;
       throw err;
     }
+    throw e;
   }
-  // Legacy {iv,data,tag}
-  if (data.iv && data.data && data.tag && secret()) {
-    try {
-      const key = aesKeyFromSecret();
-      const d = crypto.createDecipheriv("aes-256-gcm", key, Buffer.from(data.iv, "base64"));
-      d.setAuthTag(Buffer.from(data.tag, "base64"));
-      const txt = Buffer.concat([d.update(Buffer.from(data.data, "base64")), d.final()]).toString("utf8");
-      return JSON.parse(txt);
-    } catch {
-      return data;
-    }
-  }
-  return data;
-}
-
-/* ---------- transport ---------- */
-
-async function api(path, { method = "GET", body, signed = false, encrypted = false } = {}) {
-  if (!isFoxReady()) {
-    throw Object.assign(new Error("FOX_TOPUP_UID / FOX_TOPUP_API_KEY not set"), { code: "not_configured" });
-  }
-  if ((signed || encrypted) && !secret()) {
-    throw Object.assign(new Error("FOX_TOPUP_API_SECRET not set"), { code: "not_configured" });
-  }
-  method = method.toUpperCase();
-  let raw = body != null ? JSON.stringify(body) : "";
-  const headers = {
-    "X-Uid": uid(),
-    "X-Api-Key": key(),
-    Accept: "application/json",
-  };
-  if (encrypted && raw) raw = encryptBody(raw);
-  if (signed || encrypted) Object.assign(headers, signRequest(method, path, raw));
-  if (raw) headers["Content-Type"] = "application/json";
-
-  const r = await fetch(`${BASE}${path}`, {
-    method,
-    headers,
-    body: raw || undefined,
-    signal: AbortSignal.timeout(method === "POST" ? 35000 : 15000),
-  });
-  let data = await r.json().catch(() => ({}));
-  data = decryptMaybe(data);
   if (!r.ok) {
     const msg = data?.error?.message || data?.message || data?.detail || data?.error || `HTTP ${r.status}`;
     const err = new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
@@ -163,10 +133,56 @@ async function api(path, { method = "GET", body, signed = false, encrypted = fal
   return data;
 }
 
-/* ---------- account ---------- */
+async function apiPost(path, body = {}, { signed = false } = {}) {
+  if (!isFoxReady()) {
+    throw Object.assign(new Error("FOX_TOPUP_UID / API_KEY / API_SECRET not set"), { code: "not_configured" });
+  }
+  const headers = {
+    "X-Uid": String(uid()),
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  };
+  let payload;
+  if (signed) {
+    payload = enc(sign("POST", path, body));
+  } else {
+    headers["X-Api-Key"] = key();
+    payload = enc(body);
+  }
+  const r = await fetch(`${BASE}${path}`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(35000),
+  });
+  const raw = await r.json().catch(() => ({}));
+  let data;
+  try {
+    data = dec(raw);
+  } catch (e) {
+    if (!r.ok) {
+      const err = new Error(`Fox HTTP ${r.status} (decrypt also failed — check API_SECRET)`);
+      err.status = r.status;
+      err.code = "HTTP_" + r.status;
+      throw err;
+    }
+    throw e;
+  }
+  if (!r.ok) {
+    const msg = data?.error?.message || data?.message || data?.detail || data?.error || `HTTP ${r.status}`;
+    const err = new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
+    err.status = r.status;
+    err.code = data?.error?.code || data?.code || `HTTP_${r.status}`;
+    err.data = data;
+    throw err;
+  }
+  return data;
+}
+
+/* ---------- account / catalog ---------- */
 
 export async function getProfile() {
-  return api("/users/me");
+  return apiGet("/users/me");
 }
 
 export async function getBalance() {
@@ -176,14 +192,12 @@ export async function getBalance() {
   return { ok: true, balance: bal != null ? Number(bal) : null, profile: u };
 }
 
-/* ---------- catalogue (cached, stale-while-revalidate) ---------- */
-
 const TTL_MS = 90_000;
 let _cache = { at: 0, data: null };
 let _inflight = null;
 
 async function fetchCatalog() {
-  const data = await api("/games");
+  const data = await apiGet("/games");
   _cache = { at: Date.now(), data };
   return data;
 }
@@ -210,8 +224,12 @@ export async function listGames() {
   return fetchCatalog();
 }
 
+export async function listProductsCached() {
+  return listGames();
+}
+
 export async function getGame(code) {
-  return api(`/games/${encodeURIComponent(code)}`);
+  return apiGet(`/games/${encodeURIComponent(code)}`);
 }
 
 export function warmFoxProducts() {
@@ -222,15 +240,14 @@ export function warmFoxProducts() {
   }, TTL_MS).unref?.();
 }
 
-/** Normalize API payload → [{ slug, name, packs: [...] }] */
 export function normalizeGamesPayload(data) {
   const out = [];
   if (!data || typeof data !== "object") return out;
   let list =
+    (Array.isArray(data) ? data : null) ||
     data.games ||
     data.data?.games ||
-    (Array.isArray(data.data) ? data.data : null) ||
-    (Array.isArray(data) ? data : null);
+    (Array.isArray(data.data) ? data.data : null);
   if (!list && (data.code || data.items)) list = [data.game || data];
   if (!Array.isArray(list)) list = [];
 
@@ -241,7 +258,7 @@ export function normalizeGamesPayload(data) {
     if (!Array.isArray(items)) items = [];
     const packs = items
       .map((p) => {
-        const price = Number(p.price ?? p.reseller_price ?? p.cost ?? p.amount ?? NaN);
+        const price = Number(p.reseller_price ?? p.price ?? p.cost ?? p.amount ?? NaN);
         return {
           id: String(p.code ?? p.id ?? p.item_code ?? ""),
           name: String(p.name || p.title || p.label || p.code || ""),
@@ -249,7 +266,11 @@ export function normalizeGamesPayload(data) {
           price,
           category: String(p.category || p.group || "Diamonds"),
           inStock:
-            p.available !== false && p.in_stock !== false && p.open !== false && p.active !== false && p.unavailable !== true,
+            p.available !== false &&
+            p.in_stock !== false &&
+            p.open !== false &&
+            p.active !== false &&
+            p.unavailable !== true,
           image: String(p.image || p.icon || ""),
         };
       })
@@ -282,70 +303,48 @@ export function normalizeGamesPayload(data) {
   return out;
 }
 
-/* ---------- player lookup + orders ---------- */
+/* ---------- lookup + orders ---------- */
 
 export async function checkId(game, playerId, zoneId) {
-  const body = { player_id: String(playerId) };
-  if (zoneId) body.zone_id = String(zoneId);
-  return api(`/games/${encodeURIComponent(game)}/lookup`, { method: "POST", body, encrypted: true });
+  const input_values = { player_id: String(playerId) };
+  if (zoneId) input_values.server_id = String(zoneId);
+  return apiPost(`/games/${encodeURIComponent(game)}/lookup`, { input_values });
 }
 
-export async function placeOrder({ game, product, playerId, zoneId, quantity, reference }) {
-  const body = {
-    game_code: String(game),
-    item_code: String(product),
-    player_id: String(playerId),
-    reference: String(reference),
-  };
-  if (zoneId) body.zone_id = String(zoneId);
-  if (quantity && Number(quantity) > 1) body.quantity = Number(quantity);
-  return api("/orders", { method: "POST", body, signed: true });
+export async function placeOrder({
+  gameCode,
+  itemCode,
+  gameItemId,
+  playerId,
+  serverId,
+  reference,
+  extra = {},
+} = {}) {
+  const body = { ...extra, reference: reference || crypto.randomUUID() };
+  if (playerId) body.player_id = String(playerId);
+  if (serverId) body.server_id = String(serverId);
+  if (gameItemId != null) body.game_item_id = gameItemId;
+  else {
+    body.game_code = gameCode;
+    body.item_code = itemCode;
+  }
+  return apiPost("/orders", body, { signed: true });
 }
 
 export async function getOrder(idOrRef) {
-  return api(`/orders/${encodeURIComponent(idOrRef)}`, { signed: true });
+  return apiGet(`/orders/${encodeURIComponent(idOrRef)}`, { signed: true });
 }
 
 export async function listOrders() {
-  return api("/orders", { signed: true });
+  return apiGet("/orders", { signed: true });
 }
 
-/** Webhook: X-Fox-Signature: sha256=<hmac> — HMAC-SHA256 of the RAW body with webhook_secret */
-export function verifyWebhookSignature(rawBody, signature, whSecret) {
-  if (!whSecret || !signature) return false;
-  const want = crypto.createHmac("sha256", whSecret).update(rawBody).digest("hex");
-  const got = String(signature).replace(/^sha256=/i, "").trim();
-  try {
-    return crypto.timingSafeEqual(Buffer.from(want), Buffer.from(got));
-  } catch {
-    return false;
-  }
-}
-
-/** order lifecycle: queued → processing → success / partial / failed / refunded */
 export function summarizeFoxStatus(status) {
   const s = String(status || "").toLowerCase();
-  if (s === "success") return { status: "done", done: true };
-  if (s === "partial") return { status: "partial", done: true };
-  if (s === "failed" || s === "refunded") return { status: "failed", done: true };
-  return { status: "processing", done: false };
-}
-
-/** Diagnostics: raw status + first bytes of a plain GET (never echoes credentials). */
-export async function probe(path) {
-  if (!isFoxReady()) return { path, error: "not_configured" };
-  try {
-    const r = await fetch(`${BASE}${path}`, {
-      headers: { "X-Uid": uid(), "X-Api-Key": key(), Accept: "application/json" },
-      signal: AbortSignal.timeout(15000),
-    });
-    const text = await r.text();
-    return { path, status: r.status, ok: r.ok, body: text.slice(0, 1800) };
-  } catch (e) {
-    return { path, error: e.message };
-  }
-}
-
-export async function listProductsCached() {
-  return listGames();
+  return {
+    done: ["success", "completed", "done", "delivered"].includes(s),
+    failed: ["failed", "error", "cancelled", "canceled", "refunded"].includes(s),
+    pending: ["queued", "pending", "processing", "partial"].includes(s),
+    raw: status,
+  };
 }
