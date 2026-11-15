@@ -3133,6 +3133,8 @@ html.dark .ad-fox-bal-tip {
     animation: adChatIn .2s ease-out;
   }
   html.dark .ad-chat-layout.has-active .ad-chat-main { background: #0a1220; }
+  /* hide the admin bottom tabs while a thread is open so the composer is never covered */
+  body.ad-chat-open .ad-tabs { display: none; }
   @keyframes adChatIn { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
 
   .ad-chat-main-head {
