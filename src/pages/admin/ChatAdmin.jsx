@@ -78,6 +78,10 @@ export default function ChatAdmin() {
   }, []);
 
   async function openThread(id) {
+    // mobile: conversation opens full-screen; phone Back button returns to the list
+    if (window.matchMedia?.("(max-width: 859px)").matches && !window.history.state?.adChat) {
+      window.history.pushState({ adChat: 1 }, "");
+    }
     setActive(id);
     setText("");
     await loadMessages(id);
@@ -178,6 +182,23 @@ export default function ChatAdmin() {
     return <p className="ad-chat-text">{m.text}</p>;
   }
 
+  function closeThread() {
+    if (window.history.state?.adChat) window.history.back();
+    else setActive(null);
+  }
+
+  useEffect(() => {
+    const onPop = () => setActive(null);
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  // lock page scroll behind the full-screen conversation on phones
+  useEffect(() => {
+    document.body.classList.toggle("ad-chat-open", Boolean(active));
+    return () => document.body.classList.remove("ad-chat-open");
+  }, [active]);
+
   useEffect(() => {
     loadThreads();
     const t = setInterval(() => {
@@ -203,7 +224,7 @@ export default function ChatAdmin() {
 
   return (
     <div className="ad-chat-shell">
-      <div className="ad-chat-layout">
+      <div className={`ad-chat-layout${active ? " has-active" : ""}`}>
         {/* Sidebar */}
         <aside className="ad-chat-list">
           <div className="ad-chat-list-head">
@@ -279,6 +300,9 @@ export default function ChatAdmin() {
           ) : (
             <>
               <header className="ad-chat-main-head">
+                <button type="button" className="ad-chat-back" onClick={closeThread} aria-label="Back">
+                  <AIcon name="chevL" size={20} />
+                </button>
                 <div className="ad-chat-main-title">
                   <div className="ad-chat-avatar lg">
                     {(activeThread?.name || "G")[0].toUpperCase()}
@@ -341,6 +365,7 @@ export default function ChatAdmin() {
                   </button>
                   <textarea
                     ref={inputRef}
+                    enterKeyHint="send"
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     onKeyDown={onKeyDown}
@@ -349,8 +374,8 @@ export default function ChatAdmin() {
                     disabled={sending}
                   />
                   <button type="submit" className="ad-btn primary ad-chat-send" disabled={!text.trim() || sending}>
-                    <AIcon name="send" size={15} />
-                    {sending ? "…" : "ផ្ញើ"}
+                    <AIcon name="send" size={16} />
+                    <span className="ad-chat-send-label">{sending ? "…" : "ផ្ញើ"}</span>
                   </button>
                 </form>
               </div>
