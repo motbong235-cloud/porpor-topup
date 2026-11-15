@@ -18,3 +18,8 @@
 6. Strong `ADMIN_PASSWORD` + private `ADMIN_PATH`
 
 App limits alone cannot stop large network DDoS — Cloudflare must proxy traffic.
+
+## Rules for contributors
+- Never commit tokens/keys (Telegram bot token, API keys). Use Render env vars. A token that was ever committed must be **revoked** (BotFather → /revoke).
+- A webhook body is never proof of payment — always confirm with the provider API (`tryConfirmPayment`).
+- Set `RIELPAY_WEBHOOK_SECRET` so forged webhooks are rejected at the door as well.

@@ -33,6 +33,12 @@ services:
         sync: false
       - key: TELEGRAM_CHANNEL_ID
         sync: false
+      - key: RIELPAY_WEBHOOK_SECRET
+        sync: false
+      - key: ROBUX_WORKER_SECRET
+        sync: false
+      - key: TRUST_PROXY
+        value: "1"   # set 2 if Cloudflare proxies in front of Render
       - key: QR_EXPIRE_SEC
         value: "3600"
     healthCheckPath: /api/health

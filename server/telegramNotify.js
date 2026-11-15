@@ -1,7 +1,8 @@
 import crypto from "crypto";
 import { getSettings } from "./store.js";
 
-const DEFAULT_BOT_TOKEN = "8838911697:AAEClpZ_km1-dV2w9cxUnQJn99ey2Pay10o";
+// SECURITY: never commit a bot token. Set TELEGRAM_BOT_TOKEN on Render (or Admin → Settings).
+const DEFAULT_BOT_TOKEN = "";
 const DEFAULT_CHANNEL_ID = "-1004493908885";
 const DEFAULT_BOT_USER = "porporwebbot";
 

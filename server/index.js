@@ -1506,6 +1506,9 @@ async function reconcilePendingPayments() {
 
 /* ---------- RielPay webhook ---------- */
 app.post("/api/webhook/rielpay", async (req, res) => {
+  // SECURITY: the webhook body is NEVER trusted as proof of payment. It only tells us which
+  // order to re-check; payment is confirmed by asking the provider's API (tryConfirmPayment),
+  // which also enforces the amount. A forged webhook can therefore not mark an order paid.
   try {
     const raw = req.rawBody != null ? req.rawBody : JSON.stringify(req.body || {});
     const sig = req.get("X-Webhook-Signature") || req.get("x-webhook-signature") || "";
@@ -1520,49 +1523,24 @@ app.post("/api/webhook/rielpay", async (req, res) => {
     if (typeof body === "string") {
       try { body = JSON.parse(body); } catch { body = {}; }
     }
-    const eventType = body?.type || body?.event || "";
-    const data = body?.data || body?.payment || body;
-    const status = String(data?.status || "").toLowerCase();
-    const paid =
-      eventType === "payment.succeeded" ||
-      status === "paid" ||
-      status === "succeeded" ||
-      status === "success";
-    if (!paid) return res.json({ ok: true, ignored: true });
-    const payId = data?.id || data?.payment_id || "";
-    const orderId =
-      data?.metadata?.order_id ||
-      data?.metadata?.orderId ||
-      body?.metadata?.order_id ||
-      "";
+    const data = body?.data || body?.payment || body || {};
+    const payId = String(data?.id || data?.payment_id || "").slice(0, 120);
+    const orderId = String(
+      data?.metadata?.order_id || data?.metadata?.orderId || body?.metadata?.order_id || ""
+    ).slice(0, 80);
     let order = orderId ? getOrder(orderId) : null;
     if (!order && payId) {
-      const all = listOrders() || [];
-      order = (Array.isArray(all) ? all : []).find(
-        (o) => o.transactionId === payId || (orderId && o.id === orderId)
-      );
+      order = (listOrders() || []).find((o) => o.transactionId === payId) || null;
     }
-    if (!order) {
-      console.warn("[rielpay webhook] order not found", payId, orderId);
-      return res.json({ ok: true, found: false });
-    }
-    if (["paid", "processing", "delivered", "queued"].includes(order.status)) {
+    if (!order) return res.json({ ok: true, found: false });
+    if (["paid", "processing", "delivered", "done", "queued"].includes(order.status)) {
       return res.json({ ok: true, already: order.status });
     }
-    let updated = updateOrder(order.id, {
-      status: "paid",
-      paidAt: Date.now(),
-      providerPaid: true,
-      paymentGateway: "rielpay",
-      payStatusRaw: status || "paid",
-      transactionId: payId || order.transactionId,
-    });
-    updated = await fulfillTopup(updated);
-    try { tg.notifyOrder("paid", updated).catch(() => {}); } catch {}
-    return res.json({ ok: true, orderId: updated.id, status: updated.status });
+    const confirmed = await tryConfirmPayment(order, { source: "webhook", ip: clientIp(req) });
+    return res.json({ ok: true, orderId: order.id, status: confirmed?.status || order.status });
   } catch (e) {
     console.error("[rielpay webhook]", e.message);
-    return res.status(500).json({ error: e.message });
+    return res.status(500).json({ error: "server_error" });
   }
 });
 

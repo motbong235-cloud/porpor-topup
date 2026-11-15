@@ -17,7 +17,7 @@ const DEFAULT_SETTINGS = {
   taglineEn: "PREMIUM GAME STORE",
   telegram: "https://t.me/porportopup",
   /** Telegram Login Widget — can set in Admin (env TELEGRAM_* still overrides if set) */
-  tgBotToken: "8838911697:AAEClpZ_km1-dV2w9cxUnQJn99ey2Pay10o",
+  tgBotToken: "", // set via env TELEGRAM_BOT_TOKEN or Admin → Settings (never commit)
   tgBotUsername: "porporwebbot",
   tgChannelId: "-1004493908885",
   announcementKm: "",
