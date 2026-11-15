@@ -332,7 +332,7 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
           </div>
         </div>
       ) : null}
-      <LiveChat lang={lang} logoUrl={settings && settings.logoUrl} />
+      <LiveChat lang={lang} logoUrl={settings && settings.logoUrl} lift={showBanner} />
 
       <div className={`overlay${menu ? " open" : ""}`} onClick={() => setMenu(false)} />
       <aside className={`drawer${menu ? " open" : ""}`} aria-hidden={!menu}>

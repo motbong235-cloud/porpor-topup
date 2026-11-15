@@ -8537,3 +8537,197 @@ html.dark .dino-input-wrap {
 @media (min-width: 720px) {
   .si-chip { width: 140px !important; }
 }
+
+/* =================================================================
+   Mobile polish + smooth performance (Porpor)
+   ================================================================= */
+
+/* Smooth scrolling / reduce paint cost */
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+.shell,
+.main,
+.page {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Game cards: lighter on touch devices (no heavy hover scale) */
+@media (hover: none), (pointer: coarse) {
+  .game-card.card-hover:hover,
+  .sf-card:hover,
+  .game-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  .game-card:active {
+    transform: scale(0.98);
+    transition: transform 0.12s ease;
+  }
+  /* Kill continuous shine / pulse on mobile — major lag source */
+  .install-banner::before {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+  .float-chat-pulse {
+    display: none !important;
+  }
+  .game-grid > .game-card,
+  .game-grid > a.game-card {
+    animation: none !important;
+  }
+}
+
+/* Install banner — compact clean Porpor */
+.install-banner {
+  left: max(12px, env(safe-area-inset-left));
+  right: max(12px, env(safe-area-inset-right));
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  gap: 10px;
+  padding: 10px 10px 10px 12px;
+  border-radius: 18px;
+  max-width: 420px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.install-banner .install-banner-cta.btn.bg-brand {
+  min-height: 36px;
+  border-radius: 999px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.install-banner-x {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+}
+@media (max-width: 380px) {
+  .install-banner {
+    padding: 9px 8px 9px 10px;
+    gap: 8px;
+  }
+  .install-banner-logo,
+  .install-banner-logo .logo-mark {
+    width: 34px !important;
+    height: 34px !important;
+  }
+  .install-banner-text strong {
+    font-size: 12.5px;
+  }
+  .install-banner .install-banner-cta.btn.bg-brand {
+    padding: 6px 11px !important;
+    font-size: 12px !important;
+    min-height: 32px;
+  }
+}
+
+/* Live Chat FAB — clean round Porpor */
+.livechat-fab.float-chat,
+button.livechat-fab {
+  width: 54px !important;
+  height: 54px !important;
+  min-width: 54px;
+  min-height: 54px;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  right: max(14px, env(safe-area-inset-right));
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  display: grid !important;
+  place-items: center !important;
+  background: linear-gradient(145deg, #1d6adf 0%, #0a4cb5 100%) !important;
+  box-shadow:
+    0 10px 24px -6px rgba(29, 106, 223, 0.55),
+    0 0 0 3px rgba(255, 255, 255, 0.9) !important;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, bottom 0.22s ease !important;
+  -webkit-tap-highlight-color: transparent;
+}
+.livechat-fab.float-chat:active {
+  transform: scale(0.94) !important;
+}
+.livechat-fab.is-open {
+  background: linear-gradient(145deg, #334155 0%, #1e293b 100%) !important;
+}
+.livechat-fab-logo {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 10px;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+.livechat-fab.above-install {
+  bottom: calc(88px + env(safe-area-inset-bottom)) !important;
+}
+.livechat-badge {
+  top: -2px;
+  right: -2px;
+  min-width: 18px;
+  height: 18px;
+  font-size: 10px;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+/* Chat panel full-bleed on small phones */
+@media (max-width: 480px) {
+  .msgr-panel,
+  .livechat-panel {
+    right: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: min(92dvh, 640px) !important;
+    border-radius: 18px 18px 0 0 !important;
+  }
+  .msgr-panel.open,
+  .livechat-panel.open {
+    transform: none !important;
+  }
+}
+
+/* Home grid tighter + bottom padding for FAB/banner */
+@media (max-width: 640px) {
+  .game-grid {
+    gap: 10px !important;
+    padding-bottom: 28px;
+  }
+  .page,
+  .home,
+  main.main {
+    padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important;
+  }
+  .header,
+  .site-header {
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+}
+
+/* Prefer content-visibility for long lists */
+.game-grid > .game-card,
+.game-grid > a.game-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 180px 220px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .install-banner::before,
+  .float-chat-pulse,
+  .game-grid > .game-card {
+    animation: none !important;
+  }
+  .livechat-fab,
+  .float-chat,
+  .msgr-panel,
+  .livechat-panel {
+    transition: none !important;
+  }
+}

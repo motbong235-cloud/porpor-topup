@@ -7,7 +7,7 @@ import { Icon } from "./Icons";
  */
 const FALLBACK_LOGO = "/images/porpor-logo.svg";
 
-export function LiveChat({ lang = "km", openSignal = 0, logoUrl = "" }) {
+export function LiveChat({ lang = "km", openSignal = 0, logoUrl = "", lift = false }) {
   const [open, setOpen] = useState(false);
   const [thread, setThread] = useState("");
   const [messages, setMessages] = useState([]);
@@ -227,21 +227,26 @@ export function LiveChat({ lang = "km", openSignal = 0, logoUrl = "" }) {
     <>
       <button
         type="button"
-        className="float-chat bg-brand livechat-fab"
+        className={`float-chat bg-brand livechat-fab${lift ? " above-install" : ""}${open ? " is-open" : ""}`}
         aria-label="Live Chat"
+        aria-expanded={open}
         onClick={() => {
           setOpen((v) => !v);
           setUnread(0);
         }}
       >
-        {logoUrl || FALLBACK_LOGO ? (
+        {open ? (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        ) : logoUrl || FALLBACK_LOGO ? (
           <img src={logoUrl || FALLBACK_LOGO} alt="" className="livechat-fab-logo" />
         ) : (
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2">
             <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z" />
           </svg>
         )}
-        {unread > 0 ? <span className="livechat-badge">{unread}</span> : null}
+        {!open && unread > 0 ? <span className="livechat-badge">{unread > 9 ? "9+" : unread}</span> : null}
       </button>
 
       <div className={`msgr-panel${open ? " open" : ""}`} role="dialog" aria-label={title}>
