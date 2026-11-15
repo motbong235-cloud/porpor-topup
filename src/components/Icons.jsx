@@ -11,7 +11,7 @@ export function Icon({ name, size = 20 }) {
     viewBox: "0 0 24 24",
     fill: "none",
     stroke: "currentColor",
-    strokeWidth: 1.9,
+    strokeWidth: 1.75,
     strokeLinecap: "round",
     strokeLinejoin: "round",
     className: "icon-svg",
@@ -24,7 +24,7 @@ export function Icon({ name, size = 20 }) {
     : name === "arrowLeft" ? "chevL"
     : name === "arrowUp" ? "chevU"
     : name === "arrowDown" ? "chevD"
-    : name === "support" ? "help"
+    : name === "support" ? "headset"
     : name === "bolt" ? "zap"
     : name === "box" ? "package"
     : name;
@@ -72,8 +72,8 @@ export function Icon({ name, size = 20 }) {
     case "orders":
       return (
         <svg {...props}>
-          <path d="M9 6h11M9 12h11M9 18h11" />
-          <path d="M5 6h.01M5 12h.01M5 18h.01" />
+          <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z" />
+          <path d="M14 8H8M16 12H8M13 16H8" />
         </svg>
       );
     case "help":
@@ -159,7 +159,8 @@ export function Icon({ name, size = 20 }) {
     case "badge":
       return (
         <svg {...props}>
-          <path d="M12 21.5s7.5-3.5 7.5-9.5V5.5L12 3 4.5 5.5V12c0 6 7.5 9.5 7.5 9.5z" />
+          <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
+          <path d="m9 12 2 2 4-4" />
         </svg>
       );
     case "send":
@@ -362,8 +363,9 @@ export function Icon({ name, size = 20 }) {
     case "note":
       return (
         <svg {...props}>
-          <path d="M6.5 3.5h9L19 7v13a1 1 0 0 1-1 1H6.5a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z" />
-          <path d="M15 3.5V7h3.5M8.5 12h7M8.5 15.5h5" />
+          <rect x="8" y="2" width="8" height="4" rx="1" />
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+          <path d="M12 11h4M12 16h4M8 11h.01M8 16h.01" />
         </svg>
       );
     case "services":
@@ -387,8 +389,51 @@ export function Icon({ name, size = 20 }) {
     case "settings":
       return (
         <svg {...props}>
+          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
           <circle cx="12" cy="12" r="3" />
-          <path d="M12 3.5v2.2M12 18.3v2.2M4.7 4.7l1.6 1.6M17.7 17.7l1.6 1.6M3.5 12h2.2M18.3 12h2.2M4.7 19.3l1.6-1.6M17.7 6.3l1.6-1.6" />
+        </svg>
+      );
+    case "gem":
+      return (
+        <svg {...props}>
+          <path d="M6 3h12l4 6-10 13L2 9Z" />
+          <path d="M11 3 8 9l4 13 4-13-3-6" />
+          <path d="M2 9h20" />
+        </svg>
+      );
+    case "crown":
+      return (
+        <svg {...props}>
+          <path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z" />
+          <path d="M5 21h14" />
+        </svg>
+      );
+    case "lock":
+      return (
+        <svg {...props}>
+          <rect x="3.5" y="11" width="17" height="10.5" rx="2" />
+          <path d="M7.5 11V7.5a4.5 4.5 0 0 1 9 0V11" />
+        </svg>
+      );
+    case "flame":
+      return (
+        <svg {...props}>
+          <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+        </svg>
+      );
+    case "percent":
+      return (
+        <svg {...props}>
+          <path d="M19 5 5 19" />
+          <circle cx="6.5" cy="6.5" r="2.5" />
+          <circle cx="17.5" cy="17.5" r="2.5" />
+        </svg>
+      );
+    case "headset":
+      return (
+        <svg {...props}>
+          <path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z" />
+          <path d="M21 16v2a4 4 0 0 1-4 4h-5" />
         </svg>
       );
     default:

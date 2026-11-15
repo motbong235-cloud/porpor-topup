@@ -359,7 +359,7 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
             <Icon name="orders" size={18} /> <span>{t(lang, "orders")}</span>
           </Link>
           <Link to="/support" className="drawer-link" onClick={() => setMenu(false)}>
-            <Icon name="help" size={18} /> <span>{t(lang, "help")}</span>
+            <Icon name="headset" size={18} /> <span>{t(lang, "help")}</span>
           </Link>
           <Link to="/reseller" className="drawer-link" onClick={() => setMenu(false)}>
             <Icon name="store" size={18} /> <span>{t(lang, "reseller")}</span>
@@ -382,10 +382,10 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
             <Icon name="shield" size={18} /> <span>{t(lang, "privacy")}</span>
           </Link>
           <Link to="/legal/terms" className="drawer-link soft" onClick={() => setMenu(false)}>
-            <Icon name="orders" size={18} /> <span>{t(lang, "terms")}</span>
+            <Icon name="file" size={18} /> <span>{t(lang, "terms")}</span>
           </Link>
           <Link to="/legal/cookies" className="drawer-link soft" onClick={() => setMenu(false)}>
-            <Icon name="help" size={18} /> <span>{t(lang, "cookies")}</span>
+            <Icon name="cookie" size={18} /> <span>{t(lang, "cookies")}</span>
           </Link>
         </nav>
         <div className="drawer-foot">

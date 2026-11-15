@@ -205,3 +205,9 @@ html.dark .si-grid .si-chip { box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35); }
   .si-marquee { padding: 2px 0 6px; }
   .si-section-head { margin-bottom: 6px; }
 }
+
+/* ── Icon polish (outline set, tile icons) ── */
+.icon-svg { flex: none; transition: transform .18s ease, color .18s ease; }
+a:hover > .icon-svg, button:hover > .icon-svg { transform: translateY(-1px); }
+.sf-feature-ico img { border-radius: 12px; box-shadow: 0 6px 16px -8px rgba(8, 32, 68, .45); }
+.trust-chip img { border-radius: 5px; }
