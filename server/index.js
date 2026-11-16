@@ -422,21 +422,23 @@ async function fulfillTopup(order) {
       const result = await foxTopup.placeOrder({
         gameCode,
         itemCode,
-        player_id: order.userId,
-        server_id: order.zoneId || order.serverId || undefined,
+        playerId: order.userId,
+        serverId: order.zoneId || order.serverId || undefined,
         reference: order.id,
       });
       const remote = result.order || result.data || result;
       const st = foxTopup.summarizeFoxStatus(remote.status || remote.state);
+      // summarizeFoxStatus returns { done, failed, pending } — map those to our order statuses
+      const nextStatus = st.done ? "done" : st.failed ? "paid" : "processing";
       return updateOrder(order.id, {
-        status: st.done ? (st.status === "failed" ? "paid" : st.status === "done" ? "done" : st.status) : "processing",
+        status: nextStatus,
         paidAt: order.paidAt || Date.now(),
         providerPaid: true,
         topupProvider: "fox",
         foxOrderId: remote.id || remote.order_id || null,
         foxStatus: remote.status || null,
         note: `Fox ${remote.id || remote.order_id || ""} · ${remote.status || ""}`,
-        needsManual: st.status === "failed",
+        needsManual: st.failed,
       });
     } catch (e) {
       return updateOrder(order.id, {
