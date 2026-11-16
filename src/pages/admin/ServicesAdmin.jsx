@@ -940,6 +940,20 @@ function FoxPanel() {
     });
   }, [games, q, filter, sel.games]);
 
+  // bulk enable/disable — only the games currently shown (after search + filter)
+  function setVisibleEnabled(on) {
+    if (!list.length) return;
+    if (list.length > 3 && !window.confirm(`${on ? "បើក" : "បិទ"}ហ្គេម ${list.length} ?`)) return;
+    setSel((s) => {
+      const next = { ...s.games };
+      list.forEach((g) => {
+        next[g.slug] = { ...blank, ...(next[g.slug] || {}), enabled: on };
+      });
+      return { ...s, games: next };
+    });
+    touch();
+  }
+
   const stateLabel = saveErr ? (
     <button type="button" className="ad-save err" onClick={save}>
       <AIcon name="alert" size={14} /> រក្សាទុកមិនបាន — ចុចសាកម្តងទៀត
@@ -1006,6 +1020,24 @@ function FoxPanel() {
           </button>
         ))}
         <span className="grow" />
+        <button
+          type="button"
+          className="ad-btn soft sm"
+          disabled={!list.length}
+          title="បើកហ្គេមដែលបង្ហាញក្នុងបញ្ជីនេះ"
+          onClick={() => setVisibleEnabled(true)}
+        >
+          បើកទាំងអស់
+        </button>
+        <button
+          type="button"
+          className="ad-btn soft sm"
+          disabled={!list.length}
+          title="បិទហ្គេមដែលបង្ហាញក្នុងបញ្ជីនេះ"
+          onClick={() => setVisibleEnabled(false)}
+        >
+          បិទទាំងអស់
+        </button>
         <button type="button" className="ad-btn soft sm" onClick={load}>
           <AIcon name="refresh" size={14} /> ទាញពី Fox
         </button>
