@@ -1,0 +1,361 @@
+/* =========================================================
+   Porpor Topup — Natsu-inspired dark + gold storefront theme
+   Loaded LAST so it overrides prior CSS on Render deploy.
+   ========================================================= */
+
+:root,
+html.dark,
+html:not(.dark) {
+  --bg: #121212;
+  --surface: #1a1a1a;
+  --ink: #ffffff;
+  --muted: #a3a3a3;
+  --line: rgba(255, 255, 255, 0.08);
+  --primary: #f5c518;
+  --primary-2: #ffd84d;
+  --navy: #0a0a0a;
+  --ice: #242424;
+  --on-primary: #121212;
+  --on-navy: #ffffff;
+  --danger: #f87171;
+  --ok: #4ade80;
+  --shadow: 0 8px 28px -12px rgba(0, 0, 0, 0.55);
+  --radius: 1rem;
+  --gold: #f5c518;
+  --gold-2: #ffcc00;
+  --card: #1e1e1e;
+}
+
+html,
+body {
+  background: var(--bg) !important;
+  color: var(--ink) !important;
+}
+
+/* Header — dark bar + gold login */
+.header {
+  background: #0e0e0e !important;
+  border-bottom: 1px solid rgba(245, 197, 24, 0.15) !important;
+}
+.logo-mark {
+  background: linear-gradient(145deg, #ffd84d, #f5c518 40%, #c9a000) !important;
+  color: #121212 !important;
+  box-shadow: 0 4px 14px rgba(245, 197, 24, 0.4) !important;
+}
+.logo-name,
+.logo-tag {
+  color: #fff !important;
+}
+.logo-tag {
+  color: var(--gold) !important;
+}
+.icon-btn {
+  background: #1a1a1a !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}
+.icon-btn:hover {
+  background: #2a2a2a !important;
+  border-color: rgba(245, 197, 24, 0.4) !important;
+}
+.lang-btn {
+  border-color: rgba(245, 197, 24, 0.45) !important;
+  color: var(--gold) !important;
+  background: transparent !important;
+}
+
+/* Login-style pills / primary buttons */
+.btn.bg-brand,
+.bg-brand,
+button.bg-brand,
+a.bg-brand {
+  background: linear-gradient(180deg, #ffd84d, #f5c518) !important;
+  color: #121212 !important;
+  border: none !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 16px rgba(245, 197, 24, 0.35) !important;
+}
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #fff !important;
+}
+
+/* Banner — yellow energy */
+.banner {
+  background: #1a1a1a !important;
+  border-color: rgba(245, 197, 24, 0.2) !important;
+}
+.banner-deep {
+  background:
+    radial-gradient(60% 80% at 90% 20%, rgba(245, 197, 24, 0.45), transparent 60%),
+    linear-gradient(115deg, #1a1200 0%, #3d2e00 45%, #f5c518 130%) !important;
+}
+.banner-ice {
+  background:
+    radial-gradient(50% 80% at 85% 25%, rgba(255, 216, 77, 0.5), transparent 55%),
+    linear-gradient(120deg, #2a2200 0%, #f5c518 90%) !important;
+}
+.banner-night {
+  background:
+    radial-gradient(40% 60% at 80% 30%, rgba(245, 197, 24, 0.35), transparent 70%),
+    linear-gradient(160deg, #0a0a0a, #1a1500 55%, #3d3000) !important;
+}
+.kicker {
+  background: rgba(0, 0, 0, 0.35) !important;
+  border-color: rgba(245, 197, 24, 0.4) !important;
+  color: var(--gold) !important;
+}
+.kicker-dot {
+  background: var(--gold) !important;
+}
+
+/* Section titles */
+.section-head h2,
+.sec-title {
+  color: #fff !important;
+}
+.star,
+.sec-title svg {
+  color: var(--gold) !important;
+  fill: var(--gold) !important;
+}
+.section-sub,
+.count {
+  color: var(--muted) !important;
+}
+
+/* Game cards — Natsu dark tiles */
+.game-card,
+.sf-card {
+  background: #1e1e1e !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+}
+.game-card:hover,
+.sf-card:hover,
+.card-hover:hover {
+  border-color: rgba(245, 197, 24, 0.45) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(245, 197, 24, 0.15) !important;
+}
+.game-card-art,
+.game-tile {
+  background: #161616 !important;
+}
+.game-name {
+  color: #fff !important;
+  font-weight: 700 !important;
+}
+.game-from {
+  color: var(--muted) !important;
+  font-size: 11px !important;
+}
+
+/* TOP / HOT badge — gold corner like Natsu */
+.game-badge.hot,
+.hot-badge,
+.game-badge {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  z-index: 2;
+  background: linear-gradient(90deg, #ffd84d, #f5c518) !important;
+  color: #121212 !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.04em !important;
+  padding: 4px 10px 4px 8px !important;
+  border-radius: 0 0 10px 0 !important;
+  border: none !important;
+}
+.game-badge.off {
+  background: #444 !important;
+  color: #ccc !important;
+}
+.game-badge-dot {
+  background: #121212 !important;
+}
+
+/* TOP UP button — solid gold */
+.game-cta.on,
+.game-cta {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  width: 100% !important;
+  margin-top: 8px !important;
+  padding: 8px 10px !important;
+  border-radius: 10px !important;
+  background: linear-gradient(180deg, #ffd84d, #f5c518) !important;
+  color: #121212 !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(245, 197, 24, 0.3) !important;
+}
+.game-cta.on::before {
+  content: "⚡";
+  font-size: 11px;
+}
+.game-cta.off {
+  background: #333 !important;
+  color: #999 !important;
+  box-shadow: none !important;
+}
+.game-cta.off::before {
+  content: none !important;
+}
+
+/* Event / hot cards */
+.event-card,
+.hot-card {
+  background: #1e1e1e !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+.event-card:hover,
+.hot-card:hover {
+  border-color: rgba(245, 197, 24, 0.5) !important;
+  box-shadow: 0 16px 32px rgba(245, 197, 24, 0.2) !important;
+}
+.hot-name,
+.hot-foot strong {
+  color: #fff !important;
+}
+.hot-price {
+  color: var(--gold) !important;
+  font-weight: 800 !important;
+}
+
+/* Ticker */
+.pp-ticker {
+  background: #1a1a1a !important;
+  border-color: rgba(245, 197, 24, 0.15) !important;
+}
+.pp-ticker-chip,
+.pp-ticker-item {
+  color: #e5e5e5 !important;
+}
+.pp-ticker-bolt,
+.pp-ticker-dot {
+  color: var(--gold) !important;
+  background: var(--gold) !important;
+}
+.pp-ticker-sold {
+  color: var(--gold) !important;
+}
+
+/* Search */
+.search-input {
+  background: #1e1e1e !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}
+.search-input:focus {
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 0 3px rgba(245, 197, 24, 0.2) !important;
+}
+.search-input::placeholder {
+  color: #737373 !important;
+}
+
+/* Special items marquee */
+.si-chip {
+  background: #1e1e1e !important;
+  border: 1px solid rgba(245, 197, 24, 0.2) !important;
+  color: #fff !important;
+}
+.si-chip-badge {
+  background: var(--gold) !important;
+  color: #121212 !important;
+}
+.si-chip-price {
+  color: var(--gold) !important;
+}
+
+/* Features */
+.sf-feature {
+  background: #1e1e1e !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  color: #fff !important;
+}
+.sf-feature-ico {
+  background: rgba(245, 197, 24, 0.12) !important;
+  border-radius: 12px;
+}
+.sf-feature strong {
+  color: #fff !important;
+}
+.sf-feature p {
+  color: var(--muted) !important;
+}
+
+/* Footer / shell extras */
+.footer,
+.shell-footer {
+  background: #0a0a0a !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+  color: var(--muted) !important;
+}
+
+/* Text-brand gradient → gold */
+.text-brand {
+  background: linear-gradient(120deg, #ffe680, #f5c518 50%, #c9a000) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+
+/* Live chat FAB — gold */
+.live-chat-fab,
+.lc-fab,
+[class*="chat-fab"],
+[class*="LiveChat"] button {
+  background: linear-gradient(145deg, #ffd84d, #f5c518) !important;
+  color: #121212 !important;
+  box-shadow: 0 8px 24px rgba(245, 197, 24, 0.45) !important;
+}
+
+/* Forms on game page */
+input,
+select,
+textarea {
+  background: #1e1e1e;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--gold) !important;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(245, 197, 24, 0.2);
+}
+
+/* Install / download banner */
+.install-banner,
+.pwa-banner,
+[class*="install"] {
+  border-color: rgba(245, 197, 24, 0.3);
+}
+
+/* Skeleton loaders dark */
+.skeleton,
+.sk-tile,
+.sk-line {
+  background: #2a2a2a !important;
+}
+
+/* Container subtle */
+.container {
+  color: var(--ink);
+}
+
+/* Force dark for light-mode class if present */
+html:not(.dark) .header,
+html:not(.dark) body {
+  color-scheme: dark;
+}

@@ -7,6 +7,8 @@ import "./storefront-extras.css";
 import "./sf-full-match.css";
 import "./sf-match-v2.css";
 import "./sf-desktop.css";
+/* Natsu-inspired dark + gold — must be last */
+import "./natsu-theme.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
