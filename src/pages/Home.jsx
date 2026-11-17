@@ -15,6 +15,11 @@ function fallbackArt(g) {
   return "/icons/roblox.svg";
 }
 
+function isGift(g) {
+  const k = `${g?.id || ""} ${g?.name || ""} ${g?.mark || ""}`.toLowerCase();
+  return /gift|gc|card|voucher|steam.?wallet/.test(k);
+}
+
 function minPackPrice(game) {
   const packs = Array.isArray(game?.packs) ? game.packs : [];
   let m = null;
@@ -25,140 +30,37 @@ function minPackPrice(game) {
   return m;
 }
 
-function GameCard({ game, lang, famous }) {
-  const badge = !game.open ? (
-    <span className="game-badge off" aria-label="Offline">OFF</span>
-  ) : famous ? (
-    <span className="game-badge hot" aria-label="TOP">
-      ★ TOP
-    </span>
-  ) : null;
+/** Natsu-style game card: art + name + TOP UP */
+function GameCard({ game, top }) {
   const from = minPackPrice(game);
+  const open = game.open !== false;
 
-  if (!game.open) {
-    return (
-      <div className="game-card sf-card disabled" title={t(lang, "unavailable")}>
-        {badge}
-        <div className="game-card-art">
-          <GameTile game={game} />
-        </div>
-        <div className="game-card-body">
-          <div className="game-name">{game.name}</div>
-          <span className="game-cta off">UNAVAILABLE</span>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <Link className="game-card sf-card card-hover" to={`/game/${game.id}`}>
-      {badge}
+  const body = (
+    <>
+      {top ? <span className="game-badge hot">★ TOP</span> : null}
+      {!open ? <span className="game-badge off">OFF</span> : null}
       <div className="game-card-art">
         <GameTile game={game} />
       </div>
       <div className="game-card-body">
         <div className="game-name">{game.name}</div>
-        {from != null ? (
-          <div className="game-from">
-            {lang === "km" ? "តម្លៃពី" : "From"} {money(from)}
-          </div>
-        ) : null}
-        <span className="game-cta on">TOP UP</span>
+        {from != null && open ? <div className="game-from">From {money(from)}</div> : null}
+        {open ? <span className="game-cta on">TOP UP</span> : <span className="game-cta off">UNAVAILABLE</span>}
       </div>
+    </>
+  );
+
+  if (!open) {
+    return <div className="game-card sf-card disabled">{body}</div>;
+  }
+  return (
+    <Link className="game-card sf-card card-hover" to={`/game/${game.id}`}>
+      {body}
     </Link>
   );
 }
 
-const SHOP_HOURS = "8:30 AM – 11:00 PM";
-
-function useTicker() {
-  const [data, setData] = useState(null);
-  useEffect(() => {
-    let alive = true;
-    const load = () =>
-      fetch("/api/ticker")
-        .then((r) => r.json())
-        .then((d) => {
-          if (alive && d && d.ok !== false) setData(d);
-        })
-        .catch(() => {});
-    load();
-    const id = setInterval(load, 30000);
-    return () => {
-      alive = false;
-      clearInterval(id);
-    };
-  }, []);
-  return data;
-}
-
-function ago(at, lang) {
-  if (!at) return "";
-  const m = Math.max(0, Math.floor((Date.now() - at) / 60000));
-  if (lang === "km") {
-    if (m < 1) return "ទើបតែ";
-    if (m < 60) return `${m} នាទីមុន`;
-    if (m < 1440) return `${Math.floor(m / 60)} ម៉ោងមុន`;
-    return `${Math.floor(m / 1440)} ថ្ងៃមុន`;
-  }
-  if (m < 1) return "just now";
-  if (m < 60) return `${m} min ago`;
-  if (m < 1440) return `${Math.floor(m / 60)} h ago`;
-  return `${Math.floor(m / 1440)} d ago`;
-}
-
-function OrderTicker({ data, lang }) {
-  const delivery = (data && data.delivery) || SHOP_HOURS;
-  const sold = (data && data.soldLabel) || "ការបញ្ជាទិញ";
-  const items = (data && Array.isArray(data.items) ? data.items : []).filter((x) => x && x.label);
-  const loop = items.length
-    ? items.length < 8
-      ? [...items, ...items, ...items, ...items]
-      : [...items, ...items]
-    : [];
-  const ordersSpeed = { animationDuration: `${Math.max(45, Math.round((loop.length / 2) * 8))}s` };
-  return (
-    <div className="pp-ticker" aria-label="orders ticker">
-      <div className="pp-ticker-delivery">
-        <div className="pp-ticker-track pp-ticker-delivery-track">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <span key={i} className="pp-ticker-chip">
-              <span className="pp-ticker-bolt" aria-hidden>
-                <Icon name="zap" size={12} />
-              </span>
-              {lang === "km" ? "ម៉ោងធ្វើការ" : "Working hours"}: {delivery}
-            </span>
-          ))}
-        </div>
-      </div>
-      <div className="pp-ticker-sales">
-        <div className="pp-ticker-sold">
-          <span className="pp-ticker-dot" />
-          {sold}
-        </div>
-        <div className="pp-ticker-scroll">
-          {loop.length > 0 ? (
-            <div className="pp-ticker-track pp-ticker-orders-track" style={ordersSpeed}>
-              {loop.map((it, i) => (
-                <span key={(it.id || i) + "-" + i} className="pp-ticker-item">
-                  <span className="pp-ticker-ok" aria-hidden>
-                    <Icon name="check" size={12} />
-                  </span>
-                  {it.label}
-                  {it.at ? <span className="pp-ticker-ago">{ago(it.at, lang)}</span> : null}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <span className="pp-ticker-item muted">រង់ចាំការបញ្ជាទិញពិត…</span>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function GameSkeletons({ n = 8 }) {
+function GameSkeletons({ n = 6 }) {
   return Array.from({ length: n }).map((_, i) => (
     <div key={i} className="game-card skeleton" aria-hidden>
       <div className="sk-tile" />
@@ -170,44 +72,38 @@ function GameSkeletons({ n = 8 }) {
 
 export default function Home({ lang, settings }) {
   const { games, loading, error } = useCatalog();
-  const ticker = useTicker();
   const [slide, setSlide] = useState(0);
+  const [tab, setTab] = useState("game"); // game | gift
   const [filter, setFilter] = useState("");
 
-  const famous = useMemo(() => games.filter((g) => g.famous), [games]);
-  const spotlight = useMemo(() => {
-    const isTikTok = (g) =>
-      String(g?.id || "").toLowerCase().includes("tiktok") ||
-      String(g?.name || "").toLowerCase().includes("tiktok");
-    const open = games.filter((g) => g.open !== false);
-    const tt = open.find(isTikTok);
-    const pool = (famous.length ? famous : open).filter((g) => !isTikTok(g));
-    const rest = pool.slice(0, tt ? 2 : 3);
-    return tt ? [tt, ...rest] : rest;
-  }, [games, famous]);
-  const firstTo = (() => {
-    const tt = games.find(
-      (g) =>
-        String(g?.id || "").toLowerCase().includes("tiktok") ||
-        String(g?.name || "").toLowerCase().includes("tiktok"),
-    );
-    if (tt) return `/game/${tt.id}`;
-    return games[0] ? `/game/${games[0].id}` : "/";
-  })();
-  const filtered = useMemo(() => {
+  const list = useMemo(() => {
+    let g = games.filter((x) => x);
+    if (tab === "gift") g = g.filter(isGift);
+    else g = g.filter((x) => !isGift(x));
     const q = filter.trim().toLowerCase();
-    if (!q) return games;
-    return games.filter((g) => {
-      const name = String(g?.name || "").toLowerCase();
-      const mark = String(g?.mark || "").toLowerCase();
-      const nameKm = String(g?.nameKm || "").toLowerCase();
-      return name.includes(q) || mark.includes(q) || nameKm.includes(q);
-    });
-  }, [games, filter]);
+    if (q) {
+      g = g.filter((x) => {
+        const name = String(x?.name || "").toLowerCase();
+        const mark = String(x?.mark || "").toLowerCase();
+        const nameKm = String(x?.nameKm || "").toLowerCase();
+        return name.includes(q) || mark.includes(q) || nameKm.includes(q);
+      });
+    }
+    return g;
+  }, [games, tab, filter]);
+
+  const trending = useMemo(() => {
+    const base = list.filter((g) => g.open !== false);
+    const hot = base.filter((g) => g.famous || g.hot);
+    const pool = hot.length ? hot : base;
+    return pool.slice(0, 6);
+  }, [list]);
+
+  const firstTo = games[0] ? `/game/${games[0].id}` : "/";
 
   const custom = (settings && Array.isArray(settings.bannerUrls) ? settings.bannerUrls : []).filter(Boolean);
   const hasCustom = custom.length > 0;
-  const count = hasCustom ? custom.length : 3;
+  const count = hasCustom ? custom.length : 2;
 
   useEffect(() => {
     setSlide(0);
@@ -218,14 +114,9 @@ export default function Home({ lang, settings }) {
     return () => clearInterval(id);
   }, [count]);
 
-  const slides = [
-    { tone: "banner-deep", kicker: "kicker1", title: "title1", sub: "sub1", to: firstTo, badge: "PP", ghost: true },
-    { tone: "banner-ice", kicker: "kicker2", title: "title2", sub: "sub2", to: firstTo, badge: games[0]?.mark || "TOP", ghost: false },
-    { tone: "banner-night", kicker: "kicker3", title: "title3", sub: "sub3", to: "/support", badge: "QR", ghost: false },
-  ];
-
   return (
-    <div className="container">
+    <div className="container natsu-home">
+      {/* Banner */}
       <section className={`banner banner-v2${hasCustom ? " banner-has-photo" : ""}`}>
         {hasCustom
           ? custom.map((url, i) => (
@@ -233,182 +124,94 @@ export default function Home({ lang, settings }) {
                 <img src={url} alt="" loading={i === 0 ? "eager" : "lazy"} />
               </div>
             ))
-          : slides.map((s, i) => (
-              <div key={s.kicker} className={`banner-slide ${s.tone}${i === slide ? " active" : ""}`}>
+          : [
+              { tone: "banner-deep", title: "Welcome to Porpor Topup", sub: lang === "km" ? "ទិញ Diamond · UC · Robux លឿន សុវត្ថិភាព" : "Fast · Safe game top-up" },
+              { tone: "banner-ice", title: lang === "km" ? "តម្លៃល្អ · ដឹកភ្លាម" : "Best rate · Instant", sub: lang === "km" ? "MLBB · Free Fire · PUBG · Roblox" : "MLBB · Free Fire · PUBG · Roblox" },
+            ].map((s, i) => (
+              <div key={s.tone} className={`banner-slide ${s.tone}${i === slide ? " active" : ""}`}>
                 <div className="banner-copy">
                   <div className="kicker">
                     <span className="kicker-dot" />
-                    {t(lang, s.kicker)}
+                    PORPOR TOPUP
                   </div>
-                  <h1 className="banner-title">{t(lang, s.title)}</h1>
-                  <p className="banner-sub">{t(lang, s.sub)}</p>
+                  <h1 className="banner-title">{s.title}</h1>
+                  <p className="banner-sub">{s.sub}</p>
                   <div className="banner-actions">
-                    <Link className="btn bg-brand" to={s.to}>
-                      {s.ghost ? t(lang, "shopNow") : s.to === "/support" ? t(lang, "help") : t(lang, "shopNow")}
-                    </Link>
-                    {s.ghost && (
-                      <a className="btn btn-ghost" href="#games">
-                        {t(lang, "seeGames")}
-                      </a>
-                    )}
+                    <a className="btn bg-brand" href="#trending">
+                      TOP UP
+                    </a>
+                    <a className="btn btn-ghost" href="#games">
+                      {lang === "km" ? "មើលហ្គេម" : "All games"}
+                    </a>
                   </div>
                 </div>
-                <div className="banner-badge">{s.badge}</div>
               </div>
             ))}
         {count > 1 && (
-          <>
-            <button type="button" className="banner-nav prev" aria-label="prev" onClick={() => setSlide((s) => (s + count - 1) % count)}>
-              <Icon name="chevL" size={18} />
-            </button>
-            <button type="button" className="banner-nav next" aria-label="next" onClick={() => setSlide((s) => (s + 1) % count)}>
-              <Icon name="chevR" size={18} />
-            </button>
-            <div className="banner-dots">
-              {Array.from({ length: count }, (_, i) => i).map((i) => (
-                <button key={i} type="button" className={`dot${i === slide ? " active" : ""}`} onClick={() => setSlide(i)} />
-              ))}
-            </div>
-          </>
-        )}
-      </section>
-      <OrderTicker data={ticker} lang={lang} />
-
-      {Array.isArray(settings?.specialItems) && settings.specialItems.length > 0 && (
-        <section className="section si-section">
-          <div className="section-head si-section-head">
-            <h2 className="sec-title">
-              <Icon name="package" size={18} />
-              <span>{lang === "km" ? "កញ្ចប់ពិសេស" : "Special Items"}</span>
-            </h2>
-            <Link to="/special" className="section-more">
-              <span>{lang === "km" ? "មើលទាំងអស់" : "See all"}</span>
-              <Icon name="chevR" size={16} />
-            </Link>
-          </div>
-          {(() => {
-            const list = settings.specialItems.filter((it) => it && it.enabled !== false);
-            const set =
-              list.length && list.length < 6
-                ? Array.from({ length: Math.ceil(6 / list.length) }).flatMap(() => list)
-                : list;
-            const speed = { animationDuration: `${Math.max(28, set.length * 4)}s` };
-            return (
-              <div className="si-marquee" aria-label="special packs">
-                <div className="si-marquee-track" style={speed}>
-                  {[0, 1].map((dup) => (
-                    <div className="si-marquee-set" key={dup} aria-hidden={dup === 1 ? true : undefined}>
-                      {set.map((it, idx) => {
-                        const title = lang === "km" && it.titleKm ? it.titleKm : it.title || it.titleKm;
-                        const href = it.gameId
-                          ? `/game/${encodeURIComponent(it.gameId)}${it.packId ? `?pack=${encodeURIComponent(it.packId)}` : ""}`
-                          : "#games";
-                        return (
-                          <Link
-                            key={`${dup}-${it.id || title}-${idx}`}
-                            tabIndex={dup === 1 ? -1 : undefined}
-                            className={"si-chip" + (it.image ? " has-img" : "")}
-                            to={href}
-                          >
-                            <span className="si-chip-badge">{it.badge || "SPECIAL"}</span>
-                            {it.image ? (
-                              <span className="si-chip-img">
-                                <img
-                                  src={it.image}
-                                  alt=""
-                                  loading="lazy"
-                                  onError={(e) => {
-                                    e.currentTarget.style.display = "none";
-                                  }}
-                                />
-                              </span>
-                            ) : null}
-                            <strong className="si-chip-title">{title}</strong>
-                            {it.subtitle ? <span className="si-chip-sub">{it.subtitle}</span> : null}
-                            <span className="si-chip-row">
-                              <span className="si-chip-price">{money(Number(it.price) || 0)}</span>
-                              <span className="si-chip-go" aria-hidden>
-                                <Icon name="chevR" size={12} />
-                              </span>
-                            </span>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
-        </section>
-      )}
-
-      {spotlight.length > 0 && (
-        <section className="section">
-          <div className="section-head si-section-head">
-            <h2 className="sec-title">
-              <Icon name="star" size={18} />
-              <span>Trending Game</span>
-            </h2>
-            <span className="sec-pill" style={{ fontSize: 11, fontWeight: 800, padding: "4px 10px", borderRadius: 999, background: "rgba(245,197,24,.2)", color: "#f5c518" }}>
-              {spotlight.filter((g) => g.open !== false).length} items
-            </span>
-          </div>
-          <div className="events events-special events-row-3">
-            {spotlight
-              .filter((g) => g.open !== false)
-              .map((g) => {
-                const prices = (g.packs || []).map((p) => Number(p.price)).filter((n) => Number.isFinite(n));
-                const min = prices.length ? Math.min(...prices) : 0;
-                return (
-                  <Link key={g.id} className="event-card hot-card" to={`/game/${g.id}`}>
-                    <div className="hot-art game-tile" style={{ "--h": g.hue }}>
-                      <img
-                        className="event-img"
-                        src={g.image || fallbackArt(g)}
-                        alt=""
-                        loading="lazy"
-                        onError={(e) => {
-                          const fb = fallbackArt(g);
-                          if (fb && e.currentTarget.src.indexOf(fb) < 0) e.currentTarget.src = fb;
-                          else e.currentTarget.style.display = "none";
-                        }}
-                      />
-                      <span className="hot-badge">★ TOP</span>
-                    </div>
-                    <div className="hot-foot">
-                      <strong className="hot-name">{g.name}</strong>
-                      <span className="hot-price">{lang === "km" ? `ចាប់ពី ${money(min)}` : `From ${money(min)}`}</span>
-                      <span className="game-cta on" style={{ marginTop: 8 }}>TOP UP</span>
-                    </div>
-                  </Link>
-                );
-              })}
-          </div>
-        </section>
-      )}
-
-      {famous.length > 0 && (
-        <section className="section">
-          <div className="section-head">
-            <h2 className="sec-title">
-              <Icon name="star" size={18} /> <span>{t(lang, "famous")}</span>
-            </h2>
-          </div>
-          <p className="section-sub">{t(lang, "famousSub")}</p>
-          <div className="game-grid game-grid-3">
-            {famous.map((g) => (
-              <GameCard key={g.id} game={g} lang={lang} famous />
+          <div className="banner-dots">
+            {Array.from({ length: count }, (_, i) => i).map((i) => (
+              <button key={i} type="button" className={`dot${i === slide ? " active" : ""}`} onClick={() => setSlide(i)} />
             ))}
           </div>
-        </section>
-      )}
+        )}
+      </section>
 
+      {/* Category tabs — like Natsu Game / Giftcard */}
+      <div className="natsu-cats" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          className={`natsu-cat${tab === "game" ? " active" : ""}`}
+          onClick={() => setTab("game")}
+        >
+          <span className="natsu-cat-ico" aria-hidden>
+            🎮
+          </span>
+          Game
+        </button>
+        <button
+          type="button"
+          role="tab"
+          className={`natsu-cat${tab === "gift" ? " active" : ""}`}
+          onClick={() => setTab("gift")}
+        >
+          <span className="natsu-cat-ico" aria-hidden>
+            🎁
+          </span>
+          Giftcard
+        </button>
+        <a className="natsu-viewall" href="#games">
+          View all
+        </a>
+      </div>
+
+      {/* Trending */}
+      <section className="section" id="trending">
+        <div className="section-head natsu-sec-head">
+          <h2 className="sec-title">
+            <span className="natsu-star">★</span> Trending Game
+          </h2>
+          <span className="natsu-pill">{trending.length} items</span>
+        </div>
+        <div className="game-grid game-grid-3">
+          {loading ? (
+            <GameSkeletons n={6} />
+          ) : trending.length === 0 ? (
+            <div className="empty" style={{ gridColumn: "1 / -1" }}>
+              {lang === "km" ? "មិនទាន់មាន game" : "No games yet"}
+            </div>
+          ) : (
+            trending.map((g) => <GameCard key={g.id} game={g} top />)
+          )}
+        </div>
+      </section>
+
+      {/* All games */}
       <section className="section" id="games">
-        <div className="toolbar">
+        <div className="toolbar natsu-toolbar">
           <div className="section-head" style={{ margin: 0 }}>
             <h2 className="sec-title">
-              <Icon name="game" size={18} /> <span>All Games</span>
+              <span className="natsu-star">◆</span> All Games
             </h2>
           </div>
           <input
@@ -416,12 +219,10 @@ export default function Home({ lang, settings }) {
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             placeholder={t(lang, "searchPh")}
-            aria-label={t(lang, "filter")}
+            aria-label="Search"
           />
         </div>
-        <p className="count">
-          {filtered.length} games
-        </p>
+        <p className="count">{list.length} games</p>
         <div className="game-grid game-grid-3">
           {loading ? (
             <GameSkeletons />
@@ -429,56 +230,13 @@ export default function Home({ lang, settings }) {
             <div className="empty" style={{ gridColumn: "1 / -1" }}>
               {t(lang, "catalogError")}
             </div>
-          ) : games.length === 0 ? (
-            <div className="empty" style={{ gridColumn: "1 / -1" }}>
-              {t(lang, "catalogEmpty")}
-            </div>
-          ) : filtered.length === 0 ? (
+          ) : list.length === 0 ? (
             <div className="empty" style={{ gridColumn: "1 / -1" }}>
               {t(lang, "searchEmpty")}
             </div>
           ) : (
-            filtered.map((g) => <GameCard key={g.id} game={g} lang={lang} famous={g.hot || g.famous} />)
+            list.map((g) => <GameCard key={g.id} game={g} top={!!(g.famous || g.hot)} />)
           )}
-        </div>
-      </section>
-
-      <section className="sf-features sf-features-bottom" aria-label="features">
-        <div className="sf-feature">
-          <div className="sf-feature-ico">
-            <img src="/sf-icons/icon-fast.svg" alt="" width="28" height="28" />
-          </div>
-          <div>
-            <strong>{lang === "km" ? "លឿនភ្លាមៗ" : "Lightning Fast"}</strong>
-            <p>{lang === "km" ? "Order ដំណើរការក្នុងរយៈពេលវិនាទី" : "Orders processed in seconds."}</p>
-          </div>
-        </div>
-        <div className="sf-feature">
-          <div className="sf-feature-ico">
-            <img src="/sf-icons/icon-safe.svg" alt="" width="28" height="28" />
-          </div>
-          <div>
-            <strong>{lang === "km" ? "សុវត្ថិភាព" : "Safe & Secure"}</strong>
-            <p>{lang === "km" ? "ការបង់ប្រាក់ការពារពេញលេញ" : "Every payment protected."}</p>
-          </div>
-        </div>
-        <div className="sf-feature">
-          <div className="sf-feature-ico">
-            <img src="/sf-icons/icon-24hours.svg" alt="" width="28" height="28" />
-          </div>
-          <div>
-            <strong>{lang === "km" ? "គាំទ្រ" : "Support"}</strong>
-            <p>{lang === "km" ? "ជំនួយតាម chat" : "Help via live chat."}</p>
-          </div>
-        </div>
-        <div className="sf-feature">
-          <div className="sf-feature-ico">
-            <img src="/sf-icons/icon-fire.svg" alt="" width="28" height="28" />
-          </div>
-          <div>
-            <strong>{lang === "km" ? "តម្លៃល្អ" : "Best Price"}</strong>
-            <p>{lang === "km" ? "តម្លៃសមរម្យសម្រាប់អ្នក" : "Fair wholesale-ready rates."}</p>
-          </div>
         </div>
       </section>
     </div>

@@ -1,0 +1,81 @@
+/* Natsu-like home layout helpers */
+.natsu-cats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 4px 6px;
+  flex-wrap: wrap;
+}
+.natsu-cat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 64px;
+  border: none;
+  background: none;
+  color: #a3a3a3;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+.natsu-cat.active {
+  color: #fff;
+}
+.natsu-cat-ico {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #1e1e1e;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+}
+.natsu-cat.active .natsu-cat-ico {
+  border-color: rgba(245, 197, 24, 0.55);
+  background: rgba(245, 197, 24, 0.12);
+  box-shadow: 0 0 0 2px rgba(245, 197, 24, 0.2);
+}
+.natsu-viewall {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 800;
+  color: #f5c518;
+  background: #1e1e1e;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 8px 14px;
+  border-radius: 999px;
+  text-decoration: none;
+}
+.natsu-sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.natsu-star {
+  color: #f5c518;
+  margin-right: 4px;
+}
+.natsu-pill {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(245, 197, 24, 0.18);
+  color: #f5c518;
+  border: 1px solid rgba(245, 197, 24, 0.35);
+}
+.natsu-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.natsu-home .game-grid {
+  gap: 10px;
+}

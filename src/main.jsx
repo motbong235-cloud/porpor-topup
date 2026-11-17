@@ -7,8 +7,8 @@ import "./storefront-extras.css";
 import "./sf-full-match.css";
 import "./sf-match-v2.css";
 import "./sf-desktop.css";
-/* Natsu-inspired dark + gold — must be last */
 import "./natsu-theme.css";
+import "./natsu-home.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -18,7 +18,6 @@ createRoot(document.getElementById("root")).render(
   </StrictMode>,
 );
 
-// Register the service worker (production only) so the site can be installed as an app.
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js").catch(() => {});
