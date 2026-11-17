@@ -1,17 +1,47 @@
-/* Header layout closer to Natsu: search + Login emphasis */
+/* Header + drawer icons — premium polish */
 .header-inner {
   gap: 8px !important;
 }
 .header-actions {
   gap: 6px !important;
 }
-/* Soften extra controls on small screens — keep Login + search */
+
 @media (max-width: 420px) {
   .header-lang {
     display: none !important;
   }
 }
-/* Menu icon circular dark */
+
 .header-menu-btn {
   border-radius: 999px !important;
+}
+
+/* Icon buttons — circular, gold hover */
+.icon-btn .icon-svg,
+.drawer-link .icon-svg,
+.footer-links-col a .icon-svg {
+  display: block;
+}
+
+.icon-btn:hover .icon-svg,
+.drawer-link:hover .icon-svg {
+  color: #ffd447;
+}
+
+/* Login pill icon */
+.natsu-login-btn .icon-svg,
+.header-user-btn .icon-svg {
+  color: #ffd447;
+}
+
+/* Drawer icons slightly larger + gold tint on hover already in theme */
+.drawer-link .icon-svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.drawer-login-btn .icon-svg {
+  width: 16px;
+  height: 16px;
 }
