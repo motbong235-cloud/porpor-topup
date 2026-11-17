@@ -23,12 +23,13 @@ export function FallingPetals() {
       const opacity = rand(0.35, 0.75);
       const turn = rand(0, 360);
       const depth = i % 4 === 0 ? "near" : "far";
+      const mobileLeft = Math.min(92, Math.max(4, left + rand(-8, 8)));
       return {
         id: i,
         style: {
           "--petal-size": `${size}px`,
           "--petal-left": `${left}%`,
-          "--petal-mobile-left": `${Math.min(92, Math.max(4, left + rand(-8, 8))}%`,
+          "--petal-mobile-left": `${mobileLeft}%`,
           "--petal-duration": `${duration}s`,
           "--petal-delay": `${delay}s`,
           "--petal-sway": `${sway}px`,
