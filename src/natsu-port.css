@@ -238,3 +238,88 @@ body {
 .hit-tile {
   min-width: 0;
 }
+
+/* ---------- Header brand: responsive size, never truncated mid-word on phones ---------- */
+.logo {
+  --brand-size: 40px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+.logo .logo-mark {
+  width: var(--brand-size);
+  height: var(--brand-size);
+  flex: 0 0 auto;
+}
+.logo .logo-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.logo-name,
+.logo-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: calc(var(--brand-size) / 2);
+  line-height: 1.2;
+}
+@media (min-width: 375px) {
+  .logo { --brand-size: 48px; }
+  .logo-name, .logo-text { font-size: 20px; }
+}
+@media (min-width: 640px) {
+  .logo { --brand-size: 52px; gap: 8px; }
+}
+@media (min-width: 768px) {
+  .logo { --brand-size: 56px; gap: 12px; }
+}
+@media (min-width: 1024px) {
+  .logo { --brand-size: 64px; }
+  .logo-name, .logo-text { font-size: 26px; flex-shrink: 0; }
+}
+@media (max-width: 359px) {
+  .logo-name, .logo-text { font-size: 15px; }
+}
+
+/* ---------- Footer: payment row left/right, copy centred on phones ---------- */
+.storefront-footer__payment-row,
+.footer-payment-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+.storefront-footer__payments {
+  white-space: nowrap;
+  flex: none;
+}
+.storefront-footer__payments img {
+  flex: none;
+  width: auto;
+  object-fit: contain;
+}
+.storefront-footer__copy {
+  text-align: center;
+  align-items: center;
+}
+
+/* ---------- Game grid: safe widths on phones ---------- */
+.game-grid {
+  gap: 12px;
+}
+.game-grid > * {
+  min-width: 0;
+}
+.game-card-art {
+  aspect-ratio: 1 / 1;
+  max-width: 100%;
+}
+.game-card-art img {
+  max-width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
