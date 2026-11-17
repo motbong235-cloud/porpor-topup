@@ -9,6 +9,7 @@ import "./sf-match-v2.css";
 import "./sf-desktop.css";
 import "./natsu-theme.css";
 import "./natsu-home.css";
+import "./natsu-shell.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
