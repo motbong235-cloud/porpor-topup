@@ -1,0 +1,240 @@
+/* =========================================================
+   Natsu UI port — final override layer (imported last in main.jsx)
+   Tokens and component styling copied from the NatsuTOPUP storefront:
+   body #474342 · header/footer #242121 · accent #F2A51A · gold #FFD447
+   text #FFF7E5 · muted #EBD6B6 · login pill (gold ring, glow, shine)
+   ========================================================= */
+
+:root,
+html.dark,
+html:not(.dark) {
+  --bg: #474342;
+  --surface: #242121;
+  --card: #2d2a29;
+  --ink: #fff7e5;
+  --muted: #ebd6b6;
+  --line: rgba(242, 165, 26, 0.2);
+  --primary: #f2a51a;
+  --primary-2: #ffd447;
+  --navy: #242121;
+  --ice: #3a3635;
+  --on-primary: #1a1412;
+  --on-navy: #fff7e5;
+  --gold: #ffd447;
+  --gold-2: #f2a51a;
+  --purple: #474342;
+  --radius: 1rem;
+  --shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 20px 50px -18px rgba(242, 165, 26, 0.35);
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: var(--bg) !important;
+  color: var(--ink) !important;
+}
+
+body {
+  font-family: "Space Grotesk", "Sora", "Inter", "Kantumruy Pro", system-ui, sans-serif;
+  letter-spacing: 0.01em;
+}
+
+/* Gold gradient text used for brand + section titles */
+.text-brand,
+.logo-name,
+.sec-title,
+.section-head h2 {
+  background: linear-gradient(90deg, #f2a51a, #ffd447);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* ---------- Header ---------- */
+.header,
+.header.site-header {
+  background: rgba(36, 33, 33, 0.92) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(242, 165, 26, 0.2) !important;
+  box-shadow: none !important;
+}
+
+.header-user-btn.natsu-login-btn,
+.natsu-login-btn {
+  position: relative;
+  isolation: isolate;
+  box-sizing: border-box;
+  height: 2.5rem;
+  padding: 2px !important;
+  border: 0 !important;
+  border-radius: 9999px !important;
+  background: linear-gradient(90deg, #ffd447, #f2a51a) !important;
+  color: #fff !important;
+  font-weight: 700;
+  box-shadow: 0 0 18px rgba(242, 165, 26, 0.35);
+  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.natsu-login-btn > * {
+  position: relative;
+}
+.natsu-login-btn:hover,
+.natsu-login-btn:focus-visible {
+  transform: translateY(-2px) scale(1.03);
+  outline: 2px solid #ffd447;
+  outline-offset: 3px;
+}
+.natsu-login-btn:active {
+  transform: scale(0.97);
+}
+
+/* ---------- Search ---------- */
+.search-bar,
+.search-input,
+.search-panel {
+  background: #242121 !important;
+  border: 1px solid rgba(242, 165, 26, 0.3) !important;
+  color: #fff7e5 !important;
+  border-radius: 9999px;
+}
+.search-bar:focus-within,
+.search-input:focus {
+  border-color: #ffd447 !important;
+  box-shadow: 0 0 0 3px rgba(255, 212, 71, 0.25);
+  outline: none;
+}
+.search-hits .hit-tile,
+.search-hits a {
+  border-radius: 0.75rem;
+}
+
+/* ---------- Category pills ---------- */
+.natsu-cat {
+  color: #ebd6b6 !important;
+}
+.natsu-cat:hover,
+.natsu-cat.on,
+.natsu-cat[aria-pressed="true"] {
+  color: #ffd447 !important;
+}
+.natsu-pill {
+  background: #242121 !important;
+  border: 1px solid rgba(242, 165, 26, 0.3) !important;
+  color: #ebd6b6 !important;
+  border-radius: 9999px !important;
+}
+.natsu-pill.on,
+.natsu-pill[aria-pressed="true"] {
+  background: linear-gradient(90deg, #f2a51a, #ffd447) !important;
+  color: #1a1412 !important;
+  border-color: transparent !important;
+}
+
+/* ---------- Game cards ---------- */
+.game-card,
+.game-card.sf-card {
+  background: #2d2a29 !important;
+  border: 1px solid rgba(242, 165, 26, 0.16) !important;
+  border-radius: 1rem !important;
+  box-shadow: var(--shadow) !important;
+  overflow: hidden;
+}
+.game-card.card-hover:hover {
+  border-color: rgba(255, 212, 71, 0.55) !important;
+  box-shadow: 0 16px 36px -16px rgba(242, 165, 26, 0.4) !important;
+  transform: translateY(-3px);
+}
+.game-card-body .game-name {
+  color: #fff7e5;
+}
+.game-card-body .game-from {
+  color: #ebd6b6;
+  opacity: 0.85;
+}
+.game-cta.on {
+  background: linear-gradient(90deg, #f2a51a, #ffd447) !important;
+  color: #1a1412 !important;
+  border-radius: 9999px;
+  font-weight: 700;
+}
+.game-cta.off {
+  background: #3a3635 !important;
+  color: #9d9590 !important;
+  border-radius: 9999px;
+}
+.game-badge.hot {
+  background: #f2a51a !important;
+  color: #1a1412 !important;
+}
+.game-card.disabled {
+  filter: grayscale(0.7);
+  opacity: 0.6;
+}
+
+/* ---------- Login dialog (Telegram) ---------- */
+.tg-login-overlay {
+  background: rgba(17, 24, 39, 0.72) !important;
+  backdrop-filter: blur(3px);
+}
+.tg-login-modal.card {
+  background: #fff !important;
+  color: #111827 !important;
+  border: 0 !important;
+  border-radius: 1.25rem !important;
+  max-width: 22rem;
+  width: min(calc(100% - 2.5rem), 22rem);
+  padding: 1.25rem 1.25rem 1.35rem !important;
+  text-align: center;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.32) !important;
+}
+.tg-login-modal h3 {
+  color: #111827;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0.4rem 0 0.8rem;
+}
+.tg-login-close {
+  background: #fff !important;
+  border: 1px solid #e5e7eb !important;
+  color: #4b5563 !important;
+  border-radius: 9999px !important;
+}
+.tg-login-err {
+  color: #b91c1c !important;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.75rem;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+/* ---------- Footer ---------- */
+.footer,
+.site-footer {
+  background: #242121 !important;
+  border-top: 1px solid rgba(242, 165, 26, 0.2);
+  color: #ebd6b6;
+}
+.footer-tag,
+.footer-label {
+  color: #ebd6b6;
+  opacity: 0.8;
+}
+
+/* ---------- Mobile gutters (16px min, no horizontal scroll) ---------- */
+html,
+body {
+  overflow-x: hidden;
+}
+.container,
+.main {
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.game-card,
+.game-card-body,
+.hit-tile {
+  min-width: 0;
+}
