@@ -1,0 +1,147 @@
+/* Porpor falling petals — soft gold motion, reduced-motion safe */
+.falling-petals {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  z-index: 40;
+  contain: strict;
+}
+.falling-petals * {
+  pointer-events: none;
+}
+
+.falling-petal {
+  position: absolute;
+  top: 0;
+  left: var(--petal-left);
+  width: var(--petal-size);
+  height: var(--petal-size);
+  opacity: 0;
+  animation: pp-petal-fall var(--petal-duration) var(--petal-delay) linear infinite;
+  will-change: transform, opacity;
+}
+.petal-sway,
+.petal-sprite {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.petal-sway {
+  animation: pp-petal-sway var(--petal-sway-duration) var(--petal-delay) ease-in-out infinite alternate;
+}
+.petal-sprite {
+  animation: pp-petal-tumble var(--petal-spin-duration) var(--petal-delay) linear infinite;
+}
+.petal-sprite svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 4px rgba(255, 212, 71, 0.35));
+}
+
+.falling-petal[data-depth="near"] .petal-sprite::before {
+  content: "";
+  position: absolute;
+  inset: -22%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgb(255 193 98 / 22%),
+    rgb(255 171 72 / 8%) 40%,
+    transparent 70%
+  );
+}
+.falling-petal[data-depth="near"] .petal-sprite::after {
+  content: "";
+  position: absolute;
+  top: 14%;
+  right: 12%;
+  width: 8px;
+  height: 8px;
+  background:
+    linear-gradient(transparent, #fff4d6, transparent) center / 1px 100% no-repeat,
+    linear-gradient(90deg, transparent, #fff4d6, transparent) center / 100% 1px no-repeat;
+  opacity: 0;
+  animation: pp-petal-glint var(--petal-sway-duration) var(--petal-delay) ease-in-out infinite;
+}
+
+@keyframes pp-petal-fall {
+  0% {
+    transform: translate3d(0, -12vh, 0);
+    opacity: 0;
+  }
+  10%,
+  86% {
+    opacity: var(--petal-opacity);
+  }
+  100% {
+    transform: translate3d(calc(var(--petal-sway) * 0.65), 112vh, 0);
+    opacity: 0;
+  }
+}
+@keyframes pp-petal-sway {
+  from {
+    transform: translate3d(calc(var(--petal-sway) * -0.5), 0, 0) rotate(-9deg);
+  }
+  to {
+    transform: translate3d(calc(var(--petal-sway) * 0.5), 0, 0) rotate(9deg);
+  }
+}
+@keyframes pp-petal-tumble {
+  0% {
+    transform: perspective(180px) rotateZ(var(--petal-turn)) rotateY(25deg);
+  }
+  50% {
+    transform: perspective(180px) rotateZ(calc(var(--petal-turn) + 180deg)) rotateY(-35deg);
+  }
+  100% {
+    transform: perspective(180px) rotateZ(calc(var(--petal-turn) + 360deg)) rotateY(25deg);
+  }
+}
+@keyframes pp-petal-glint {
+  0%,
+  62%,
+  100% {
+    opacity: 0;
+    transform: scale(0.35) rotate(0deg);
+  }
+  76% {
+    opacity: 0.85;
+    transform: scale(1) rotate(45deg);
+  }
+  90% {
+    opacity: 0;
+    transform: scale(0.5) rotate(90deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .falling-petal {
+    left: var(--petal-mobile-left);
+    width: calc(var(--petal-size) * 0.8);
+    height: calc(var(--petal-size) * 0.8);
+  }
+  .falling-petal:nth-child(n + 11) {
+    display: none;
+  }
+  .falling-petal:nth-child(n + 11),
+  .falling-petal:nth-child(n + 11) *,
+  .falling-petal:nth-child(n + 11) *::after {
+    animation: none !important;
+    will-change: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce), print {
+  .falling-petals {
+    display: none;
+  }
+  .falling-petals *,
+  .falling-petals *::after {
+    animation: none !important;
+    will-change: auto;
+  }
+}

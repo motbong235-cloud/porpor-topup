@@ -19,9 +19,10 @@
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
+  transition: color 0.15s ease;
 }
 .natsu-cat.active {
-  color: #fff;
+  color: #fff7e5;
 }
 .natsu-cat-ico {
   width: 48px;
@@ -31,12 +32,22 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   display: grid;
   place-items: center;
-  font-size: 22px;
+  color: #a3a3a3;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+.natsu-cat-ico .icon-svg {
+  width: 22px;
+  height: 22px;
 }
 .natsu-cat.active .natsu-cat-ico {
   border-color: rgba(245, 197, 24, 0.55);
   background: rgba(245, 197, 24, 0.12);
   box-shadow: 0 0 0 2px rgba(245, 197, 24, 0.2);
+  color: #ffd447;
+}
+.natsu-cat:hover .natsu-cat-ico {
+  border-color: rgba(245, 197, 24, 0.35);
+  color: #ffd447;
 }
 .natsu-viewall {
   margin-left: auto;
@@ -48,6 +59,11 @@
   padding: 8px 14px;
   border-radius: 999px;
   text-decoration: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.natsu-viewall:hover {
+  border-color: rgba(245, 197, 24, 0.4);
+  background: rgba(245, 197, 24, 0.1);
 }
 .natsu-sec-head {
   display: flex;
@@ -78,4 +94,12 @@
 }
 .natsu-home .game-grid {
   gap: 10px;
+}
+
+/* Card hover lift */
+.natsu-home .game-card.card-hover {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.natsu-home .game-card.card-hover:hover {
+  transform: translateY(-3px);
 }

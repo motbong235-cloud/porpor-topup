@@ -4,16 +4,7 @@ import { useCatalog } from "../lib/catalog";
 import { money } from "../lib/store";
 import { t } from "../lib/i18n";
 import { GameTile, Icon } from "../components/Icons";
-
-function fallbackArt(g) {
-  const k = `${g?.id || ""} ${g?.name || ""}`.toLowerCase();
-  if (/gift|gc|card/.test(k) && /roblox|rbx/.test(k)) return "/icons/roblox-gift.svg";
-  if (/plus|premium/.test(k) && /roblox|rbx/.test(k)) return "/icons/roblox-plus.svg";
-  if (/robux|login/.test(k)) return "/icons/robux.svg";
-  if (/roblox|rbx/.test(k)) return "/icons/roblox.svg";
-  if (/mlbb|mobile.?legends|\bml\b/.test(k)) return "/icons/mlbb.svg";
-  return "/icons/roblox.svg";
-}
+import { FallingPetals } from "../components/FallingPetals";
 
 function isGift(g) {
   const k = `${g?.id || ""} ${g?.name || ""} ${g?.mark || ""}`.toLowerCase();
@@ -99,8 +90,6 @@ export default function Home({ lang, settings }) {
     return pool.slice(0, 6);
   }, [list]);
 
-  const firstTo = games[0] ? `/game/${games[0].id}` : "/";
-
   const custom = (settings && Array.isArray(settings.bannerUrls) ? settings.bannerUrls : []).filter(Boolean);
   const hasCustom = custom.length > 0;
   const count = hasCustom ? custom.length : 2;
@@ -116,6 +105,8 @@ export default function Home({ lang, settings }) {
 
   return (
     <div className="container natsu-home">
+      <FallingPetals />
+
       {/* Banner */}
       <section className={`banner banner-v2${hasCustom ? " banner-has-photo" : ""}`}>
         {hasCustom
@@ -156,7 +147,7 @@ export default function Home({ lang, settings }) {
         )}
       </section>
 
-      {/* Category tabs — like Natsu Game / Giftcard */}
+      {/* Category tabs — SVG icons instead of emoji */}
       <div className="natsu-cats" role="tablist">
         <button
           type="button"
@@ -165,7 +156,7 @@ export default function Home({ lang, settings }) {
           onClick={() => setTab("game")}
         >
           <span className="natsu-cat-ico" aria-hidden>
-            🎮
+            <Icon name="game" size={22} />
           </span>
           Game
         </button>
@@ -176,7 +167,7 @@ export default function Home({ lang, settings }) {
           onClick={() => setTab("gift")}
         >
           <span className="natsu-cat-ico" aria-hidden>
-            🎁
+            <Icon name="gift" size={22} />
           </span>
           Giftcard
         </button>

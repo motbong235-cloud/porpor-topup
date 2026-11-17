@@ -11,6 +11,7 @@ import "./natsu-theme.css";
 import "./natsu-home.css";
 import "./natsu-shell.css";
 import "./natsu-port.css";
+import "./falling-petals.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
