@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useCatalog } from "../lib/catalog";
 import { money } from "../lib/store";
@@ -15,7 +15,6 @@ function fallbackArt(g) {
   return "/icons/roblox.svg";
 }
 
-
 function minPackPrice(game) {
   const packs = Array.isArray(game?.packs) ? game.packs : [];
   let m = null;
@@ -30,9 +29,8 @@ function GameCard({ game, lang, famous }) {
   const badge = !game.open ? (
     <span className="game-badge off" aria-label="Offline">OFF</span>
   ) : famous ? (
-    <span className="game-badge hot" aria-label={t(lang, "hot")}>
-      <span className="game-badge-dot" aria-hidden />
-      HOT
+    <span className="game-badge hot" aria-label="TOP">
+      ★ TOP
     </span>
   ) : null;
   const from = minPackPrice(game);
@@ -46,7 +44,7 @@ function GameCard({ game, lang, famous }) {
         </div>
         <div className="game-card-body">
           <div className="game-name">{game.name}</div>
-          <span className="game-cta off">{t(lang, "maintenance")}</span>
+          <span className="game-cta off">UNAVAILABLE</span>
         </div>
       </div>
     );
@@ -65,16 +63,14 @@ function GameCard({ game, lang, famous }) {
             {lang === "km" ? "តម្លៃពី" : "From"} {money(from)}
           </div>
         ) : null}
-        <span className="game-cta on">{t(lang, "topup")}</span>
+        <span className="game-cta on">TOP UP</span>
       </div>
     </Link>
   );
 }
 
-
 const SHOP_HOURS = "8:30 AM – 11:00 PM";
 
-/** Real data from /api/ticker (paid orders, sold count, average delivery time). */
 function useTicker() {
   const [data, setData] = useState(null);
   useEffect(() => {
@@ -111,26 +107,15 @@ function ago(at, lang) {
   return `${Math.floor(m / 1440)} d ago`;
 }
 
-function fmtDuration(sec, lang) {
-  if (sec == null) return "—";
-  if (sec < 60) return lang === "km" ? `${Math.max(1, sec)} វិនាទី` : `${Math.max(1, sec)} sec`;
-  const m = Math.round(sec / 60);
-  if (m < 60) return lang === "km" ? `${m} នាទី` : `${m} min`;
-  const h = Math.round((m / 60) * 10) / 10;
-  return lang === "km" ? `${h} ម៉ោង` : `${h} h`;
-}
-
 function OrderTicker({ data, lang }) {
   const delivery = (data && data.delivery) || SHOP_HOURS;
   const sold = (data && data.soldLabel) || "ការបញ្ជាទិញ";
   const items = (data && Array.isArray(data.items) ? data.items : []).filter((x) => x && x.label);
-  // Need enough chips for a seamless loop; repeat the real items only
   const loop = items.length
     ? items.length < 8
       ? [...items, ...items, ...items, ...items]
       : [...items, ...items]
     : [];
-  // slow, calm scroll: ~8s per order (never faster than 45s per loop), whatever the number of orders
   const ordersSpeed = { animationDuration: `${Math.max(45, Math.round((loop.length / 2) * 8))}s` };
   return (
     <div className="pp-ticker" aria-label="orders ticker">
@@ -138,7 +123,9 @@ function OrderTicker({ data, lang }) {
         <div className="pp-ticker-track pp-ticker-delivery-track">
           {Array.from({ length: 6 }).map((_, i) => (
             <span key={i} className="pp-ticker-chip">
-              <span className="pp-ticker-bolt" aria-hidden><Icon name="zap" size={12} /></span>
+              <span className="pp-ticker-bolt" aria-hidden>
+                <Icon name="zap" size={12} />
+              </span>
               {lang === "km" ? "ម៉ោងធ្វើការ" : "Working hours"}: {delivery}
             </span>
           ))}
@@ -154,7 +141,9 @@ function OrderTicker({ data, lang }) {
             <div className="pp-ticker-track pp-ticker-orders-track" style={ordersSpeed}>
               {loop.map((it, i) => (
                 <span key={(it.id || i) + "-" + i} className="pp-ticker-item">
-                  <span className="pp-ticker-ok" aria-hidden><Icon name="check" size={12} /></span>
+                  <span className="pp-ticker-ok" aria-hidden>
+                    <Icon name="check" size={12} />
+                  </span>
                   {it.label}
                   {it.at ? <span className="pp-ticker-ago">{ago(it.at, lang)}</span> : null}
                 </span>
@@ -186,7 +175,6 @@ export default function Home({ lang, settings }) {
   const [filter, setFilter] = useState("");
 
   const famous = useMemo(() => games.filter((g) => g.famous), [games]);
-  // Special Events (top): always put TikTok Khmer first when present
   const spotlight = useMemo(() => {
     const isTikTok = (g) =>
       String(g?.id || "").toLowerCase().includes("tiktok") ||
@@ -246,45 +234,46 @@ export default function Home({ lang, settings }) {
               </div>
             ))
           : slides.map((s, i) => (
-          <div key={s.kicker} className={`banner-slide ${s.tone}${i === slide ? " active" : ""}`}>
-            <div className="banner-copy">
-              <div className="kicker">
-                <span className="kicker-dot" />
-                {t(lang, s.kicker)}
+              <div key={s.kicker} className={`banner-slide ${s.tone}${i === slide ? " active" : ""}`}>
+                <div className="banner-copy">
+                  <div className="kicker">
+                    <span className="kicker-dot" />
+                    {t(lang, s.kicker)}
+                  </div>
+                  <h1 className="banner-title">{t(lang, s.title)}</h1>
+                  <p className="banner-sub">{t(lang, s.sub)}</p>
+                  <div className="banner-actions">
+                    <Link className="btn bg-brand" to={s.to}>
+                      {s.ghost ? t(lang, "shopNow") : s.to === "/support" ? t(lang, "help") : t(lang, "shopNow")}
+                    </Link>
+                    {s.ghost && (
+                      <a className="btn btn-ghost" href="#games">
+                        {t(lang, "seeGames")}
+                      </a>
+                    )}
+                  </div>
+                </div>
+                <div className="banner-badge">{s.badge}</div>
               </div>
-              <h1 className="banner-title">{t(lang, s.title)}</h1>
-              <p className="banner-sub">{t(lang, s.sub)}</p>
-              <div className="banner-actions">
-                <Link className="btn bg-brand" to={s.to}>
-                  {s.ghost ? t(lang, "shopNow") : s.to === "/support" ? t(lang, "help") : t(lang, "shopNow")}
-                </Link>
-                {s.ghost && (
-                  <a className="btn btn-ghost" href="#games">
-                    {t(lang, "seeGames")}
-                  </a>
-                )}
-              </div>
+            ))}
+        {count > 1 && (
+          <>
+            <button type="button" className="banner-nav prev" aria-label="prev" onClick={() => setSlide((s) => (s + count - 1) % count)}>
+              <Icon name="chevL" size={18} />
+            </button>
+            <button type="button" className="banner-nav next" aria-label="next" onClick={() => setSlide((s) => (s + 1) % count)}>
+              <Icon name="chevR" size={18} />
+            </button>
+            <div className="banner-dots">
+              {Array.from({ length: count }, (_, i) => i).map((i) => (
+                <button key={i} type="button" className={`dot${i === slide ? " active" : ""}`} onClick={() => setSlide(i)} />
+              ))}
             </div>
-            <div className="banner-badge">{s.badge}</div>
-          </div>
-        ))}
-        {count > 1 && (<>
-        <button type="button" className="banner-nav prev" aria-label="prev" onClick={() => setSlide((s) => (s + count - 1) % count)}>
-          <Icon name="chevL" size={18} />
-        </button>
-        <button type="button" className="banner-nav next" aria-label="next" onClick={() => setSlide((s) => (s + 1) % count)}>
-          <Icon name="chevR" size={18} />
-        </button>
-        <div className="banner-dots">
-          {Array.from({ length: count }, (_, i) => i).map((i) => (
-            <button key={i} type="button" className={`dot${i === slide ? " active" : ""}`} onClick={() => setSlide(i)} />
-          ))}
-        </div>
-        </>)}
+          </>
+        )}
       </section>
-<OrderTicker data={ticker} lang={lang} />
+      <OrderTicker data={ticker} lang={lang} />
 
-      {/* Special Items ABOVE events — clean text cards */}
       {Array.isArray(settings?.specialItems) && settings.specialItems.length > 0 && (
         <section className="section si-section">
           <div className="section-head si-section-head">
@@ -299,8 +288,10 @@ export default function Home({ lang, settings }) {
           </div>
           {(() => {
             const list = settings.specialItems.filter((it) => it && it.enabled !== false);
-            // enough chips per set so the loop is seamless even with only a few packs
-            const set = list.length && list.length < 6 ? Array.from({ length: Math.ceil(6 / list.length) }).flatMap(() => list) : list;
+            const set =
+              list.length && list.length < 6
+                ? Array.from({ length: Math.ceil(6 / list.length) }).flatMap(() => list)
+                : list;
             const speed = { animationDuration: `${Math.max(28, set.length * 4)}s` };
             return (
               <div className="si-marquee" aria-label="special packs">
@@ -313,11 +304,23 @@ export default function Home({ lang, settings }) {
                           ? `/game/${encodeURIComponent(it.gameId)}${it.packId ? `?pack=${encodeURIComponent(it.packId)}` : ""}`
                           : "#games";
                         return (
-                          <Link key={`${dup}-${it.id || title}-${idx}`} tabIndex={dup === 1 ? -1 : undefined} className={"si-chip" + (it.image ? " has-img" : "")} to={href}>
+                          <Link
+                            key={`${dup}-${it.id || title}-${idx}`}
+                            tabIndex={dup === 1 ? -1 : undefined}
+                            className={"si-chip" + (it.image ? " has-img" : "")}
+                            to={href}
+                          >
                             <span className="si-chip-badge">{it.badge || "SPECIAL"}</span>
                             {it.image ? (
                               <span className="si-chip-img">
-                                <img src={it.image} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                                <img
+                                  src={it.image}
+                                  alt=""
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = "none";
+                                  }}
+                                />
                               </span>
                             ) : null}
                             <strong className="si-chip-title">{title}</strong>
@@ -345,58 +348,68 @@ export default function Home({ lang, settings }) {
           <div className="section-head si-section-head">
             <h2 className="sec-title">
               <Icon name="star" size={18} />
-              <span>{t(lang, "special")}</span>
+              <span>Trending Game</span>
             </h2>
+            <span className="sec-pill" style={{ fontSize: 11, fontWeight: 800, padding: "4px 10px", borderRadius: 999, background: "rgba(245,197,24,.2)", color: "#f5c518" }}>
+              {spotlight.filter((g) => g.open !== false).length} items
+            </span>
           </div>
           <div className="events events-special events-row-3">
-            {spotlight.filter((g) => g.open !== false).map((g) => {
-              const prices = (g.packs || []).map((p) => Number(p.price)).filter((n) => Number.isFinite(n));
-              const min = prices.length ? Math.min(...prices) : 0;
-              return (
-                <Link key={g.id} className="event-card hot-card" to={`/game/${g.id}`}>
-                  <div className="hot-art game-tile" style={{ "--h": g.hue }}>
-                    <img
-                      className="event-img"
-                      src={g.image || fallbackArt(g)}
-                      alt=""
-                      loading="lazy"
-                      onError={(e) => {
-                        const fb = fallbackArt(g);
-                        if (fb && e.currentTarget.src.indexOf(fb) < 0) e.currentTarget.src = fb;
-                        else e.currentTarget.style.display = "none";
-                      }}
-                    />
-                    <span className="hot-badge">{t(lang, "hot")}</span>
-                  </div>
-                  <div className="hot-foot">
-                    <strong className="hot-name">{g.name}</strong>
-                    <span className="hot-price">{lang === "km" ? `ចាប់ពី ${money(min)}` : `From ${money(min)}`}</span>
-                  </div>
-                </Link>
-              );
-            })}
+            {spotlight
+              .filter((g) => g.open !== false)
+              .map((g) => {
+                const prices = (g.packs || []).map((p) => Number(p.price)).filter((n) => Number.isFinite(n));
+                const min = prices.length ? Math.min(...prices) : 0;
+                return (
+                  <Link key={g.id} className="event-card hot-card" to={`/game/${g.id}`}>
+                    <div className="hot-art game-tile" style={{ "--h": g.hue }}>
+                      <img
+                        className="event-img"
+                        src={g.image || fallbackArt(g)}
+                        alt=""
+                        loading="lazy"
+                        onError={(e) => {
+                          const fb = fallbackArt(g);
+                          if (fb && e.currentTarget.src.indexOf(fb) < 0) e.currentTarget.src = fb;
+                          else e.currentTarget.style.display = "none";
+                        }}
+                      />
+                      <span className="hot-badge">★ TOP</span>
+                    </div>
+                    <div className="hot-foot">
+                      <strong className="hot-name">{g.name}</strong>
+                      <span className="hot-price">{lang === "km" ? `ចាប់ពី ${money(min)}` : `From ${money(min)}`}</span>
+                      <span className="game-cta on" style={{ marginTop: 8 }}>TOP UP</span>
+                    </div>
+                  </Link>
+                );
+              })}
           </div>
         </section>
       )}
 
       {famous.length > 0 && (
-      <section className="section">
-        <div className="section-head">
-          <h2 className="sec-title"><Icon name="star" size={18} /> <span>{t(lang, "famous")}</span></h2>
-        </div>
-        <p className="section-sub">{t(lang, "famousSub")}</p>
-        <div className="game-grid game-grid-3">
-          {famous.map((g) => (
-            <GameCard key={g.id} game={g} lang={lang} famous />
-          ))}
-        </div>
-      </section>
+        <section className="section">
+          <div className="section-head">
+            <h2 className="sec-title">
+              <Icon name="star" size={18} /> <span>{t(lang, "famous")}</span>
+            </h2>
+          </div>
+          <p className="section-sub">{t(lang, "famousSub")}</p>
+          <div className="game-grid game-grid-3">
+            {famous.map((g) => (
+              <GameCard key={g.id} game={g} lang={lang} famous />
+            ))}
+          </div>
+        </section>
       )}
 
       <section className="section" id="games">
         <div className="toolbar">
           <div className="section-head" style={{ margin: 0 }}>
-            <h2 className="sec-title"><Icon name="game" size={18} /> <span>{t(lang, "all")}</span></h2>
+            <h2 className="sec-title">
+              <Icon name="game" size={18} /> <span>All Games</span>
+            </h2>
           </div>
           <input
             className="search-input"
@@ -407,7 +420,7 @@ export default function Home({ lang, settings }) {
           />
         </div>
         <p className="count">
-          {filtered.length} {t(lang, "countGames")}
+          {filtered.length} games
         </p>
         <div className="game-grid game-grid-3">
           {loading ? (
@@ -425,43 +438,49 @@ export default function Home({ lang, settings }) {
               {t(lang, "searchEmpty")}
             </div>
           ) : (
-            filtered.map((g) => <GameCard key={g.id} game={g} lang={lang} famous={g.hot} />)
+            filtered.map((g) => <GameCard key={g.id} game={g} lang={lang} famous={g.hot || g.famous} />)
           )}
         </div>
       </section>
 
-      {/* 4 feature cards */}
       <section className="sf-features sf-features-bottom" aria-label="features">
         <div className="sf-feature">
-          <div className="sf-feature-ico"><img src="/sf-icons/icon-fast.svg" alt="" width="28" height="28" /></div>
+          <div className="sf-feature-ico">
+            <img src="/sf-icons/icon-fast.svg" alt="" width="28" height="28" />
+          </div>
           <div>
             <strong>{lang === "km" ? "លឿនភ្លាមៗ" : "Lightning Fast"}</strong>
-            <p>{lang === "km" ? "Order ដំណើរការក្នុងរយៈពេលវិនាទី" : "Orders processed in seconds, not minutes."}</p>
+            <p>{lang === "km" ? "Order ដំណើរការក្នុងរយៈពេលវិនាទី" : "Orders processed in seconds."}</p>
           </div>
         </div>
         <div className="sf-feature">
-          <div className="sf-feature-ico"><img src="/sf-icons/icon-safe.svg" alt="" width="28" height="28" /></div>
+          <div className="sf-feature-ico">
+            <img src="/sf-icons/icon-safe.svg" alt="" width="28" height="28" />
+          </div>
           <div>
             <strong>{lang === "km" ? "សុវត្ថិភាព" : "Safe & Secure"}</strong>
-            <p>{lang === "km" ? "ការបង់ប្រាក់ការពារពេញលេញ" : "Every payment protected end-to-end."}</p>
+            <p>{lang === "km" ? "ការបង់ប្រាក់ការពារពេញលេញ" : "Every payment protected."}</p>
           </div>
         </div>
         <div className="sf-feature">
-          <div className="sf-feature-ico"><img src="/sf-icons/icon-24hours.svg" alt="" width="28" height="28" /></div>
+          <div className="sf-feature-ico">
+            <img src="/sf-icons/icon-24hours.svg" alt="" width="28" height="28" />
+          </div>
           <div>
-            <strong>24/7</strong>
-            <p>{lang === "km" ? "សេវាកម្មគ្រប់ម៉ោង" : "Always online when you need us."}</p>
+            <strong>{lang === "km" ? "គាំទ្រ" : "Support"}</strong>
+            <p>{lang === "km" ? "ជំនួយតាម chat" : "Help via live chat."}</p>
           </div>
         </div>
         <div className="sf-feature">
-          <div className="sf-feature-ico"><img src="/sf-icons/icon-support-headphone.svg" alt="" width="28" height="28" /></div>
+          <div className="sf-feature-ico">
+            <img src="/sf-icons/icon-fire.svg" alt="" width="28" height="28" />
+          </div>
           <div>
-            <strong>{lang === "km" ? "ជំនួយ Live Chat" : "Live Support"}</strong>
-            <p>{lang === "km" ? "ឆាតជាមួយ Admin ក្នុង website" : "Chat with admin right on the site."}</p>
+            <strong>{lang === "km" ? "តម្លៃល្អ" : "Best Price"}</strong>
+            <p>{lang === "km" ? "តម្លៃសមរម្យសម្រាប់អ្នក" : "Fair wholesale-ready rates."}</p>
           </div>
         </div>
       </section>
-
-</div>
+    </div>
   );
 }
