@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useCatalog } from "../lib/catalog";
 import { money } from "../lib/store";
@@ -21,22 +21,32 @@ function minPackPrice(game) {
   return m;
 }
 
-/** Natsu-style game card: art + name + TOP UP */
+/** Natsu-style compact game card */
 function GameCard({ game, top }) {
   const from = minPackPrice(game);
   const open = game.open !== false;
 
   const body = (
     <>
-      {top ? <span className="game-badge hot">★ TOP</span> : null}
-      {!open ? <span className="game-badge off">OFF</span> : null}
       <div className="game-card-art">
+        {top ? (
+          <span className="game-badge hot">
+            <span className="badge-star">★</span> TOP
+          </span>
+        ) : null}
+        {!open ? <span className="game-badge off">OFF</span> : null}
         <GameTile game={game} />
       </div>
       <div className="game-card-body">
         <div className="game-name">{game.name}</div>
         {from != null && open ? <div className="game-from">From {money(from)}</div> : null}
-        {open ? <span className="game-cta on">TOP UP</span> : <span className="game-cta off">UNAVAILABLE</span>}
+        {open ? (
+          <span className="game-cta on">
+            <span className="cta-bolt">⚡</span> TOP UP
+          </span>
+        ) : (
+          <span className="game-cta off">UNAVAILABLE</span>
+        )}
       </div>
     </>
   );
@@ -63,8 +73,7 @@ function GameSkeletons({ n = 6 }) {
 
 export default function Home({ lang, settings }) {
   const { games, loading, error } = useCatalog();
-  const [slide, setSlide] = useState(0);
-  const [tab, setTab] = useState("game"); // game | gift
+  const [tab, setTab] = useState("game");
   const [filter, setFilter] = useState("");
 
   const list = useMemo(() => {
@@ -90,64 +99,11 @@ export default function Home({ lang, settings }) {
     return pool.slice(0, 6);
   }, [list]);
 
-  const custom = (settings && Array.isArray(settings.bannerUrls) ? settings.bannerUrls : []).filter(Boolean);
-  const hasCustom = custom.length > 0;
-  const count = hasCustom ? custom.length : 2;
-
-  useEffect(() => {
-    setSlide(0);
-  }, [count]);
-
-  useEffect(() => {
-    const id = setInterval(() => setSlide((s) => (s + 1) % count), 5600);
-    return () => clearInterval(id);
-  }, [count]);
-
   return (
     <div className="container natsu-home">
       <FallingPetals />
 
-      {/* Banner */}
-      <section className={`banner banner-v2${hasCustom ? " banner-has-photo" : ""}`}>
-        {hasCustom
-          ? custom.map((url, i) => (
-              <div key={url + i} className={`banner-slide banner-photo${i === slide ? " active" : ""}`}>
-                <img src={url} alt="" loading={i === 0 ? "eager" : "lazy"} />
-              </div>
-            ))
-          : [
-              { tone: "banner-deep", title: "Welcome to Porpor Topup", sub: lang === "km" ? "ទិញ Diamond · UC · Robux លឿន សុវត្ថិភាព" : "Fast · Safe game top-up" },
-              { tone: "banner-ice", title: lang === "km" ? "តម្លៃល្អ · ដឹកភ្លាម" : "Best rate · Instant", sub: lang === "km" ? "MLBB · Free Fire · PUBG · Roblox" : "MLBB · Free Fire · PUBG · Roblox" },
-            ].map((s, i) => (
-              <div key={s.tone} className={`banner-slide ${s.tone}${i === slide ? " active" : ""}`}>
-                <div className="banner-copy">
-                  <div className="kicker">
-                    <span className="kicker-dot" />
-                    PORPOR TOPUP
-                  </div>
-                  <h1 className="banner-title">{s.title}</h1>
-                  <p className="banner-sub">{s.sub}</p>
-                  <div className="banner-actions">
-                    <a className="btn bg-brand" href="#trending">
-                      TOP UP
-                    </a>
-                    <a className="btn btn-ghost" href="#games">
-                      {lang === "km" ? "មើលហ្គេម" : "All games"}
-                    </a>
-                  </div>
-                </div>
-              </div>
-            ))}
-        {count > 1 && (
-          <div className="banner-dots">
-            {Array.from({ length: count }, (_, i) => i).map((i) => (
-              <button key={i} type="button" className={`dot${i === slide ? " active" : ""}`} onClick={() => setSlide(i)} />
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Category tabs — SVG icons instead of emoji */}
+      {/* Category tabs — match Natsu Game / Giftcard */}
       <div className="natsu-cats" role="tablist">
         <button
           type="button"
@@ -156,7 +112,7 @@ export default function Home({ lang, settings }) {
           onClick={() => setTab("game")}
         >
           <span className="natsu-cat-ico" aria-hidden>
-            <Icon name="game" size={22} />
+            <Icon name="game" size={24} />
           </span>
           Game
         </button>
@@ -167,7 +123,7 @@ export default function Home({ lang, settings }) {
           onClick={() => setTab("gift")}
         >
           <span className="natsu-cat-ico" aria-hidden>
-            <Icon name="gift" size={22} />
+            <Icon name="gift" size={24} />
           </span>
           Giftcard
         </button>
@@ -179,10 +135,12 @@ export default function Home({ lang, settings }) {
       {/* Trending */}
       <section className="section" id="trending">
         <div className="section-head natsu-sec-head">
-          <h2 className="sec-title">
+          <h2 className="sec-title natsu-trending-title">
             <span className="natsu-star">★</span> Trending Game
           </h2>
-          <span className="natsu-pill">{trending.length} items</span>
+          <span className="natsu-pill">
+            <span className="pill-star">★</span> {trending.length} items
+          </span>
         </div>
         <div className="game-grid game-grid-3">
           {loading ? (

@@ -1,34 +1,28 @@
 /* =========================================================
-   Porpor storefront — design tokens aligned to Natsu palette
-   (from their published CSS variables, not a full clone)
-   theme-color: #100A08
-   daddy-dark-purple: #242121
-   daddy-purple: #474342
-   accent: #F2A51A → #FFD447
-   text: #FFF7E5 / #EBD6B6
+   Porpor storefront — Natsu-aligned dark gold theme
    ========================================================= */
 
 :root,
 html.dark,
 html:not(.dark) {
-  --bg: #100a08;
-  --surface: #242121;
+  --bg: #0e0c0b;
+  --surface: #1c1917;
   --ink: #fff7e5;
-  --muted: #ebd6b6;
+  --muted: #c4b8a8;
   --line: rgba(242, 165, 26, 0.18);
   --primary: #f2a51a;
   --primary-2: #ffd447;
-  --navy: #100a08;
-  --ice: #2e2a28;
+  --navy: #0e0c0b;
+  --ice: #2a2624;
   --on-primary: #100a08;
   --on-navy: #fff7e5;
   --danger: #f87171;
   --ok: #34d399;
-  --shadow: 0 10px 30px -10px rgba(2, 6, 23, 0.45);
+  --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
   --radius: 1rem;
   --gold: #ffd447;
   --gold-2: #f2a51a;
-  --card: #2a2624;
+  --card: #1c1917;
   --purple: #474342;
 }
 
@@ -40,12 +34,12 @@ body {
   font-family: "Space Grotesk", "Sora", "Inter", "Kantumruy Pro", system-ui, sans-serif;
 }
 
-/* Header */
+/* Header — dark bar like Natsu */
 .header,
 .site-header {
-  background: rgba(36, 33, 33, 0.96) !important;
-  border-bottom: 1px solid rgba(242, 165, 26, 0.2) !important;
-  backdrop-filter: blur(10px);
+  background: rgba(20, 18, 16, 0.98) !important;
+  border-bottom: 1px solid rgba(242, 165, 26, 0.15) !important;
+  backdrop-filter: blur(12px);
 }
 .logo-mark {
   background: linear-gradient(135deg, #f2a51a, #ffd447) !important;
@@ -53,49 +47,54 @@ body {
   box-shadow: 0 4px 14px rgba(242, 165, 26, 0.4) !important;
   border: 1px solid rgba(255, 212, 71, 0.5) !important;
 }
-.logo-name { color: #fff7e5 !important; }
-.logo-tag { color: #ffd447 !important; }
+.logo-name {
+  color: #fff7e5 !important;
+  font-weight: 800 !important;
+}
+.logo-tag {
+  color: #ffd447 !important;
+}
 
 .icon-btn,
 .icon-btn.ghost {
-  background: #2a2624 !important;
-  border: 1px solid rgba(242, 165, 26, 0.25) !important;
+  background: transparent !important;
+  border: none !important;
   color: #fff7e5 !important;
   border-radius: 999px !important;
 }
 .icon-btn:hover {
-  border-color: #ffd447 !important;
   color: #ffd447 !important;
-  background: rgba(242, 165, 26, 0.12) !important;
+  background: rgba(242, 165, 26, 0.1) !important;
 }
 
 .lang-btn,
 .header-lang {
-  border: 1.5px solid rgba(242, 165, 26, 0.55) !important;
+  border: 1.5px solid rgba(242, 165, 26, 0.5) !important;
   color: #ffd447 !important;
   background: transparent !important;
   border-radius: 999px !important;
   font-weight: 800 !important;
 }
 
-/* Natsu-style Login pill (orbit edge + glow feel, simplified) */
+/* Login pill — dark fill + gold ring (Natsu style) */
 .header-user-btn,
 .natsu-login-btn {
   position: relative !important;
   display: inline-flex !important;
   align-items: center !important;
   gap: 6px !important;
-  height: 40px !important;
-  padding: 2px !important;
+  height: 38px !important;
+  padding: 0 14px 0 10px !important;
   border-radius: 999px !important;
   border: none !important;
-  background: linear-gradient(135deg, #f2a51a, #ffd447) !important;
-  color: #fff !important;
+  background: #1a1614 !important;
+  color: #fff7e5 !important;
   font-size: 13px !important;
   font-weight: 800 !important;
   cursor: pointer !important;
-  box-shadow: 0 0 16px rgba(255, 212, 71, 0.35) !important;
-  isolation: isolate;
+  box-shadow:
+    0 0 0 2px #f2a51a,
+    0 0 16px rgba(255, 212, 71, 0.35) !important;
 }
 .header-user-btn > span,
 .natsu-login-btn > span,
@@ -104,27 +103,18 @@ body {
   position: relative;
   z-index: 1;
 }
-.natsu-login-btn {
-  padding-left: 10px !important;
-  padding-right: 14px !important;
-  background: linear-gradient(135deg, #1a1614 0%, #100a08 100%) !important;
-  box-shadow:
-    0 0 0 2px #f2a51a,
-    0 0 18px rgba(255, 212, 71, 0.4) !important;
-  color: #fff7e5 !important;
-}
 .header-user-btn.is-on {
   box-shadow: 0 0 0 2px #ffd447, 0 0 12px rgba(255, 212, 71, 0.3) !important;
 }
 .header-user-photo {
-  width: 28px !important;
-  height: 28px !important;
+  width: 26px !important;
+  height: 26px !important;
   border-radius: 999px !important;
   border: 2px solid #ffd447 !important;
 }
 .header-user-initial {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 999px;
   background: linear-gradient(135deg, #f2a51a, #ffd447);
   color: #100a08;
@@ -152,59 +142,53 @@ a.bg-brand,
   color: #fff7e5 !important;
 }
 
-/* Banner */
-.banner {
-  background: #242121 !important;
-  border-color: rgba(242, 165, 26, 0.25) !important;
-}
-.banner-deep {
-  background:
-    radial-gradient(60% 80% at 90% 20%, rgba(255, 212, 71, 0.4), transparent 60%),
-    linear-gradient(115deg, #100a08 0%, #3d2e12 50%, #f2a51a 140%) !important;
-}
-.banner-ice {
-  background:
-    radial-gradient(50% 80% at 85% 25%, rgba(255, 212, 71, 0.45), transparent 55%),
-    linear-gradient(120deg, #2a2208 0%, #ffd447 95%) !important;
-}
-.kicker {
-  background: rgba(0, 0, 0, 0.35) !important;
-  border-color: rgba(255, 212, 71, 0.4) !important;
-  color: #ffd447 !important;
-}
-.kicker-dot { background: #ffd447 !important; }
-.dot.active { background: #ffd447 !important; }
-
 .section-head h2,
-.sec-title { color: #fff7e5 !important; }
+.sec-title {
+  color: #fff7e5 !important;
+}
 .star,
 .sec-title svg,
-.natsu-star { color: #ffd447 !important; fill: #ffd447 !important; }
+.natsu-star {
+  color: #ffd447 !important;
+  fill: #ffd447 !important;
+}
 .section-sub,
-.count { color: #ebd6b6 !important; }
+.count {
+  color: #a89f94 !important;
+}
 
 .drawer-link svg,
 .footer-links-col a svg,
-.section-more svg { color: #ffd447 !important; }
+.section-more svg {
+  color: #ffd447 !important;
+}
 
-/* Cards */
+/* Default cards (non-home pages) */
 .game-card,
 .sf-card {
-  background: #2a2624 !important;
-  border: 1px solid rgba(242, 165, 26, 0.12) !important;
-  border-radius: 16px !important;
+  background: #1c1917 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 14px !important;
   overflow: hidden !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
 }
 .game-card:hover,
 .sf-card:hover {
-  border-color: rgba(255, 212, 71, 0.5) !important;
+  border-color: rgba(255, 212, 71, 0.45) !important;
   box-shadow: 0 12px 28px rgba(242, 165, 26, 0.18) !important;
 }
 .game-card-art,
-.game-tile { background: #1a1715 !important; }
-.game-name { color: #fff7e5 !important; font-weight: 700 !important; }
-.game-from { color: #ebd6b6 !important; font-size: 11px !important; }
+.game-tile {
+  background: #141210 !important;
+}
+.game-name {
+  color: #fff7e5 !important;
+  font-weight: 700 !important;
+}
+.game-from {
+  color: #a89f94 !important;
+  font-size: 11px !important;
+}
 
 .game-badge.hot,
 .hot-badge,
@@ -221,7 +205,10 @@ a.bg-brand,
   border-radius: 0 0 10px 0 !important;
   border: none !important;
 }
-.game-badge.off { background: #444 !important; color: #ccc !important; }
+.game-badge.off {
+  background: #444 !important;
+  color: #ccc !important;
+}
 
 .game-cta.on,
 .game-cta {
@@ -240,25 +227,34 @@ a.bg-brand,
   border: none !important;
   box-shadow: 0 4px 12px rgba(242, 165, 26, 0.3) !important;
 }
-.game-cta.on::before { content: "\26A1"; font-size: 11px; }
+.game-cta.on::before {
+  content: none !important;
+}
 .game-cta.off {
-  background: #3a3634 !important;
-  color: #9a9590 !important;
+  background: #2e2a28 !important;
+  color: #8a847c !important;
   box-shadow: none !important;
 }
-.game-cta.off::before { content: none !important; }
+.game-cta.off::before {
+  content: none !important;
+}
 
-.hot-price { color: #ffd447 !important; font-weight: 800 !important; }
+.hot-price {
+  color: #ffd447 !important;
+  font-weight: 800 !important;
+}
 
 /* Search */
-.search-modal { background: rgba(16, 10, 8, 0.85) !important; }
+.search-modal {
+  background: rgba(14, 12, 11, 0.88) !important;
+}
 .search-panel {
-  background: #242121 !important;
+  background: #1c1917 !important;
   border: 1px solid rgba(242, 165, 26, 0.25) !important;
 }
 .search-input,
 .search-bar input {
-  background: #2a2624 !important;
+  background: #1c1917 !important;
   border: 1px solid rgba(242, 165, 26, 0.2) !important;
   color: #fff7e5 !important;
 }
@@ -269,7 +265,7 @@ a.bg-brand,
 
 /* Drawer */
 .drawer {
-  background: #1a1715 !important;
+  background: #141210 !important;
   border-left: 1px solid rgba(242, 165, 26, 0.2) !important;
   color: #fff7e5 !important;
 }
@@ -277,7 +273,10 @@ a.bg-brand,
   background: rgba(242, 165, 26, 0.12) !important;
   color: #ffd447 !important;
 }
-.drawer-section { color: #ffd447 !important; font-weight: 800 !important; }
+.drawer-section {
+  color: #ffd447 !important;
+  font-weight: 800 !important;
+}
 .drawer-login-btn {
   background: linear-gradient(90deg, #f2a51a, #ffd447) !important;
   color: #100a08 !important;
@@ -290,14 +289,23 @@ a.bg-brand,
 
 /* Footer */
 .footer {
-  background: rgba(36, 33, 33, 0.95) !important;
+  background: rgba(20, 18, 16, 0.98) !important;
   border-top: 1px solid rgba(242, 165, 26, 0.12) !important;
-  color: #ebd6b6 !important;
+  color: #a89f94 !important;
 }
-.footer-name { color: #fff7e5 !important; }
-.footer-label { color: #ffd447 !important; font-weight: 800 !important; }
-.footer-links-col a { color: #ebd6b6 !important; }
-.footer-links-col a:hover { color: #ffd447 !important; }
+.footer-name {
+  color: #fff7e5 !important;
+}
+.footer-label {
+  color: #ffd447 !important;
+  font-weight: 800 !important;
+}
+.footer-links-col a {
+  color: #a89f94 !important;
+}
+.footer-links-col a:hover {
+  color: #ffd447 !important;
+}
 .pay-pill {
   background: rgba(71, 67, 66, 0.5) !important;
   border: 1px solid rgba(242, 165, 26, 0.2) !important;
@@ -307,7 +315,7 @@ a.bg-brand,
 .pack,
 .pack-item,
 .pkg-card {
-  background: #2a2624 !important;
+  background: #1c1917 !important;
   border: 1.5px solid rgba(242, 165, 26, 0.15) !important;
   border-radius: 14px !important;
   color: #fff7e5 !important;
@@ -319,12 +327,15 @@ a.bg-brand,
   background: rgba(242, 165, 26, 0.12) !important;
 }
 .pack-price,
-.price { color: #ffd447 !important; font-weight: 800 !important; }
+.price {
+  color: #ffd447 !important;
+  font-weight: 800 !important;
+}
 
 input,
 select,
 textarea {
-  background: #2a2624 !important;
+  background: #1c1917 !important;
   color: #fff7e5 !important;
   border-color: rgba(242, 165, 26, 0.2) !important;
 }
@@ -344,7 +355,7 @@ textarea:focus {
 }
 
 .tg-login-modal {
-  background: #242121 !important;
+  background: #1c1917 !important;
   border: 1px solid rgba(242, 165, 26, 0.3) !important;
   color: #fff7e5 !important;
   border-radius: 1.25rem !important;
@@ -359,4 +370,6 @@ textarea:focus {
 
 .skeleton,
 .sk-tile,
-.sk-line { background: #2e2a28 !important; }
+.sk-line {
+  background: #2a2624 !important;
+}
