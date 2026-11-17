@@ -1,28 +1,35 @@
 /* =========================================================
-   Porpor Topup — Natsu-inspired dark + gold (full UI)
+   Porpor storefront — design tokens aligned to Natsu palette
+   (from their published CSS variables, not a full clone)
+   theme-color: #100A08
+   daddy-dark-purple: #242121
+   daddy-purple: #474342
+   accent: #F2A51A → #FFD447
+   text: #FFF7E5 / #EBD6B6
    ========================================================= */
 
 :root,
 html.dark,
 html:not(.dark) {
-  --bg: #121212;
-  --surface: #1a1a1a;
-  --ink: #ffffff;
-  --muted: #a3a3a3;
-  --line: rgba(255, 255, 255, 0.08);
-  --primary: #f5c518;
-  --primary-2: #ffd84d;
-  --navy: #0a0a0a;
-  --ice: #242424;
-  --on-primary: #121212;
-  --on-navy: #ffffff;
+  --bg: #100a08;
+  --surface: #242121;
+  --ink: #fff7e5;
+  --muted: #ebd6b6;
+  --line: rgba(242, 165, 26, 0.18);
+  --primary: #f2a51a;
+  --primary-2: #ffd447;
+  --navy: #100a08;
+  --ice: #2e2a28;
+  --on-primary: #100a08;
+  --on-navy: #fff7e5;
   --danger: #f87171;
-  --ok: #4ade80;
-  --shadow: 0 8px 28px -12px rgba(0, 0, 0, 0.55);
+  --ok: #34d399;
+  --shadow: 0 10px 30px -10px rgba(2, 6, 23, 0.45);
   --radius: 1rem;
-  --gold: #f5c518;
-  --gold-2: #ffcc00;
-  --card: #1e1e1e;
+  --gold: #ffd447;
+  --gold-2: #f2a51a;
+  --card: #2a2624;
+  --purple: #474342;
 }
 
 html,
@@ -30,186 +37,174 @@ body {
   background: var(--bg) !important;
   color: var(--ink) !important;
   color-scheme: dark;
+  font-family: "Space Grotesk", "Sora", "Inter", "Kantumruy Pro", system-ui, sans-serif;
 }
 
-/* ---------- Header ---------- */
+/* Header */
 .header,
 .site-header {
-  background: #0e0e0e !important;
-  border-bottom: 1px solid rgba(245, 197, 24, 0.18) !important;
+  background: rgba(36, 33, 33, 0.96) !important;
+  border-bottom: 1px solid rgba(242, 165, 26, 0.2) !important;
+  backdrop-filter: blur(10px);
 }
 .logo-mark {
-  background: linear-gradient(145deg, #ffd84d, #f5c518 40%, #c9a000) !important;
-  color: #121212 !important;
-  box-shadow: 0 4px 14px rgba(245, 197, 24, 0.45) !important;
+  background: linear-gradient(135deg, #f2a51a, #ffd447) !important;
+  color: #100a08 !important;
+  box-shadow: 0 4px 14px rgba(242, 165, 26, 0.4) !important;
+  border: 1px solid rgba(255, 212, 71, 0.5) !important;
 }
-.logo-mark img {
-  border-radius: 10px;
-}
-.logo-name { color: #fff !important; }
-.logo-tag { color: var(--gold) !important; }
+.logo-name { color: #fff7e5 !important; }
+.logo-tag { color: #ffd447 !important; }
 
-/* Round icon buttons */
 .icon-btn,
 .icon-btn.ghost {
-  background: #1c1c1c !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #fff !important;
+  background: #2a2624 !important;
+  border: 1px solid rgba(242, 165, 26, 0.25) !important;
+  color: #fff7e5 !important;
   border-radius: 999px !important;
 }
-.icon-btn:hover,
-.icon-btn.ghost:hover {
-  background: #2a2a2a !important;
-  border-color: rgba(245, 197, 24, 0.5) !important;
-  color: var(--gold) !important;
-}
-.icon-btn svg,
-.header-actions svg {
-  color: inherit !important;
-  stroke: currentColor;
-  fill: currentColor;
+.icon-btn:hover {
+  border-color: #ffd447 !important;
+  color: #ffd447 !important;
+  background: rgba(242, 165, 26, 0.12) !important;
 }
 
 .lang-btn,
 .header-lang {
-  border: 1.5px solid rgba(245, 197, 24, 0.5) !important;
-  color: var(--gold) !important;
+  border: 1.5px solid rgba(242, 165, 26, 0.55) !important;
+  color: #ffd447 !important;
   background: transparent !important;
   border-radius: 999px !important;
   font-weight: 800 !important;
 }
-.lang-btn:hover { background: rgba(245, 197, 24, 0.12) !important; }
 
-/* Login pill like Natsu */
+/* Natsu-style Login pill (orbit edge + glow feel, simplified) */
 .header-user-btn,
 .natsu-login-btn {
+  position: relative !important;
   display: inline-flex !important;
   align-items: center !important;
   gap: 6px !important;
   height: 40px !important;
-  padding: 0 14px !important;
+  padding: 2px !important;
   border-radius: 999px !important;
-  border: 2px solid var(--gold) !important;
-  background: linear-gradient(180deg, rgba(245, 197, 24, 0.2), rgba(0, 0, 0, 0.4)) !important;
+  border: none !important;
+  background: linear-gradient(135deg, #f2a51a, #ffd447) !important;
   color: #fff !important;
   font-size: 13px !important;
   font-weight: 800 !important;
   cursor: pointer !important;
-  box-shadow: 0 2px 12px rgba(245, 197, 24, 0.2) !important;
+  box-shadow: 0 0 16px rgba(255, 212, 71, 0.35) !important;
+  isolation: isolate;
+}
+.header-user-btn > span,
+.natsu-login-btn > span,
+.header-user-btn svg,
+.natsu-login-btn svg {
+  position: relative;
+  z-index: 1;
+}
+.natsu-login-btn {
+  padding-left: 10px !important;
+  padding-right: 14px !important;
+  background: linear-gradient(135deg, #1a1614 0%, #100a08 100%) !important;
+  box-shadow:
+    0 0 0 2px #f2a51a,
+    0 0 18px rgba(255, 212, 71, 0.4) !important;
+  color: #fff7e5 !important;
 }
 .header-user-btn.is-on {
-  border-color: var(--gold) !important;
-  background: rgba(245, 197, 24, 0.15) !important;
+  box-shadow: 0 0 0 2px #ffd447, 0 0 12px rgba(255, 212, 71, 0.3) !important;
 }
 .header-user-photo {
   width: 28px !important;
   height: 28px !important;
   border-radius: 999px !important;
-  border: 2px solid var(--gold) !important;
+  border: 2px solid #ffd447 !important;
 }
 .header-user-initial {
   width: 28px;
   height: 28px;
   border-radius: 999px;
-  background: var(--gold);
-  color: #121212;
+  background: linear-gradient(135deg, #f2a51a, #ffd447);
+  color: #100a08;
   display: grid;
   place-items: center;
   font-weight: 900;
-  font-size: 13px;
 }
 
-/* ---------- Buttons ---------- */
+/* Primary buttons */
 .btn.bg-brand,
 .bg-brand,
 button.bg-brand,
 a.bg-brand,
 .pay-btn,
-.order-btn,
-.btn-primary {
-  background: linear-gradient(180deg, #ffd84d, #f5c518) !important;
-  color: #121212 !important;
+.order-btn {
+  background: linear-gradient(90deg, #f2a51a, #ffd447) !important;
+  color: #100a08 !important;
   border: none !important;
   font-weight: 800 !important;
-  box-shadow: 0 4px 16px rgba(245, 197, 24, 0.35) !important;
+  box-shadow: 0 4px 16px rgba(242, 165, 26, 0.35) !important;
 }
 .btn-ghost {
-  background: rgba(255, 255, 255, 0.06) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  color: #fff !important;
+  background: rgba(255, 247, 229, 0.06) !important;
+  border: 1px solid rgba(255, 247, 229, 0.12) !important;
+  color: #fff7e5 !important;
 }
 
-/* ---------- Banner ---------- */
+/* Banner */
 .banner {
-  background: #1a1a1a !important;
-  border-color: rgba(245, 197, 24, 0.2) !important;
+  background: #242121 !important;
+  border-color: rgba(242, 165, 26, 0.25) !important;
 }
 .banner-deep {
   background:
-    radial-gradient(60% 80% at 90% 20%, rgba(245, 197, 24, 0.45), transparent 60%),
-    linear-gradient(115deg, #1a1200 0%, #3d2e00 45%, #f5c518 130%) !important;
+    radial-gradient(60% 80% at 90% 20%, rgba(255, 212, 71, 0.4), transparent 60%),
+    linear-gradient(115deg, #100a08 0%, #3d2e12 50%, #f2a51a 140%) !important;
 }
 .banner-ice {
   background:
-    radial-gradient(50% 80% at 85% 25%, rgba(255, 216, 77, 0.5), transparent 55%),
-    linear-gradient(120deg, #2a2200 0%, #f5c518 90%) !important;
-}
-.banner-night {
-  background:
-    radial-gradient(40% 60% at 80% 30%, rgba(245, 197, 24, 0.35), transparent 70%),
-    linear-gradient(160deg, #0a0a0a, #1a1500 55%, #3d3000) !important;
+    radial-gradient(50% 80% at 85% 25%, rgba(255, 212, 71, 0.45), transparent 55%),
+    linear-gradient(120deg, #2a2208 0%, #ffd447 95%) !important;
 }
 .kicker {
   background: rgba(0, 0, 0, 0.35) !important;
-  border-color: rgba(245, 197, 24, 0.4) !important;
-  color: var(--gold) !important;
+  border-color: rgba(255, 212, 71, 0.4) !important;
+  color: #ffd447 !important;
 }
-.kicker-dot { background: var(--gold) !important; }
-.dot.active { background: var(--gold) !important; }
+.kicker-dot { background: #ffd447 !important; }
+.dot.active { background: #ffd447 !important; }
 
-/* ---------- Sections / icons in titles ---------- */
 .section-head h2,
-.sec-title { color: #fff !important; }
+.sec-title { color: #fff7e5 !important; }
 .star,
 .sec-title svg,
-.natsu-star {
-  color: var(--gold) !important;
-  fill: var(--gold) !important;
-}
+.natsu-star { color: #ffd447 !important; fill: #ffd447 !important; }
 .section-sub,
-.count { color: var(--muted) !important; }
+.count { color: #ebd6b6 !important; }
 
-/* SVG icons site-wide → gold accent on interactive */
 .drawer-link svg,
 .footer-links-col a svg,
-.section-more svg {
-  color: var(--gold) !important;
-}
-.drawer-link:hover,
-.footer-links-col a:hover {
-  color: var(--gold) !important;
-}
+.section-more svg { color: #ffd447 !important; }
 
-/* ---------- Game cards ---------- */
+/* Cards */
 .game-card,
 .sf-card {
-  background: #1e1e1e !important;
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  background: #2a2624 !important;
+  border: 1px solid rgba(242, 165, 26, 0.12) !important;
   border-radius: 16px !important;
   overflow: hidden !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
 }
 .game-card:hover,
-.sf-card:hover,
-.card-hover:hover {
-  border-color: rgba(245, 197, 24, 0.45) !important;
-  transform: translateY(-3px);
-  box-shadow: 0 12px 28px rgba(245, 197, 24, 0.15) !important;
+.sf-card:hover {
+  border-color: rgba(255, 212, 71, 0.5) !important;
+  box-shadow: 0 12px 28px rgba(242, 165, 26, 0.18) !important;
 }
 .game-card-art,
-.game-tile { background: #161616 !important; }
-.game-name { color: #fff !important; font-weight: 700 !important; }
-.game-from { color: var(--muted) !important; font-size: 11px !important; }
+.game-tile { background: #1a1715 !important; }
+.game-name { color: #fff7e5 !important; font-weight: 700 !important; }
+.game-from { color: #ebd6b6 !important; font-size: 11px !important; }
 
 .game-badge.hot,
 .hot-badge,
@@ -218,8 +213,8 @@ a.bg-brand,
   top: 0 !important;
   left: 0 !important;
   z-index: 2;
-  background: linear-gradient(90deg, #ffd84d, #f5c518) !important;
-  color: #121212 !important;
+  background: linear-gradient(90deg, #f2a51a, #ffd447) !important;
+  color: #100a08 !important;
   font-size: 10px !important;
   font-weight: 900 !important;
   padding: 4px 10px 4px 8px !important;
@@ -238,185 +233,125 @@ a.bg-brand,
   margin-top: 8px !important;
   padding: 8px 10px !important;
   border-radius: 10px !important;
-  background: linear-gradient(180deg, #ffd84d, #f5c518) !important;
-  color: #121212 !important;
+  background: linear-gradient(90deg, #f2a51a, #ffd447) !important;
+  color: #100a08 !important;
   font-size: 12px !important;
   font-weight: 900 !important;
   border: none !important;
-  box-shadow: 0 4px 12px rgba(245, 197, 24, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(242, 165, 26, 0.3) !important;
 }
 .game-cta.on::before { content: "\26A1"; font-size: 11px; }
 .game-cta.off {
-  background: #333 !important;
-  color: #999 !important;
+  background: #3a3634 !important;
+  color: #9a9590 !important;
   box-shadow: none !important;
 }
 .game-cta.off::before { content: none !important; }
 
-.event-card,
-.hot-card {
-  background: #1e1e1e !important;
-  border-color: rgba(255, 255, 255, 0.06) !important;
-}
-.hot-price { color: var(--gold) !important; font-weight: 800 !important; }
+.hot-price { color: #ffd447 !important; font-weight: 800 !important; }
 
-/* ---------- Search modal ---------- */
-.search-modal,
+/* Search */
+.search-modal { background: rgba(16, 10, 8, 0.85) !important; }
 .search-panel {
-  background: rgba(0, 0, 0, 0.75) !important;
+  background: #242121 !important;
+  border: 1px solid rgba(242, 165, 26, 0.25) !important;
 }
-.search-panel {
-  background: #1a1a1a !important;
-  border: 1px solid rgba(245, 197, 24, 0.2) !important;
+.search-input,
+.search-bar input {
+  background: #2a2624 !important;
+  border: 1px solid rgba(242, 165, 26, 0.2) !important;
+  color: #fff7e5 !important;
 }
-.search-bar {
-  background: #121212 !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-}
-.search-bar input,
-.search-input {
-  background: #1e1e1e !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #fff !important;
-}
-.search-input:focus,
-.search-bar input:focus {
-  border-color: var(--gold) !important;
-  box-shadow: 0 0 0 3px rgba(245, 197, 24, 0.2) !important;
-}
-.search-hits li button {
-  color: #fff !important;
-}
-.search-hits li button:hover {
-  background: rgba(245, 197, 24, 0.1) !important;
+.search-input:focus {
+  border-color: #ffd447 !important;
+  box-shadow: 0 0 0 3px rgba(255, 212, 71, 0.2) !important;
 }
 
-/* ---------- Drawer ---------- */
+/* Drawer */
 .drawer {
-  background: #141414 !important;
-  border-left: 1px solid rgba(245, 197, 24, 0.15) !important;
-  color: #fff !important;
-}
-.drawer-head {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-}
-.drawer-brand-name { color: #fff !important; }
-.drawer-brand-tag { color: var(--gold) !important; }
-.drawer-link {
-  color: #e5e5e5 !important;
-  border-radius: 12px !important;
+  background: #1a1715 !important;
+  border-left: 1px solid rgba(242, 165, 26, 0.2) !important;
+  color: #fff7e5 !important;
 }
 .drawer-link:hover {
-  background: rgba(245, 197, 24, 0.1) !important;
-  color: var(--gold) !important;
+  background: rgba(242, 165, 26, 0.12) !important;
+  color: #ffd447 !important;
 }
-.drawer-section {
-  color: var(--gold) !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.08em !important;
-}
+.drawer-section { color: #ffd447 !important; font-weight: 800 !important; }
 .drawer-login-btn {
-  background: linear-gradient(180deg, #ffd84d, #f5c518) !important;
-  color: #121212 !important;
+  background: linear-gradient(90deg, #f2a51a, #ffd447) !important;
+  color: #100a08 !important;
   border: none !important;
   font-weight: 800 !important;
   border-radius: 12px !important;
   width: 100%;
   padding: 12px !important;
 }
-.overlay.open {
-  background: rgba(0, 0, 0, 0.65) !important;
-}
 
-/* ---------- Footer ---------- */
+/* Footer */
 .footer {
-  background: #0a0a0a !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
-  color: var(--muted) !important;
+  background: rgba(36, 33, 33, 0.95) !important;
+  border-top: 1px solid rgba(242, 165, 26, 0.12) !important;
+  color: #ebd6b6 !important;
 }
-.footer-name { color: #fff !important; }
-.footer-label { color: var(--gold) !important; font-weight: 800 !important; }
-.footer-links-col a { color: #c4c4c4 !important; }
-.footer-links-col a:hover { color: var(--gold) !important; }
+.footer-name { color: #fff7e5 !important; }
+.footer-label { color: #ffd447 !important; font-weight: 800 !important; }
+.footer-links-col a { color: #ebd6b6 !important; }
+.footer-links-col a:hover { color: #ffd447 !important; }
 .pay-pill {
-  background: #1e1e1e !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(71, 67, 66, 0.5) !important;
+  border: 1px solid rgba(242, 165, 26, 0.2) !important;
 }
 
-/* ---------- Game / checkout pages ---------- */
-.game-page,
-.pack-list,
-.order-box,
-.card {
-  background: #1a1a1a;
-  color: #fff;
-}
+/* Game packs */
 .pack,
 .pack-item,
 .pkg-card {
-  background: #1e1e1e !important;
-  border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+  background: #2a2624 !important;
+  border: 1.5px solid rgba(242, 165, 26, 0.15) !important;
   border-radius: 14px !important;
-  color: #fff !important;
+  color: #fff7e5 !important;
 }
 .pack.selected,
 .pack.active,
 .pkg-card.active {
-  border-color: var(--gold) !important;
-  background: rgba(245, 197, 24, 0.1) !important;
-  box-shadow: 0 0 0 1px rgba(245, 197, 24, 0.3);
+  border-color: #ffd447 !important;
+  background: rgba(242, 165, 26, 0.12) !important;
 }
 .pack-price,
-.price {
-  color: var(--gold) !important;
-  font-weight: 800 !important;
-}
+.price { color: #ffd447 !important; font-weight: 800 !important; }
 
-/* Forms */
 input,
 select,
 textarea {
-  background: #1e1e1e !important;
-  color: #fff !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
+  background: #2a2624 !important;
+  color: #fff7e5 !important;
+  border-color: rgba(242, 165, 26, 0.2) !important;
 }
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: var(--gold) !important;
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(245, 197, 24, 0.2) !important;
+  border-color: #ffd447 !important;
+  box-shadow: 0 0 0 3px rgba(255, 212, 71, 0.2) !important;
 }
 
-/* Live chat FAB */
 .live-chat-fab,
 .lc-fab,
 [class*="chat-fab"] {
-  background: linear-gradient(145deg, #ffd84d, #f5c518) !important;
-  color: #121212 !important;
-  box-shadow: 0 8px 24px rgba(245, 197, 24, 0.45) !important;
+  background: linear-gradient(145deg, #f2a51a, #ffd447) !important;
+  color: #100a08 !important;
+  box-shadow: 0 8px 24px rgba(242, 165, 26, 0.45) !important;
 }
 
-/* TG modal */
 .tg-login-modal {
-  background: #1a1a1a !important;
-  border: 1px solid rgba(245, 197, 24, 0.25) !important;
-  color: #fff !important;
-}
-.tg-login-close { color: #fff !important; }
-
-/* Install banner */
-.install-banner,
-.pwa-banner {
-  background: #fff !important;
-  color: #121212 !important;
-  border-radius: 14px !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+  background: #242121 !important;
+  border: 1px solid rgba(242, 165, 26, 0.3) !important;
+  color: #fff7e5 !important;
+  border-radius: 1.25rem !important;
 }
 
-/* Text brand gold */
 .text-brand {
-  background: linear-gradient(120deg, #ffe680, #f5c518 50%, #c9a000) !important;
+  background: linear-gradient(90deg, #f2a51a, #ffd447) !important;
   -webkit-background-clip: text !important;
   background-clip: text !important;
   color: transparent !important;
@@ -424,6 +359,4 @@ textarea:focus {
 
 .skeleton,
 .sk-tile,
-.sk-line { background: #2a2a2a !important; }
-
-.main { background: transparent; }
+.sk-line { background: #2e2a28 !important; }
