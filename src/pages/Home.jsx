@@ -21,41 +21,47 @@ function minPackPrice(game) {
   return m;
 }
 
-/** Natsu-style compact game card */
+/** Card structure matched to Natsu featured-card */
 function GameCard({ game, top }) {
   const from = minPackPrice(game);
   const open = game.open !== false;
 
   const body = (
-    <>
-      <div className="game-card-art">
+    <div className="game-card-visual">
+      <div className="game-card-pad">
         {top ? (
-          <span className="game-badge hot">
-            <span className="badge-star">★</span> TOP
-          </span>
+          <div className="game-badge hot">
+            <Icon name="star" size={10} />
+            <span className="badge-top-text">TOP</span>
+          </div>
         ) : null}
-        {!open ? <span className="game-badge off">OFF</span> : null}
-        <GameTile game={game} />
+        {!open ? <div className="game-badge off">OFF</div> : null}
+        <div className="game-card-art">
+          <GameTile game={game} />
+        </div>
       </div>
       <div className="game-card-body">
-        <div className="game-name">{game.name}</div>
+        <h3 className="game-name" title={game.name}>
+          {game.name}
+        </h3>
         {from != null && open ? <div className="game-from">From {money(from)}</div> : null}
         {open ? (
           <span className="game-cta on">
-            <span className="cta-bolt">⚡</span> TOP UP
+            <Icon name="zap" size={11} />
+            TOP UP
           </span>
         ) : (
           <span className="game-cta off">UNAVAILABLE</span>
         )}
       </div>
-    </>
+    </div>
   );
 
   if (!open) {
     return <div className="game-card sf-card disabled">{body}</div>;
   }
   return (
-    <Link className="game-card sf-card card-hover" to={`/game/${game.id}`}>
+    <Link className="game-card sf-card card-hover" to={`/game/${game.id}`} aria-label={game.name}>
       {body}
     </Link>
   );
@@ -103,43 +109,49 @@ export default function Home({ lang, settings }) {
     <div className="container natsu-home">
       <FallingPetals />
 
-      {/* Category tabs — match Natsu Game / Giftcard */}
-      <div className="natsu-cats" role="tablist">
-        <button
-          type="button"
-          role="tab"
-          className={`natsu-cat${tab === "game" ? " active" : ""}`}
-          onClick={() => setTab("game")}
-        >
-          <span className="natsu-cat-ico" aria-hidden>
-            <Icon name="game" size={24} />
-          </span>
-          Game
-        </button>
-        <button
-          type="button"
-          role="tab"
-          className={`natsu-cat${tab === "gift" ? " active" : ""}`}
-          onClick={() => setTab("gift")}
-        >
-          <span className="natsu-cat-ico" aria-hidden>
-            <Icon name="gift" size={24} />
-          </span>
-          Giftcard
-        </button>
-        <a className="natsu-viewall" href="#games">
+      {/* catalog-categories — same structure as Natsu */}
+      <nav className="natsu-cats catalog-categories" aria-label="Shop by category">
+        <div className="catalog-categories__items">
+          <button
+            type="button"
+            className={`natsu-cat catalog-categories__item${tab === "game" ? " active" : ""}`}
+            data-catalog-category="game"
+            onClick={() => setTab("game")}
+          >
+            <span className="natsu-cat-ico catalog-categories__badge" aria-hidden>
+              <Icon name="game" size={26} />
+            </span>
+            <span className="catalog-categories__label">Game</span>
+          </button>
+          <button
+            type="button"
+            className={`natsu-cat catalog-categories__item${tab === "gift" ? " active" : ""}`}
+            data-catalog-category="giftcard"
+            onClick={() => setTab("gift")}
+          >
+            <span className="natsu-cat-ico catalog-categories__badge" aria-hidden>
+              <Icon name="gift" size={26} />
+            </span>
+            <span className="catalog-categories__label">Giftcard</span>
+          </button>
+        </div>
+        <a className="natsu-viewall catalog-categories__all" href="#games">
           View all
         </a>
-      </div>
+      </nav>
 
-      {/* Trending */}
+      {/* Trending — featured heading like Natsu */}
       <section className="section" id="trending">
         <div className="section-head natsu-sec-head">
           <h2 className="sec-title natsu-trending-title">
-            <span className="natsu-star">★</span> Trending Game
+            <span className="featured-heading__icon-badge" aria-hidden>
+              <Icon name="star" size={14} />
+            </span>
+            Trending Game
           </h2>
           <span className="natsu-pill">
-            <span className="pill-star">★</span> {trending.length} items
+            <Icon name="star" size={12} />
+            {trending.length} items
           </span>
         </div>
         <div className="game-grid game-grid-3">
