@@ -4,6 +4,7 @@ import { useCatalog } from "../lib/catalog";
 import { money } from "../lib/store";
 import { t } from "../lib/i18n";
 import { GameTile, Icon } from "../components/Icons";
+import { GameIcon, GiftIcon } from "../components/CategoryIcons";
 import { FallingPetals } from "../components/FallingPetals";
 
 function isGift(g) {
@@ -21,7 +22,6 @@ function minPackPrice(game) {
   return m;
 }
 
-/** Card structure matched to Natsu featured-card */
 function GameCard({ game, top }) {
   const from = minPackPrice(game);
   const open = game.open !== false;
@@ -109,7 +109,6 @@ export default function Home({ lang, settings }) {
     <div className="container natsu-home">
       <FallingPetals />
 
-      {/* catalog-categories — same structure as Natsu */}
       <nav className="natsu-cats catalog-categories" aria-label="Shop by category">
         <div className="catalog-categories__items">
           <button
@@ -118,8 +117,8 @@ export default function Home({ lang, settings }) {
             data-catalog-category="game"
             onClick={() => setTab("game")}
           >
-            <span className="natsu-cat-ico catalog-categories__badge" aria-hidden>
-              <Icon name="game" size={26} />
+            <span className="natsu-cat-ico catalog-categories__badge premium-ico" aria-hidden>
+              <GameIcon size={36} />
             </span>
             <span className="catalog-categories__label">Game</span>
           </button>
@@ -129,8 +128,8 @@ export default function Home({ lang, settings }) {
             data-catalog-category="giftcard"
             onClick={() => setTab("gift")}
           >
-            <span className="natsu-cat-ico catalog-categories__badge" aria-hidden>
-              <Icon name="gift" size={26} />
+            <span className="natsu-cat-ico catalog-categories__badge premium-ico" aria-hidden>
+              <GiftIcon size={36} />
             </span>
             <span className="catalog-categories__label">Giftcard</span>
           </button>
@@ -140,7 +139,6 @@ export default function Home({ lang, settings }) {
         </a>
       </nav>
 
-      {/* Trending — featured heading like Natsu */}
       <section className="section" id="trending">
         <div className="section-head natsu-sec-head">
           <h2 className="sec-title natsu-trending-title">
@@ -167,7 +165,6 @@ export default function Home({ lang, settings }) {
         </div>
       </section>
 
-      {/* All games */}
       <section className="section" id="games">
         <div className="toolbar natsu-toolbar">
           <div className="section-head" style={{ margin: 0 }}>
