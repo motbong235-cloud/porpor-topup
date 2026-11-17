@@ -1,0 +1,17 @@
+/* Header layout closer to Natsu: search + Login emphasis */
+.header-inner {
+  gap: 8px !important;
+}
+.header-actions {
+  gap: 6px !important;
+}
+/* Soften extra controls on small screens — keep Login + search */
+@media (max-width: 420px) {
+  .header-lang {
+    display: none !important;
+  }
+}
+/* Menu icon circular dark */
+.header-menu-btn {
+  border-radius: 999px !important;
+}
