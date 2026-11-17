@@ -278,6 +278,7 @@ export default function Game({ lang, addOrder, settings }) {
   const [appliedCode, setAppliedCode] = useState("");
   const [couponMsg, setCouponMsg] = useState({ type: "", text: "" });
   const [payErr, setPayErr] = useState("");
+  const [agreed, setAgreed] = useState(false); // terms consent required before paying
   const [qrOpen, setQrOpen] = useState(false);
   const [liveQr, setLiveQr] = useState(null);
   const [liveQrString, setLiveQrString] = useState("");
@@ -679,6 +680,10 @@ export default function Game({ lang, addOrder, settings }) {
     const msg = validate();
     setPayErr(msg);
     if (msg) return;
+    if (!agreed) {
+      setPayErr(lang === "km" ? "សូមយល់ព្រមលក្ខខណ្ឌមុនបង់ប្រាក់" : "Please agree to the terms before paying");
+      return;
+    }
     place();
   }
 
@@ -1246,38 +1251,51 @@ export default function Game({ lang, addOrder, settings }) {
               </button>
             </div>
             {couponMsg.text ? <p className={`msg ${couponMsg.type}`}>{couponMsg.text}</p> : null}
-            <div className="pay-label caps">{lang === "km" ? "ជ្រើសវិធីបង់ប្រាក់" : "Choose way to pay"}</div>
-            <div className="pay-choices">
-              <div className="pay-choice active" role="radio" aria-checked="true">
-                <div className="pay-choice-brand">
-                  <img
-                    className="pay-aba-mark"
-                    src={"/payments/aba-payway.png"}
-                    alt="ABA"
-                    width={88}
-                    height={32}
-                    decoding="async"
-                  />
-                </div>
-                <div className="pay-choice-meta">
-                  <strong>ABA PayWay</strong>
-                  <span>{t(lang, "khqrHint")}</span>
-                </div>
+            <div className="checkout-payment__heading">
+              <div>
+                <h3>{lang === "km" ? "ជ្រើសវិធីបង់ប្រាក់" : "Choose a payment method"}</h3>
+                <p>{lang === "km" ? "បង់តាម ABA KHQR ពេញចំនួន" : "Pay the full amount with ABA KHQR"}</p>
+              </div>
+              <span className="checkout-payment__secure">
+                <Icon name="check" size={12} /> {lang === "km" ? "សុវត្ថិភាព" : "Secure"}
+              </span>
+            </div>
+            <div className="checkout-payment__options" role="radiogroup" aria-label={lang === "km" ? "វិធីបង់ប្រាក់" : "Payment method"}>
+              <div className="checkout-payment__option" role="radio" aria-checked="true" data-selected="true" tabIndex={0}>
+                <span className="checkout-payment__icon checkout-payment__icon--aba" aria-hidden>
+                  <img src="/payments/aba-payway.png" alt="" width={31} height={31} decoding="async" />
+                </span>
+                <span className="checkout-payment__copy">
+                  <span className="checkout-payment__name">ABA PayWay</span>
+                  <span className="checkout-payment__description">{t(lang, "khqrHint")}</span>
+                </span>
                 <span className="pay-choice-check" aria-hidden>
                   <Icon name="check" size={14} />
                 </span>
               </div>
             </div>
+            <div className="checkout-payment__terms">
+              <input
+                id="pay-agree"
+                type="checkbox"
+                className="checkout-payment__terms-checkbox"
+                checked={agreed}
+                onChange={(e) => {
+                  setAgreed(e.target.checked);
+                  if (e.target.checked) setPayErr("");
+                }}
+              />
+              <label htmlFor="pay-agree">
+                {lang === "km" ? "ខ្ញុំយល់ព្រមនឹង " : "I agree to the "}
+                <Link to="/legal/terms">{lang === "km" ? "លក្ខខណ្ឌ" : "Terms"}</Link>
+                {" & "}
+                <Link to="/legal/privacy">{lang === "km" ? "ឯកជនភាព" : "Privacy Policy"}</Link>.
+              </label>
+            </div>
             {payErr ? <p className="msg err">{payErr}</p> : null}
             <button type="button" className="pay-cta" onClick={pay} disabled={paying}>
               {paying ? "…" : pack ? `${t(lang, "pay")} · ${money(total)} →` : (lang === "km" ? "ជ្រើសកញ្ចប់ →" : "Select a package →")}
             </button>
-            <p className="pay-terms">
-              {lang === "km" ? "ដោយបន្ត អ្នកយល់ព្រមនឹង " : "By continuing you agree to our "}
-              <Link to="/legal/terms">{lang === "km" ? "លក្ខខណ្ឌ" : "Terms"}</Link>
-              {" & "}
-              <Link to="/legal/privacy">{lang === "km" ? "ឯកជនភាព" : "Privacy"}</Link>.
-            </p>
             <div className="pay-thanks">
               <img
                 className="pay-thanks-logo"
