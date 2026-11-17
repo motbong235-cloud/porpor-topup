@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useCatalog } from "../lib/catalog";
 import { money } from "../lib/store";
 import { t } from "../lib/i18n";
-import { GameTile, Icon } from "../components/Icons";
+import { GameTile } from "../components/Icons";
 import { GameIcon, GiftIcon } from "../components/CategoryIcons";
 import { FallingPetals } from "../components/FallingPetals";
 
@@ -22,6 +22,7 @@ function minPackPrice(game) {
   return m;
 }
 
+/** featured-card structure from Natsu HTML */
 function GameCard({ game, top }) {
   const from = minPackPrice(game);
   const open = game.open !== false;
@@ -31,7 +32,7 @@ function GameCard({ game, top }) {
       <div className="game-card-pad">
         {top ? (
           <div className="game-badge hot">
-            <Icon name="star" size={10} />
+            <i className="fas fa-star" aria-hidden />
             <span className="badge-top-text">TOP</span>
           </div>
         ) : null}
@@ -47,7 +48,7 @@ function GameCard({ game, top }) {
         {from != null && open ? <div className="game-from">From {money(from)}</div> : null}
         {open ? (
           <span className="game-cta on">
-            <Icon name="zap" size={11} />
+            <i className="fas fa-bolt" aria-hidden />
             TOP UP
           </span>
         ) : (
@@ -77,7 +78,7 @@ function GameSkeletons({ n = 6 }) {
   ));
 }
 
-export default function Home({ lang, settings }) {
+export default function Home({ lang }) {
   const { games, loading, error } = useCatalog();
   const [tab, setTab] = useState("game");
   const [filter, setFilter] = useState("");
@@ -109,48 +110,49 @@ export default function Home({ lang, settings }) {
     <div className="container natsu-home">
       <FallingPetals />
 
-      <nav className="natsu-cats catalog-categories" aria-label="Shop by category">
+      {/* catalog-categories — exact class names from Natsu source */}
+      <nav className="catalog-categories" aria-label="Shop by category" id="catalog-categories">
         <div className="catalog-categories__items">
           <button
             type="button"
-            className={`natsu-cat catalog-categories__item${tab === "game" ? " active" : ""}`}
+            className={`catalog-categories__item${tab === "game" ? " active" : ""}`}
             data-catalog-category="game"
             onClick={() => setTab("game")}
           >
-            <span className="natsu-cat-ico catalog-categories__badge premium-ico" aria-hidden>
+            <span className="catalog-categories__badge" aria-hidden>
               <GameIcon size={36} />
             </span>
             <span className="catalog-categories__label">Game</span>
           </button>
           <button
             type="button"
-            className={`natsu-cat catalog-categories__item${tab === "gift" ? " active" : ""}`}
+            className={`catalog-categories__item${tab === "gift" ? " active" : ""}`}
             data-catalog-category="giftcard"
             onClick={() => setTab("gift")}
           >
-            <span className="natsu-cat-ico catalog-categories__badge premium-ico" aria-hidden>
+            <span className="catalog-categories__badge" aria-hidden>
               <GiftIcon size={36} />
             </span>
             <span className="catalog-categories__label">Giftcard</span>
           </button>
         </div>
-        <a className="natsu-viewall catalog-categories__all" href="#games">
+        <a className="catalog-categories__all" href="#games">
           View all
         </a>
       </nav>
 
       <section className="section" id="trending">
-        <div className="section-head natsu-sec-head">
-          <h2 className="sec-title natsu-trending-title">
+        <div className="natsu-sec-head section-entrance">
+          <h2 className="natsu-trending-title">
             <span className="featured-heading__icon-badge" aria-hidden>
-              <Icon name="star" size={14} />
+              <i className="fas fa-star featured-heading__icon" />
             </span>
-            Trending Game
+            <span>Trending Game</span>
           </h2>
-          <span className="natsu-pill">
-            <Icon name="star" size={12} />
-            {trending.length} items
-          </span>
+          <div className="natsu-pill">
+            <i className="fas fa-star" aria-hidden />
+            <span className="font-semibold">{trending.length} items</span>
+          </div>
         </div>
         <div className="game-grid game-grid-3">
           {loading ? (

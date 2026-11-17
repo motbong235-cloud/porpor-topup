@@ -1,139 +1,206 @@
-/* Natsu home — premium category icons + featured cards */
+/* =========================================================
+   Exact structure from Natsu source (catalog-categories +
+   featured-card patterns from user-provided HTML/CSS)
+   Colors from temporary_colors in their index HTML.
+   ========================================================= */
+
+:root {
+  --site-color-gradient-start: #F2A51A;
+  --site-color-gradient-end: #FFD447;
+  --site-color-link: #FFD447;
+  --site-color-text-light: #FFF7E5;
+  --site-color-text-dark: #b0b0b0;
+  --site-color-primary-dark: #100A08;
+  --site-color-accent: #F2A51A;
+  --daddy-purple: #474342;
+  --daddy-dark-purple: #242121;
+  --daddy-orange: #FFD447;
+}
 
 .natsu-home {
-  padding-top: 6px;
+  padding-top: 4px;
 }
 
-/* Category nav */
-.natsu-cats.catalog-categories {
+/* ---------- catalog-categories (copied structure from Natsu) ---------- */
+.catalog-categories {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 2px 16px;
-  flex-wrap: wrap;
+  gap: 12px;
+  margin: -4px 0 18px;
+  padding: 0 0 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-wrap: nowrap;
 }
+
 .catalog-categories__items {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
+  min-width: 0;
+  padding: 4px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--site-color-accent) transparent;
 }
-.natsu-cat.catalog-categories__item {
+
+.catalog-categories__item {
+  --category-accent: var(--site-color-gradient-start, #F2A51A);
+  flex: 0 0 auto;
+  width: 56px;
+  min-height: 60px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  min-width: 60px;
+  gap: 4px;
+  color: var(--site-color-text-light, #e0e0e0);
+  text-decoration: none;
   border: none;
   background: none;
-  color: #9a9590;
-  font-size: 12px;
-  font-weight: 700;
+  border-radius: 10px;
+  -webkit-tap-highlight-color: transparent;
   cursor: pointer;
   font-family: inherit;
   padding: 0;
-  transition: color 0.15s ease;
-}
-.natsu-cat.active {
-  color: #fff7e5;
 }
 
-/* Premium icon badge — soft dark plate, gold ring when active */
-.natsu-cat-ico.catalog-categories__badge {
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
-  background: linear-gradient(160deg, #2a2624 0%, #1a1715 100%);
-  border: 1.5px solid rgba(255, 255, 255, 0.1);
+.catalog-categories__item[data-catalog-category="giftcard"] {
+  --category-accent: var(--site-color-gradient-end, #FFD447);
+}
+
+.catalog-categories__badge {
   display: grid;
   place-items: center;
-  transition: border-color 0.18s, background 0.18s, box-shadow 0.18s, transform 0.18s;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
-}
-.natsu-cat-ico.premium-ico svg {
-  display: block;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
-}
-.natsu-cat.active .natsu-cat-ico {
-  border-color: rgba(255, 212, 71, 0.7);
-  background: linear-gradient(160deg, #3a3020 0%, #1f1a12 100%);
-  box-shadow:
-    0 0 0 2px rgba(255, 212, 71, 0.2),
-    0 6px 16px rgba(242, 165, 26, 0.25);
-  transform: translateY(-1px);
-}
-.natsu-cat:hover .natsu-cat-ico {
-  border-color: rgba(255, 212, 71, 0.45);
-  transform: translateY(-1px);
-}
-.catalog-categories__label {
-  font-size: 12px;
-  font-weight: 700;
-}
-.natsu-viewall.catalog-categories__all {
-  margin-left: auto;
-  font-size: 13px;
-  font-weight: 700;
-  color: #e8e0d0;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  padding: 8px 16px;
-  border-radius: 999px;
-  text-decoration: none;
-  transition: border-color 0.15s, color 0.15s;
-}
-.natsu-viewall:hover {
-  border-color: rgba(255, 212, 71, 0.45);
-  color: #ffd447;
+  width: 40px;
+  height: 40px;
+  border: 1px solid color-mix(in srgb, var(--category-accent) 14%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--category-accent) 6%, transparent);
+  transition: border-color 0.18s ease, background 0.18s ease;
+  overflow: hidden;
 }
 
-/* Trending heading */
+.catalog-categories__badge img,
+.catalog-categories__badge svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.catalog-categories__label {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  padding-bottom: 3px;
+  border-bottom: 2px solid transparent;
+}
+
+.catalog-categories__item.active .catalog-categories__badge,
+.catalog-categories__item:hover .catalog-categories__badge {
+  border-color: color-mix(in srgb, var(--category-accent) 55%, transparent);
+  background-color: color-mix(in srgb, var(--category-accent) 9%, transparent);
+}
+
+.catalog-categories__item.active .catalog-categories__label {
+  color: var(--category-accent);
+  border-bottom-color: var(--category-accent);
+}
+
+.catalog-categories__all {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 10px 12px;
+  color: var(--site-color-text-dark, #b0b0b0);
+  font-size: 12px;
+  line-height: 1.4;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: transparent;
+}
+
+.catalog-categories__all:hover {
+  color: var(--site-color-text-light, #e0e0e0);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+@media (max-width: 639px) {
+  .catalog-categories {
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .catalog-categories__items {
+    gap: 12px;
+  }
+  .catalog-categories__item {
+    width: 52px;
+    min-height: 56px;
+  }
+  .catalog-categories__badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+  }
+}
+
+/* ---------- Trending heading (from their HTML) ---------- */
 .natsu-sec-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 12px;
+  flex-wrap: wrap;
 }
+
 .natsu-trending-title {
   display: flex !important;
   align-items: center;
   gap: 8px;
-  color: #ffd447 !important;
-  font-size: 1rem !important;
+  color: var(--site-color-gradient-start) !important;
+  font-size: 0.95rem !important;
   font-weight: 800 !important;
+  margin: 0;
 }
+
+/* featured-heading__icon-badge — gold circle + star */
 .featured-heading__icon-badge {
+  position: relative;
   display: inline-grid;
   place-items: center;
   width: 28px;
   height: 28px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #f2a51a, #ffd447);
-  color: #100a08;
+  background: linear-gradient(135deg, #F2A51A, #FFD447);
+  color: #100A08;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(242, 165, 26, 0.4);
 }
-.featured-heading__icon-badge .icon-svg {
-  width: 14px;
-  height: 14px;
+.featured-heading__icon-badge i,
+.featured-heading__icon-badge .fas {
+  font-size: 12px;
+  color: #100A08;
 }
+
 .natsu-pill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  font-weight: 800;
-  padding: 5px 12px;
+  gap: 6px;
+  padding: 4px 12px;
   border-radius: 999px;
-  background: rgba(242, 165, 26, 0.15);
-  border: 1px solid rgba(242, 165, 26, 0.35);
-  color: #ffd447;
+  background: rgba(36, 33, 33, 0.8);
+  border: 1px solid rgba(242, 165, 26, 0.3);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--daddy-orange);
+  flex-shrink: 0;
 }
-.natsu-pill .icon-svg {
-  width: 12px;
-  height: 12px;
-  color: #ffd447;
+.natsu-pill i {
+  color: var(--daddy-orange);
+  font-size: 12px;
 }
+
 .natsu-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -143,20 +210,19 @@
   margin-bottom: 8px;
 }
 .natsu-star {
-  color: #ffd447;
+  color: #FFD447;
   margin-right: 4px;
 }
 
-/* Grid */
+/* ---------- Grid (their grid-cols-3 …) ---------- */
 .natsu-home .game-grid-3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 12px;
 }
 @media (min-width: 640px) {
   .natsu-home .game-grid-3 {
     grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
   }
 }
 @media (min-width: 768px) {
@@ -170,42 +236,43 @@
   }
 }
 
-/* Cards */
+/* ---------- featured-card (from their HTML) ---------- */
 .natsu-home .game-card {
   display: block;
-  background: #1c1917 !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: var(--daddy-dark-purple, #242121) !important;
+  border: none !important;
   border-radius: 12px !important;
   overflow: hidden !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
   text-decoration: none;
   color: inherit;
-}
-.natsu-home .game-card.card-hover {
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  transition: box-shadow 0.2s ease;
 }
 .natsu-home .game-card.card-hover:hover {
-  transform: translateY(-2px);
-  border-color: rgba(255, 212, 71, 0.4) !important;
-  box-shadow: 0 10px 24px rgba(242, 165, 26, 0.18) !important;
+  box-shadow: 0 8px 22px rgba(242, 165, 26, 0.2) !important;
 }
+
 .natsu-home .game-card-visual {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
+
+/* relative w-full p-3 */
 .natsu-home .game-card-pad {
   position: relative;
   width: 100%;
-  padding: 10px 10px 0;
+  padding: 12px 12px 0;
 }
+
+/* featured-card-image square */
 .natsu-home .game-card-art {
   position: relative;
   width: 100%;
   aspect-ratio: 1;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
-  background: #141210 !important;
+  background: #1a1715 !important;
 }
 .natsu-home .game-card-art .game-tile,
 .natsu-home .game-card-art img {
@@ -216,19 +283,22 @@
   object-fit: cover;
   border-radius: inherit;
 }
+
+/* px-3 pb-3 bg-daddy-dark-purple */
 .natsu-home .game-card-body {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 8px 10px 10px;
-  background: #1c1917;
+  gap: 6px;
+  padding: 10px 12px 12px;
+  background: var(--daddy-dark-purple, #242121);
   flex: 1;
 }
+
 .natsu-home .game-name {
   font-size: 12px !important;
   font-weight: 700 !important;
   color: #fff !important;
-  line-height: 1.3;
+  line-height: 1.25;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -241,40 +311,39 @@
   color: #a89f94 !important;
 }
 
-/* TOP badge */
+/* TOP badge — absolute left-0 top-0, bg-primary, fa-star */
 .natsu-home .game-badge.hot {
   position: absolute !important;
-  top: 0 !important;
   left: 0 !important;
+  top: 0 !important;
   z-index: 20;
   display: inline-flex !important;
   align-items: center !important;
   gap: 3px;
-  background: linear-gradient(90deg, #f2a51a, #ffd447) !important;
-  color: #100a08 !important;
+  background: linear-gradient(90deg, #F2A51A, #FFD447) !important;
+  color: #100A08 !important;
   font-size: 9px !important;
   font-weight: 900 !important;
   font-style: italic;
   padding: 3px 8px 3px 6px !important;
   border-radius: 0 0 10px 0 !important;
   border: none !important;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
-.natsu-home .game-badge.hot .icon-svg {
-  width: 10px;
-  height: 10px;
-  flex-shrink: 0;
+.natsu-home .game-badge.hot i {
+  font-size: 10px;
+  color: #100A08;
 }
 .natsu-home .game-badge.hot .badge-top-text {
   font-style: italic;
   font-weight: 900;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
 }
 .natsu-home .game-badge.off {
   position: absolute !important;
-  top: 0 !important;
   left: 0 !important;
+  top: 0 !important;
   z-index: 20;
   background: #444 !important;
   color: #ccc !important;
@@ -284,7 +353,7 @@
   border-radius: 0 0 10px 0 !important;
 }
 
-/* TOP UP */
+/* TOP UP — block w-full, bg-primary, fa-bolt */
 .natsu-home .game-cta.on {
   display: flex !important;
   align-items: center !important;
@@ -294,8 +363,8 @@
   margin-top: auto !important;
   padding: 8px 6px !important;
   border-radius: 10px !important;
-  background: linear-gradient(90deg, #f2a51a, #ffd447) !important;
-  color: #100a08 !important;
+  background: linear-gradient(90deg, #F2A51A, #FFD447) !important;
+  color: #100A08 !important;
   font-size: 11px !important;
   font-weight: 900 !important;
   border: none !important;
@@ -305,10 +374,9 @@
 .natsu-home .game-cta.on::before {
   content: none !important;
 }
-.natsu-home .game-cta.on .icon-svg {
-  width: 11px;
-  height: 11px;
-  flex-shrink: 0;
+.natsu-home .game-cta.on i {
+  font-size: 10px;
+  color: #100A08;
 }
 .natsu-home .game-cta.off {
   display: flex !important;
