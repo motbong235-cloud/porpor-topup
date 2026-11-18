@@ -2341,6 +2341,43 @@ if (fs.existsSync(DIST)) {
       },
     }),
   );
+  // ---- Static HTML storefront (public/html → dist/html) ----
+  // Pages live under /html/ so their relative css/img/js paths resolve.
+  const HTML_SITE = path.join(DIST, "html");
+  const siteHas = (name) => fs.existsSync(path.join(HTML_SITE, `${name}.html`));
+  app.get(["/html", "/html/"], (_req, res) => res.redirect(302, "/html/index.html"));
+  app.get("/login", (_req, res) => res.redirect(302, "/html/login.html"));
+  app.get("/games/:slug", (req, res) => {
+    const slug = String(req.params.slug || "");
+    if (!/^[a-z0-9-]+$/i.test(slug)) return res.status(404).end();
+    if (siteHas(slug)) return res.redirect(302, `/html/${slug}.html`);
+    return res.redirect(302, `/game/${encodeURIComponent(slug)}`);
+  });
+  // Search used by the static storefront (same response shape it expects)
+  app.get("/api/search-games", async (req, res) => {
+    try {
+      const q = String(req.query.q || "").trim().toLowerCase();
+      const games = (await catalog.publicCatalog()) || [];
+      const hits = games
+        .filter((g) => !q || String(g.name || "").toLowerCase().includes(q))
+        .slice(0, 8)
+        .map((g) => {
+          const slug = String(g.id || "");
+          return {
+            id: g.id,
+            name: g.name,
+            image_url: g.image || g.image_url || "",
+            status: g.open !== false,
+            url: siteHas(slug) ? `/html/${slug}.html` : `/game/${encodeURIComponent(slug)}`,
+          };
+        });
+      res.set("Cache-Control", "public, max-age=15");
+      res.json(hits);
+    } catch {
+      res.json([]);
+    }
+  });
+
   app.get("*", (req, res, next) => {
     if (req.path.startsWith("/api")) return next();
     if (req.path.startsWith("/assets/") || /\.[a-z0-9]{2,5}$/i.test(req.path)) return res.status(404).end();
