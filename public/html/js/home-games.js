@@ -45,8 +45,20 @@
     grid.innerHTML = games.length
       ? games.map((g) => card(g, hot)).join("")
       : `<div class="pp-game-empty">No games available</div>`;
-    const counter = section.parentElement && section.parentElement.previousElementSibling;
-    const label = counter && counter.querySelector("span.font-semibold");
+    // The count badge sits in the header block just before this section.
+    let el = section.previousElementSibling;
+    let label = null;
+    while (el && !label) {
+      label = el.matches("span.font-semibold") ? el : el.querySelector("span.font-semibold");
+      el = el.previousElementSibling;
+    }
+    if (!label && section.parentElement) {
+      let up = section.parentElement.previousElementSibling;
+      while (up && !label) {
+        label = up.matches("span.font-semibold") ? up : up.querySelector("span.font-semibold");
+        up = up.previousElementSibling;
+      }
+    }
     if (label) label.textContent = games.length + " " + countLabel;
   }
 
