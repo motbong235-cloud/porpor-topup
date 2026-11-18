@@ -1,6 +1,7 @@
-/* Generic game top-up page. Fields come from the admin-set catalog:
-   idHintEn/idHintKm (ID label + hint), numericId, hasZone (+ zoneLabel),
-   servers [{value,label}], requireUsername, packs[]. */
+/* Generic game top-up page, styled with the reference checkout CSS
+   (checkout-payment__*, game-checkout-layout, storefront theme).
+   Fields come from the admin-set catalog: idHintEn/idHintKm, numericId,
+   hasZone (+ zone label), servers [{value,label}], packs[] grouped by category. */
 (function () {
   "use strict";
 
@@ -11,24 +12,9 @@
   const gameId = new URLSearchParams(location.search).get("id") || "";
 
   const S = {
-    game: null,
-    error: "",
-    check: null,      // { nickname }
-    checkMsg: "",
-    pack: null,
-    qty: 1,
-    userId: "",
-    zoneId: "",
-    server: "",
-    coupon: "",
-    discount: 0,
-    couponMsg: "",
-    agreed: false,
-    payErr: "",
-    paying: false,
-    checkoutId: null,
-    timer: null,
-    csrf: "",
+    game: null, error: "", check: null, checkMsg: "", pack: null, qty: 1,
+    userId: "", zoneId: "", server: "", coupon: "", discount: 0, couponMsg: "",
+    agreed: false, payErr: "", paying: false, checkoutId: null, timer: null, csrf: "",
   };
 
   function toast(text) {
@@ -65,99 +51,122 @@
   const zoneLabel = () => S.game.zoneLabelEn || S.game.zoneLabelKm || "Zone ID";
 
   /* ---------- render ---------- */
-  function render() {
-    const g = S.game;
-    if (!g) {
-      root.innerHTML = `<div class="gp-card"><p>${esc(S.error || "Game not found.")}</p><a class="gp-btn gp-btn-ghost" href="index.html">Back to home</a></div>`;
-      return;
-    }
-    const open = g.open !== false;
-    const renderPack = (p) => {
-      const sel = S.pack && String(S.pack.id) === String(p.id);
-      const oos = p.inStock === false;
-      const thumb = p.image
-        ? `<img class="gp-pack-img" src="${esc(p.image)}" alt="" loading="lazy">`
-        : "";
-      return `<button type="button" class="gp-pack" role="radio" aria-checked="${!!sel}" data-pack="${esc(p.id)}" ${oos ? "disabled" : ""}>
-        ${thumb}
-        <div class="gp-pack-name">${esc(p.name)}</div>
-        ${p.bonus ? `<div class="gp-pack-note">${esc(p.bonus)}</div>` : ""}
-        <div class="gp-pack-price">${oos ? "Out of stock" : money(p.price)}</div>
-      </button>`;
-    };
-    // Packages are grouped by the category set in Admin (e.g. Diamonds, Membership).
+  function packOption(p) {
+    const sel = S.pack && String(S.pack.id) === String(p.id);
+    const oos = p.inStock === false;
+    const img = p.image ? `<img class="checkout-product__img" src="${esc(p.image)}" alt="" loading="lazy" width="40" height="40">` : "";
+    return `<button type="button" class="checkout-product" role="radio" aria-checked="${!!sel}" data-selected="${!!sel}" data-pack="${esc(p.id)}" ${oos ? "disabled" : ""}>
+      ${img}
+      <span class="checkout-product__copy">
+        <span class="checkout-product__name">${esc(p.name)}</span>
+        ${p.bonus ? `<span class="checkout-product__note">${esc(p.bonus)}</span>` : ""}
+      </span>
+      <span class="checkout-product__price">${oos ? "Out of stock" : money(p.price)}</span>
+    </button>`;
+  }
+
+  function packGroups() {
     const groups = new Map();
-    (g.packs || []).forEach((p) => {
+    (S.game.packs || []).forEach((p) => {
       const key = p.category || "Packages";
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push(p);
     });
-    const packs = [...groups.entries()].map(([cat, list]) => `
-      <div class="gp-pack-group">
-        ${groups.size > 1 ? `<div class="gp-pack-cat">${esc(cat)}</div>` : ""}
-        <div class="gp-packs" role="radiogroup">${list.map(renderPack).join("")}</div>
+    return [...groups.entries()].map(([cat, list]) => `
+      <div class="checkout-product-group">
+        ${groups.size > 1 ? `<h3 class="checkout-product-group__title">${esc(cat)}</h3>` : ""}
+        <div class="checkout-products" role="radiogroup">${list.map(packOption).join("")}</div>
       </div>`).join("");
+  }
 
-    const fields = `
-      <div class="gp-field">
-        <label for="f-user">${esc(idLabel())}${g.requireUsername ? "" : ""}</label>
-        <div class="gp-row">
-          <input id="f-user" class="gp-input" value="${esc(S.userId)}" autocomplete="off" ${g.numericId ? 'inputmode="numeric"' : ""} placeholder="${esc(idHint() || idLabel())}">
-          <button type="button" class="gp-btn gp-btn-ghost gp-btn-sm" id="btn-check">Check ID</button>
-        </div>
-        ${idHint() ? `<div class="gp-help">${esc(idHint())}</div>` : ""}
-        <div class="gp-help ${S.check ? "gp-ok" : "gp-err"}" id="check-msg">${S.check ? "✓ " + esc(S.check.nickname) : esc(S.checkMsg)}</div>
-      </div>
-      ${hasZone() ? `<div class="gp-field">
-        <label for="f-zone">${esc(zoneLabel())}</label>
-        <input id="f-zone" class="gp-input" value="${esc(S.zoneId)}" autocomplete="off" inputmode="numeric">
-      </div>` : ""}
-      ${hasServer() ? `<div class="gp-field">
-        <label for="f-server">Server</label>
-        <select id="f-server" class="gp-select">
-          <option value="">Select server</option>
-          ${g.servers.map((s) => `<option value="${esc(s.value)}" ${String(S.server) === String(s.value) ? "selected" : ""}>${esc(s.label || s.value)}</option>`).join("")}
-        </select>
-      </div>` : ""}`;
-
+  function render() {
+    const g = S.game;
+    if (!g) {
+      root.innerHTML = `<section class="checkout-card"><p>${esc(S.error || "Game not found.")}</p><a class="checkout-btn" href="index.html">Back to home</a></section>`;
+      return;
+    }
+    const open = g.open !== false;
+    const hint = idHint();
     root.innerHTML = `
-      <div class="gp-card gp-banner">
-        <div class="gp-banner-img">${g.image ? `<img src="${esc(g.image)}" alt="">` : `<span>${esc(g.mark || "·")}</span>`}</div>
-        <div><h1 class="gp-title">${esc(g.name)}</h1>
-          <div class="gp-muted">${open ? "Instant delivery" : "Currently unavailable"}</div></div>
-      </div>
-      ${open ? `<div class="gp-grid">
-        <div class="gp-card">
-          <h2 class="gp-h">Account</h2>
-          ${fields}
+      <section class="checkout-hero">
+        <div class="checkout-hero__img">${g.image ? `<img src="${esc(g.image)}" alt="">` : `<span>${esc(String(g.name || "?").charAt(0))}</span>`}</div>
+        <div><h1 class="checkout-hero__title">${esc(g.name)}</h1>
+          <p class="checkout-hero__sub">${open ? "Instant delivery" : "Currently unavailable"}</p></div>
+      </section>
+      ${open ? `
+      <div class="game-checkout-layout">
+        <div class="game-checkout-sidebar">
+          <section class="checkout-card" data-checkout-player-section>
+            <h2 class="checkout-card__title">${esc(idLabel())}</h2>
+            <div class="checkout-field">
+              <div class="checkout-row">
+                <input id="f-user" class="checkout-input" value="${esc(S.userId)}" autocomplete="off" ${g.numericId ? 'inputmode="numeric"' : ""} placeholder="${esc(hint || idLabel())}">
+                <button type="button" class="checkout-btn checkout-btn--ghost" id="btn-check">Check ID</button>
+              </div>
+              ${hint ? `<p class="checkout-help">${esc(hint)}</p>` : ""}
+              <p class="checkout-help ${S.check ? "is-ok" : "is-err"}" id="check-msg">${S.check ? "✓ " + esc(S.check.nickname) : esc(S.checkMsg)}</p>
+            </div>
+            ${hasZone() ? `<div class="checkout-field">
+              <label class="checkout-label" for="f-zone">${esc(zoneLabel())}</label>
+              <input id="f-zone" class="checkout-input" value="${esc(S.zoneId)}" autocomplete="off" inputmode="numeric">
+            </div>` : ""}
+            ${hasServer() ? `<div class="checkout-field">
+              <label class="checkout-label" for="f-server">Server</label>
+              <select id="f-server" class="checkout-input">
+                <option value="">Select server</option>
+                ${g.servers.map((s) => `<option value="${esc(s.value)}" ${String(S.server) === String(s.value) ? "selected" : ""}>${esc(s.label || s.value)}</option>`).join("")}
+              </select>
+            </div>` : ""}
+          </section>
+
+          <section class="checkout-card" data-checkout-products-section>
+            <h2 class="checkout-card__title">Choose package</h2>
+            ${packGroups() || `<p class="checkout-help">No packages available.</p>`}
+            <div class="checkout-quantity">
+              <span class="checkout-quantity__label">Quantity</span>
+              <div class="checkout-quantity__stepper">
+                <button type="button" class="checkout-quantity__button" data-qty="-1" aria-label="Less">−</button>
+                <span class="checkout-quantity__value" aria-live="polite">${S.qty}</span>
+                <button type="button" class="checkout-quantity__button" data-qty="1" aria-label="More">+</button>
+              </div>
+            </div>
+            <div class="checkout-row checkout-coupon" data-coupon-panel>
+              <input id="f-coupon" class="checkout-input" value="${esc(S.coupon)}" placeholder="Coupon code" autocomplete="off">
+              <button type="button" class="checkout-btn checkout-btn--ghost" id="btn-coupon" data-coupon-apply>Apply</button>
+            </div>
+            <p class="checkout-help ${S.couponMsg.startsWith("✓") ? "is-ok" : "is-err"}" data-coupon-status>${esc(S.couponMsg)}</p>
+          </section>
+
+          <section class="checkout-card checkout-payment" data-checkout-payment-section>
+            <div class="checkout-payment__heading">
+              <div><h3>Payment method</h3><p>Pay with ABA KHQR</p></div>
+              <span class="checkout-payment__secure">Secure</span>
+            </div>
+            <div class="checkout-payment__options" role="radiogroup">
+              <button type="button" class="checkout-payment__option" role="radio" aria-checked="true" data-selected="true">
+                <span class="checkout-payment__icon checkout-payment__icon--aba"><img src="payments/aba-logo-plain.png" alt="ABA"></span>
+                <span class="checkout-payment__copy">
+                  <span class="checkout-payment__name">ABA PayWay</span>
+                  <span class="checkout-payment__description">Scan the KHQR with the ABA app to pay the full amount.</span>
+                </span>
+              </button>
+            </div>
+            <label class="checkout-payment__terms">
+              <input type="checkbox" id="f-agree" class="checkout-payment__terms-checkbox" ${S.agreed ? "checked" : ""}>
+              <span>I agree to the <a href="index.html#terms">Terms</a> and confirm the account details are correct.</span>
+            </label>
+            <div class="checkout-summary" data-coupon-summary>
+              <div class="checkout-summary__line"><span>${S.pack ? esc(S.pack.name) + " × " + S.qty : "Select a package"}</span><span>${money(subtotal())}</span></div>
+              <div class="checkout-summary__line"><span>Coupon</span><span>−${money(S.discount)}</span></div>
+              <div class="checkout-summary__total"><span>Total</span><span data-discounted="${S.discount > 0}">${money(total())}</span></div>
+            </div>
+            <p class="checkout-help is-err" id="pay-err">${esc(S.payErr)}</p>
+            <button type="button" class="checkout-btn checkout-btn--pay" id="btn-pay" ${S.paying || !S.pack ? "disabled" : ""}>
+              ${S.paying ? "Please wait…" : S.pack ? "Pay " + money(total()) : "Select a package"}
+            </button>
+          </section>
         </div>
-        <div class="gp-card">
-          <h2 class="gp-h">Package</h2>
-          ${packs || `<p class="gp-muted">No packages available.</p>`}
-          <div class="gp-qty">
-            <span>Quantity</span>
-            <button type="button" data-qty="-1" aria-label="Less">−</button>
-            <b>${S.qty}</b>
-            <button type="button" data-qty="1" aria-label="More">+</button>
-          </div>
-          <div class="gp-row" style="margin-top:14px">
-            <input id="f-coupon" class="gp-input" value="${esc(S.coupon)}" placeholder="Coupon code" autocomplete="off">
-            <button type="button" class="gp-btn gp-btn-ghost gp-btn-sm" id="btn-coupon">Apply</button>
-          </div>
-          <div class="gp-help ${S.couponMsg.startsWith("✓") ? "gp-ok" : "gp-err"}">${esc(S.couponMsg)}</div>
-          <div style="margin-top:14px">
-            <div class="gp-summary-line"><span>${S.pack ? esc(S.pack.name) + " × " + S.qty : "Select a package"}</span><span>${money(subtotal())}</span></div>
-            <div class="gp-summary-line"><span>Coupon</span><span>−${money(S.discount)}</span></div>
-            <div class="gp-total"><span>Total</span><span>${money(total())}</span></div>
-          </div>
-          <label class="gp-terms"><input type="checkbox" id="f-agree" ${S.agreed ? "checked" : ""}>
-            <span>I agree to the <a href="index.html#terms">Terms</a> and confirm the account details are correct.</span></label>
-          <div class="gp-err" id="pay-err">${esc(S.payErr)}</div>
-          <button type="button" class="gp-btn" id="btn-pay" style="margin-top:8px" ${S.paying || !S.pack ? "disabled" : ""}>
-            ${S.paying ? "Please wait…" : S.pack ? "Pay " + money(total()) : "Select a package"}
-          </button>
-        </div>
-      </div>` : `<div class="gp-card"><p>This game is not available right now.</p></div>`}`;
+      </div>` : `<section class="checkout-card"><p>This game is not available right now.</p></section>`}`;
     bind();
   }
 
@@ -203,9 +212,9 @@
   }
 
   const ERRORS = {
-    need_zone: "Please enter " + "zone ID",
+    need_zone: "Please enter the zone ID",
     need_server: "Please select server",
-    need_username: "Please enter your " + "user ID",
+    need_username: "Please enter your user ID",
     out_of_stock: "This package is out of stock",
     pack_unavailable: "This package is not available",
     maintenance: "Store is under maintenance",

@@ -56,3 +56,43 @@ img { max-width: 100%; height: auto; }
 .gp-pack-cat { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
 .gp-pack-img { width: 56px; height: 56px; object-fit: contain; display: block; margin: 0 auto 6px; }
 .gp-pack { text-align: center; }
+
+/* Checkout building blocks used by game.html (reference layout) */
+.checkout-hero { display: flex; gap: 14px; align-items: center; padding: 14px; border-radius: 16px; background: #2d2a29; border: 1px solid rgba(242,165,26,.22); }
+.checkout-hero__img { width: 84px; height: 84px; border-radius: 16px; overflow: hidden; background: #242121; display: grid; place-items: center; flex: none; }
+.checkout-hero__img img { width: 100%; height: 100%; object-fit: cover; }
+.checkout-hero__title { margin: 0; font-size: 22px; font-weight: 800; overflow-wrap: anywhere; }
+.checkout-hero__sub { margin: 2px 0 0; color: #ebd6b6; font-size: 13px; }
+.checkout-card { background: #2d2a29; border: 1px solid rgba(242,165,26,.22); border-radius: 16px; padding: 16px; min-width: 0; display: grid; gap: 12px; }
+.checkout-card__title { margin: 0; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: #ebd6b6; }
+.checkout-field { display: grid; gap: 6px; min-width: 0; }
+.checkout-label { font-size: 13px; font-weight: 700; }
+.checkout-help { margin: 0; font-size: 12px; color: #ebd6b6; }
+.checkout-help.is-ok { color: #7dd3a4; }
+.checkout-help.is-err { color: #fca5a5; }
+.checkout-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.checkout-row .checkout-input { flex: 1 1 160px; }
+.checkout-input { width: 100%; min-width: 0; padding: 11px 12px; border-radius: 10px; border: 1px solid rgba(242,165,26,.35); background: #242121; color: #fff7e5; font: inherit; }
+.checkout-btn { display: inline-flex; justify-content: center; align-items: center; padding: 11px 16px; border-radius: 999px; border: 0; font: inherit; font-weight: 800; cursor: pointer; color: #1a1412; background: linear-gradient(90deg,#f2a51a,#ffd447); }
+.checkout-btn--ghost { background: #242121; color: #fff7e5; border: 1px solid rgba(242,165,26,.4); }
+.checkout-btn--pay { width: 100%; padding: 14px; font-size: 16px; }
+.checkout-btn:disabled { opacity: .5; cursor: not-allowed; }
+.checkout-product-group { display: grid; gap: 8px; }
+.checkout-product-group__title { margin: 0; font-size: 12px; font-weight: 800; color: #ebd6b6; text-transform: uppercase; }
+.checkout-products { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 9px; }
+@media (min-width: 560px) { .checkout-products { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+.checkout-product { display: flex; align-items: center; gap: 9px; width: 100%; min-width: 0; padding: 10px; border-radius: 13px; border: 1px solid #ffffff20; background: #ffffff04; color: #f6f6f6; font: inherit; text-align: left; cursor: pointer; }
+.checkout-product[data-selected="true"] { border-color: #e1cf9a; background: #eee3c80a; box-shadow: inset 0 0 0 1px #e1cf9a35; }
+.checkout-product:disabled { opacity: .45; cursor: not-allowed; }
+.checkout-product__img { width: 36px; height: 36px; object-fit: contain; flex: none; }
+.checkout-product__copy { min-width: 0; flex: 1; display: grid; }
+.checkout-product__name { font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+.checkout-product__note { font-size: 11px; color: #d1d3d6; }
+.checkout-product__price { color: #f2a51a; font-weight: 800; font-size: 13px; white-space: nowrap; }
+.checkout-summary { display: grid; gap: 6px; }
+.checkout-summary__line { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: #ebd6b6; }
+.checkout-summary__total { display: flex; justify-content: space-between; font-size: 20px; font-weight: 800; border-top: 1px dashed rgba(242,165,26,.35); padding-top: 8px; }
+.checkout-summary__total [data-discounted="true"] { color: #86efac; }
+.checkout-coupon { margin-top: 0; }
+.game-checkout-layout { display: grid; gap: 14px; }
+@media (min-width: 820px) { .game-checkout-layout { grid-template-columns: 1fr; max-width: 560px; margin: 0 auto; } }
