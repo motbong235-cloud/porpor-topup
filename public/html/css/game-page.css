@@ -94,5 +94,33 @@ img { max-width: 100%; height: auto; }
 .checkout-summary__total { display: flex; justify-content: space-between; font-size: 20px; font-weight: 800; border-top: 1px dashed rgba(242,165,26,.35); padding-top: 8px; }
 .checkout-summary__total [data-discounted="true"] { color: #86efac; }
 .checkout-coupon { margin-top: 0; }
-.game-checkout-layout { display: grid; gap: 14px; }
-@media (min-width: 820px) { .game-checkout-layout { grid-template-columns: 1fr; max-width: 560px; margin: 0 auto; } }
+.game-checkout-layout { display: grid; gap: 14px; padding-bottom: 96px; }
+@media (min-width: 820px) { .game-checkout-layout { grid-template-columns: 1fr; max-width: 560px; margin: 0 auto; padding-bottom: 96px; } }
+
+/* Package list, reference "Recommended" style */
+.pk-group { background: #262321; border: 1px solid rgba(242,165,26,.18); border-radius: 18px; padding: 14px; display: grid; gap: 12px; min-width: 0; }
+.pk-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.pk-head__title { display: inline-flex; align-items: center; gap: 8px; color: #f2a51a; font-weight: 800; font-size: 16px; min-width: 0; overflow-wrap: anywhere; }
+.pk-head__title svg { width: 18px; height: 18px; fill: #f2a51a; flex: none; }
+.pk-head__count { display: inline-flex; align-items: center; border: 1px solid rgba(242,165,26,.45); color: #f2a51a; border-radius: 999px; padding: 5px 12px; font-weight: 800; font-size: 13px; flex: none; }
+.pk-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.pk-item { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; min-width: 0; padding: 22px 8px 16px; background: #2b2826; border: 1px solid rgba(255,255,255,.06); border-radius: 14px; color: #fff7e5; font: inherit; text-align: left; cursor: pointer; overflow: hidden; }
+.pk-item[data-selected="true"] { border-color: #f2a51a; background: #352c1b; box-shadow: inset 0 0 0 1px #f2a51a; }
+.pk-item:disabled { opacity: .45; cursor: not-allowed; }
+.pk-icon { flex: none; width: 46px; height: 46px; border-radius: 12px; background: #1f1c1b; border: 1px solid rgba(242,165,26,.25); display: grid; place-items: center; overflow: hidden; }
+.pk-icon img { width: 36px; height: 36px; object-fit: contain; }
+.pk-icon span { font-weight: 800; font-size: 17px; color: #f2a51a; }
+.pk-copy { display: grid; gap: 4px; min-width: 0; flex: 1; }
+.pk-name { font-size: 13px; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+.pk-price { color: #f5c542; font-weight: 800; font-size: 15px; overflow-wrap: anywhere; }
+.pk-coin { position: absolute; top: 7px; right: 7px; display: inline-flex; align-items: center; gap: 5px; background: #2b2826; border: 1px solid #f2c94c; color: #f5d56b; border-radius: 999px; padding: 2px 8px 2px 6px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.pk-coin i { width: 11px; height: 11px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff3b0, #f2a51a 60%, #b86e0a); display: inline-block; }
+.pk-ribbon { position: absolute; left: 0; bottom: 0; background: linear-gradient(90deg, #f2a51a, #ffd447); color: #2b1d05; font-size: 10px; font-weight: 800; font-style: italic; text-transform: uppercase; letter-spacing: .03em; padding: 3px 10px 3px 8px; border-top-right-radius: 8px; }
+
+/* Sticky Total + Pay Now bar */
+.pk-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: #262321; border-top: 1px solid rgba(242,165,26,.35); }
+.pk-bar__total { display: flex; align-items: baseline; gap: 8px; min-width: 0; font-size: 22px; font-weight: 800; color: #f5c542; }
+.pk-bar__total span { color: #fff7e5; font-size: 18px; font-weight: 800; }
+.pk-bar__pay { display: inline-flex; align-items: center; gap: 8px; flex: none; padding: 12px 20px; border: 0; border-radius: 14px; font: inherit; font-weight: 800; font-size: 17px; color: #2b1d05; background: linear-gradient(90deg, #f2a51a, #ffd447); cursor: pointer; }
+.pk-bar__pay svg { width: 20px; height: 20px; fill: currentColor; }
+.pk-bar__pay:disabled { opacity: .5; cursor: not-allowed; }

@@ -51,17 +51,26 @@
   const zoneLabel = () => S.game.zoneLabelEn || S.game.zoneLabelKm || "Zone ID";
 
   /* ---------- render ---------- */
+  const ICON_STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>';
+  const ICON_BAG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l1 13H5L6 7zm3-2a3 3 0 016 0v2H9V5z"/></svg>';
+
+  /* Package card in the reference "Recommended" style:
+     +coin badge (top-right, from p.bonus), icon box, name, gold price,
+     optional ribbon (p.tag) bottom-left. */
   function packOption(p) {
     const sel = S.pack && String(S.pack.id) === String(p.id);
     const oos = p.inStock === false;
-    const img = p.image ? `<img class="checkout-product__img" src="${esc(p.image)}" alt="" loading="lazy" width="40" height="40">` : "";
-    return `<button type="button" class="checkout-product" role="radio" aria-checked="${!!sel}" data-selected="${!!sel}" data-pack="${esc(p.id)}" ${oos ? "disabled" : ""}>
-      ${img}
-      <span class="checkout-product__copy">
-        <span class="checkout-product__name">${esc(p.name)}</span>
-        ${p.bonus ? `<span class="checkout-product__note">${esc(p.bonus)}</span>` : ""}
+    const icon = p.image
+      ? `<img src="${esc(p.image)}" alt="" loading="lazy">`
+      : `<span>${esc(String(p.name || "?").charAt(0))}</span>`;
+    return `<button type="button" class="pk-item" role="radio" aria-checked="${!!sel}" data-selected="${!!sel}" data-pack="${esc(p.id)}" ${oos ? "disabled" : ""}>
+      ${p.bonus ? `<span class="pk-coin"><i></i>${esc(p.bonus)}</span>` : ""}
+      <span class="pk-icon">${icon}</span>
+      <span class="pk-copy">
+        <span class="pk-name">${esc(p.name)}</span>
+        <span class="pk-price">${oos ? "Out of stock" : money(p.price)}</span>
       </span>
-      <span class="checkout-product__price">${oos ? "Out of stock" : money(p.price)}</span>
+      ${p.tag ? `<span class="pk-ribbon">${esc(p.tag)}</span>` : ""}
     </button>`;
   }
 
@@ -73,9 +82,12 @@
       groups.get(key).push(p);
     });
     return [...groups.entries()].map(([cat, list]) => `
-      <div class="checkout-product-group">
-        ${groups.size > 1 ? `<h3 class="checkout-product-group__title">${esc(cat)}</h3>` : ""}
-        <div class="checkout-products" role="radiogroup">${list.map(packOption).join("")}</div>
+      <div class="pk-group">
+        <div class="pk-head">
+          <span class="pk-head__title">${ICON_STAR}${esc(cat)}</span>
+          <span class="pk-head__count">${list.length}</span>
+        </div>
+        <div class="pk-grid" role="radiogroup">${list.map(packOption).join("")}</div>
       </div>`).join("");
   }
 
@@ -165,6 +177,10 @@
               ${S.paying ? "Please wait…" : S.pack ? "Pay " + money(total()) : "Select a package"}
             </button>
           </section>
+        </div>
+        <div class="pk-bar">
+          <div class="pk-bar__total"><span>Total:</span><strong>${money(total())}</strong></div>
+          <button type="button" class="pk-bar__pay" id="btn-pay-bar" ${S.paying || !S.pack ? "disabled" : ""}>${ICON_BAG}${S.paying ? "Please wait…" : "Pay Now"}</button>
         </div>
       </div>` : `<section class="checkout-card"><p>This game is not available right now.</p></section>`}`;
     bind();
@@ -314,6 +330,8 @@
     if (cpb) cpb.onclick = applyCoupon;
     const pb = $("#btn-pay");
     if (pb) pb.onclick = pay;
+    const pbar = $("#btn-pay-bar");
+    if (pbar) pbar.onclick = pay;
     root.querySelectorAll("[data-pack]").forEach((b) => {
       b.onclick = () => {
         S.pack = S.game.packs.find((p) => String(p.id) === b.dataset.pack) || null;
