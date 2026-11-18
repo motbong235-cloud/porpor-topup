@@ -2,9 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Shell } from "./components/Shell";
 import { getPrefs, savePrefs } from "./lib/store";
-import Home from "./pages/Home";
 import SpecialItems from "./pages/SpecialItems";
-import Game from "./pages/Game";
 import Orders from "./pages/Orders";
 import Track from "./pages/Track";
 import Success from "./pages/Success";
@@ -51,6 +49,14 @@ function pathLooksAdmin(pathname) {
   if (PUBLIC_FIRST.has(seg)) return false;
   // private admin path, legacy aliases, or any non-public first segment
   return true;
+}
+
+/** Customer home is the static storefront in public/html (served at /html/). */
+function ToStaticSite() {
+  useEffect(() => {
+    window.location.replace("/html/index.html");
+  }, []);
+  return null;
 }
 
 export default function App() {
@@ -192,16 +198,14 @@ export default function App() {
   return (
     <Shell lang={lang} theme={theme} setLang={setLang} setTheme={setTheme} settings={remoteSettings}>
       <Routes>
-        <Route path="/" element={<Home lang={lang} settings={remoteSettings} />} />
         <Route path="/special" element={<SpecialItems lang={lang} settings={remoteSettings} />} />
-        <Route path="/game/:id" element={<Game lang={lang} addOrder={addOrder} settings={remoteSettings} />} />
         <Route path="/orders" element={<Orders lang={lang} orders={orders} />} />
         <Route path="/track" element={<Track lang={lang} settings={remoteSettings} />} />
         <Route path="/success" element={<Success lang={lang} settings={remoteSettings} />} />
         <Route path="/support" element={<Support lang={lang} settings={remoteSettings} />} />
         <Route path="/reseller" element={<Reseller lang={lang} settings={remoteSettings} />} />
         <Route path="/legal/:slug" element={<Legal lang={lang} />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<ToStaticSite />} />
       </Routes>
     </Shell>
   );

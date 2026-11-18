@@ -2346,7 +2346,13 @@ if (fs.existsSync(DIST)) {
   const HTML_SITE = path.join(DIST, "html");
   const siteHas = (name) => fs.existsSync(path.join(HTML_SITE, `${name}.html`));
   app.get(["/html", "/html/"], (_req, res) => res.redirect(302, "/html/index.html"));
+  app.get("/", (_req, res) => res.sendFile(path.join(HTML_SITE, "index.html")));
   app.get("/login", (_req, res) => res.redirect(302, "/html/login.html"));
+  app.get("/game/:id", (req, res) => {
+    const id = String(req.params.id || "");
+    if (/^[a-z0-9-]+$/i.test(id) && siteHas(id)) return res.redirect(302, `/html/${id}.html`);
+    return res.redirect(302, "/html/index.html");
+  });
   app.get("/games/:slug", (req, res) => {
     const slug = String(req.params.slug || "");
     if (!/^[a-z0-9-]+$/i.test(slug)) return res.status(404).end();
