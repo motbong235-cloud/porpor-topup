@@ -41,7 +41,7 @@ import * as robloxLookup from "./robloxLookup.js";
 import * as robloxPayout from "./robloxPayout.js";
 import * as tiktokLookup from "./tiktokLookup.js";
 import * as catalog from "./catalog.js";
-import { isGiftCodeProduct, localCatalog, DEFAULT_LOCAL_PRODUCTS, cleanBanners } from "./localProducts.js";
+import { isGiftCodeProduct, localCatalog, DEFAULT_LOCAL_PRODUCTS, cleanBanners, isHiddenLocal } from "./localProducts.js";
 import {
   clientIp,
   clientUa,
@@ -2043,6 +2043,7 @@ app.get("/api/admin/local-products", adminAuth, (_req, res) => {
   } else {
     products = DEFAULT_LOCAL_PRODUCTS;
   }
+  products = products.filter((g) => !isHiddenLocal(g.id));
   res.json({
     products,
     usingDefaults,

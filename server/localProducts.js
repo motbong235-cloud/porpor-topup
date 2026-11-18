@@ -243,7 +243,24 @@ function forcedUsernameIds() {
     .filter(Boolean);
 }
 
+/** Hand-coded (non-API) services hidden from the storefront, admin list and checkout. Code and saved data are kept. */
+export const HIDDEN_LOCAL_IDS = new Set([
+  "tiktok-khmer",
+  "robux-login",
+  "robux-send",
+  "roblox-plus",
+  "roblox-gift-card",
+]);
+
+export function isHiddenLocal(id) {
+  return HIDDEN_LOCAL_IDS.has(String(id));
+}
+
 export function localCatalog() {
+  return localCatalogAll().filter((g) => !isHiddenLocal(g.id));
+}
+
+function localCatalogAll() {
   const s = getSettings();
   const overrides = Array.isArray(s.localProducts) ? s.localProducts : null;
   let list;
