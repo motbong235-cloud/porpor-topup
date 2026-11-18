@@ -2349,14 +2349,17 @@ if (fs.existsSync(DIST)) {
   app.get(["/html", "/html/"], (_req, res) => res.redirect(302, "/html/index.html"));
   app.get("/", (_req, res) => res.sendFile(path.join(HTML_SITE, "index.html")));
   app.get("/login", (_req, res) => res.redirect(302, "/html/login.html"));
+  // Game ids come from the admin catalog and may contain letters, digits, "-" and "_".
+  const SAFE_GAME_ID = /^[A-Za-z0-9_-]+$/;
   app.get("/game/:id", (req, res) => {
     const id = String(req.params.id || "");
-    if (/^[a-z0-9-]+$/i.test(id) && siteHas(id)) return res.redirect(302, `/html/${id}.html`);
+    if (!SAFE_GAME_ID.test(id)) return res.redirect(302, "/html/index.html");
+    if (siteHas(id)) return res.redirect(302, `/html/${id}.html`);
     return res.redirect(302, `/html/game.html?id=${encodeURIComponent(id)}`);
   });
   app.get("/games/:slug", (req, res) => {
     const slug = String(req.params.slug || "");
-    if (!/^[a-z0-9-]+$/i.test(slug)) return res.status(404).end();
+    if (!SAFE_GAME_ID.test(slug)) return res.redirect(302, "/html/index.html");
     if (siteHas(slug)) return res.redirect(302, `/html/${slug}.html`);
     return res.redirect(302, `/html/game.html?id=${encodeURIComponent(slug)}`);
   });
