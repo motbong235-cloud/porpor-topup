@@ -1,0 +1,31 @@
+.kira-youtube-video {
+    display: block;
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    margin: 1rem 0;
+    border-radius: 12px;
+    background: #151515;
+}
+
+.kira-youtube-video > iframe {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    background: #151515;
+}
+
+.kira-youtube-video > iframe:focus-visible {
+    outline: 3px solid var(--site-color-gradient-end, #f1c40f);
+    outline-offset: -4px;
+}
+
+[data-youtube-richtext] { overflow-wrap: anywhere; }

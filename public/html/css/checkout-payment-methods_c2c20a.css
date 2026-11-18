@@ -1,0 +1,70 @@
+/* Shared storefront selection only. The server owns wallet identity and funds. */
+.checkout-payment__heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 13px; }
+.checkout-payment__heading h3 { margin: 0; color: #f6f6f6; font-size: 14px; line-height: 1.4; font-weight: 700; }
+.checkout-payment__heading p { margin: 3px 0 0; color: #d1d3d6; font-size: 11px; line-height: 1.4; }
+.checkout-payment__secure { display: inline-flex; align-items: center; gap: 5px; color: #c0e4d2; font-size: 10px; font-weight: 600; }
+.checkout-payment__options { display: grid; gap: 9px; }
+.checkout-payment__option { display: flex; align-items: center; gap: 11px; width: 100%; min-width: 0; min-height: 70px; padding: 12px; border: 1px solid #ffffff20; border-radius: 13px; background: #ffffff04; color: #f6f6f6; text-align: left; cursor: pointer; transition: background .15s, border-color .15s; }
+.checkout-payment__option:hover { background: #ffffff09; border-color: #ffffff50; }
+.checkout-payment__option[data-selected="true"] { border-color: #e1cf9a; background: #eee3c80a; box-shadow: inset 0 0 0 1px #e1cf9a35; }
+.checkout-payment__option[aria-disabled="true"] { cursor: not-allowed; }
+.checkout-payment__option:focus-visible { outline: 2px solid #f0e5c7; outline-offset: 3px; }
+.checkout-payment__icon { display: grid; place-items: center; width: 34px; height: 34px; flex: none; border: 1px solid #ffffff15; border-radius: 9px; }
+.checkout-payment__icon--aba { overflow: hidden; background: #efefed; }
+.checkout-payment__icon--aba img { display: block; width: 31px; height: 31px; object-fit: contain; }
+.checkout-payment__icon--wallet { overflow: hidden; border-color: #e2bd5945; background: #3b382f; box-shadow: 0 4px 12px #00000020; }
+.checkout-payment__icon--wallet img { display: block; width: 32px; height: 32px; object-fit: contain; }
+.checkout-payment__copy { min-width: 0; flex: 1; }
+.checkout-payment__name { display: block; font-size: 13px; line-height: 1.4; font-weight: 700; }
+.checkout-payment__description { display: block; margin-top: 3px; font-size: 11px; line-height: 1.45; color: #d1d3d6; overflow-wrap: anywhere; }
+.checkout-payment__description strong { font-weight: 600; color: #e2eae5; font-variant-numeric: tabular-nums; }
+.checkout-payment__feedback { margin: 10px 0 0; padding: 9px 10px; border: 1px solid #f0d7a230; border-radius: 9px; color: #f4dfb2; background: #f0d7a207; font-size: 11px; line-height: 1.5; }
+.checkout-payment__feedback[hidden] { display: none; }
+.checkout-payment__terms { display: flex; align-items: flex-start; gap: 7px; margin: 11px 0 0; color: #c9cbcf; font-size: 11px; line-height: 1.55; }
+.checkout-payment__terms-checkbox { appearance: auto; flex: none; width: 14px; height: 14px; margin: 2px 0 0; accent-color: #e1cf9a; cursor: pointer; }
+.checkout-payment__terms label { cursor: pointer; }
+.checkout-payment__terms a { text-decoration: underline; text-underline-offset: 2px; }
+.checkout-payment__terms-checkbox:focus-visible, .checkout-payment__terms a:focus-visible { outline: 2px solid #f0e5c7; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .checkout-payment__option { transition: none; } }
+/* Giftcard quantity row shown above the payment methods. */
+.checkout-quantity { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.checkout-quantity__label { color: #f6f6f6; font-size: 14px; line-height: 1.4; font-weight: 700; }
+.checkout-quantity__stepper { display: flex; align-items: center; gap: 8px; }
+.checkout-quantity__button { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 1px solid #ffffff45; border-radius: 8px; background: transparent; color: #f6f6f6; font-size: 18px; line-height: 1; cursor: pointer; transition: background .15s, border-color .15s; }
+.checkout-quantity__button:hover:not(:disabled) { background: #ffffff09; border-color: #e1cf9a; }
+.checkout-quantity__button:disabled { opacity: .4; cursor: not-allowed; }
+.checkout-quantity__button:focus-visible, .checkout-quantity__value:focus-visible { outline: 2px solid #f0e5c7; outline-offset: 2px; }
+.checkout-quantity__value { width: 72px; height: 32px; padding: 0 6px; border: 1px solid transparent; border-radius: 8px; background: #ffffff14; color: #f6f6f6; font-size: 14px; font-weight: 600; text-align: center; font-variant-numeric: tabular-nums; }
+.checkout-quantity__value:disabled { opacity: .5; }
+@media (prefers-reduced-motion: reduce) { .checkout-quantity__button { transition: none; } }
+
+/* Wallet switch uses the same warm storefront theme; no split payment. */
+.checkout-payment__switch { position: relative; width: 38px; height: 22px; flex: none; border-radius: 20px; background: #484848; border: 1px solid #d9d9d96b; }
+.checkout-payment__switch::after { content: ""; position: absolute; width: 16px; height: 16px; top: 2px; left: 3px; border-radius: 50%; background: #f5f5f5; transition: transform .15s; }
+.checkout-payment__option[aria-checked="true"] .checkout-payment__switch { background: #efb24b; border-color: #ffd58b; }
+.checkout-payment__option[aria-checked="true"] .checkout-payment__switch::after { transform: translateX(14px); background: #332b20; }
+.checkout-payment__option:disabled { cursor: not-allowed; opacity: .7; }
+.checkout-payment__summary { margin: 12px 0 0; color: #ffe1a7; font-size: 12px; line-height: 1.65; overflow-wrap: anywhere; }
+.checkout-payment__add-money { display: inline-block; padding: 9px 0; color: #ffe1a7; text-decoration: underline; font-size: 12px; }
+.checkout-payment__add-money[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) { .checkout-payment__switch::after { transition: none; } }
+
+/* Coupon feedback stays lightweight and follows the storefront accent. */
+[data-coupon-panel] { animation: naki-coupon-enter .4s ease-out both; }
+[data-coupon-panel] [data-coupon-apply] { transition: transform .18s ease, filter .18s ease; }
+[data-coupon-panel] [data-coupon-apply]:hover { transform: translateY(-2px); filter: brightness(1.08); }
+[data-coupon-panel] [data-coupon-apply]:active { transform: scale(.97); }
+[data-coupon-status][data-state="checking"] { animation: naki-coupon-checking 1s ease-in-out infinite; }
+[data-coupon-status][data-state="applied"] { color: #86efac; animation: naki-coupon-enter .35s ease-out; }
+[data-coupon-status][data-state="error"] { color: #fda4af; animation: naki-coupon-shake .3s ease-out; }
+[data-coupon-summary] { transition: border-color .25s ease, box-shadow .25s ease; }
+[data-coupon-summary][data-discounted="true"] { border-color: #86efac80; box-shadow: 0 0 0 2px #86efac14; }
+[data-coupon-summary] [data-discounted="true"] { animation: naki-coupon-price .45s ease-out; }
+@keyframes naki-coupon-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes naki-coupon-checking { 50% { opacity: .45; } }
+@keyframes naki-coupon-shake { 25% { transform: translateX(-3px); } 65% { transform: translateX(3px); } }
+@keyframes naki-coupon-price { 50% { transform: scale(1.12); } }
+@media (prefers-reduced-motion: reduce) {
+    [data-coupon-panel], [data-coupon-status], [data-coupon-summary] [data-discounted="true"] { animation: none !important; }
+    [data-coupon-panel] [data-coupon-apply], [data-coupon-summary] { transition: none; }
+}

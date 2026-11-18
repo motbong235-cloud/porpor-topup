@@ -1,0 +1,213 @@
+/* Shared Site Preferences colors for homepage cards and the game catalog. */
+:root {
+    --natsu-brand-start: var(--site-color-gradient-start);
+    --natsu-brand-end: var(--site-color-gradient-end);
+    --natsu-brand-gold: var(--site-color-link);
+}
+
+body .bg-primary {
+    background-color: var(--natsu-brand-start);
+    background-image: linear-gradient(90deg, var(--natsu-brand-start), var(--natsu-brand-end));
+    color: var(--site-color-primary-dark) !important;
+}
+
+body .bg-primary .text-white,
+body .bg-primary .text-daddy-text-light {
+    color: var(--site-color-primary-dark) !important;
+}
+
+body [data-preview-selected="true"] .premium-card-v2 {
+    background-color: var(--natsu-brand-start);
+    background-image: linear-gradient(90deg, var(--natsu-brand-start), var(--natsu-brand-end));
+}
+
+body .text-primary {
+    background-image: linear-gradient(90deg, var(--natsu-brand-start), var(--natsu-brand-end));
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+}
+
+body .text-daddy-orange {
+    color: var(--natsu-brand-gold);
+}
+
+body .premium-card-v2.bg-primary .card-price-text,
+body .premium-card-v2.bg-primary .old-price-text,
+body .premium-card-v2.bg-primary .card-title-text,
+body [data-preview-selected="true"] .card-price-text,
+body [data-preview-selected="true"] .old-price-text,
+body [data-preview-selected="true"] .card-title-text {
+    color: var(--site-color-primary-dark) !important;
+}
+
+/* Match the original mobile checkout layout without enabling preview writes. */
+.natsu-preview-catalog {
+    padding-bottom: 0;
+}
+
+.natsu-preview-sidebar { display: contents; }
+.natsu-preview-player-block { order: 1; min-width: 0; }
+.natsu-preview-payment-block { order: 3; min-width: 0; }
+
+.natsu-preview-total {
+    position: sticky;
+    bottom: 0;
+    order: 4;
+    grid-column: 1 / -1;
+    z-index: 50;
+    margin-bottom: 1.5rem;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    border-radius: 1rem;
+    box-shadow: 0 -4px 16px rgb(0 0 0 / 15%);
+}
+
+@media (min-width: 768px) {
+    .natsu-preview-sidebar { display: block; }
+    .natsu-preview-catalog {
+        padding-bottom: 0;
+    }
+
+    .natsu-preview-total {
+        position: static;
+        padding-bottom: 1rem;
+        border-radius: 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: none;
+    }
+}
+
+.catalog-section-heading {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin-bottom: 1rem;
+    min-width: 0;
+}
+.catalog-section-heading__title {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    color: var(--site-color-text-light);
+    font-size: clamp(.9375rem, 2.8vw, 1.125rem);
+    font-weight: 800;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+}
+.catalog-section-heading__title > i { flex: none; color: var(--site-color-link); }
+.catalog-section-heading__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+    flex: none;
+    min-height: 2rem;
+    padding: .3rem .65rem;
+    border: 1px solid rgb(255 255 255 / 18%);
+    border-radius: 999px;
+    color: #fff;
+    background: rgb(0 0 0 / 18%);
+    font-size: .8125rem;
+    font-weight: 700;
+    line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+/* Keep shaped Khmer glyphs and long labels inside their actual controls. */
+.floating-support-widget .floating-support-widget__tooltip {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.75;
+    letter-spacing: normal;
+}
+@media (prefers-reduced-motion: reduce) {
+    /* Reducing animation must not turn an idle tooltip permanently visible. */
+    .floating-support-widget:not(:hover):not(:focus-within) .floating-support-widget__tooltip {
+        opacity: 0;
+    }
+}
+.floating-support-widget[data-open="true"] .floating-support-widget__tooltip {
+    opacity: 0 !important;
+    animation: none;
+    pointer-events: none;
+}
+.floating-support-widget__contact { min-width: 0; }
+.floating-support-widget__contact-label,
+.floating-support-widget__contact-sublabel {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.75;
+    letter-spacing: normal;
+}
+.payment-receipt .payment-receipt__button {
+    line-height: 1.75;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-family: 'Space Grotesk', Sora, 'Noto Sans Khmer', sans-serif;
+}
+.payment-receipt__button > i { flex: none; }
+.payment-receipt__button > span { min-width: 0; overflow-wrap: anywhere; }
+.floating-support-widget__contact-label,
+.floating-support-widget__contact-sublabel {
+    font-family: 'Space Grotesk', Sora, 'Noto Sans Khmer', sans-serif;
+}
+main { position: relative; }
+
+/* Keep section spacing independent of catalog size. An idle 1px sentinel
+   remains observable; only loading/retry feedback reserves a visible row. */
+.home-catalog-block { margin-bottom: 1.5rem; }
+.home-catalog-sentinel { min-height: 1px; }
+.home-catalog-sentinel [data-catalog-loading][hidden] { display: none; }
+.home-catalog-sentinel [data-catalog-loading]:not([hidden]) {
+    display: flex;
+    align-items: center;
+    min-height: 2.5rem;
+    padding: .5rem 0;
+    line-height: 1.5;
+}
+
+/* Keep social links on the left and the payment pill on the right. */
+.storefront-footer__payment-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: .5rem;
+}
+.storefront-footer__payments { white-space: nowrap; flex: none; }
+.storefront-footer__payments img { flex: none; width: auto; object-fit: contain; }
+#storefront-footer p { text-align: center; }
+
+/* Keep the footer compact; a stable raised viewport anchor clears its content
+   without pushing centered copyright into a tall empty footer. */
+body .floating-support-widget { --support-bottom: 132px; }
+@media (min-width: 768px) {
+    body .floating-support-widget { --support-bottom: 96px; }
+}
+#storefront-footer.storefront-footer--with-support {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+}
+body.install-app-banner-visible .floating-support-widget {
+    bottom: calc(var(--support-bottom, 132px) + var(--install-banner-offset, 94px) + env(safe-area-inset-bottom, 0px));
+    transition: none;
+}
+body.install-app-banner-visible .floating-support-widget__menu {
+    max-height: min(28rem, calc(100dvh - var(--support-bottom, 132px) - var(--install-banner-offset, 94px) - 100px - env(safe-area-inset-bottom, 0px)));
+}
+
+/* Center both copy lines across the full footer, with the same compact inset
+   whether support is configured on the left or right. */
+@media (max-width: 767px) {
+    #storefront-footer.storefront-footer--with-support .storefront-footer__copy {
+        padding-inline: 0;
+        align-items: center;
+        text-align: center;
+    }
+}
+body.install-app-banner-visible #storefront-footer.storefront-footer--with-support {
+    padding-bottom: calc(12px + var(--install-banner-offset, 94px) + env(safe-area-inset-bottom, 0px));
+}

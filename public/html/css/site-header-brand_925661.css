@@ -1,0 +1,51 @@
+.site-header-brand {
+    --header-brand-size: 40px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    flex: 0 1 auto;
+}
+
+.site-header-brand .site-header-logo {
+    height: var(--header-brand-size);
+    width: auto;
+    max-width: calc(var(--header-brand-size) * 1.5);
+    flex: 0 0 auto;
+    object-fit: contain;
+}
+
+.site-header-brand .site-brand-title {
+    display: block;
+    min-width: 0;
+    font-size: calc(var(--header-brand-size) / 2);
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 359px) {
+    .site-header-brand .site-brand-title { font-size: 15px; }
+}
+
+@media (min-width: 375px) {
+    .site-header-brand { --header-brand-size: 48px; }
+
+    /* The 48px icon bump left only ~150px for the title next to the search and
+       login controls, so "Natsu Topup" truncated on 375-414px phones. */
+    .site-header-brand .site-brand-title { font-size: 20px; }
+}
+
+@media (min-width: 640px) {
+    .site-header-brand { --header-brand-size: 52px; gap: 8px; }
+    .site-header-brand .site-brand-title { font-size: calc(var(--header-brand-size) / 2); }
+}
+
+@media (min-width: 768px) {
+    .site-header-brand { --header-brand-size: 56px; gap: 12px; }
+}
+
+@media (min-width: 1024px) {
+    .site-header-brand { --header-brand-size: 64px; }
+}

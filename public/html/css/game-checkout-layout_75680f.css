@@ -1,0 +1,7 @@
+/* Keep the real checkout form around all controls and product choices. */
+@media (max-width: 767px) {
+    .game-checkout-sidebar { display: contents; }
+    [data-checkout-player-section] { order: 2; min-width: 0; }
+    [data-checkout-products-section] { order: 3; min-width: 0; }
+    [data-checkout-payment-section] { order: 4; min-width: 0; }
+}
