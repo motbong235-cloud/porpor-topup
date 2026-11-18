@@ -2351,13 +2351,13 @@ if (fs.existsSync(DIST)) {
   app.get("/game/:id", (req, res) => {
     const id = String(req.params.id || "");
     if (/^[a-z0-9-]+$/i.test(id) && siteHas(id)) return res.redirect(302, `/html/${id}.html`);
-    return res.redirect(302, "/html/index.html");
+    return res.redirect(302, `/html/game.html?id=${encodeURIComponent(id)}`);
   });
   app.get("/games/:slug", (req, res) => {
     const slug = String(req.params.slug || "");
     if (!/^[a-z0-9-]+$/i.test(slug)) return res.status(404).end();
     if (siteHas(slug)) return res.redirect(302, `/html/${slug}.html`);
-    return res.redirect(302, `/game/${encodeURIComponent(slug)}`);
+    return res.redirect(302, `/html/game.html?id=${encodeURIComponent(slug)}`);
   });
   // Search used by the static storefront (same response shape it expects)
   app.get("/api/search-games", async (req, res) => {
@@ -2374,7 +2374,7 @@ if (fs.existsSync(DIST)) {
             name: g.name,
             image_url: g.image || g.image_url || "",
             status: g.open !== false,
-            url: siteHas(slug) ? `/html/${slug}.html` : `/game/${encodeURIComponent(slug)}`,
+            url: siteHas(slug) ? `/html/${slug}.html` : `/html/game.html?id=${encodeURIComponent(slug)}`,
           };
         });
       res.set("Cache-Control", "public, max-age=15");

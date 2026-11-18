@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="km">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>POR POR TOPUP</title>
+  <link rel="icon" href="img/porpor-logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/game-page.css">
+</head>
+<body>
+  <header class="gp-header">
+    <a class="gp-brand" href="index.html"><img src="img/porpor-logo.svg" alt="" width="40" height="40"><span>POR POR TOPUP</span></a>
+  </header>
+
+  <main class="gp-main" id="game-root">
+    <p class="gp-muted" id="gp-loading">កំពុងផ្ទុក…</p>
+  </main>
+
+  <dialog id="qr-dialog" class="gp-dialog">
+    <div class="gp-dialog-card">
+      <h3>ស្កេនដើម្បីបង់ប្រាក់</h3>
+      <p class="gp-muted">Total <b id="qr-amount"></b></p>
+      <div id="qr-box" class="gp-qr"></div>
+      <p id="qr-status" class="gp-muted">Waiting for payment…</p>
+      <a id="qr-deeplink" class="gp-btn gp-btn-ghost hidden" target="_blank" rel="noopener">Open ABA app</a>
+      <button type="button" class="gp-btn gp-btn-ghost" id="qr-close">Close</button>
+    </div>
+  </dialog>
+
+  <div id="gp-toast" class="gp-toast hidden" role="status"></div>
+
+  <script src="js/game-page.js"></script>
+</body>
+</html>
