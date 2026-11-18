@@ -72,15 +72,31 @@
       return;
     }
     const open = g.open !== false;
-    const packs = (g.packs || []).map((p) => {
+    const renderPack = (p) => {
       const sel = S.pack && String(S.pack.id) === String(p.id);
       const oos = p.inStock === false;
+      const thumb = p.image
+        ? `<img class="gp-pack-img" src="${esc(p.image)}" alt="" loading="lazy">`
+        : "";
       return `<button type="button" class="gp-pack" role="radio" aria-checked="${!!sel}" data-pack="${esc(p.id)}" ${oos ? "disabled" : ""}>
+        ${thumb}
         <div class="gp-pack-name">${esc(p.name)}</div>
         ${p.bonus ? `<div class="gp-pack-note">${esc(p.bonus)}</div>` : ""}
         <div class="gp-pack-price">${oos ? "Out of stock" : money(p.price)}</div>
       </button>`;
-    }).join("");
+    };
+    // Packages are grouped by the category set in Admin (e.g. Diamonds, Membership).
+    const groups = new Map();
+    (g.packs || []).forEach((p) => {
+      const key = p.category || "Packages";
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(p);
+    });
+    const packs = [...groups.entries()].map(([cat, list]) => `
+      <div class="gp-pack-group">
+        ${groups.size > 1 ? `<div class="gp-pack-cat">${esc(cat)}</div>` : ""}
+        <div class="gp-packs" role="radiogroup">${list.map(renderPack).join("")}</div>
+      </div>`).join("");
 
     const fields = `
       <div class="gp-field">
@@ -117,7 +133,7 @@
         </div>
         <div class="gp-card">
           <h2 class="gp-h">Package</h2>
-          ${packs ? `<div class="gp-packs" role="radiogroup">${packs}</div>` : `<p class="gp-muted">No packages available.</p>`}
+          ${packs || `<p class="gp-muted">No packages available.</p>`}
           <div class="gp-qty">
             <span>Quantity</span>
             <button type="button" data-qty="-1" aria-label="Less">−</button>

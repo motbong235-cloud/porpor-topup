@@ -52,3 +52,7 @@ img { max-width: 100%; height: auto; }
 .gp-qr img { width: 220px; height: 220px; max-width: 100%; background: #fff; padding: 8px; border-radius: 12px; }
 .gp-qr pre { white-space: pre-wrap; word-break: break-all; font-size: 11px; background: var(--surface); padding: 8px; border-radius: 8px; text-align: left; max-width: 100%; }
 .gp-toast { position: fixed; left: 50%; bottom: max(20px, env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--surface); border: 1px solid var(--primary); padding: 10px 16px; border-radius: 999px; font-size: 14px; z-index: 10; max-width: calc(100% - 32px); }
+.gp-pack-group { display: grid; gap: 8px; margin-bottom: 14px; }
+.gp-pack-cat { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.gp-pack-img { width: 56px; height: 56px; object-fit: contain; display: block; margin: 0 auto 6px; }
+.gp-pack { text-align: center; }
