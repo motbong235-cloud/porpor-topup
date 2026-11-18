@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8">
-<link rel="icon" href="../images/porpor-logo.svg">
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>POR POR TOPUP</title>
+        <title>POR POR TOPUP - Home</title>
     <meta name="description" content="">
     <meta property="description" content="">
 
@@ -18,10 +17,10 @@
     <meta property="og:image" content="/storage/site/01M46V5TS3VPNFE0X4SGEY6SH8.png" />
 
     
-    
-    
-    
-    <link rel="manifest" href="../manifest.webmanifest">
+    <link rel="icon" type="image/png" href="img/porpor-logo.svg">
+    <link rel="apple-touch-icon" sizes="192x192" href="img/porpor-logo.svg">
+    <link rel="shortcut icon" href="img/porpor-logo.svg">
+    <link rel="manifest" href="manifest.webmanifest">
     <meta name="theme-color" content="#100A08">
 
     
@@ -408,12 +407,13 @@ body.install-app-banner-visible #storefront-footer.storefront-footer--with-suppo
     .catalog-categories__badge { transition: none; }
 }
 
-#dlg-tg{min-height:48px}
-.gcard-mark{font-size:44px}
 </style>
     
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    
+    
+            <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
     
     
     <script nonce="">
@@ -1317,102 +1317,3318 @@ body.install-app-banner-visible #storefront-footer.storefront-footer--with-suppo
             display: none !important;
         }
     </style>
-</head><body class="bg-daddy-purple font-sans text-daddy-text-light min-h-screen flex flex-col">
+</head>
 
-<header class="w-full sticky top-0 z-50 backdrop-blur-md bg-daddy-dark-purple/90 border-b border-daddy-light-purple/20">
-  <div class="max-w-7xl mx-auto px-3 sm:px-4">
-    <div class="flex items-center justify-between gap-2 sm:gap-3 h-14 sm:h-16 lg:h-20">
-      <a href="#/" class="site-header-brand group" aria-label="POR POR TOPUP">
-        <img src="../images/porpor-logo.svg" alt="POR POR TOPUP" class="site-header-logo object-contain transition-transform group-hover:scale-105">
-        <span class="site-brand-title text-primary font-bold">POR POR TOPUP</span>
-      </a>
-      <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-        <div class="relative">
-          <form class="hidden lg:block" id="searchForm" onsubmit="return false">
-            <div class="header-search-field flex items-center gap-2 px-3 py-2 w-40 xl:w-48 2xl:w-56">
-              <span class="header-search-ring" aria-hidden="true"></span>
-              <i class="fas fa-search header-search-icon" aria-hidden="true"></i>
-              <input type="text" id="q" placeholder="Search games..." aria-label="Search games" autocomplete="off" class="header-search-input bg-transparent text-daddy-text-light placeholder-daddy-text-darker focus:outline-none w-full text-sm">
+
+<body class="bg-daddy-purple font-sans text-daddy-text-light min-h-screen flex flex-col"
+      x-data="{ mobileSearchOpen: false, ...searchGames() }"
+      :class="{ 'overflow-hidden': mobileSearchOpen }">
+
+    
+    <header class="w-full sticky top-0 z-50 backdrop-blur-md bg-daddy-dark-purple/90 border-b border-daddy-light-purple/20 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-3 sm:px-4">
+            <div class="flex items-center justify-between gap-2 sm:gap-3 h-14 sm:h-16 md:h-18 lg:h-20">
+
+                
+                <a href="" class="site-header-brand group">
+                    <img src="img/porpor-logo.svg"
+                         alt="POR POR TOPUP"
+                         class="site-header-logo object-contain transition-transform group-hover:scale-105">
+                    <span class="site-brand-title text-primary font-bold">POR POR TOPUP</span>
+                </a>
+
+                
+                <nav class="hidden lg:flex items-center gap-3 xl:gap-6 flex-1 justify-center px-2" aria-label="Primary navigation">
+                    <a href=""
+                       class="flex items-center gap-1.5 xl:gap-2 px-2 xl:px-3 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all duration-200 text-daddy-orange bg-daddy-orange/10"
+                        aria-current="page" >
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </a>
+                    <a href=""
+                       class="flex items-center gap-1.5 xl:gap-2 px-2 xl:px-3 py-2 rounded-lg font-medium text-sm whitespace-nowrap text-daddy-text-light hover:text-daddy-orange hover:bg-daddy-orange/5 transition-all duration-200">
+                        <i class="fas fa-star"></i>
+                        <span>Featured</span>
+                    </a>
+                    <a href=""
+                       class="flex items-center gap-1.5 xl:gap-2 px-2 xl:px-3 py-2 rounded-lg font-medium text-sm whitespace-nowrap text-daddy-text-light hover:text-daddy-orange hover:bg-daddy-orange/5 transition-all duration-200">
+                        <i class="fas fa-gamepad"></i>
+                        <span>Games</span>
+                    </a>
+                    <a href=""
+                       class="flex items-center gap-1.5 xl:gap-2 px-2 xl:px-3 py-2 rounded-lg font-medium text-sm whitespace-nowrap text-daddy-text-light hover:text-daddy-orange hover:bg-daddy-orange/5 transition-all duration-200">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Events</span>
+                    </a>
+                </nav>
+
+                
+                <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                                                                <a href="login.html"
+                           class="customer-login-action hidden lg:flex text-sm whitespace-nowrap"
+                           data-customer-login-open
+                           aria-haspopup="dialog"
+                           aria-controls="customer-login-dialog">
+                            <span class="customer-login-action__frame" aria-hidden="true"></span>
+                            <span class="customer-login-action__core">
+                                <span class="customer-login-action__icon" aria-hidden="true"><i class="fas fa-user"></i></span>
+                                <span class="customer-login-action__label">Login</span>
+                                <i class="fas fa-chevron-right customer-login-action__chevron" aria-hidden="true"></i>
+                            </span>
+                        </a>
+                    
+                    
+                    <div class="relative">
+                        
+                        <button type="button"
+                                @click="mobileSearchOpen = true"
+                                aria-label="Search games"
+                                class="header-search-button lg:hidden flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0">
+                            <span class="header-search-ring" aria-hidden="true"></span>
+                            <i class="fas fa-search header-search-icon text-sm sm:text-base" aria-hidden="true"></i>
+                        </button>
+
+                        
+                        <form action="/search" method="GET" @submit="handleSubmit" class="hidden lg:block">
+                            <div class="relative">
+                                <div class="header-search-field flex items-center gap-2 px-3 py-2 w-40 xl:w-48 2xl:w-56">
+                                    <span class="header-search-ring" aria-hidden="true"></span>
+                                    <i class="fas fa-search header-search-icon" aria-hidden="true"></i>
+                                    <input type="text"
+                                           name="q"
+                                           x-model="query"
+                                           @input.debounce.300ms="searchGames"
+                                           @focus="showResults = true"
+                                           @keydown.escape="showResults = false"
+                                           placeholder="Search games..."
+                                           aria-label="Search games"
+                                           class="header-search-input bg-transparent text-daddy-text-light placeholder-daddy-text-darker focus:outline-none w-full text-sm"
+                                           autocomplete="off">
+                                    <i x-show="loading" class="fas fa-spinner fa-spin header-search-spinner" aria-hidden="true"></i>
+                                </div>
+
+                                
+                                <div x-show="showResults && results.length > 0"
+                                     x-cloak
+                                     @click.outside="showResults = false"
+                                     x-transition:enter="transition ease-out duration-200"
+                                     x-transition:enter-start="opacity-0 translate-y-1"
+                                     x-transition:enter-end="opacity-100 translate-y-0"
+                                     style="display: none;"
+                                     class="absolute top-full right-0 left-0 mt-2 bg-daddy-dark-purple rounded-lg shadow-2xl border border-daddy-light-purple/30 overflow-hidden max-h-[70vh] overflow-y-auto">
+                                    <template x-for="game in results" :key="game.id">
+                                        <a :href="/game.url || '"
+                                           :aria-disabled="(!game.status).toString()"
+                                           @click="if (!game.status) $event.preventDefault()"
+                                           :class="game.status ? 'hover:bg-daddy-purple' : 'opacity-55 grayscale cursor-not-allowed'"
+                                           class="flex items-center gap-3 p-3 transition-colors border-b border-daddy-light-purple/10 last:border-0">
+                                            <template x-if="game.image_url">
+                                                <img :src="/game.image_url"
+                                                     :alt="game.name"
+                                                     class="w-12 h-12 rounded-lg object-cover flex-shrink-0">
+                                            </template>
+                                            <template x-if="!game.image_url">
+                                                <div class="w-12 h-12 bg-gradient-to-br from-daddy-orange/20 to-daddy-purple/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                    <span class="text-xs text-daddy-orange/50" x-text="game.code"></span>
+                                                </div>
+                                            </template>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="font-semibold text-daddy-text-light truncate" x-text="game.name"></p>
+                                                <p class="text-xs text-daddy-text-darker" x-text="game.code"></p>
+                                            </div>
+                                            <template x-if="game.status">
+                                                <i class="fas fa-chevron-right text-daddy-text-darker text-xs"></i>
+                                            </template>
+                                            <template x-if="!game.status">
+                                                <span class="rounded bg-gray-700 px-2 py-1 text-[10px] font-bold text-white">UNAVAILABLE</span>
+                                            </template>
+                                        </a>
+                                    </template>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                                            <a href="login.html"
+                           aria-label="Open login"
+                           class="customer-login-action lg:hidden flex text-sm whitespace-nowrap"
+                           data-customer-login-open
+                           aria-haspopup="dialog"
+                           aria-controls="customer-login-dialog">
+                            <span class="customer-login-action__frame" aria-hidden="true"></span>
+                            <span class="customer-login-action__core">
+                                <span class="customer-login-action__icon" aria-hidden="true"><i class="fas fa-user"></i></span>
+                                <span class="customer-login-action__label">Login</span>
+                                <i class="fas fa-chevron-right customer-login-action__chevron" aria-hidden="true"></i>
+                            </span>
+                        </a>
+                                    </div>
             </div>
-          </form>
-          <button type="button" id="mSearchBtn" aria-label="Search games" class="header-search-button lg:hidden flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10">
-            <span class="header-search-ring" aria-hidden="true"></span>
-            <i class="fas fa-search header-search-icon text-sm sm:text-base" aria-hidden="true"></i>
-          </button>
         </div>
-        <button type="button" class="customer-login-action text-sm whitespace-nowrap" id="loginOpen" aria-haspopup="dialog" aria-controls="customer-login-dialog">
-          <span class="customer-login-action__frame" aria-hidden="true"></span>
-          <span class="customer-login-action__core">
-            <span class="customer-login-action__icon" aria-hidden="true"><i class="fas fa-user" id="loginIcon"></i></span>
-            <span class="customer-login-action__label" id="loginLabel">Login</span>
-            <i class="fas fa-chevron-right customer-login-action__chevron" aria-hidden="true"></i>
-          </span>
-        </button>
-      </div>
-    </div>
-  </div>
-</header>
+    </header>
 
-<!-- Mobile search overlay -->
-<div id="mSearch" class="hidden lg:hidden fixed inset-0 bg-daddy-dark-purple/98 backdrop-blur-lg z-[1100] flex flex-col">
-  <div class="flex items-center gap-3 p-4 border-b border-daddy-light-purple/20">
-    <button type="button" id="mSearchClose" class="flex items-center justify-center w-10 h-10 text-daddy-text-light" aria-label="Close search"><i class="fas fa-arrow-left text-xl"></i></button>
-    <h2 class="text-lg font-semibold">Search Games</h2>
-  </div>
-  <div class="p-4"><input type="text" id="mq" placeholder="Type to search..." class="w-full bg-daddy-purple rounded-lg px-4 py-3 border border-daddy-light-purple/20 text-daddy-text-light focus:outline-none" autocomplete="off"></div>
+            <dialog id="customer-login-dialog"
+        class="customer-login-dialog"
+        data-customer-login-modal
+        aria-labelledby="customer-login-title"
+        aria-describedby="customer-login-description">
+    <div class="customer-login-panel">
+        <button type="button"
+                class="customer-login-close"
+                data-customer-login-close
+                aria-label="Close login">
+            <i class="fas fa-times" aria-hidden="true"></i>
+        </button>
+
+        <div class="customer-login-brand" aria-hidden="true">
+            <img src="img/porpor-logo.svg"
+                 alt=""
+                 class="customer-login-logo"
+                 data-customer-login-logo>
+        </div>
+        <h2 id="customer-login-title" class="customer-login-title">Log in</h2>
+        <p id="customer-login-description" class="customer-login-description">Choose an account to continue</p>
+
+        <div class="customer-login-error"
+             data-customer-login-error
+             role="alert"
+              hidden ></div>
+
+        <div class="customer-login-options">
+            <a href="/auth/telegram"
+       class="customer-login-provider customer-login-telegram"
+        data-customer-login-telegram >
+        <i class="fab fa-telegram-plane" aria-hidden="true"></i>
+        <span>Login with Telegram</span>
+    </a>
+
+            <a href="/auth/google" class="customer-login-provider customer-login-google">
+                <i class="fab fa-google" aria-hidden="true"></i>
+                <span>Login with Google</span>
+            </a>
+        </div>
+    </div>
+</dialog>
+    
+    
+    <div x-show="mobileSearchOpen"
+         x-cloak
+         @keydown.escape.window="mobileSearchOpen = false"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         style="display: none;"
+         class="lg:hidden fixed inset-0 bg-daddy-dark-purple/98 backdrop-blur-lg z-[9999] flex flex-col"
+         style="z-index: 1100">
+
+        
+        <div class="flex items-center gap-3 p-4 border-b border-daddy-light-purple/20">
+            <button type="button"
+                    @click="mobileSearchOpen = false"
+                    class="flex items-center justify-center w-10 h-10 text-daddy-text-light hover:text-daddy-orange transition-colors">
+                <i class="fas fa-arrow-left text-xl"></i>
+            </button>
+            <h2 class="text-lg font-semibold text-daddy-text-light">Search Games</h2>
+        </div>
+
+        
+        <div class="p-4">
+            <form action="/search" method="GET" @submit="handleSubmit">
+                <div class="flex items-center gap-3 bg-daddy-purple rounded-lg px-4 py-3 border border-daddy-light-purple/20">
+                    <i class="fas fa-search text-daddy-text-darker"></i>
+                    <input type="text"
+                           x-ref="mobileInput"
+                           name="q"
+                           x-model="query"
+                           @input.debounce.300ms="searchGames"
+                           @focus="showResults = true"
+                           placeholder="Type to search..."
+                           class="bg-transparent text-daddy-text-light placeholder-daddy-text-darker focus:outline-none w-full"
+                           autocomplete="off"
+                           x-init="$nextTick(() =&gt; $el.focus())">
+                    <i x-show="loading" class="fas fa-spinner fa-spin text-daddy-text-darker"></i>
+                </div>
+            </form>
+        </div>
+
+        
+        <div class="flex-1 overflow-y-auto px-4 pb-4">
+            <div x-show="results.length > 0">
+                <p class="text-xs text-daddy-text-darker uppercase font-semibold mb-3 px-1">Results</p>
+                <div class="space-y-2">
+                    <template x-for="game in results" :key="game.id">
+                        <a :href="/game.url || '"
+                           :aria-disabled="(!game.status).toString()"
+                           @click="if (!game.status) { $event.preventDefault(); return; } mobileSearchOpen = false"
+                           :class="game.status ? 'hover:bg-daddy-purple' : 'opacity-55 grayscale cursor-not-allowed'"
+                           class="flex items-center gap-3 p-3 bg-daddy-purple/50 rounded-lg transition-colors border border-daddy-light-purple/10">
+                            <template x-if="game.image_url">
+                                <img :src="/game.image_url"
+                                     :alt="game.name"
+                                     class="w-14 h-14 rounded-lg object-cover flex-shrink-0">
+                            </template>
+                            <template x-if="!game.image_url">
+                                <div class="w-14 h-14 bg-gradient-to-br from-daddy-orange/20 to-daddy-purple/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <span class="text-xs text-daddy-orange/50 font-medium" x-text="game.code"></span>
+                                </div>
+                            </template>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-semibold text-daddy-text-light truncate" x-text="game.name"></p>
+                                <p class="text-xs text-daddy-text-darker mt-0.5" x-text="game.code"></p>
+                            </div>
+                            <template x-if="game.status">
+                                <i class="fas fa-chevron-right text-daddy-text-darker text-sm"></i>
+                            </template>
+                            <template x-if="!game.status">
+                                <span class="rounded bg-gray-700 px-2 py-1 text-[10px] font-bold text-white">UNAVAILABLE</span>
+                            </template>
+                        </a>
+                    </template>
+                </div>
+            </div>
+
+            
+            <div x-show="query.length >= 2 && !loading && results.length === 0"
+                 class="flex flex-col items-center justify-center text-center py-16">
+                <div class="w-20 h-20 rounded-full bg-daddy-purple flex items-center justify-center mb-4">
+                    <i class="fas fa-search text-3xl text-daddy-text-darker"></i>
+                </div>
+                <p class="text-daddy-text-light font-semibold mb-1">No games found</p>
+                <p class="text-sm text-daddy-text-darker">Try searching with different keywords</p>
+            </div>
+
+            
+            <div x-show="query.length < 2"
+                 class="flex flex-col items-center justify-center text-center py-16">
+                <div class="w-20 h-20 rounded-full bg-daddy-purple flex items-center justify-center mb-4">
+                    <i class="fas fa-gamepad text-3xl text-daddy-orange"></i>
+                </div>
+                <p class="text-daddy-text-light font-semibold mb-1">Start typing to search</p>
+                <p class="text-sm text-daddy-text-darker">Find your favorite games quickly</p>
+            </div>
+        </div>
+    </div>
+
+    
+    
+    
+    <link rel="stylesheet" data-falling-petals-styles href="css/falling-petals_869779.css">
+    <div class="falling-petals" data-falling-petals hidden aria-hidden="true" inert>
+                                <span class="falling-petal" data-depth="far" style="--petal-left: 0.4%; --petal-mobile-left: 2.3%; --petal-size: 16px; --petal-sway: 41px; --petal-turn: 94deg; --petal-duration: 32.5s; --petal-delay: -0.75s; --petal-opacity: 0.32; --petal-sway-duration: 7.3s; --petal-spin-duration: 11.8s;">
+                <span class="petal-sway">
+                    <span class="petal-sprite">
+                        <img src="storage/site/petals/01M46XN8Z9HQ0FCF64VM3W9ETQ.png" alt="" width="128" height="128" decoding="async" draggable="false">
+                    </span>
+                </span>
+            </span>
+                                <span class="falling-petal" data-depth="near" style="--petal-left: 7.35%; --petal-mobile-left: 14.1%; --petal-size: 37px; --petal-sway: -38px; --petal-turn: 21deg; --petal-duration: 18.4s; --petal-delay: -8.76s; --petal-opacity: 0.82; --petal-sway-duration: 5.8s; --petal-spin-duration: 13.7s;">
+                <span class="petal-sway">
+                    <span class="petal-sprite">
+                        <img src="storage/site/petals/01M46XN8Z9HQ0FCF64VM3W9ETQ.png" alt="" width="128" height="128" decoding="async" draggable="false">
+                    </span>
+                </span>
+            </span>
+                                <span class="falling-petal" data-depth="mid" style="--petal-left: 14.8%; --petal-mobile-left: 21.6%; --petal-size: 31px; --petal-sway: 28px; --petal-turn: 45deg; --petal-duration: 24.3s; --petal-delay: -22.26s; --petal-opacity: 0.58; --petal-sway-duration: 7.1s; --petal-spin-duration: 11s;">
+                <span class="petal-sway">
+                    <span class="petal-sprite">
+                        <img src="storage/site/petals/01M46XN8Z9HQ0FCF64VM3W9ETQ.png" alt="" width="128" height="128" decoding="async" draggable="false">
+                    </span>
+                </span>
+            </span>
+                                <span class="falling-petal" data-depth="mid" style="--petal-left: 23.45%; --petal-mobile-left: 33%; --petal-size: 31px; --petal-sway: -43px; --petal-turn: 84deg; --petal-duration: 24.9s; --petal-delay: -8.76s; --petal-opacity: 0.58; --petal-sway-duration: 4.5s; --petal-spin-duration: 12s;">
+                <span class="petal-sway">
+                    <span class="petal-sprite">
+                        <img src="storage/site/petals/01M46XN8Z9HQ0FCF64VM3W9ETQ.png" alt="" width="128" height="128" decoding="async" draggable="false">
+                    </span>
+                </span>
+            </span>
+                                <span class="falling-petal" data-depth="far" style="--petal-left: 26.3%; --petal-mobile-left: 43.7%; --petal-size: 18px; --petal-sway: 24px; --petal-turn: 77deg; --petal-duration: 35.4s; --petal-delay: -27.26s; --petal-opacity: 0.32; --petal-sway-duration: 5.9s; --petal-spin-duration: 11s;">
+                <span class="petal-sway">
+                    <span class="petal-sprite">
+                        <img src="storage/site/petals/01M46XN8Z9HQ0FCF64VM3W9ETQ.png" alt="" width="128" height="128" decoding="async" draggable="false">
+                    </span>
+                </span>
+            </span>
+                                <span class="falling-petal" data-depth="near" style="--petal-left: 35.45%; --petal-mobile-left: 51.3%; --petal-size: 43px; --petal-sway: -38px; --petal-turn: -90deg; --petal-duration: 19.5s; --petal-delay: -4.67s; --petal-opacity: 0.82; --petal-sway-duration: 6.5s; --petal-spin-duration: 16.5s;">
+                <span class="petal-sway">
+                    <span class="petal-sprite">
+                        <img src="storage/site/petals/01M46XN8Z9HQ0FCF64VM3W9ETQ.png" alt="" width="128" height="128" decoding="async" draggable="false">
+                    </span>
+                </span>
+            </span>
+                                <span class="falling-petal" data-depth="mid" style="--petal-left: 39.9%; --petal-mobile-left: 64.9%; --petal-size: 28px; --petal-sway: 27px; --petal-turn: -33deg; --petal-duration: 25s; --petal-delay: -16.5s; --petal-opacity: 0.58; --petal-sway-duration: 6.3s; --petal-spin-duration: 10s;">
+                <span class="petal-sway">
+                    <span class="petal-sprite">
+                        <img src="storage/site/petals/01M46XN8Z9HQ0FCF64VM3W9ETQ.png" alt="" width="128" height="128" decoding="async" draggable="false">
+                    </span>
+                </span>
+            </span>
+                                <span class="falling-petal" data-depth="mid" style="--petal-left: 45.45%; --petal-mobile-left: 73.7%; --petal-size: 31px; --petal-sway: -48px; --petal-turn: 47deg; --petal-duration: 22.8s; --petal-delay: -2.62s; --petal-opacity: 0.58; --petal-sway-duration: 5.6s; --petal-spin-duration: 11.1s;">
+                <span class="petal-sway">
+                    <span class="petal-sprite">
+                        <img src="storage/site/petals/01M46XN8Z9HQ0FCF64VM3W9ETQ.png" alt="" width="128" height="128" decoding="async" draggable="false">
+                    </span>
+                </span>
+            </span>
+                                <span class="falling-petal" data-depth="far" style="--petal-left: 53%; --petal-mobile-left: 82.7%; --petal-size: 18px; --petal-sway: 26px; --petal-turn: -1deg; --petal-duration: 30.8s; --petal-delay: -16.38s; --petal-opacity: 0.32; --petal-sway-duration: 6.6s; --petal-spin-duration: 16.2s;">
+                <span class="petal-sway">
+                    <span class="petal-sprite">
+                        <img src="storage/site/petals/01M46XN8Z9HQ0FCF64VM3W9ETQ.png" alt="" width="128" height="128" decoding="async" draggable="false">
+                    </span>
+                </span>
+            </span>
+                                <span class="falling-petal" data-depth="near" style="--petal-left: 60.05%; --petal-mobile-left: 91.6%; --petal-size: 37px; --petal-sway: -46px; --petal-turn: -47deg; --petal-duration: 18s; --petal-delay: -17.76s; --petal-opacity: 0.82; --petal-sway-duration: 5.8s; --petal-spin-duration: 14.7s;">
+                <span class="petal-sway">
+                    <span class="petal-sprite">
+                        <img src="storage/site/petals/01M46XN8Z9HQ0FCF64VM3W9ETQ.png" alt="" width="128" height="128" decoding="async" draggable="false">
+                    </span>
+                </span>
+            </span>
+                                <span class="falling-petal" data-depth="mid" style="--petal-left: 65.6%; --petal-mobile-left: 107%; --petal-size: 27px; --petal-sway: 38px; --petal-turn: -78deg; --petal-duration: 25.9s; --petal-delay: -10.65s; --petal-opacity: 0.58; --petal-sway-duration: 7.5s; --petal-spin-duration: 10.3s;">
+                <span class="petal-sway">
+                    <span class="petal-sprite">
+                        <img src="storage/site/petals/01M46XN8Z9HQ0FCF64VM3W9ETQ.png" alt="" width="128" height="128" decoding="async" draggable="false">
+                    </span>
+                </span>
+            </span>
+                                <span class="falling-petal" data-depth="mid" style="--petal-left: 71.05%; --petal-mobile-left: 110.4%; --petal-size: 30px; --petal-sway: -40px; --petal-turn: -43deg; --petal-duration: 23.6s; --petal-delay: -20.31s; --petal-opacity: 0.58; --petal-sway-duration: 6.6s; --petal-spin-duration: 14.4s;">
+                <span class="petal-sway">
+                    <span class="petal-sprite">
+                        <img src="storage/site/petals/01M46XN8Z9HQ0FCF64VM3W9ETQ.png" alt="" width="128" height="128" decoding="async" draggable="false">
+                    </span>
+                </span>
+            </span>
+                                <span class="falling-petal" data-depth="far" style="--petal-left: 77.1%; --petal-mobile-left: 122.2%; --petal-size: 14px; --petal-sway: 42px; --petal-turn: 34deg; --petal-duration: 29.5s; --petal-delay: -7.54s; --petal-opacity: 0.32; --petal-sway-duration: 7.4s; --petal-spin-duration: 12.4s;">
+                <span class="petal-sway">
+                    <span class="petal-sprite">
+                        <img src="storage/site/petals/01M46XN8Z9HQ0FCF64VM3W9ETQ.png" alt="" width="128" height="128" decoding="async" draggable="false">
+                    </span>
+                </span>
+            </span>
+                                <span class="falling-petal" data-depth="near" style="--petal-left: 82.65%; --petal-mobile-left: 135.6%; --petal-size: 38px; --petal-sway: -24px; --petal-turn: 48deg; --petal-duration: 19.6s; --petal-delay: -14.33s; --petal-opacity: 0.82; --petal-sway-duration: 6.7s; --petal-spin-duration: 13.4s;">
+                <span class="petal-sway">
+                    <span class="petal-sprite">
+                        <img src="storage/site/petals/01M46XN8Z9HQ0FCF64VM3W9ETQ.png" alt="" width="128" height="128" decoding="async" draggable="false">
+                    </span>
+                </span>
+            </span>
+                                <span class="falling-petal" data-depth="mid" style="--petal-left: 88.1%; --petal-mobile-left: 143.2%; --petal-size: 27px; --petal-sway: 40px; --petal-turn: 47deg; --petal-duration: 24.9s; --petal-delay: -3.11s; --petal-opacity: 0.58; --petal-sway-duration: 5.7s; --petal-spin-duration: 11.9s;">
+                <span class="petal-sway">
+                    <span class="petal-sprite">
+                        <img src="storage/site/petals/01M46XN8Z9HQ0FCF64VM3W9ETQ.png" alt="" width="128" height="128" decoding="async" draggable="false">
+                    </span>
+                </span>
+            </span>
+                                <span class="falling-petal" data-depth="mid" style="--petal-left: 97.75%; --petal-mobile-left: 151.7%; --petal-size: 31px; --petal-sway: -34px; --petal-turn: 86deg; --petal-duration: 26s; --petal-delay: -15.15s; --petal-opacity: 0.58; --petal-sway-duration: 4.7s; --petal-spin-duration: 10.6s;">
+                <span class="petal-sway">
+                    <span class="petal-sprite">
+                        <img src="storage/site/petals/01M46XN8Z9HQ0FCF64VM3W9ETQ.png" alt="" width="128" height="128" decoding="async" draggable="false">
+                    </span>
+                </span>
+            </span>
+            </div>
+    <script defer src="js/falling-petals_5e1f15.js"></script>
+    <main class="max-w-7xl w-full mx-auto px-4">
+        
+<style>
+    /* ===================================
+       EVENTS SECTION - CUSTOM SCROLLBAR
+       ================================== */
+    
+    /* Webkit browsers (Chrome, Safari, Edge) */
+    .events-scroll::-webkit-scrollbar {
+        height: 8px;
+    }
+    
+    .events-scroll::-webkit-scrollbar-track {
+        background: rgba(107, 107, 107, 0.2);
+        border-radius: 10px;
+    }
+    
+    .events-scroll::-webkit-scrollbar-thumb {
+        background: linear-gradient(90deg, var(--site-color-gradient-start), var(--site-color-gradient-end));
+        border-radius: 10px;
+    }
+    
+    .events-scroll::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(90deg, var(--site-color-accent), var(--site-color-link));
+    }
+    
+    /* Firefox scrollbar */
+    .events-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: var(--site-color-link) rgba(255, 255, 255, 0.08);
+    }
+
+    /* Events holographic ring */
+    @keyframes events-holographic-rotate {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Events holographic particles */
+    @keyframes events-holographic-particles {
+        to { background-position: 16px 16px; }
+    }
+
+    /* Events holographic pulse */
+    @keyframes events-holographic-pulse {
+        0% { transform: scale(0.82); opacity: 0.34; }
+        55% { transform: scale(1.08); opacity: 0.14; }
+        100% { transform: scale(1.26); opacity: 0; }
+    }
+
+    .events-heading__icon-badge {
+        position: relative;
+        isolation: isolate;
+        display: inline-grid;
+        place-items: center;
+        flex: 0 0 24px;
+        width: 24px;
+        height: 24px;
+        color: var(--site-color-link);
+        border-radius: 999px;
+    }
+
+    .events-heading__ring,
+    .events-heading__particles,
+    .events-heading__pulse {
+        position: absolute;
+        inset: 0;
+        display: block;
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .events-heading__ring {
+        z-index: 1;
+        border: 1.5px solid transparent;
+        border-left-color: currentColor;
+        border-right-color: currentColor;
+        opacity: 0.72;
+        animation: events-holographic-rotate 3s linear infinite;
+    }
+
+    .events-heading__particles {
+        z-index: 0;
+        background: radial-gradient(circle, transparent 20%, currentColor 22%, currentColor 28%, transparent 30%, transparent 43%, currentColor 45%, currentColor 49%, transparent 51%);
+        background-size: 8px 8px;
+        opacity: 0.1;
+        animation: events-holographic-particles 4s linear infinite;
+    }
+
+    .events-heading__pulse {
+        z-index: 2;
+        box-shadow: 0 0 9px currentColor;
+        opacity: 0.24;
+        animation: events-holographic-pulse 2.4s ease-out infinite;
+    }
+
+    .events-heading__icon {
+        position: relative;
+        z-index: 3;
+        font-size: 0.75rem;
+        filter: drop-shadow(0 0 5px rgba(241, 196, 15, 0.5));
+    }
+
+    /* Featured star orbit */
+    @keyframes featured-star-orbit {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Featured star twinkle */
+    @keyframes featured-star-twinkle {
+        0%, 100% { transform: scale(0.92) rotate(-4deg); filter: drop-shadow(0 0 3px rgba(241, 196, 15, 0.35)); }
+        45% { transform: scale(1.18) rotate(8deg); filter: drop-shadow(0 0 8px rgba(241, 196, 15, 0.8)); }
+        62% { transform: scale(1.02) rotate(0deg); filter: drop-shadow(0 0 5px rgba(241, 196, 15, 0.55)); }
+    }
+
+    .featured-heading__icon-badge {
+        position: relative;
+        isolation: isolate;
+        display: inline-grid;
+        place-items: center;
+        flex: 0 0 24px;
+        width: 24px;
+        height: 24px;
+        color: var(--site-color-link);
+    }
+
+    .featured-heading__orbit {
+        position: absolute;
+        inset: 1px;
+        z-index: 1;
+        border: 1px dashed rgba(241, 196, 15, 0.65);
+        border-radius: 50%;
+        pointer-events: none;
+        animation: featured-star-orbit 4s linear infinite;
+    }
+
+    .featured-heading__orbit::after {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: 50%;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: #fff3a3;
+        box-shadow: 0 0 6px 2px rgba(241, 196, 15, 0.65);
+        transform: translateX(-50%);
+    }
+
+    .featured-heading__icon {
+        position: relative;
+        z-index: 2;
+        font-size: 0.7rem;
+        animation: featured-star-twinkle 2.6s ease-in-out infinite;
+    }
+
+    /* All Games list wave */
+    @keyframes all-games-list-wave {
+        0%, 100% { transform: scaleX(0.5); opacity: 0.45; }
+        45%, 68% { transform: scaleX(1); opacity: 1; }
+    }
+
+    /* All Games soft glow */
+    @keyframes all-games-list-glow {
+        0%, 100% { box-shadow: 0 0 0 rgba(249, 115, 22, 0); }
+        50% { box-shadow: 0 0 11px rgba(241, 196, 15, 0.38); }
+    }
+
+    .all-games-heading__icon-badge {
+        display: inline-flex;
+        flex: 0 0 24px;
+        width: 24px;
+        height: 24px;
+        flex-direction: column;
+        justify-content: center;
+        gap: 3px;
+        padding: 4px;
+        color: var(--site-color-accent);
+        border-radius: 7px;
+        animation: all-games-list-glow 2.8s ease-in-out infinite;
+    }
+
+    .all-games-heading__row {
+        position: relative;
+        display: block;
+        width: 11px;
+        height: 2px;
+        margin-left: 4px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--site-color-gradient-start), var(--site-color-gradient-end));
+        transform-origin: left center;
+        animation: all-games-list-wave 1.8s ease-in-out infinite;
+    }
+
+    .all-games-heading__row::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -4px;
+        width: 2px;
+        height: 2px;
+        border-radius: 50%;
+        background: var(--site-color-link);
+        box-shadow: 0 0 4px color-mix(in srgb, var(--site-color-link) 70%, transparent);
+    }
+
+    .all-games-heading__row:nth-child(2) { animation-delay: 0.18s; }
+    .all-games-heading__row:nth-child(3) { animation-delay: 0.36s; }
+
+    @media (min-width: 640px) {
+        .events-heading__icon-badge {
+            flex-basis: 28px;
+            width: 28px;
+            height: 28px;
+        }
+
+        .events-heading__icon {
+            font-size: 0.875rem;
+        }
+
+        .featured-heading__icon-badge,
+        .all-games-heading__icon-badge {
+            flex-basis: 28px;
+            width: 28px;
+            height: 28px;
+        }
+
+        .featured-heading__icon {
+            font-size: 0.8rem;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .events-heading__ring,
+        .events-heading__particles,
+        .events-heading__pulse,
+        .featured-heading__orbit,
+        .featured-heading__icon,
+        .all-games-heading__icon-badge,
+        .all-games-heading__row {
+            animation: none;
+        }
+    }
+</style>
+
+    
+    
+    
+    
+    <section class="my-8 w-full relative">
+                <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Sora:wght@600;700&display=swap');
+
+    .slider-container {
+        contain: layout paint;
+    }
+
+    .slider-viewport {
+        width: 100%;
+        overflow: hidden;
+        overscroll-behavior-x: contain;
+        touch-action: pan-y;
+    }
+
+    .slider-track {
+        display: flex;
+        align-items: flex-start;
+        width: 100%;
+        transform: translateX(-100%);
+        transition: transform 520ms cubic-bezier(0.22, 0.61, 0.36, 1);
+        will-change: transform;
+    }
+
+    .slider-track[data-single-slide='true'] {
+        transform: translateX(0);
+    }
+
+    .slider-track.is-instant,
+    .slider-track.is-dragging {
+        transition: none;
+    }
+
+    .slide {
+        position: relative;
+        display: block;
+        width: 100%;
+        min-width: 100%;
+        flex: 0 0 100%;
+        overflow: hidden;
+    }
+
+    .slide-fallback {
+        min-height: 162px;
+    }
+
+    @media (min-width: 768px) {
+        .slide-fallback {
+            min-height: 250px;
+        }
+    }
+
+    .slide-banner-image {
+        display: block;
+        width: 100%;
+        height: auto;
+        user-select: none;
+        -webkit-user-drag: none;
+    }
+
+    .slider-pagination {
+        width: auto;
+        padding: 0;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        backdrop-filter: none;
+    }
+
+    .pg-bar {
+        position: relative;
+        width: 0.75rem;
+        height: 0.75rem;
+        flex: 0 0 auto;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.55);
+        cursor: pointer;
+        transition: width 220ms ease, border-color 220ms ease, background 220ms ease, box-shadow 220ms ease;
+    }
+
+    .pg-bar.active {
+        width: 1.8rem;
+        border: 0;
+        background: #fff;
+        box-shadow: none;
+    }
+
+    .pg-bar:focus-visible {
+        outline: 2px solid #fff;
+        outline-offset: 2px;
+    }
+
+    .pg-fill {
+        display: none;
+    }
+
+    .blue-gradient {
+        background: linear-gradient(90deg, #1e40af 0%, #1d4ed8 40%, #0f172a 100%);
+    }
+
+    @media (max-width: 767px) {
+        .slider-pagination {
+            gap: 0.35rem;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            backdrop-filter: none;
+        }
+
+        .pg-bar {
+            width: 0.4rem;
+            height: 0.4rem;
+            border: 0;
+            background: rgba(255, 255, 255, 0.55);
+            box-shadow: none;
+        }
+
+        .pg-bar.active {
+            width: 0.9rem;
+            border: 0;
+            background: #fff;
+            box-shadow: none;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .slider-track,
+        .pg-bar {
+            transition: none !important;
+        }
+    }
+</style>
+
+
+<div
+    class="slider-container relative w-full rounded-xl border-1 overflow-hidden bg-slate-900 shadow-2xl"
+    data-slider
+    data-slide-count="3"
+    aria-roledescription="carousel"
+    aria-label="Promotional banners"
+>
+    <div class="slider-viewport" data-slider-viewport>
+        <div class="slider-track" data-slider-track data-single-slide="false">
+                                            <div
+                    class="slide w-full slide-with-image"
+                    data-real-index="2"
+                    data-duration="5000"
+                     data-clone="true" aria-hidden="true" inert                 >
+                                            <img
+                            src="storage/sliders/01M770XT0BPWSWW7VCMH25QVBN.jpg"
+                            alt="Coin"
+                            class="slide-banner-image"
+                            loading="lazy"
+                            draggable="false"
+                        >
+                    
+                    
+                    <div class="flex h-full w-full items-center absolute inset-0 z-10 px-6 md:px-12">
+                                            </div>
+                </div>
+                                            <div
+                    class="slide w-full slide-with-image"
+                    data-real-index="0"
+                    data-duration="5000"
+                                    >
+                                            <img
+                            src="storage/sliders/01M5VFRHNXJQVKZENJQWPWQ567.jpg"
+                            alt="Banner"
+                            class="slide-banner-image"
+                            loading="eager"
+                            draggable="false"
+                        >
+                    
+                    
+                    <div class="flex h-full w-full items-center absolute inset-0 z-10 px-6 md:px-12">
+                                            </div>
+                </div>
+                                            <div
+                    class="slide w-full slide-with-image"
+                    data-real-index="1"
+                    data-duration="5000"
+                                    >
+                                            <img
+                            src="storage/sliders/01M74NSJMNGR2KM4E9BPKWFQZ2.png"
+                            alt="Banner 3"
+                            class="slide-banner-image"
+                            loading="lazy"
+                            draggable="false"
+                        >
+                    
+                                            <a
+                            href="/game/roblox-giftcard"
+                            class="absolute inset-0 z-20"
+                            aria-label="Banner 3"
+                                                    ></a>
+                    
+                    <div class="flex h-full w-full items-center absolute inset-0 z-10 px-6 md:px-12">
+                                            </div>
+                </div>
+                                            <div
+                    class="slide w-full slide-with-image"
+                    data-real-index="2"
+                    data-duration="5000"
+                                    >
+                                            <img
+                            src="storage/sliders/01M770XT0BPWSWW7VCMH25QVBN.jpg"
+                            alt="Coin"
+                            class="slide-banner-image"
+                            loading="lazy"
+                            draggable="false"
+                        >
+                    
+                    
+                    <div class="flex h-full w-full items-center absolute inset-0 z-10 px-6 md:px-12">
+                                            </div>
+                </div>
+                                            <div
+                    class="slide w-full slide-with-image"
+                    data-real-index="0"
+                    data-duration="5000"
+                     data-clone="true" aria-hidden="true" inert                 >
+                                            <img
+                            src="storage/sliders/01M5VFRHNXJQVKZENJQWPWQ567.jpg"
+                            alt="Banner"
+                            class="slide-banner-image"
+                            loading="lazy"
+                            draggable="false"
+                        >
+                    
+                    
+                    <div class="flex h-full w-full items-center absolute inset-0 z-10 px-6 md:px-12">
+                                            </div>
+                </div>
+                    </div>
+    </div>
+
+    <div class="slider-pagination absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 flex gap-2 justify-center z-20">
+                    <button
+                type="button"
+                class="pg-bar active"
+                data-index="0"
+                aria-label="Show slide 1"
+                aria-current="true"
+            >
+                <span class="pg-fill bg-primary"></span>
+            </button>
+                    <button
+                type="button"
+                class="pg-bar "
+                data-index="1"
+                aria-label="Show slide 2"
+                aria-current="false"
+            >
+                <span class="pg-fill bg-primary"></span>
+            </button>
+                    <button
+                type="button"
+                class="pg-bar "
+                data-index="2"
+                aria-label="Show slide 3"
+                aria-current="false"
+            >
+                <span class="pg-fill bg-primary"></span>
+            </button>
+            </div>
 </div>
 
-<main class="max-w-7xl w-full mx-auto px-4 py-4 flex-1" id="app" aria-live="polite">
-  <div class="text-center py-16 text-daddy-text-darker">Loading…</div>
-</main>
+    <script src="js/banner-slider.js" defer></script>
+            </section>
 
-<footer id="storefront-footer" class="mt-auto py-3 px-2 bg-daddy-dark-purple/90 shadow-inner">
-  <div class="max-w-7xl px-2 mx-auto">
-    <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
-      <div class="storefront-footer__payments flex items-center gap-2 bg-daddy-purple/30 px-3 py-1.5 rounded-lg border border-daddy-light-purple/20">
-        <span class="font-semibold">We accept:</span>
-        <img src="../payments/aba-payway.png" alt="ABA" class="h-5">
-        <img src="../payments/khqr-mark.png" alt="KHQR" class="h-5">
-      </div>
-      <div class="text-center">
-        <p class="text-daddy-text-light/80">Copyright © POR POR TOPUP. All Rights Reserved.</p>
-        <p><a href="#/terms" class="text-daddy-orange underline">Terms and Conditions</a> · <a href="https://t.me/smos_sne1" target="_blank" class="text-daddy-orange underline">Support</a></p>
-      </div>
+    <nav class="catalog-categories" aria-label="Shop by category" id="catalog-categories">
+    <div class="catalog-categories__items">
+                    <a href="?category=game"
+               class="catalog-categories__item catalog-categories__item--game"
+               data-catalog-category="game"
+                aria-current="page" >
+                <span class="catalog-categories__badge" aria-hidden="true">
+                    <img src="img/categories/natsu-game-89e162d31735.webp" width="40" height="40" alt="" decoding="async">
+                </span>
+                <span class="catalog-categories__label">Game</span>
+            </a>
+                    <a href="?category=giftcard"
+               class="catalog-categories__item catalog-categories__item--giftcard"
+               data-catalog-category="giftcard"
+               >
+                <span class="catalog-categories__badge" aria-hidden="true">
+                    <img src="img/categories/natsu-giftcard-35fe0f9f9f13.webp" width="40" height="40" alt="" decoding="async">
+                </span>
+                <span class="catalog-categories__label">Giftcard</span>
+            </a>
+            </div>
+    <a class="catalog-categories__all" href=""
+       >View all</a>
+</nav>
+
+    
+    
+        
+    
+        <div class="home-catalog-block">
+        <div id="featured" class="flex items-center justify-between gap-2 mb-3 flex-wrap section-entrance" style="--section-delay: 0.06s">
+            <h2 class="flex items-center gap-2 text-[0.8rem] sm:text-[1rem] md:text-[1.2rem] font-extrabold text-primary text-left">
+                <span class="featured-heading__icon-badge" aria-hidden="true">
+                    <span class="featured-heading__orbit"></span>
+                    <i class="fas fa-star featured-heading__icon"></i>
+                </span>
+                <div class="flex items-baseline gap-2">
+                                            <span>Trending Game</span>
+                                        
+                </div>
+            </h2>
+
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-daddy-dark-purple/30 border border-daddy-light-purple/30 text-xs sm:text-sm flex-shrink-0">
+                <i class="fas fa-star text-sm sm:text-base text-daddy-orange"></i>
+                <span class="font-semibold text-daddy-orange">7 items</span>
+            </div>
+        </div>
+
+        <div data-catalog-section="trending"
+     data-category="game"
+     data-revision="d7986faeb2ab1d03d09840c5c9bccf982bfc71b0525443ce584ae370a96bbc2b"
+     data-next-offset="">
+    <section data-catalog-grid class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
+        <div data-catalog-id="45">
+        <style>
+    /* An in-flow square reserves image space before decoding, including Safari. */
+    .featured-card-image {
+        position: relative;
+        width: 100%;
+        overflow: hidden;
+        border-radius: .75rem;
+    }
+
+    .featured-card-image::before {
+        content: '';
+        display: block;
+        padding-top: 100%;
+    }
+
+    .featured-card-image > img {
+        position: absolute;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Gentle floating motion */
+    @keyframes float-featured { 
+        0%, 100% { 
+            transform: translateY(0) scale(1); 
+        } 
+        50% { 
+            transform: translateY(-8px) scale(1.05); 
+        } 
+    }
+    
+    /* Fade in and slide up entrance animation */
+    @keyframes fadeInUp-featured { 
+        from { 
+            opacity: 0; 
+            transform: translateY(20px); 
+        } 
+        to { 
+            opacity: 1; 
+            transform: translateY(0); 
+        } 
+    }
+    
+    .featured-card {
+        /* Glow colors - golden theme */
+        --card-glow-color: rgba(212, 175, 55, 0.14);
+        --card-glow-strong: rgba(212, 175, 55, 0.22);
+        
+        /* Smooth bouncy transition for hover effects */
+        transition: transform .28s cubic-bezier(.34, 1.56, .64, 1), 
+                    box-shadow .28s cubic-bezier(.34, 1.56, .64, 1);
+        
+        /* Default shadow: dark shadow + subtle gold glow */
+        box-shadow: var(--card-elevation), 
+                    0 8px 30px -12px rgba(0, 0, 0, 0.6), 
+                    0 6px 20px var(--card-glow-color);
+        
+        /* Animation support */
+        animation-delay: var(--card-delay, 0s);
+        animation-fill-mode: both;
+        will-change: transform, box-shadow;
+    }
+
+    @media (hover: hover) {
+        .featured-card:hover {
+            transform: translateY(-4px) scale(1.01);
+            box-shadow:
+                var(--card-elevation-hover),
+                0 10px 30px -10px rgba(255, 255, 255, 0.65),
+                0 6px 30px -6px var(--card-glow-strong),
+                0 0 48px -8px var(--card-glow-color);
+            z-index: 30;
+        }
+
+        .featured-card.game-card-unavailable:hover {
+            transform: none;
+            box-shadow: var(--card-elevation), 0 8px 30px -12px rgba(0, 0, 0, 0.6);
+        }
+    }
+
+    /* Mobile/touch: apply the same effect on tap */
+    @media (hover: none) {
+        .featured-card.is-tapped {
+            transform: translateY(-4px) scale(1.01);
+            box-shadow:
+                var(--card-elevation-hover),
+                0 10px 30px -10px rgba(255, 255, 255, 0.65),
+                0 6px 30px -6px var(--card-glow-strong),
+                0 0 48px -8px var(--card-glow-color);
+            z-index: 30;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .featured-card:hover { 
+            box-shadow: var(--card-elevation-hover); 
+        }
+
+        .featured-card.is-tapped {
+            transform: none;
+            box-shadow: var(--card-elevation-hover);
+        }
+    }
+
+    .featured-card .crystal-float { 
+        animation: float-featured 3s ease-in-out infinite; 
+    }
+    
+    .featured-card { 
+        touch-action: manipulation; 
+        -webkit-tap-highlight-color: transparent; 
+    }
+    
+    .featured-card:focus { 
+        outline: none; 
+        transform: none; 
+        box-shadow: var(--card-elevation); 
+    }
+
+    .game-card-unavailable {
+        cursor: not-allowed;
+    }
+
+    .game-card-unavailable .game-card-visual {
+        filter: grayscale(1);
+        opacity: 0.52;
+    }
+
+    .entrance-animate-featured { 
+        opacity: 0; 
+        transform: translateY(8px); 
+        will-change: transform, opacity; 
+    }
+    
+    .entrance-animate-featured.is-visible { 
+        animation: fadeInUp-featured 0.6s ease forwards; 
+        animation-delay: var(--card-delay, 0s); 
+    }
+</style>
+
+<script>
+    (() => {
+        const tappedClass = 'is-tapped';
+        const releaseDelayMs = 140;
+        let releaseTimer = null;
+
+        const clearAllTapped = () => {
+            if (releaseTimer) {
+                clearTimeout(releaseTimer);
+                releaseTimer = null;
+            }
+            document.querySelectorAll('.featured-card.' + tappedClass).forEach((el) => {
+                el.classList.remove(tappedClass);
+            });
+        };
+
+        document.addEventListener(
+            'pointerdown',
+            (e) => {
+                const card = e.target?.closest?.('.featured-card');
+                if (!card) return;
+                if (card.getAttribute('aria-disabled') === 'true') return;
+
+                // Only for primary button/touch-like interactions
+                if (typeof e.button === 'number' && e.button !== 0) return;
+
+                clearAllTapped();
+                card.classList.add(tappedClass);
+            },
+            { passive: true }
+        );
+
+        const scheduleRelease = () => {
+            if (releaseTimer) clearTimeout(releaseTimer);
+            releaseTimer = setTimeout(clearAllTapped, releaseDelayMs);
+        };
+
+        document.addEventListener('pointerup', scheduleRelease, { passive: true });
+        document.addEventListener('pointercancel', clearAllTapped, { passive: true });
+        document.addEventListener('blur', clearAllTapped, true);
+    })();
+</script>
+
+<div class="entrance-animate" style="--card-delay: 0.00s;">
+    
+    
+    <div
+        class="featured-card relative overflow-hidden rounded-xl w-full transition-shadow duration-200 bg-daddy-dark-purple group cursor-pointer"
+            >
+                    <a href="blox-fruits.html" class="block" aria-label="Blox fruits">
+                    <div class="game-card-visual">
+                <div class="relative w-full p-3">
+                
+                
+                                    <div class="absolute left-0 top-0 z-20 flex items-center rounded-br-lg sm:rounded-br-xl bg-primary px-2 py-0.5 sm:px-3 sm:py-1 shadow-sm">
+                        <i class="fas fa-star text-[10px] sm:text-xs text-white mr-1 sm:mr-2"></i>
+                        <span class="text-[9px] sm:text-[10px] md:text-xs font-black italic text-white tracking-wide sm:tracking-widest">
+                            TOP
+                        </span>
+                    </div>
+                
+                
+                <div class="featured-card-image">
+                    
+                                            
+                        <img 
+                            src="api/catalog/images/45/200d6738be3132f31f457af2d6bd0f04"
+                            alt="Blox fruits" 
+                            class="absolute inset-0 w-full h-full object-cover block"
+                            loading="eager" decoding="async" width="320" height="320"
+                        >
+                                    </div>
+            </div>
+
+            <div class="px-3 pb-3 bg-daddy-dark-purple">
+                
+                
+                <h3 class="text-xs font-bold text-white line-clamp-2 min-h-[2rem] leading-4 mb-2" title="Blox fruits">
+                    Blox fruits
+                </h3>
+    
+                
+                                    <span class="block w-full text-center py-1.5 sm:py-2 md:py-2.5 rounded-lg md:rounded-xl bg-primary font-bold text-[10px] sm:text-xs md:text-sm text-white transition-all group-hover:bg-[#FFC700] shadow-md">
+                        <i class="fas fa-bolt mr-1 text-[8px] sm:text-[10px] md:text-xs"></i>
+                        TOP UP
+                    </span>
+                            </div>
+            </div>
+                    </a>
+            </div>
+</div>
     </div>
-  </div>
-</footer>
+    <div data-catalog-id="28">
+        <div class="entrance-animate" style="--card-delay: 0.03s;">
+    
+    
+    <div
+        class="featured-card relative overflow-hidden rounded-xl w-full transition-shadow duration-200 bg-daddy-dark-purple group cursor-pointer"
+            >
+                    <a href="free-fire-kh.html" class="block" aria-label="Free Fire (KH)">
+                    <div class="game-card-visual">
+                <div class="relative w-full p-3">
+                
+                
+                                    <div class="absolute left-0 top-0 z-20 flex items-center rounded-br-lg sm:rounded-br-xl bg-primary px-2 py-0.5 sm:px-3 sm:py-1 shadow-sm">
+                        <i class="fas fa-star text-[10px] sm:text-xs text-white mr-1 sm:mr-2"></i>
+                        <span class="text-[9px] sm:text-[10px] md:text-xs font-black italic text-white tracking-wide sm:tracking-widest">
+                            TOP
+                        </span>
+                    </div>
+                
+                
+                <div class="featured-card-image">
+                    
+                                            
+                        <img 
+                            src="api/catalog/images/28/eb0de1c05c4d64dc9185d235edab4cef"
+                            alt="Free Fire (KH)" 
+                            class="absolute inset-0 w-full h-full object-cover block"
+                            loading="eager" decoding="async" width="320" height="320"
+                        >
+                                    </div>
+            </div>
 
-<!-- Login dialog -->
-<dialog id="customer-login-dialog" class="customer-login-dialog" aria-labelledby="customer-login-title">
-  <div class="customer-login-panel">
-    <button type="button" class="customer-login-close" id="loginClose" aria-label="Close login"><i class="fas fa-times" aria-hidden="true"></i></button>
-    <div class="customer-login-brand" aria-hidden="true"><img src="../images/porpor-logo.svg" alt="" class="customer-login-logo"></div>
-    <h2 id="customer-login-title" class="customer-login-title">Log in</h2>
-    <p class="customer-login-description">Choose an account to continue</p>
-    <div class="customer-login-error" id="loginErr" role="alert" hidden></div>
-    <div class="customer-login-options">
-      <div id="tg-login-widget" class="flex justify-center min-h-[48px]"></div>
-      <p class="text-xs text-gray-500" id="tgHint">Login with Telegram</p>
+            <div class="px-3 pb-3 bg-daddy-dark-purple">
+                
+                
+                <h3 class="text-xs font-bold text-white line-clamp-2 min-h-[2rem] leading-4 mb-2" title="Free Fire (KH)">
+                    Free Fire (KH)
+                </h3>
+    
+                
+                                    <span class="block w-full text-center py-1.5 sm:py-2 md:py-2.5 rounded-lg md:rounded-xl bg-primary font-bold text-[10px] sm:text-xs md:text-sm text-white transition-all group-hover:bg-[#FFC700] shadow-md">
+                        <i class="fas fa-bolt mr-1 text-[8px] sm:text-[10px] md:text-xs"></i>
+                        TOP UP
+                    </span>
+                            </div>
+            </div>
+                    </a>
+            </div>
+</div>
     </div>
-  </div>
-</dialog>
+    <div data-catalog-id="25">
+        <div class="entrance-animate" style="--card-delay: 0.05s;">
+    
+    
+    <div
+        class="featured-card relative overflow-hidden rounded-xl w-full transition-shadow duration-200 bg-daddy-dark-purple group cursor-pointer"
+            >
+                    <a href="/game/mlbb-kh" class="block" aria-label="MLBB (KH)">
+                    <div class="game-card-visual">
+                <div class="relative w-full p-3">
+                
+                
+                                    <div class="absolute left-0 top-0 z-20 flex items-center rounded-br-lg sm:rounded-br-xl bg-primary px-2 py-0.5 sm:px-3 sm:py-1 shadow-sm">
+                        <i class="fas fa-star text-[10px] sm:text-xs text-white mr-1 sm:mr-2"></i>
+                        <span class="text-[9px] sm:text-[10px] md:text-xs font-black italic text-white tracking-wide sm:tracking-widest">
+                            TOP
+                        </span>
+                    </div>
+                
+                
+                <div class="featured-card-image">
+                    
+                                            
+                        <img 
+                            src="api/catalog/images/25/97ea79f550fc5dc99293bbe5d7e0aee1"
+                            alt="MLBB (KH)" 
+                            class="absolute inset-0 w-full h-full object-cover block"
+                            loading="eager" decoding="async" width="320" height="320"
+                        >
+                                    </div>
+            </div>
 
-<!-- KHQR dialog -->
-<dialog id="qr-dialog" class="customer-login-dialog" aria-labelledby="qr-title">
-  <div class="customer-login-panel">
-    <button type="button" class="customer-login-close" id="qrClose" aria-label="Close"><i class="fas fa-times" aria-hidden="true"></i></button>
-    <h2 id="qr-title" class="customer-login-title">ABA KHQR</h2>
-    <div class="text-2xl font-bold mt-2 text-gray-900" id="qrAmount"></div>
-    <div class="mt-3 flex justify-center" id="qrBox"></div>
-    <p class="text-sm text-gray-500 mt-2">Scan with ABA Mobile to pay</p>
-    <a id="qrDeeplink" class="hidden mt-3 inline-block px-4 py-2 rounded-lg bg-daddy-orange text-daddy-dark-purple font-bold" target="_blank" rel="noopener">Open ABA Mobile</a>
-    <p class="text-sm mt-3 text-gray-700" id="qrStatus">Waiting for payment…</p>
-    <button type="button" class="mt-2 px-4 py-2 rounded-lg border border-gray-300 text-gray-700" id="qrCheck">I have paid</button>
-  </div>
-</dialog>
+            <div class="px-3 pb-3 bg-daddy-dark-purple">
+                
+                
+                <h3 class="text-xs font-bold text-white line-clamp-2 min-h-[2rem] leading-4 mb-2" title="MLBB (KH)">
+                    MLBB (KH)
+                </h3>
+    
+                
+                                    <span class="block w-full text-center py-1.5 sm:py-2 md:py-2.5 rounded-lg md:rounded-xl bg-primary font-bold text-[10px] sm:text-xs md:text-sm text-white transition-all group-hover:bg-[#FFC700] shadow-md">
+                        <i class="fas fa-bolt mr-1 text-[8px] sm:text-[10px] md:text-xs"></i>
+                        TOP UP
+                    </span>
+                            </div>
+            </div>
+                    </a>
+            </div>
+</div>
+    </div>
+    <div data-catalog-id="47">
+        <div class="entrance-animate" style="--card-delay: 0.08s;">
+    
+    
+    <div
+        class="featured-card relative overflow-hidden rounded-xl w-full transition-shadow duration-200 bg-daddy-dark-purple group cursor-pointer"
+            >
+                    <a href="/game/preorder-ticket-2" class="block" aria-label="Preorder Ticket លើកទី 2">
+                    <div class="game-card-visual">
+                <div class="relative w-full p-3">
+                
+                
+                                    <div class="absolute left-0 top-0 z-20 flex items-center rounded-br-lg sm:rounded-br-xl bg-primary px-2 py-0.5 sm:px-3 sm:py-1 shadow-sm">
+                        <i class="fas fa-star text-[10px] sm:text-xs text-white mr-1 sm:mr-2"></i>
+                        <span class="text-[9px] sm:text-[10px] md:text-xs font-black italic text-white tracking-wide sm:tracking-widest">
+                            TOP
+                        </span>
+                    </div>
+                
+                
+                <div class="featured-card-image">
+                    
+                                            
+                        <img 
+                            src="api/catalog/images/47/6526f73ab53b2988b6f6d280bc8ec099"
+                            alt="Preorder Ticket លើកទី 2" 
+                            class="absolute inset-0 w-full h-full object-cover block"
+                            loading="lazy" decoding="async" width="320" height="320"
+                        >
+                                    </div>
+            </div>
 
-<div id="toast" class="hidden fixed left-1/2 -translate-x-1/2 bottom-6 bg-daddy-dark-purple border border-daddy-orange text-daddy-text-light px-4 py-2 rounded-xl z-[1200] text-sm max-w-[calc(100%-2rem)]" role="status"></div>
+            <div class="px-3 pb-3 bg-daddy-dark-purple">
+                
+                
+                <h3 class="text-xs font-bold text-white line-clamp-2 min-h-[2rem] leading-4 mb-2" title="Preorder Ticket លើកទី 2">
+                    Preorder Ticket លើកទី 2
+                </h3>
+    
+                
+                                    <span class="block w-full text-center py-1.5 sm:py-2 md:py-2.5 rounded-lg md:rounded-xl bg-primary font-bold text-[10px] sm:text-xs md:text-sm text-white transition-all group-hover:bg-[#FFC700] shadow-md">
+                        <i class="fas fa-bolt mr-1 text-[8px] sm:text-[10px] md:text-xs"></i>
+                        TOP UP
+                    </span>
+                            </div>
+            </div>
+                    </a>
+            </div>
+</div>
+    </div>
+    <div data-catalog-id="31">
+        <div class="entrance-animate" style="--card-delay: 0.10s;">
+    
+    
+    <div
+        class="featured-card relative overflow-hidden rounded-xl w-full transition-shadow duration-200 bg-daddy-dark-purple group cursor-pointer"
+            >
+                    <a href="/game/pubg-mobile" class="block" aria-label="PUBG Mobile">
+                    <div class="game-card-visual">
+                <div class="relative w-full p-3">
+                
+                
+                                    <div class="absolute left-0 top-0 z-20 flex items-center rounded-br-lg sm:rounded-br-xl bg-primary px-2 py-0.5 sm:px-3 sm:py-1 shadow-sm">
+                        <i class="fas fa-star text-[10px] sm:text-xs text-white mr-1 sm:mr-2"></i>
+                        <span class="text-[9px] sm:text-[10px] md:text-xs font-black italic text-white tracking-wide sm:tracking-widest">
+                            TOP
+                        </span>
+                    </div>
+                
+                
+                <div class="featured-card-image">
+                    
+                                            
+                        <img 
+                            src="api/catalog/images/31/9c59ee9a27ec0d8ae02019ee4b4d4893"
+                            alt="PUBG Mobile" 
+                            class="absolute inset-0 w-full h-full object-cover block"
+                            loading="lazy" decoding="async" width="320" height="320"
+                        >
+                                    </div>
+            </div>
 
-<script src="js/app.js"></script>
+            <div class="px-3 pb-3 bg-daddy-dark-purple">
+                
+                
+                <h3 class="text-xs font-bold text-white line-clamp-2 min-h-[2rem] leading-4 mb-2" title="PUBG Mobile">
+                    PUBG Mobile
+                </h3>
+    
+                
+                                    <span class="block w-full text-center py-1.5 sm:py-2 md:py-2.5 rounded-lg md:rounded-xl bg-primary font-bold text-[10px] sm:text-xs md:text-sm text-white transition-all group-hover:bg-[#FFC700] shadow-md">
+                        <i class="fas fa-bolt mr-1 text-[8px] sm:text-[10px] md:text-xs"></i>
+                        TOP UP
+                    </span>
+                            </div>
+            </div>
+                    </a>
+            </div>
+</div>
+    </div>
+    <div data-catalog-id="46">
+        <div class="entrance-animate" style="--card-delay: 0.13s;">
+    
+    
+    <div
+        class="featured-card relative overflow-hidden rounded-xl w-full transition-shadow duration-200 bg-daddy-dark-purple group cursor-pointer"
+            >
+                    <a href="/game/rivals" class="block" aria-label="RIVALS">
+                    <div class="game-card-visual">
+                <div class="relative w-full p-3">
+                
+                
+                                    <div class="absolute left-0 top-0 z-20 flex items-center rounded-br-lg sm:rounded-br-xl bg-primary px-2 py-0.5 sm:px-3 sm:py-1 shadow-sm">
+                        <i class="fas fa-star text-[10px] sm:text-xs text-white mr-1 sm:mr-2"></i>
+                        <span class="text-[9px] sm:text-[10px] md:text-xs font-black italic text-white tracking-wide sm:tracking-widest">
+                            TOP
+                        </span>
+                    </div>
+                
+                
+                <div class="featured-card-image">
+                    
+                                            
+                        <img 
+                            src="api/catalog/images/46/b72dbe50b18ee20ae50f9e8a4c776e22"
+                            alt="RIVALS" 
+                            class="absolute inset-0 w-full h-full object-cover block"
+                            loading="lazy" decoding="async" width="320" height="320"
+                        >
+                                    </div>
+            </div>
+
+            <div class="px-3 pb-3 bg-daddy-dark-purple">
+                
+                
+                <h3 class="text-xs font-bold text-white line-clamp-2 min-h-[2rem] leading-4 mb-2" title="RIVALS">
+                    RIVALS
+                </h3>
+    
+                
+                                    <span class="block w-full text-center py-1.5 sm:py-2 md:py-2.5 rounded-lg md:rounded-xl bg-primary font-bold text-[10px] sm:text-xs md:text-sm text-white transition-all group-hover:bg-[#FFC700] shadow-md">
+                        <i class="fas fa-bolt mr-1 text-[8px] sm:text-[10px] md:text-xs"></i>
+                        TOP UP
+                    </span>
+                            </div>
+            </div>
+                    </a>
+            </div>
+</div>
+    </div>
+    <div data-catalog-id="26">
+        <div class="entrance-animate" style="--card-delay: 0.13s;">
+    
+    
+    <div
+        class="featured-card relative overflow-hidden rounded-xl w-full transition-shadow duration-200 bg-daddy-dark-purple group cursor-pointer"
+            >
+                    <a href="/game/roblox-giftcard" class="block" aria-label="Roblox Giftcard">
+                    <div class="game-card-visual">
+                <div class="relative w-full p-3">
+                
+                
+                                    <div class="absolute left-0 top-0 z-20 flex items-center rounded-br-lg sm:rounded-br-xl bg-primary px-2 py-0.5 sm:px-3 sm:py-1 shadow-sm">
+                        <i class="fas fa-star text-[10px] sm:text-xs text-white mr-1 sm:mr-2"></i>
+                        <span class="text-[9px] sm:text-[10px] md:text-xs font-black italic text-white tracking-wide sm:tracking-widest">
+                            TOP
+                        </span>
+                    </div>
+                
+                
+                <div class="featured-card-image">
+                    
+                                            
+                        <img 
+                            src="api/catalog/images/26/1fc2ca154a8dc31a609f63162e0e635a"
+                            alt="Roblox Giftcard" 
+                            class="absolute inset-0 w-full h-full object-cover block"
+                            loading="lazy" decoding="async" width="320" height="320"
+                        >
+                                    </div>
+            </div>
+
+            <div class="px-3 pb-3 bg-daddy-dark-purple">
+                
+                
+                <h3 class="text-xs font-bold text-white line-clamp-2 min-h-[2rem] leading-4 mb-2" title="Roblox Giftcard">
+                    Roblox Giftcard
+                </h3>
+    
+                
+                                    <span class="block w-full text-center py-1.5 sm:py-2 md:py-2.5 rounded-lg md:rounded-xl bg-primary font-bold text-[10px] sm:text-xs md:text-sm text-white transition-all group-hover:bg-[#FFC700] shadow-md">
+                        <i class="fas fa-bolt mr-1 text-[8px] sm:text-[10px] md:text-xs"></i>
+                        TOP UP
+                    </span>
+                            </div>
+            </div>
+                    </a>
+            </div>
+</div>
+    </div>
+    </section>
+    
+    <div data-catalog-sentinel class="home-catalog-sentinel flex items-center justify-center text-sm text-gray-400" role="status" aria-live="polite">
+        <span data-catalog-loading hidden>Loading games…</span>
+    </div>
+    </div>
+
+<style>
+.catalog-skeleton{margin-top:1rem}.catalog-skeleton[hidden]{display:none}
+.catalog-skeleton-card{border-radius:.75rem;background:var(--card-background,#2d3545)}
+.catalog-skeleton-image{aspect-ratio:1;border-radius:.75rem}.catalog-skeleton-line{height:.9rem;width:72%;border-radius:.25rem}.catalog-skeleton-button{border-radius:.75rem}
+.catalog-skeleton-image,.catalog-skeleton-line,.catalog-skeleton-button{background:linear-gradient(100deg,rgba(255,255,255,.03) 20%,rgba(255,255,255,.10) 50%,rgba(255,255,255,.03) 80%);background-size:200% 100%;animation:catalog-shimmer 1.8s linear infinite}
+@keyframes catalog-shimmer{to{background-position:-200% 0}}
+@media(prefers-reduced-motion:reduce){.catalog-skeleton-image,.catalog-skeleton-line,.catalog-skeleton-button{animation:none}}
+</style>
+    </div>
+    
+    
+        <div class="home-catalog-block">
+        <div id="all-games" class="flex items-center justify-between gap-2 mb-3 flex-wrap section-entrance" style="--section-delay: 0.08s">
+            <h2 class="flex items-center gap-2 text-[0.8rem] sm:text-[1rem] md:text-[1.2rem] font-extrabold text-primary text-left">
+                <span class="all-games-heading__icon-badge" aria-hidden="true">
+                    <span class="all-games-heading__row"></span>
+                    <span class="all-games-heading__row"></span>
+                    <span class="all-games-heading__row"></span>
+                </span>
+                <div class="flex items-baseline gap-2">
+                    <span>All Games</span>
+                    
+                </div>
+            </h2>
+
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-daddy-dark-purple/30 border border-daddy-light-purple/30 text-xs sm:text-sm flex-shrink-0">
+                <i class="fas fa-layer-group text-sm sm:text-base text-daddy-orange"></i>
+                <span class="font-semibold text-daddy-orange">15 games</span>
+            </div>
+        </div>
+
+        <div data-catalog-section="all"
+     data-category="game"
+     data-revision="1fc867e4054b4b9bebb3dd0061240bf4ba1f2f12688d8bee5e1df4ffb2d24e35"
+     data-next-offset="13">
+    <section data-catalog-grid class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
+        <div data-catalog-id="32">
+        <div class="entrance-animate" style="--card-delay: 0.00s;">
+    
+    
+    <div
+        class="featured-card relative overflow-hidden rounded-xl w-full transition-shadow duration-200 bg-daddy-dark-purple group cursor-pointer"
+            >
+                    <a href="bloodstrike.html" class="block" aria-label="BloodStrike">
+                    <div class="game-card-visual">
+                <div class="relative w-full p-3">
+                
+                
+                
+                
+                <div class="featured-card-image">
+                    
+                                            
+                        <img 
+                            src="api/catalog/images/32/d9c60f44ad5a88028f2f4ae792731ad1"
+                            alt="BloodStrike" 
+                            class="absolute inset-0 w-full h-full object-cover block"
+                            loading="lazy" decoding="async" width="320" height="320"
+                        >
+                                    </div>
+            </div>
+
+            <div class="px-3 pb-3 bg-daddy-dark-purple">
+                
+                
+                <h3 class="text-xs font-bold text-white line-clamp-2 min-h-[2rem] leading-4 mb-2" title="BloodStrike">
+                    BloodStrike
+                </h3>
+    
+                
+                                    <span class="block w-full text-center py-1.5 sm:py-2 md:py-2.5 rounded-lg md:rounded-xl bg-primary font-bold text-[10px] sm:text-xs md:text-sm text-white transition-all group-hover:bg-[#FFC700] shadow-md">
+                        <i class="fas fa-bolt mr-1 text-[8px] sm:text-[10px] md:text-xs"></i>
+                        TOP UP
+                    </span>
+                            </div>
+            </div>
+                    </a>
+            </div>
+</div>
+    </div>
+    <div data-catalog-id="40">
+        <div class="entrance-animate" style="--card-delay: 0.03s;">
+    
+    
+    <div
+        class="featured-card relative overflow-hidden rounded-xl w-full transition-shadow duration-200 bg-daddy-dark-purple group cursor-pointer"
+            >
+                    <a href="free-fire-indo.html" class="block" aria-label="Free fire (INDO)">
+                    <div class="game-card-visual">
+                <div class="relative w-full p-3">
+                
+                
+                
+                
+                <div class="featured-card-image">
+                    
+                                            
+                        <img 
+                            src="api/catalog/images/40/85b40fdfac2b64ea12414751879e6879"
+                            alt="Free fire (INDO)" 
+                            class="absolute inset-0 w-full h-full object-cover block"
+                            loading="lazy" decoding="async" width="320" height="320"
+                        >
+                                    </div>
+            </div>
+
+            <div class="px-3 pb-3 bg-daddy-dark-purple">
+                
+                
+                <h3 class="text-xs font-bold text-white line-clamp-2 min-h-[2rem] leading-4 mb-2" title="Free fire (INDO)">
+                    Free fire (INDO)
+                </h3>
+    
+                
+                                    <span class="block w-full text-center py-1.5 sm:py-2 md:py-2.5 rounded-lg md:rounded-xl bg-primary font-bold text-[10px] sm:text-xs md:text-sm text-white transition-all group-hover:bg-[#FFC700] shadow-md">
+                        <i class="fas fa-bolt mr-1 text-[8px] sm:text-[10px] md:text-xs"></i>
+                        TOP UP
+                    </span>
+                            </div>
+            </div>
+                    </a>
+            </div>
+</div>
+    </div>
+    <div data-catalog-id="39">
+        <div class="entrance-animate" style="--card-delay: 0.05s;">
+    
+    
+    <div
+        class="featured-card relative overflow-hidden rounded-xl w-full transition-shadow duration-200 bg-daddy-dark-purple group cursor-pointer"
+            >
+                    <a href="/game/free-fire-tw" class="block" aria-label="Free Fire (TW)">
+                    <div class="game-card-visual">
+                <div class="relative w-full p-3">
+                
+                
+                
+                
+                <div class="featured-card-image">
+                    
+                                            
+                        <img 
+                            src="api/catalog/images/39/fa030f268800f85f91a1938d0c7c8423"
+                            alt="Free Fire (TW)" 
+                            class="absolute inset-0 w-full h-full object-cover block"
+                            loading="lazy" decoding="async" width="320" height="320"
+                        >
+                                    </div>
+            </div>
+
+            <div class="px-3 pb-3 bg-daddy-dark-purple">
+                
+                
+                <h3 class="text-xs font-bold text-white line-clamp-2 min-h-[2rem] leading-4 mb-2" title="Free Fire (TW)">
+                    Free Fire (TW)
+                </h3>
+    
+                
+                                    <span class="block w-full text-center py-1.5 sm:py-2 md:py-2.5 rounded-lg md:rounded-xl bg-primary font-bold text-[10px] sm:text-xs md:text-sm text-white transition-all group-hover:bg-[#FFC700] shadow-md">
+                        <i class="fas fa-bolt mr-1 text-[8px] sm:text-[10px] md:text-xs"></i>
+                        TOP UP
+                    </span>
+                            </div>
+            </div>
+                    </a>
+            </div>
+</div>
+    </div>
+    <div data-catalog-id="41">
+        <div class="entrance-animate" style="--card-delay: 0.08s;">
+    
+    
+    <div
+        class="featured-card relative overflow-hidden rounded-xl w-full transition-shadow duration-200 bg-daddy-dark-purple group cursor-pointer"
+            >
+                    <a href="/game/free-fire-vn" class="block" aria-label="Free fire (VN)">
+                    <div class="game-card-visual">
+                <div class="relative w-full p-3">
+                
+                
+                
+                
+                <div class="featured-card-image">
+                    
+                                            
+                        <img 
+                            src="api/catalog/images/41/775f477b0d1f7bab4eefe24f4f33c378"
+                            alt="Free fire (VN)" 
+                            class="absolute inset-0 w-full h-full object-cover block"
+                            loading="lazy" decoding="async" width="320" height="320"
+                        >
+                                    </div>
+            </div>
+
+            <div class="px-3 pb-3 bg-daddy-dark-purple">
+                
+                
+                <h3 class="text-xs font-bold text-white line-clamp-2 min-h-[2rem] leading-4 mb-2" title="Free fire (VN)">
+                    Free fire (VN)
+                </h3>
+    
+                
+                                    <span class="block w-full text-center py-1.5 sm:py-2 md:py-2.5 rounded-lg md:rounded-xl bg-primary font-bold text-[10px] sm:text-xs md:text-sm text-white transition-all group-hover:bg-[#FFC700] shadow-md">
+                        <i class="fas fa-bolt mr-1 text-[8px] sm:text-[10px] md:text-xs"></i>
+                        TOP UP
+                    </span>
+                            </div>
+            </div>
+                    </a>
+            </div>
+</div>
+    </div>
+    <div data-catalog-id="30">
+        <div class="entrance-animate" style="--card-delay: 0.10s;">
+    
+    
+    <div
+        class="featured-card relative overflow-hidden rounded-xl w-full transition-shadow duration-200 bg-daddy-dark-purple group cursor-pointer"
+            >
+                    <a href="/game/honor-of-kings" class="block" aria-label="Honor of Kings">
+                    <div class="game-card-visual">
+                <div class="relative w-full p-3">
+                
+                
+                
+                
+                <div class="featured-card-image">
+                    
+                                            
+                        <img 
+                            src="api/catalog/images/30/3bd4b8a224bc3e52fb1c2eb540361600"
+                            alt="Honor of Kings" 
+                            class="absolute inset-0 w-full h-full object-cover block"
+                            loading="lazy" decoding="async" width="320" height="320"
+                        >
+                                    </div>
+            </div>
+
+            <div class="px-3 pb-3 bg-daddy-dark-purple">
+                
+                
+                <h3 class="text-xs font-bold text-white line-clamp-2 min-h-[2rem] leading-4 mb-2" title="Honor of Kings">
+                    Honor of Kings
+                </h3>
+    
+                
+                                    <span class="block w-full text-center py-1.5 sm:py-2 md:py-2.5 rounded-lg md:rounded-xl bg-primary font-bold text-[10px] sm:text-xs md:text-sm text-white transition-all group-hover:bg-[#FFC700] shadow-md">
+                        <i class="fas fa-bolt mr-1 text-[8px] sm:text-[10px] md:text-xs"></i>
+                        TOP UP
+                    </span>
+                            </div>
+            </div>
+                    </a>
+            </div>
+</div>
+    </div>
+    <div data-catalog-id="35">
+        <div class="entrance-animate" style="--card-delay: 0.13s;">
+    
+    
+    <div
+        class="featured-card relative overflow-hidden rounded-xl w-full transition-shadow duration-200 bg-daddy-dark-purple group cursor-pointer"
+            >
+                    <a href="/game/league-of-legends-wild-rift-mobile-kh" class="block" aria-label="League of Legends: Wild Rift (Mobile KH)">
+                    <div class="game-card-visual">
+                <div class="relative w-full p-3">
+                
+                
+                
+                
+                <div class="featured-card-image">
+                    
+                                            
+                        <img 
+                            src="api/catalog/images/35/cbafbfe0d3bacfb695fea9d3bc4dc58c"
+                            alt="League of Legends: Wild Rift (Mobile KH)" 
+                            class="absolute inset-0 w-full h-full object-cover block"
+                            loading="lazy" decoding="async" width="320" height="320"
+                        >
+                                    </div>
+            </div>
+
+            <div class="px-3 pb-3 bg-daddy-dark-purple">
+                
+                
+                <h3 class="text-xs font-bold text-white line-clamp-2 min-h-[2rem] leading-4 mb-2" title="League of Legends: Wild Rift (Mobile KH)">
+                    League of Legends: Wild Rift (Mobile KH)
+                </h3>
+    
+                
+                                    <span class="block w-full text-center py-1.5 sm:py-2 md:py-2.5 rounded-lg md:rounded-xl bg-primary font-bold text-[10px] sm:text-xs md:text-sm text-white transition-all group-hover:bg-[#FFC700] shadow-md">
+                        <i class="fas fa-bolt mr-1 text-[8px] sm:text-[10px] md:text-xs"></i>
+                        TOP UP
+                    </span>
+                            </div>
+            </div>
+                    </a>
+            </div>
+</div>
+    </div>
+    <div data-catalog-id="29">
+        <div class="entrance-animate" style="--card-delay: 0.13s;">
+    
+    
+    <div
+        class="featured-card relative overflow-hidden rounded-xl w-full transition-shadow duration-200 bg-daddy-dark-purple group cursor-pointer"
+            >
+                    <a href="/game/magic-chess-go-go" class="block" aria-label="Magic Chess: GO GO">
+                    <div class="game-card-visual">
+                <div class="relative w-full p-3">
+                
+                
+                
+                
+                <div class="featured-card-image">
+                    
+                                            
+                        <img 
+                            src="api/catalog/images/29/1a064e57ebbd0518d40bf31869a2a531"
+                            alt="Magic Chess: GO GO" 
+                            class="absolute inset-0 w-full h-full object-cover block"
+                            loading="lazy" decoding="async" width="320" height="320"
+                        >
+                                    </div>
+            </div>
+
+            <div class="px-3 pb-3 bg-daddy-dark-purple">
+                
+                
+                <h3 class="text-xs font-bold text-white line-clamp-2 min-h-[2rem] leading-4 mb-2" title="Magic Chess: GO GO">
+                    Magic Chess: GO GO
+                </h3>
+    
+                
+                                    <span class="block w-full text-center py-1.5 sm:py-2 md:py-2.5 rounded-lg md:rounded-xl bg-primary font-bold text-[10px] sm:text-xs md:text-sm text-white transition-all group-hover:bg-[#FFC700] shadow-md">
+                        <i class="fas fa-bolt mr-1 text-[8px] sm:text-[10px] md:text-xs"></i>
+                        TOP UP
+                    </span>
+                            </div>
+            </div>
+                    </a>
+            </div>
+</div>
+    </div>
+    <div data-catalog-id="42">
+        <div class="entrance-animate" style="--card-delay: 0.13s;">
+    
+    
+    <div
+        class="featured-card relative overflow-hidden rounded-xl w-full transition-shadow duration-200 bg-daddy-dark-purple group cursor-pointer"
+            >
+                    <a href="/game/mlbb-indo" class="block" aria-label="MLBB (INDO)">
+                    <div class="game-card-visual">
+                <div class="relative w-full p-3">
+                
+                
+                
+                
+                <div class="featured-card-image">
+                    
+                                            
+                        <img 
+                            src="api/catalog/images/42/b80e30e0098922db36c44c9627d9f619"
+                            alt="MLBB (INDO)" 
+                            class="absolute inset-0 w-full h-full object-cover block"
+                            loading="lazy" decoding="async" width="320" height="320"
+                        >
+                                    </div>
+            </div>
+
+            <div class="px-3 pb-3 bg-daddy-dark-purple">
+                
+                
+                <h3 class="text-xs font-bold text-white line-clamp-2 min-h-[2rem] leading-4 mb-2" title="MLBB (INDO)">
+                    MLBB (INDO)
+                </h3>
+    
+                
+                                    <span class="block w-full text-center py-1.5 sm:py-2 md:py-2.5 rounded-lg md:rounded-xl bg-primary font-bold text-[10px] sm:text-xs md:text-sm text-white transition-all group-hover:bg-[#FFC700] shadow-md">
+                        <i class="fas fa-bolt mr-1 text-[8px] sm:text-[10px] md:text-xs"></i>
+                        TOP UP
+                    </span>
+                            </div>
+            </div>
+                    </a>
+            </div>
+</div>
+    </div>
+    <div data-catalog-id="43">
+        <div class="entrance-animate" style="--card-delay: 0.13s;">
+    
+    
+    <div
+        class="featured-card relative overflow-hidden rounded-xl w-full transition-shadow duration-200 bg-daddy-dark-purple group cursor-pointer"
+            >
+                    <a href="/game/mlbb-ph" class="block" aria-label="MLBB (PH)">
+                    <div class="game-card-visual">
+                <div class="relative w-full p-3">
+                
+                
+                
+                
+                <div class="featured-card-image">
+                    
+                                            
+                        <img 
+                            src="api/catalog/images/43/36ff3ae009dc87cf0e8da532247878a6"
+                            alt="MLBB (PH)" 
+                            class="absolute inset-0 w-full h-full object-cover block"
+                            loading="lazy" decoding="async" width="320" height="320"
+                        >
+                                    </div>
+            </div>
+
+            <div class="px-3 pb-3 bg-daddy-dark-purple">
+                
+                
+                <h3 class="text-xs font-bold text-white line-clamp-2 min-h-[2rem] leading-4 mb-2" title="MLBB (PH)">
+                    MLBB (PH)
+                </h3>
+    
+                
+                                    <span class="block w-full text-center py-1.5 sm:py-2 md:py-2.5 rounded-lg md:rounded-xl bg-primary font-bold text-[10px] sm:text-xs md:text-sm text-white transition-all group-hover:bg-[#FFC700] shadow-md">
+                        <i class="fas fa-bolt mr-1 text-[8px] sm:text-[10px] md:text-xs"></i>
+                        TOP UP
+                    </span>
+                            </div>
+            </div>
+                    </a>
+            </div>
+</div>
+    </div>
+    <div data-catalog-id="44">
+        <div class="entrance-animate" style="--card-delay: 0.13s;">
+    
+    
+    <div
+        class="featured-card relative overflow-hidden rounded-xl w-full transition-shadow duration-200 bg-daddy-dark-purple group cursor-pointer"
+            >
+                    <a href="/game/mlbb-sg-my" class="block" aria-label="MLBB (SG-MY)">
+                    <div class="game-card-visual">
+                <div class="relative w-full p-3">
+                
+                
+                
+                
+                <div class="featured-card-image">
+                    
+                                            
+                        <img 
+                            src="api/catalog/images/44/cdd9d657d2fc729696b99477f4b2e81d"
+                            alt="MLBB (SG-MY)" 
+                            class="absolute inset-0 w-full h-full object-cover block"
+                            loading="lazy" decoding="async" width="320" height="320"
+                        >
+                                    </div>
+            </div>
+
+            <div class="px-3 pb-3 bg-daddy-dark-purple">
+                
+                
+                <h3 class="text-xs font-bold text-white line-clamp-2 min-h-[2rem] leading-4 mb-2" title="MLBB (SG-MY)">
+                    MLBB (SG-MY)
+                </h3>
+    
+                
+                                    <span class="block w-full text-center py-1.5 sm:py-2 md:py-2.5 rounded-lg md:rounded-xl bg-primary font-bold text-[10px] sm:text-xs md:text-sm text-white transition-all group-hover:bg-[#FFC700] shadow-md">
+                        <i class="fas fa-bolt mr-1 text-[8px] sm:text-[10px] md:text-xs"></i>
+                        TOP UP
+                    </span>
+                            </div>
+            </div>
+                    </a>
+            </div>
+</div>
+    </div>
+    <div data-catalog-id="33">
+        <div class="entrance-animate" style="--card-delay: 0.13s;">
+    
+    
+    <div
+        class="featured-card relative overflow-hidden rounded-xl w-full transition-shadow duration-200 bg-daddy-dark-purple group cursor-pointer"
+            >
+                    <a href="/game/valorant-kh" class="block" aria-label="Valorant (KH)">
+                    <div class="game-card-visual">
+                <div class="relative w-full p-3">
+                
+                
+                
+                
+                <div class="featured-card-image">
+                    
+                                            
+                        <img 
+                            src="api/catalog/images/33/7cc5b2c0d1280d7c9e5a3565ac318cc2"
+                            alt="Valorant (KH)" 
+                            class="absolute inset-0 w-full h-full object-cover block"
+                            loading="lazy" decoding="async" width="320" height="320"
+                        >
+                                    </div>
+            </div>
+
+            <div class="px-3 pb-3 bg-daddy-dark-purple">
+                
+                
+                <h3 class="text-xs font-bold text-white line-clamp-2 min-h-[2rem] leading-4 mb-2" title="Valorant (KH)">
+                    Valorant (KH)
+                </h3>
+    
+                
+                                    <span class="block w-full text-center py-1.5 sm:py-2 md:py-2.5 rounded-lg md:rounded-xl bg-primary font-bold text-[10px] sm:text-xs md:text-sm text-white transition-all group-hover:bg-[#FFC700] shadow-md">
+                        <i class="fas fa-bolt mr-1 text-[8px] sm:text-[10px] md:text-xs"></i>
+                        TOP UP
+                    </span>
+                            </div>
+            </div>
+                    </a>
+            </div>
+</div>
+    </div>
+    <div data-catalog-id="34">
+        <div class="entrance-animate" style="--card-delay: 0.13s;">
+    
+    
+    <div
+        class="featured-card relative overflow-hidden rounded-xl w-full transition-shadow duration-200 bg-daddy-dark-purple game-card-unavailable cursor-not-allowed"
+         aria-disabled="true" title="Valorant (PH) is currently unavailable"     >
+                    <div class="block select-none" aria-label="Valorant (PH) - Unavailable">
+                    <div class="game-card-visual">
+                <div class="relative w-full p-3">
+                
+                
+                
+                
+                <div class="featured-card-image">
+                    
+                                            
+                        <img 
+                            src="api/catalog/images/34/e832017085b88e410b4a3f2b4047d04b"
+                            alt="Valorant (PH)" 
+                            class="absolute inset-0 w-full h-full object-cover block"
+                            loading="lazy" decoding="async" width="320" height="320"
+                        >
+                                    </div>
+            </div>
+
+            <div class="px-3 pb-3 bg-daddy-dark-purple">
+                
+                
+                <h3 class="text-xs font-bold text-white line-clamp-2 min-h-[2rem] leading-4 mb-2" title="Valorant (PH)">
+                    Valorant (PH)
+                </h3>
+    
+                
+                                    <span class="block w-full text-center py-1.5 sm:py-2 md:py-2.5 rounded-lg md:rounded-xl bg-gray-700 font-bold text-[10px] sm:text-xs md:text-sm text-gray-300">
+                        <i class="fas fa-ban mr-1 text-[8px] sm:text-[10px] md:text-xs"></i>
+                        UNAVAILABLE
+                    </span>
+                            </div>
+            </div>
+                    </div>
+            </div>
+</div>
+    </div>
+    <div data-catalog-id="37">
+        <div class="entrance-animate" style="--card-delay: 0.13s;">
+    
+    
+    <div
+        class="featured-card relative overflow-hidden rounded-xl w-full transition-shadow duration-200 bg-daddy-dark-purple group cursor-pointer"
+            >
+                    <a href="/game/where-winds-meet" class="block" aria-label="Where Winds Meet">
+                    <div class="game-card-visual">
+                <div class="relative w-full p-3">
+                
+                
+                
+                
+                <div class="featured-card-image">
+                    
+                                            
+                        <img 
+                            src="api/catalog/images/37/91360e503b7c0c17da067805ea90085e"
+                            alt="Where Winds Meet" 
+                            class="absolute inset-0 w-full h-full object-cover block"
+                            loading="lazy" decoding="async" width="320" height="320"
+                        >
+                                    </div>
+            </div>
+
+            <div class="px-3 pb-3 bg-daddy-dark-purple">
+                
+                
+                <h3 class="text-xs font-bold text-white line-clamp-2 min-h-[2rem] leading-4 mb-2" title="Where Winds Meet">
+                    Where Winds Meet
+                </h3>
+    
+                
+                                    <span class="block w-full text-center py-1.5 sm:py-2 md:py-2.5 rounded-lg md:rounded-xl bg-primary font-bold text-[10px] sm:text-xs md:text-sm text-white transition-all group-hover:bg-[#FFC700] shadow-md">
+                        <i class="fas fa-bolt mr-1 text-[8px] sm:text-[10px] md:text-xs"></i>
+                        TOP UP
+                    </span>
+                            </div>
+            </div>
+                    </a>
+            </div>
+</div>
+    </div>
+    </section>
+    
+    <div data-catalog-sentinel class="home-catalog-sentinel flex items-center justify-center text-sm text-gray-400" role="status" aria-live="polite">
+        <span data-catalog-loading hidden>Loading games…</span>
+    </div>
+        <div data-catalog-skeleton class="catalog-skeleton grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4" aria-hidden="true">
+                    <div class="catalog-skeleton-card">
+                <div class="p-3"><div class="catalog-skeleton-image"></div></div>
+                <div class="px-3 pb-3">
+                    <div class="min-h-[2rem] mb-2"><div class="catalog-skeleton-line"></div></div>
+                    <div class="catalog-skeleton-button py-1.5 sm:py-2 md:py-2.5 text-[10px] sm:text-xs md:text-sm">&nbsp;</div>
+                </div>
+            </div>
+                    <div class="catalog-skeleton-card">
+                <div class="p-3"><div class="catalog-skeleton-image"></div></div>
+                <div class="px-3 pb-3">
+                    <div class="min-h-[2rem] mb-2"><div class="catalog-skeleton-line"></div></div>
+                    <div class="catalog-skeleton-button py-1.5 sm:py-2 md:py-2.5 text-[10px] sm:text-xs md:text-sm">&nbsp;</div>
+                </div>
+            </div>
+            </div>
+    </div>
+
+    </div>
+    
+    
+    
+<script src="js/home-catalog-scroll_8a55ce.js" defer></script>
+    </main>
+
+    
+            <style>
+        /* Install banner entrance */
+        @keyframes install-banner-rise {
+            0% { opacity: 0; transform: translate3d(0, 28px, 0) scale(.94); }
+            72% { opacity: 1; transform: translate3d(0, -3px, 0) scale(1.01); }
+            100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+        }
+
+        /* Install logo float */
+        @keyframes install-banner-logo-float {
+            0%, 100% { transform: translateY(0) rotate(0); }
+            50% { transform: translateY(-3px) rotate(-2deg); }
+        }
+
+        /* Install button shimmer */
+        @keyframes install-banner-shimmer {
+            0%, 35% { transform: translateX(-150%) skewX(-20deg); }
+            65%, 100% { transform: translateX(220%) skewX(-20deg); }
+        }
+
+        .install-app-banner-shell {
+            position: fixed;
+            z-index: 1590;
+            right: 0;
+            bottom: 18px;
+            left: 0;
+            display: flex;
+            justify-content: center;
+            box-sizing: border-box;
+            padding: 0 16px;
+            pointer-events: none;
+        }
+
+        .install-app-banner-shell[hidden] { display: none; }
+
+        .install-app-banner {
+            position: relative;
+            display: grid;
+            width: min(430px, 100%);
+            min-height: 74px;
+            grid-template-columns: 48px minmax(0, 1fr) auto 28px;
+            align-items: center;
+            box-sizing: border-box;
+            gap: 10px;
+            padding: 10px 10px 10px 12px;
+            overflow: hidden;
+            border: 1px solid color-mix(in srgb, var(--site-color-accent) 22%, transparent);
+            border-radius: 18px;
+            color: #172033;
+            background: linear-gradient(105deg, rgba(255, 250, 246, .98), rgba(255, 255, 255, .98) 48%);
+            box-shadow: 0 16px 44px color-mix(in srgb, var(--site-color-primary-dark) 22%, transparent), 0 0 0 1px rgba(255, 255, 255, .65) inset;
+            font-family: 'Noto Sans Khmer', 'Space Grotesk', sans-serif;
+            pointer-events: auto;
+            animation: install-banner-rise .48s cubic-bezier(.22, 1, .36, 1) both;
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+        }
+
+        .install-app-banner::before {
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 5px;
+            content: '';
+            background: linear-gradient(180deg, var(--site-color-gradient-end), var(--site-color-gradient-start) 58%, var(--site-color-primary-dark));
+        }
+
+        .install-app-banner__icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 2px solid color-mix(in srgb, var(--site-color-accent) 28%, transparent);
+            box-shadow: 0 5px 14px color-mix(in srgb, var(--site-color-primary-dark) 20%, transparent);
+            animation: install-banner-logo-float 3s ease-in-out infinite;
+        }
+
+        .install-app-banner__copy { min-width: 0; }
+
+        .install-app-banner__title {
+            overflow: hidden;
+            margin: 0;
+            color: #172033;
+            font-size: .9rem;
+            font-weight: 800;
+            line-height: 1.25;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .install-app-banner__description {
+            margin: 2px 0 0;
+            color: #687386;
+            font-size: .71rem;
+            font-weight: 500;
+            line-height: 1.3;
+        }
+
+        .install-app-banner__ios-help {
+            display: block;
+            margin-top: 3px;
+            color: var(--site-color-primary-dark);
+            font-size: .68rem;
+            font-weight: 700;
+        }
+
+        .install-app-banner__ios-help[hidden] { display: none; }
+
+        .install-app-banner__install {
+            position: relative;
+            min-width: 66px;
+            min-height: 42px;
+            overflow: hidden;
+            padding: 0 14px;
+            border: 2px solid var(--site-color-primary-dark);
+            border-radius: 12px;
+            color: var(--site-color-primary-dark);
+            background: linear-gradient(135deg, var(--site-color-gradient-start), var(--site-color-gradient-end));
+            box-shadow: 0 6px 16px color-mix(in srgb, var(--site-color-primary-dark) 30%, transparent);
+            cursor: pointer;
+            font: inherit;
+            font-size: .76rem;
+            font-weight: 800;
+            transition: transform .2s cubic-bezier(.34, 1.56, .64, 1), box-shadow .2s ease;
+        }
+
+        .install-app-banner__install::after {
+            position: absolute;
+            inset: -30% auto -30% 0;
+            width: 38%;
+            content: '';
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .62), transparent);
+            animation: install-banner-shimmer 3.4s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .install-app-banner__install:hover { transform: translateY(-2px) scale(1.04); box-shadow: 0 9px 22px rgba(217, 4, 41, .38); }
+        .install-app-banner__install:active { transform: scale(.95); }
+
+        .install-app-banner__install:focus-visible,
+        .install-app-banner__close:focus-visible {
+            outline: 3px solid #0084ff;
+            outline-offset: 2px;
+        }
+
+        .install-app-banner__close {
+            display: grid;
+            width: 28px;
+            height: 36px;
+            place-items: center;
+            padding: 0;
+            border: 0;
+            border-radius: 9px;
+            color: #99a1af;
+            background: transparent;
+            cursor: pointer;
+            font-size: 1.35rem;
+            line-height: 1;
+            transition: color .18s ease, background .18s ease;
+        }
+
+        .install-app-banner__close:hover { color: #172033; background: #f1f5f9; }
+
+        body.install-app-banner-visible .floating-support-widget {
+            bottom: calc(24px + var(--install-banner-offset, 94px));
+            transition: bottom .28s ease;
+        }
+
+        @media (max-width: 520px) {
+            .install-app-banner-shell { bottom: 10px; padding: 0 10px; }
+
+            .install-app-banner {
+                min-height: 68px;
+                grid-template-columns: 42px minmax(0, 1fr) auto 24px;
+                gap: 8px;
+                padding: 9px 8px 9px 10px;
+                border-radius: 17px;
+            }
+
+            .install-app-banner__icon { width: 42px; height: 42px; border-radius: 10px; }
+            .install-app-banner__title { font-size: .78rem; }
+            .install-app-banner__description { font-size: .63rem; }
+            .install-app-banner__install { min-width: 58px; min-height: 38px; padding: 0 10px; font-size: .68rem; }
+            .install-app-banner__close { width: 24px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .install-app-banner,
+            .install-app-banner__icon,
+            .install-app-banner__install::after { animation: none !important; }
+
+            .install-app-banner__install,
+            body.install-app-banner-visible .floating-support-widget { transition: none; }
+        }
+    </style>
+
+<div class="install-app-banner-shell" data-install-app-shell hidden>
+    <aside class="install-app-banner" aria-label="Install POR POR TOPUP">
+        <img class="install-app-banner__icon" src="img/porpor-logo.svg" alt="" width="48" height="48">
+
+        <div class="install-app-banner__copy">
+            <p class="install-app-banner__title">Install POR POR TOPUP</p>
+            <p class="install-app-banner__description" data-install-description>Add to your home screen for faster access.</p>
+            <span class="install-app-banner__ios-help" data-install-help hidden>Tap Share, then “Add to Home Screen”.</span>
+        </div>
+
+        <button type="button" class="install-app-banner__install" data-install-app-button>Install</button>
+        <button type="button" class="install-app-banner__close" data-install-app-close aria-label="Close install suggestion">&times;</button>
+    </aside>
+</div>
+
+    <script>
+        (() => {
+            const shell = document.querySelector('[data-install-app-shell]');
+            if (!shell || !('serviceWorker' in navigator)) return;
+
+            const installButton = shell.querySelector('[data-install-app-button]');
+            const closeButton = shell.querySelector('[data-install-app-close]');
+            const helpText = shell.querySelector('[data-install-help]');
+            const storageKey = 'natsu-topup.install-banner.dismissed-at';
+            const dismissalDuration = 30 * 24 * 60 * 60 * 1000;
+            const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+            const isChromium = /(chrome|chromium|crios|edg|opr)/i.test(navigator.userAgent);
+            const standaloneMedia = window.matchMedia('(display-mode: standalone)');
+            let deferredInstallPrompt = null;
+            let fallbackTimer = null;
+
+            const isStandalone = () => standaloneMedia.matches || window.navigator.standalone === true;
+
+            const isInstalled = async () => {
+                if (isStandalone()) return true;
+
+                if (typeof navigator.getInstalledRelatedApps !== 'function') return false;
+
+                try {
+                    const installedApps = await navigator.getInstalledRelatedApps();
+                    return Array.isArray(installedApps) && installedApps.length > 0;
+                } catch (_) {
+                    return false;
+                }
+            };
+
+            const recentlyDismissed = () => {
+                try {
+                    const dismissedAt = Number(localStorage.getItem(storageKey) || 0);
+                    return dismissedAt > 0 && Date.now() - dismissedAt < dismissalDuration;
+                } catch (_) {
+                    return false;
+                }
+            };
+
+            const syncSupportOffset = () => {
+                const bannerHeight = shell.getBoundingClientRect().height;
+                document.body.style.setProperty('--install-banner-offset', `${Math.ceil(bannerHeight + 16)}px`);
+            };
+
+            const showBanner = async () => {
+                if (recentlyDismissed() || await isInstalled()) {
+                    hideBanner();
+                    return;
+                }
+
+                shell.hidden = false;
+                document.body.classList.add('install-app-banner-visible');
+                requestAnimationFrame(syncSupportOffset);
+            };
+
+            const hideBanner = () => {
+                shell.hidden = true;
+                document.body.classList.remove('install-app-banner-visible');
+                document.body.style.removeProperty('--install-banner-offset');
+            };
+
+            navigator.serviceWorker.register('/sw.js', { scope: '/' })
+                .then(async () => {
+                    if (await isInstalled()) {
+                        hideBanner();
+                        return;
+                    }
+
+                    // Chromium/Android must wait for the real install event so the first click opens its native dialog.
+                    // iOS and browsers without that event get platform-specific Add to Home Screen guidance.
+                    if (!isChromium || isIos) {
+                        fallbackTimer = window.setTimeout(() => { void showBanner(); }, 900);
+                    }
+                })
+                .catch(() => {
+                    // Installation remains unavailable when registration is blocked; do not show a dead control.
+                });
+
+            window.addEventListener('beforeinstallprompt', async (event) => {
+                event.preventDefault();
+                if (fallbackTimer) window.clearTimeout(fallbackTimer);
+
+                if (recentlyDismissed() || await isInstalled()) {
+                    deferredInstallPrompt = null;
+                    hideBanner();
+                    return;
+                }
+
+                deferredInstallPrompt = event;
+                helpText.hidden = true;
+                installButton.textContent = 'Install';
+                await showBanner();
+            });
+
+            installButton.addEventListener('click', async () => {
+                if (deferredInstallPrompt) {
+                    deferredInstallPrompt.prompt();
+                    const choice = await deferredInstallPrompt.userChoice;
+                    deferredInstallPrompt = null;
+
+                    if (choice.outcome === 'accepted') hideBanner();
+                    return;
+                }
+
+                helpText.textContent = isIos
+                    ? 'Tap Share, then “Add to Home Screen”.'
+                    : 'Open the browser menu, then choose “Install app”.';
+                helpText.hidden = false;
+                installButton.textContent = 'Got it';
+            });
+
+            closeButton.addEventListener('click', () => {
+                try { localStorage.setItem(storageKey, String(Date.now())); } catch (_) {}
+                hideBanner();
+            });
+
+            window.addEventListener('appinstalled', () => {
+                try { localStorage.removeItem(storageKey); } catch (_) {}
+                deferredInstallPrompt = null;
+                hideBanner();
+            });
+
+            if (typeof standaloneMedia.addEventListener === 'function') {
+                standaloneMedia.addEventListener('change', (event) => {
+                    if (event.matches) hideBanner();
+                });
+            }
+
+            window.addEventListener('resize', () => {
+                if (!shell.hidden) syncSupportOffset();
+            }, { passive: true });
+        })();
+    </script>
+    
+
+                <style nonce="">
+            @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Sora:wght@600;700&display=swap');
+
+            /* Gentle movement inside a stable viewport anchor; no expanding halo. */
+            @keyframes support-fab-float {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-4px); }
+            }
+
+            /* Bubble nudge */
+            @keyframes support-fab-bubble {
+                0% { opacity: 0; transform: translateX(14px) scale(.85); }
+                6%, 46% { opacity: 1; transform: translateX(0) scale(1); }
+                54%, 100% { opacity: 0; transform: translateX(14px) scale(.85); }
+            }
+
+            @keyframes support-widget-menu-enter {
+                from { opacity: 0; transform: translateY(8px) scale(.96); }
+                to { opacity: 1; transform: translateY(0) scale(1); }
+            }
+
+            /* Glossy light sweep across the 3D Messenger tile, contained by the tile. */
+            @keyframes support-fab-gloss {
+                0%, 70% { transform: translateX(-190%) skewX(-18deg); }
+                100% { transform: translateX(330%) skewX(-18deg); }
+            }
+
+            /* The Messenger bolt zaps in step with the gloss. */
+            @keyframes support-fab-zap {
+                0%, 72%, 100% { transform: scale(1) rotate(0deg); }
+                78% { transform: scale(1.22) rotate(-8deg); }
+                84% { transform: scale(.94) rotate(3deg); }
+                90% { transform: scale(1.06) rotate(0deg); }
+            }
+
+            @keyframes support-fab-zap-now {
+                0%, 100% { transform: scale(1) rotate(0deg); }
+                35% { transform: scale(1.22) rotate(-8deg); }
+                65% { transform: scale(.95) rotate(3deg); }
+            }
+
+            /* One entrance for the persistent tag; it never nudges again. */
+            @keyframes support-tag-enter {
+                from { opacity: 0; transform: translateY(8px) scale(.85); }
+                to { opacity: 1; transform: translateY(0) scale(1); }
+            }
+
+            @keyframes support-tag-arrow-enter {
+                from { opacity: 0; }
+            }
+
+            .floating-support-widget {
+                --support-size: 60px;
+                --support-bottom: 72px;
+                --support-bubble-cycle: 9000ms;
+                position: fixed;
+                right: calc(24px + env(safe-area-inset-right, 0px));
+                bottom: calc(var(--support-bottom) + env(safe-area-inset-bottom, 0px));
+                z-index: 1600;
+                width: var(--support-size);
+                height: var(--support-size);
+                isolation: isolate;
+            }
+
+            .floating-support-widget--bottom-left {
+                right: auto;
+                left: calc(24px + env(safe-area-inset-left, 0px));
+            }
+
+            @media (min-width: 768px) {
+                .floating-support-widget { --support-bottom: 32px; }
+            }
+
+            .floating-support-widget__float {
+                width: 100%;
+                height: 100%;
+                animation: support-fab-float 3.2s ease-in-out infinite;
+                will-change: transform;
+            }
+
+            .floating-support-widget:hover .floating-support-widget__float,
+            .floating-support-widget:focus-within .floating-support-widget__float {
+                animation-play-state: paused;
+            }
+
+            .floating-support-widget[data-open="true"] .floating-support-widget__float {
+                animation: none;
+            }
+
+            .floating-support-widget__wiggle {
+                position: relative;
+                width: 100%;
+                height: 100%;
+            }
+
+            /* The trigger is a transparent hit area holding the 3D tile and the
+               persistent tag, so tapping either opens support natively. */
+            .floating-support-widget__trigger {
+                position: relative;
+                display: block;
+                width: 100%;
+                height: 100%;
+                min-height: 60px;
+                padding: 0;
+                border: 0;
+                border-radius: 30%;
+                color: inherit;
+                background: transparent;
+                cursor: pointer;
+                text-decoration: none;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            .floating-support-widget__trigger:focus-visible {
+                outline: 3px solid #fff;
+                outline-offset: 4px;
+            }
+
+            /* White 3D squircle like the Messenger app tile. */
+            .floating-support-widget__tile {
+                position: relative;
+                display: grid;
+                width: 100%;
+                height: 100%;
+                place-items: center;
+                overflow: hidden;
+                border-radius: 30%;
+                background: linear-gradient(150deg, #ffffff 0%, #f5f5f8 55%, #e3e3ea 100%);
+                box-shadow:
+                    0 10px 22px rgba(0, 0, 0, .3),
+                    0 2px 4px rgba(0, 0, 0, .18),
+                    inset 0 2px 1px rgba(255, 255, 255, .95),
+                    inset 0 -5px 10px rgba(40, 24, 80, .12);
+                transform: scale(1);
+                transition: transform .25s cubic-bezier(.34, 1.56, .64, 1), box-shadow .25s ease;
+                -webkit-mask-image: -webkit-radial-gradient(white, black);
+            }
+
+            .floating-support-widget__tile::after {
+                position: absolute;
+                z-index: 2;
+                top: -20%;
+                bottom: -20%;
+                left: 0;
+                width: 42%;
+                content: '';
+                background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .9), transparent);
+                transform: translateX(-190%) skewX(-18deg);
+                animation: support-fab-gloss 5s ease-in-out 1.5s infinite;
+                pointer-events: none;
+            }
+
+            .floating-support-widget__trigger:focus-visible .floating-support-widget__tile {
+                transform: translateY(-2px) rotate(-5deg) scale(1.1);
+                box-shadow:
+                    0 16px 30px rgba(0, 0, 0, .34),
+                    0 3px 6px rgba(0, 0, 0, .2),
+                    inset 0 2px 1px rgba(255, 255, 255, .95),
+                    inset 0 -5px 10px rgba(40, 24, 80, .12);
+            }
+
+            .floating-support-widget__trigger:active .floating-support-widget__tile { transform: scale(.94); }
+
+            .floating-support-widget__messenger {
+                position: relative;
+                z-index: 1;
+                width: 40px;
+                height: 40px;
+                overflow: visible;
+                filter: drop-shadow(0 3px 5px rgba(110, 50, 220, .38));
+                pointer-events: none;
+            }
+
+            .floating-support-widget__bolt {
+                transform-box: fill-box;
+                transform-origin: center;
+                animation: support-fab-zap 5s ease-in-out 1.5s infinite;
+            }
+
+            .floating-support-widget__trigger:focus-visible .floating-support-widget__bolt {
+                animation: support-fab-zap-now .6s ease-out;
+            }
+
+            .floating-support-widget__badge {
+                position: absolute;
+                z-index: 3;
+                top: -.18rem;
+                right: -.18rem;
+                display: grid;
+                min-width: 1.15rem;
+                height: 1.15rem;
+                place-items: center;
+                padding: 0 .24rem;
+                border: 2px solid #fff;
+                border-radius: 9999px;
+                color: #fff;
+                background: #ef4444;
+                font-size: .62rem;
+                font-weight: 800;
+                line-height: 1;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, .3);
+            }
+
+            .floating-support-widget__badge:empty {
+                min-width: .8rem;
+                width: .8rem;
+                height: .8rem;
+                padding: 0;
+            }
+
+            /* Persistent scarlet tag above the tile so customers always see it
+               is the support button; it is part of the trigger's hit area. */
+            .floating-support-widget__tooltip {
+                position: absolute;
+                right: 0;
+                bottom: calc(100% + 14px);
+                display: block;
+                width: max-content;
+                max-width: min(14rem, calc(100vw - 48px));
+                overflow: hidden;
+                padding: .42rem .95rem;
+                border: 1.5px solid rgba(255, 210, 122, .9);
+                border-radius: 9999px;
+                color: #fff;
+                background: linear-gradient(135deg, #E3261F, #A8121A);
+                box-shadow: 0 8px 20px rgba(110, 10, 10, .35), inset 0 1px 0 rgba(255, 255, 255, .25);
+                font-family: 'Noto Sans Khmer', sans-serif;
+                font-size: .875rem;
+                font-weight: 700;
+                line-height: 1.35;
+                text-overflow: ellipsis;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, .3);
+                white-space: nowrap;
+                transform: translateY(0) scale(1);
+                transform-origin: right bottom;
+                transition: transform .22s cubic-bezier(.34, 1.56, .64, 1), opacity .2s ease;
+                animation: support-tag-enter .6s cubic-bezier(.34, 1.56, .64, 1) .6s backwards;
+            }
+
+            .floating-support-widget--auto-bubble .floating-support-widget__tooltip {
+                animation: support-fab-bubble var(--support-bubble-cycle) ease-in-out infinite;
+            }
+
+            /* Small pointer down to the tile's centre; it inherits the pill's edge colour. */
+            .floating-support-widget__tooltip-arrow {
+                position: absolute;
+                right: calc(50% - 4.5px);
+                bottom: calc(100% + 10px);
+                width: 9px;
+                height: 9px;
+                border-right: 1.5px solid rgba(255, 210, 122, .9);
+                border-bottom: 1.5px solid rgba(255, 210, 122, .9);
+                background: #AE141B;
+                transform: rotate(45deg);
+                transition: opacity .2s ease;
+                animation: support-tag-arrow-enter .6s ease-out .6s backwards;
+                pointer-events: none;
+            }
+
+            .floating-support-widget--bottom-left .floating-support-widget__tooltip {
+                right: auto;
+                left: 0;
+                transform-origin: left bottom;
+            }
+
+            .floating-support-widget--bottom-left .floating-support-widget__tooltip-arrow {
+                right: auto;
+                left: calc(50% - 4.5px);
+            }
+
+            .floating-support-widget__trigger:focus-visible .floating-support-widget__tooltip {
+                transform: translateY(-3px) scale(1.04);
+            }
+
+            /* Mouse hover mirrors keyboard focus; touch screens skip it so a tap
+               never leaves the tile stuck tilted. */
+            @media (hover: hover) {
+                .floating-support-widget__trigger:hover .floating-support-widget__tile {
+                    transform: translateY(-2px) rotate(-5deg) scale(1.1);
+                    box-shadow:
+                        0 16px 30px rgba(0, 0, 0, .34),
+                        0 3px 6px rgba(0, 0, 0, .2),
+                        inset 0 2px 1px rgba(255, 255, 255, .95),
+                        inset 0 -5px 10px rgba(40, 24, 80, .12);
+                }
+
+                .floating-support-widget__trigger:hover .floating-support-widget__bolt {
+                    animation: support-fab-zap-now .6s ease-out;
+                }
+
+                .floating-support-widget__trigger:hover .floating-support-widget__tooltip {
+                    transform: translateY(-3px) scale(1.04);
+                }
+            }
+
+            /* The contact panel opens over the tooltip; keep the ghosted bubble hidden while it is open. */
+            .floating-support-widget[data-open="true"] .floating-support-widget__tooltip,
+            .floating-support-widget[data-open="true"] .floating-support-widget__tooltip-arrow {
+                opacity: 0 !important;
+                pointer-events: none;
+                animation: none;
+            }
+
+            /* Contact panel: dark glass with an amber edge, matching the tile and tag. */
+            .floating-support-widget__menu {
+                position: absolute;
+                right: 0;
+                bottom: calc(100% + 1rem);
+                width: min(19rem, calc(100vw - 48px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+                max-height: min(28rem, calc(100dvh - max(var(--support-bottom), 24px + var(--install-banner-offset, 0px)) - 100px - env(safe-area-inset-bottom, 0px)));
+                overflow-y: auto;
+                overscroll-behavior: contain;
+                border: 1px solid rgba(255, 210, 122, .38);
+                border-radius: 1.25rem;
+                background: linear-gradient(180deg, #2c2c32 0%, #1f1f24 100%);
+                box-shadow: 0 24px 60px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .06);
+                scrollbar-color: rgba(255, 210, 122, .4) transparent;
+                scrollbar-width: thin;
+                transform-origin: bottom right;
+            }
+
+            .floating-support-widget--bottom-left .floating-support-widget__menu {
+                right: auto;
+                left: 0;
+                transform-origin: bottom left;
+            }
+
+            .floating-support-widget__menu:not([hidden]) { animation: support-widget-menu-enter .2s ease-out; }
+
+            .floating-support-widget__menu-header {
+                position: relative;
+                display: flex;
+                align-items: center;
+                gap: .75rem;
+                overflow: hidden;
+                padding: 1rem 1rem 1.05rem;
+                color: #fff;
+                background: linear-gradient(135deg, #E3261F 0%, #B8161A 60%, #8F1015 100%);
+            }
+
+            .floating-support-widget__menu-header::before {
+                position: absolute;
+                inset: 0;
+                content: '';
+                background:
+                    radial-gradient(120% 90% at 0% 0%, rgba(255, 255, 255, .22), transparent 55%),
+                    radial-gradient(80% 120% at 100% 100%, rgba(255, 159, 26, .28), transparent 60%);
+                pointer-events: none;
+            }
+
+            .floating-support-widget__menu-header::after {
+                position: absolute;
+                right: 0;
+                bottom: 0;
+                left: 0;
+                height: 2px;
+                content: '';
+                background: linear-gradient(90deg, transparent, #FFD27A, transparent);
+            }
+
+            .floating-support-widget__menu-icon {
+                position: relative;
+                display: grid;
+                width: 2.6rem;
+                height: 2.6rem;
+                flex: 0 0 2.6rem;
+                place-items: center;
+                border: 1.5px solid rgba(255, 236, 194, .9);
+                border-radius: 30%;
+                color: #7A0E12;
+                background: linear-gradient(135deg, #FFD27A, #FF9F1A);
+                box-shadow: 0 6px 14px rgba(0, 0, 0, .25), inset 0 1px 0 rgba(255, 255, 255, .6);
+                font-size: 1.1rem;
+            }
+
+            .floating-support-widget__menu-heading { position: relative; flex: 1 1 auto; min-width: 0; }
+            .floating-support-widget__menu-title { margin: 0; font-size: 1rem; font-weight: 800; text-shadow: 0 1px 2px rgba(0, 0, 0, .3); }
+            .floating-support-widget__menu-subtitle { margin: .15rem 0 0; color: rgba(255, 255, 255, .84); font-size: .72rem; line-height: 1.45; }
+
+            .floating-support-widget__close {
+                position: relative;
+                display: grid;
+                width: 2rem;
+                height: 2rem;
+                flex: 0 0 auto;
+                place-items: center;
+                border: 1px solid rgba(255, 255, 255, .3);
+                border-radius: 9999px;
+                color: #fff;
+                background: rgba(0, 0, 0, .18);
+                cursor: pointer;
+                transition: transform .25s ease, background .2s ease;
+            }
+
+            .floating-support-widget__close:hover,
+            .floating-support-widget__close:focus-visible { background: rgba(0, 0, 0, .34); transform: rotate(90deg); }
+            .floating-support-widget__close:focus-visible { outline: 2px solid #FFD27A; outline-offset: 2px; }
+
+            /* One full-width row per contact, so a single option never leaves an empty column. */
+            .floating-support-widget__contacts {
+                display: grid;
+                gap: .6rem;
+                padding: .9rem;
+            }
+
+            @keyframes support-contact-enter {
+                from { opacity: 0; transform: translateY(8px); }
+            }
+
+            .floating-support-widget__contact {
+                position: relative;
+                display: flex;
+                min-height: 4rem;
+                align-items: center;
+                gap: .8rem;
+                padding: .65rem .8rem .65rem .65rem;
+                border: 1px solid rgba(255, 255, 255, .1);
+                border-radius: 1rem;
+                color: #fff;
+                background: rgba(255, 255, 255, .05);
+                text-align: left;
+                text-decoration: none;
+                transition: transform .22s cubic-bezier(.34, 1.56, .64, 1), border-color .2s ease, background .2s ease, box-shadow .2s ease;
+                animation: support-contact-enter .35s ease-out .05s backwards;
+            }
+
+            .floating-support-widget__contact:nth-child(2) { animation-delay: .1s; }
+            .floating-support-widget__contact:nth-child(3) { animation-delay: .15s; }
+            .floating-support-widget__contact:nth-child(4) { animation-delay: .2s; }
+            .floating-support-widget__contact:nth-child(n + 5) { animation-delay: .25s; }
+
+            .floating-support-widget__contact:hover,
+            .floating-support-widget__contact:focus-visible {
+                border-color: rgba(255, 210, 122, .7);
+                background: rgba(255, 255, 255, .09);
+                box-shadow: 0 10px 22px rgba(0, 0, 0, .32);
+                outline: none;
+                transform: translateY(-2px);
+            }
+
+            .floating-support-widget__contact:focus-visible { box-shadow: 0 0 0 2px #FFD27A, 0 10px 22px rgba(0, 0, 0, .32); }
+
+            .floating-support-widget__contact-icon {
+                display: grid;
+                width: 2.75rem;
+                height: 2.75rem;
+                flex: 0 0 2.75rem;
+                place-items: center;
+                border-radius: 30%;
+                background: linear-gradient(150deg, #ffffff, #ececf1);
+                box-shadow: 0 4px 10px rgba(0, 0, 0, .28), inset 0 -3px 6px rgba(40, 24, 80, .1);
+                transition: transform .25s cubic-bezier(.34, 1.56, .64, 1);
+            }
+
+            .floating-support-widget__contact-icon i { font-size: 1.45rem; }
+            .floating-support-widget__contact-icon img { width: 1.7rem; height: 1.7rem; object-fit: contain; }
+
+            .floating-support-widget__contact-text { display: grid; flex: 1 1 auto; min-width: 0; }
+            .floating-support-widget__contact-label { font-size: .9rem; font-weight: 800; }
+            .floating-support-widget__contact-sublabel { color: rgba(255, 255, 255, .66); font-size: .72rem; }
+
+            .floating-support-widget__contact-go {
+                display: grid;
+                width: 1.9rem;
+                height: 1.9rem;
+                flex: 0 0 1.9rem;
+                place-items: center;
+                border-radius: 9999px;
+                color: #FFD27A;
+                background: rgba(255, 210, 122, .12);
+                font-size: .7rem;
+                transition: transform .2s ease, background .2s ease, color .2s ease;
+            }
+
+            .floating-support-widget__contact:hover .floating-support-widget__contact-go,
+            .floating-support-widget__contact:focus-visible .floating-support-widget__contact-go {
+                color: #fff;
+                background: linear-gradient(135deg, #E3261F, #A8121A);
+                transform: translateX(3px);
+            }
+
+            @media (hover: hover) {
+                .floating-support-widget__contact:hover .floating-support-widget__contact-icon { transform: rotate(-6deg) scale(1.06); }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .floating-support-widget--auto-bubble:not(:hover):not(:focus-within) .floating-support-widget__tooltip { opacity: 0; }
+                .floating-support-widget__float,
+                .floating-support-widget__wiggle,
+                .floating-support-widget__trigger,
+                .floating-support-widget__tile::after,
+                .floating-support-widget__bolt,
+                .floating-support-widget__tooltip,
+                .floating-support-widget__tooltip-arrow,
+                .floating-support-widget__menu:not([hidden]),
+                .floating-support-widget__contact {
+                    animation: none !important;
+                }
+
+                .floating-support-widget__close,
+                .floating-support-widget__contact-icon,
+                .floating-support-widget__contact-go { transition: none; }
+
+                .floating-support-widget__close:hover,
+                .floating-support-widget__close:focus-visible,
+                .floating-support-widget__contact:hover,
+                .floating-support-widget__contact:focus-visible,
+                .floating-support-widget__contact:hover .floating-support-widget__contact-icon,
+                .floating-support-widget__contact:hover .floating-support-widget__contact-go,
+                .floating-support-widget__contact:focus-visible .floating-support-widget__contact-go { transform: none; }
+
+                .floating-support-widget__tile::after { display: none; }
+
+                .floating-support-widget__tile,
+                .floating-support-widget__tooltip,
+                .floating-support-widget__contact { transition: none; }
+
+                .floating-support-widget__trigger:hover .floating-support-widget__tile,
+                .floating-support-widget__trigger:focus-visible .floating-support-widget__tile,
+                .floating-support-widget__trigger:active .floating-support-widget__tile { transform: none; }
+
+                .floating-support-widget__tooltip,
+                .floating-support-widget__trigger:hover .floating-support-widget__tooltip,
+                .floating-support-widget__trigger:focus-visible .floating-support-widget__tooltip {
+                    opacity: 1;
+                    transform: none;
+                }
+            }
+        </style>
+    
+        <aside
+        class="floating-support-widget floating-support-widget--bottom-right"
+        data-support-widget
+        data-open="false"
+        aria-label="Customer support"
+        style="--support-bubble-cycle: 9000ms"
+    >
+        <div class="floating-support-widget__float">
+            <div class="floating-support-widget__wiggle">
+                                    <button
+                        type="button"
+                        class="floating-support-widget__trigger"
+                        data-support-trigger
+                        aria-label="ត្រូវការជំនួយ? ចុចទីនេះ"
+                        aria-controls="floating-support-menu"
+                        aria-expanded="false"
+                    >
+                        <span class="floating-support-widget__tile" aria-hidden="true">
+    <svg class="floating-support-widget__messenger" viewBox="0 0 24 24" focusable="false">
+        <defs>
+            <radialGradient id="support-messenger-fill" cx="19.25%" cy="99.07%" r="108.96%">
+                <stop offset="0" stop-color="#0099FF" />
+                <stop offset=".61" stop-color="#A033FF" />
+                <stop offset=".93" stop-color="#FF5280" />
+                <stop offset="1" stop-color="#FF7061" />
+            </radialGradient>
+            <radialGradient id="support-messenger-gloss" cx="32%" cy="22%" r="62%">
+                <stop offset="0" stop-color="#ffffff" stop-opacity=".55" />
+                <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
+            </radialGradient>
+            <filter id="support-messenger-bolt-shadow" x="-30%" y="-30%" width="160%" height="170%">
+                <feDropShadow dx="0" dy=".6" stdDeviation=".45" flood-color="#3b1a8f" flood-opacity=".45" />
+            </filter>
+        </defs>
+        <path d="M12 2C6.477 2 2 6.145 2 11.26c0 2.912 1.293 5.51 3.315 7.23V22l3.028-1.663c1.16.32 2.389.49 3.657.49 5.523 0 10-4.145 10-9.26S17.523 2 12 2Z" fill="url(#support-messenger-fill)" />
+        <path d="M12 2C6.477 2 2 6.145 2 11.26c0 2.912 1.293 5.51 3.315 7.23V22l3.028-1.663c1.16.32 2.389.49 3.657.49 5.523 0 10-4.145 10-9.26S17.523 2 12 2Z" fill="url(#support-messenger-gloss)" />
+        <path class="floating-support-widget__bolt" d="M12.994 14.48l-2.547-2.718-4.97 2.718 5.467-5.805 2.61 2.718 4.905-2.718-5.465 5.805Z" fill="#ffffff" filter="url(#support-messenger-bolt-shadow)" />
+    </svg>
+</span>
+<span class="floating-support-widget__tooltip-arrow" aria-hidden="true"></span>
+<span class="floating-support-widget__tooltip" aria-hidden="true">ត្រូវការជំនួយ? ចុចទីនេះ</span>
+                    </button>
+                
+                            </div>
+        </div>
+
+                    <section
+                id="floating-support-menu"
+                class="floating-support-widget__menu"
+                data-support-menu
+                role="dialog"
+                aria-modal="false"
+                aria-labelledby="floating-support-title"
+                hidden
+            >
+                <header class="floating-support-widget__menu-header">
+                    <span class="floating-support-widget__menu-icon" aria-hidden="true"><i class="fas fa-headset"></i></span>
+                    <div class="floating-support-widget__menu-heading">
+                        <h2 id="floating-support-title" class="floating-support-widget__menu-title">Contact support</h2>
+                        <p class="floating-support-widget__menu-subtitle">Choose how you would like to chat with us.</p>
+                    </div>
+                    <button type="button" class="floating-support-widget__close" data-support-close aria-label="Close support options">
+                        <i class="fas fa-times" aria-hidden="true"></i>
+                    </button>
+                </header>
+
+                <div class="floating-support-widget__contacts" role="list">
+                                                                    <a
+                            href="https://t.me/smos_sne1"
+                            class="floating-support-widget__contact"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            role="listitem"
+                        >
+                            <span class="floating-support-widget__contact-icon" aria-hidden="true">
+                                                                    <i class="fab fa-telegram" style="color: #0084ff"></i>
+                                                            </span>
+                            <span class="floating-support-widget__contact-text">
+                                <span class="floating-support-widget__contact-label">Telegram</span>
+                                                                    <span class="floating-support-widget__contact-sublabel">24H/7 ជំនួយ</span>
+                                                            </span>
+                            <i class="fas fa-arrow-right floating-support-widget__contact-go" aria-hidden="true"></i>
+                        </a>
+                                                                    <a
+                            href="https://m.me/966156173243491"
+                            class="floating-support-widget__contact"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            role="listitem"
+                        >
+                            <span class="floating-support-widget__contact-icon" aria-hidden="true">
+                                                                    <i class="fab fa-facebook-messenger" style="color: #0084ff"></i>
+                                                            </span>
+                            <span class="floating-support-widget__contact-text">
+                                <span class="floating-support-widget__contact-label">Messager</span>
+                                                                    <span class="floating-support-widget__contact-sublabel">24H/7 ជំនួយ</span>
+                                                            </span>
+                            <i class="fas fa-arrow-right floating-support-widget__contact-go" aria-hidden="true"></i>
+                        </a>
+                                    </div>
+            </section>
+            </aside>
+
+            <script src="js/floating-support-widget_c0feec.js" defer></script>
+        
+
+    
+        <footer
+        id="storefront-footer"
+        class=" storefront-footer--with-support  mt-auto py-3 px-2 bg-daddy-dark-purple/90 shadow-inner ">
+        <div class="max-w-7xl px-2 mx-auto">
+            <!-- Mobile Footer: Single Line with Social Media & Payment -->
+            <div class="md:hidden">
+                <div class="storefront-footer__payment-row mb-2">
+                    <!-- Social Media Icons -->
+                    <div class="flex items-center gap-2 text-lg">
+                                            </div>
+
+                    <!-- Payment -->
+                    <div class="storefront-footer__payments flex items-center gap-2 bg-daddy-purple/30 px-2 py-1 rounded-lg border border-daddy-light-purple/20">
+                        <span class="text-xs text-daddy-text-light font-medium">We accept:</span>
+                        <img src="payments/aba-payway.png" alt="ABA" class="h-5">
+                        <img src="payments/khqr-mark.png" alt="KHQR" class="h-5">
+                    </div>
+                </div>
+                <div class="storefront-footer__copy flex flex-col items-center text-center space-y-1 pt-2 border-t border-daddy-light-purple/10">
+                    <p class="text-xs text-daddy-text-light/80">
+                        Copyright ©POR POR TOPUP. All Rights Reserved.
+                    </p>
+                    <p class="text-xs">
+                        <a href="/terms-and-conditions" class="text-daddy-orange hover:text-primary-yellow underline transition-colors" data-footer-terms-link>Terms and Conditions</a>
+                    </p>
+                    <p class="text-xs text-daddy-text-light/70">
+                        Built & Maintained by: <a href="https://t.me/smos_sne1" target="_blank"
+                            class="text-daddy-orange hover:text-primary-yellow underline transition-colors">Developer Team</a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Desktop Footer: Full Layout -->
+            <div class="hidden md:grid grid-cols-1 gap-4 md:grid-cols-3 text-sm">
+
+                <div class="flex flex-col items-start space-y-2">
+                                    </div>
+
+                <div class="flex flex-col items-center justify-center space-y-1">
+                    <p class="text-xs text-daddy-text-light/80">
+                        Copyright ©POR POR TOPUP. All Rights Reserved.
+                    </p>
+                    <p class="text-xs">
+                        <a href="/terms-and-conditions" class="text-daddy-orange hover:text-primary-yellow underline transition-colors" data-footer-terms-link>Terms and Conditions</a>
+                    </p>
+                    <p class="text-xs text-daddy-text-light/70">
+                        Built & Maintained by: <a href="https://t.me/smos_sne1" target="_blank"
+                            class="text-daddy-orange hover:text-primary-yellow underline transition-colors">Developer Team</a>
+                    </p>
+                </div>
+
+                <div class="flex flex-col items-end justify-center space-y-1">
+                    <div class="storefront-footer__payments flex items-center gap-2 bg-daddy-purple/30 px-3 py-1.5 rounded-lg border border-daddy-light-purple/20">
+                        <span class="font-semibold text-daddy-text-light">We accept:</span>
+                        <img src="payments/aba-payway.png" alt="ABA" class="h-5">
+                        <img src="payments/khqr-mark.png" alt="KHQR" class="h-5">
+                    </div>
+                </div>
+            </div>
+
+            <nav aria-label="Store policies" class="flex flex-wrap items-center justify-center gap-4 pt-3 text-xs text-daddy-orange">
+                <a href="/terms-and-conditions" class="underline hover:text-primary-yellow">Terms and Conditions</a>
+                <a href="/terms-and-conditions" class="underline hover:text-primary-yellow">Privacy Policy</a>
+                <a href="/terms-and-conditions" class="underline hover:text-primary-yellow">Contact Us</a>
+            </nav>
+        </div>
+    </footer>
+
+    
+    <script nonce="">
+    /**
+     * ============================================
+     * ALPINE.JS SEARCH COMPONENT
+     * ============================================
+     *
+     * Provides real-time game search functionality:
+     * - Desktop: Dropdown results under search bar
+     * - Mobile: Full-screen overlay
+     * - Debounced API calls (300ms)
+     * - Minimum 2 characters to search
+     */
+    function searchGames() {
+        return {
+            query: "",  // Preserve query text in JavaScript safely.
+            results: [],                   // Search results array
+            showResults: false,            // Show/hide dropdown
+            loading: false,                // Loading state
+
+            /**
+             * Perform search via API
+             * Debounced by Alpine.js @input.debounce.300ms
+             */
+            async searchGames() {
+                    if (this.query.length < 2) {
+                        this.results = [];
+                        this.showResults = false;
+                        return;
+                    }
+
+                    this.loading = true;
+
+                    try {
+                        const response = await fetch('/api/catalog');
+                        const data = await response.json();
+                        const q = this.query.trim().toLowerCase();
+                        this.results = (data.games || []).filter(g => String(g.name || '').toLowerCase().includes(q)).slice(0, 8).map(g => ({ id: g.id, name: g.name, image_url: g.image || '', status: g.open !== false, url: '/game/' + encodeURIComponent(g.id) }));
+                        this.showResults = this.results.length > 0;
+                    } catch (error) {
+                        console.error('Search error:', error);
+                        this.results = [];
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                handleSubmit(e) {
+                    if (this.query.length < 2) {
+                        e.preventDefault();
+                    }
+                }
+            }
+        }
+
+        
+        // clear focus/hover artifacts when navigating back (fixes sticky hover on mobile after Back)
+        window.addEventListener('pageshow', () => {
+            try { if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); } catch(e){}
+        });
+
+        // Keep CSS variable `--header-height` in sync with the actual header height so
+        // `scroll-padding-top` / `scroll-margin-top` always match the sticky navbar.
+        (function syncHeaderHeight(){
+            const header = document.querySelector('header');
+            if (!header) return;
+            const setHeaderHeight = () => document.documentElement.style.setProperty('--header-height', header.offsetHeight + 'px');
+            setHeaderHeight();
+            window.addEventListener('resize', setHeaderHeight, { passive: true });
+            window.addEventListener('load', setHeaderHeight);
+            // watch for dynamic changes to header size (fonts, account state, etc.)
+            if (window.ResizeObserver) {
+                const ro = new ResizeObserver(setHeaderHeight);
+                ro.observe(header);
+            }
+        })();
+    </script>
+
+    
+    
+    <noscript>
+        <style nonce="">
+            .entrance-animate {
+                opacity: 1 !important;
+                transform: none !important;
+                animation: none !important;
+            }
+        </style>
+    </noscript>
+
+    
+    <script src="js/entrance-animate.js" defer></script>
+    
+    <script type="module" src="js/customer-login-modal_8a55ce.js"></script>
 </body>
 </html>

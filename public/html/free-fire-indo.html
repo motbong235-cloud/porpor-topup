@@ -1,0 +1,4600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8">
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>POR POR TOPUP - Free fire (INDO)</title>
+    <meta name="description" content="">
+    <meta property="description" content="">
+
+    
+    <meta property="og:description" content="">
+    <meta property="og:title" content="POR POR TOPUP - Free fire (INDO)">
+    <meta property="og:site_name" content="POR POR TOPUP">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="/games/free-fire-indo">
+    <meta property="og:image" content="/storage/site/01M46V5TS3VPNFE0X4SGEY6SH8.png" />
+
+    
+    <link rel="icon" type="image/png" href="img/porpor-logo.svg">
+    <link rel="apple-touch-icon" sizes="192x192" href="img/porpor-logo.svg">
+    <link rel="shortcut icon" href="img/porpor-logo.svg">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#100A08">
+
+    
+    
+            <script src="https://cdn.tailwindcss.com"></script>
+    
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+            <link href="css/site-header-brand_925661.css" rel="stylesheet">
+        <link href="css/storefront-brand-theme_73c35e.css" rel="stylesheet">
+    
+    
+            <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+    
+    
+    <script nonce="">
+        /**
+         * Custom color palette from database settings
+         * Used throughout the app for consistent theming
+         */
+        const temporary_colors = {
+            'daddy-purple': '#474342',              // Primary background
+            'daddy-dark-purple': '#242121',     // Darker variant
+            'daddy-light-purple': '#F2A51A',         // Accent color
+            'daddy-text-light': '#FFF7E5',        // Light text
+            'daddy-text-darker': '#EBD6B6',        // Muted text
+            'daddy-orange': '#FFD447',                 // Link/accent (gold)
+            'daddy-blue': '#3498DB',                                          // Info blue
+            'daddy-link': '#FFD447',                   // Link color
+            'daddy-red-khor': '#F2A51A',         // Primary red
+            'primary-red': '#F2A51A',            // Gradient start
+            'primary-yellow': '#FFD447',      // Gradient end
+        };
+
+        /**
+         * Tailwind configuration
+         * Extends default theme with custom colors and fonts
+         */
+                tailwind.config = {
+            theme: {
+                extend: {
+                    colors: temporary_colors,
+                    fontFamily: {
+                        sans: ['"Space Grotesk"', 'Sora', 'Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+            </script>
+
+    
+        <style type="text/tailwindcss">
+        @layer utilities {
+            /* Site Preferences provides the gold gradient and its dark label color. */
+            .bg-primary {
+                @apply bg-gradient-to-r from-primary-red to-primary-yellow;
+            }
+
+            /* Primary gradient text (with background clip) */
+            .text-primary {
+                @apply bg-gradient-to-r from-primary-red to-primary-yellow bg-clip-text text-transparent;
+            }
+        }
+    </style>
+    
+    
+    <style nonce="">
+        /* ===================================
+           FONTS
+           ================================== */
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Sora:wght@600;700&display=swap');
+
+        /* ===================================
+           CSS CUSTOM PROPERTIES
+           ================================== */
+        :root {
+            /* Brand colors */
+            --site-color-primary: #474342;
+            --site-color-primary-dark: #242121;
+            --site-color-accent: #F2A51A;
+            --site-color-text-light: #FFF7E5;
+            --site-color-text-dark: #EBD6B6;
+            --site-color-link: #FFD447;
+            --site-color-gradient-start: #F2A51A;
+            --site-color-gradient-end: #FFD447;
+            --daddy-orange: '#FFD447';
+            --primary-color: linear-gradient(90deg, #F2A51A, #FFD447);
+            --daddy-light-purple: #F2A51A;
+
+            /* Card elevation shadows */
+            --card-elevation: 0 10px 30px -10px rgba(2,6,23,0.18);
+            --card-elevation-hover: 0 20px 50px -15px rgba(2,6,23,0.28);
+        }
+
+        /* ===================================
+           SCROLLBAR UTILITIES
+           ================================== */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;      /* Firefox */
+        }
+
+        /* ===================================
+           BASE STYLES
+           ================================== */
+        body {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===================================
+           SWIPER SLIDER
+           Using default Swiper styles
+           ================================== */
+
+        /* ===================================
+           PRINT STYLES
+           For receipts and order confirmations
+           ================================== */
+        @media print {
+            body {
+                background: #fff !important;
+                padding: 0;
+                margin: 0;
+            }
+            .print-container {
+                max-width: 640px !important;
+                margin: 0 auto !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-header {
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 12px;
+            }
+            header, footer {
+                display: none !important;
+            }
+        }
+
+        /* ===================================
+           FORM INPUTS
+           ================================== */
+        .daddy-input {
+            width: 100%;
+            padding: 6px 10px;
+            background: #8B8787;
+            border: 1px solid #D4AF37;
+        }
+
+        /* ===================================
+           ENTRANCE ANIMATIONS
+           ================================== */
+        /* Section header fade-in with slide up */
+        @keyframes sectionFadeInUp {
+            0% { opacity: 0; transform: translateY(8px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .section-entrance {
+            opacity: 0;
+            will-change: transform, opacity;
+            animation: sectionFadeInUp .48s cubic-bezier(.2,.8,.2,1) both;
+            animation-delay: var(--section-delay, 0s);
+        }
+
+        /* ===================================
+           SCROLL OFFSET FOR STICKY HEADER
+           Prevents anchor links from being hidden behind navbar
+           ================================== */
+        /*
+         * Keep anchored sections visible when scrolling to them:
+         * - --header-height: Synced with actual header height via JS
+         * - scroll-padding-top: Offsets scrolling for anchors
+         * - scroll-margin-top: Adds margin to targeted elements
+         */
+        :root { --header-height: 72px; /* fallback */ }
+        html { scroll-padding-top: var(--header-height); }
+        main [id], section[id], [id^="section-"] {
+            scroll-margin-top: calc(var(--header-height) + 0.5rem);
+        }
+
+        /* ===================================
+           CUSTOMER LOGIN DIALOG
+           ================================== */
+        .customer-login-dialog {
+            width: min(calc(100% - 2.5rem), 22rem);
+            max-width: 22rem;
+            max-height: calc(100dvh - 2rem);
+            margin: auto;
+            padding: 0;
+            overflow: auto;
+            border: 0;
+            border-radius: 1.25rem;
+            background: #fff;
+            color: #111827;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.32);
+        }
+        .customer-login-dialog:not([open]) {
+            display: none;
+        }
+        .customer-login-dialog::backdrop {
+            background: rgba(17, 24, 39, 0.72);
+            backdrop-filter: blur(3px);
+        }
+        .customer-login-panel {
+            position: relative;
+            padding: 1.25rem 1.25rem 1.35rem;
+            text-align: center;
+        }
+        .customer-login-close {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            display: inline-flex;
+            width: 2.75rem;
+            height: 2.75rem;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e5e7eb;
+            border-radius: 9999px;
+            background: #fff;
+            color: #4b5563;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .customer-login-close:hover,
+        .customer-login-close:focus-visible {
+            background: #f3f4f6;
+            outline: 2px solid #9ca3af;
+            outline-offset: 2px;
+        }
+        .customer-login-brand {
+            display: flex;
+            width: 3.25rem;
+            height: 3.25rem;
+            margin: 0 auto 0.65rem;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 1px solid var(--daddy-orange);
+            border-radius: 1rem;
+            background: #f9fafb;
+            box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.04);
+        }
+        .customer-login-logo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .customer-login-title {
+            margin: 0;
+            padding: 0 2.5rem;
+            color: #111827;
+            font-size: 1.4rem;
+            font-weight: 700;
+            line-height: 1.25;
+        }
+        .customer-login-description {
+            margin: 0.4rem 0 0;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        .customer-login-error {
+            margin-top: 1.25rem;
+            border: 1px solid #fecaca;
+            border-radius: 0.75rem;
+            background: #fef2f2;
+            padding: 0.75rem 1rem;
+            color: #b91c1c;
+            font-size: 0.875rem;
+        }
+        .customer-login-options {
+            display: grid;
+            gap: 0.65rem;
+            margin-top: 1.1rem;
+        }
+        .customer-login-provider {
+            display: flex;
+            min-height: 3.15rem;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            border-radius: 0.85rem;
+            padding: 0.7rem 0.85rem;
+            font-size: 0.925rem;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .customer-login-provider i {
+            width: 1.25rem;
+            font-size: 1.15rem;
+        }
+        .customer-login-telegram {
+            border: 1px solid #229ed9;
+            background: #229ed9;
+            color: #fff;
+        }
+        .customer-login-google {
+            border: 1px solid #d1d5db;
+            background: #fff;
+            color: #1f2937;
+        }
+        .customer-login-google i {
+            color: #4285f4;
+        }
+        .customer-login-provider:hover,
+        .customer-login-provider:focus-visible {
+            filter: brightness(0.96);
+            box-shadow: 0 8px 20px rgba(17, 24, 39, 0.14);
+            outline: 3px solid rgba(212, 175, 55, 0.45);
+            outline-offset: 2px;
+        }
+        .customer-login-browser-fallback {
+            width: min(calc(100% - 2.5rem), 22rem);
+            margin: 4rem auto;
+            border-radius: 1.25rem;
+            background: #fff;
+            padding: 1.25rem 1.25rem 1.35rem;
+            color: #111827;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+        }
+        .customer-login-browser-fallback[hidden] {
+            display: none;
+        }
+
+        /* Signed-in Profile action: the same scarlet pill as the guest Login
+           button (orbiting amber edge, glow, shine) with the customer's avatar
+           in an amber ring and a live status dot. Reuses the kira-login-*
+           keyframes; Tailwind classes keep controlling visibility. */
+        .customer-profile-action {
+            position: relative;
+            isolation: isolate;
+            box-sizing: border-box;
+            height: 2.25rem;
+            max-width: 8.5rem;
+            align-items: center;
+            padding: 2px;
+            border-radius: 9999px;
+            color: #fff;
+            text-decoration: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .customer-profile-action::before {
+            content: "";
+            position: absolute;
+            inset: -2px;
+            z-index: -1;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--site-color-link), var(--site-color-accent));
+            filter: blur(10px);
+            opacity: 0.32;
+            animation: kira-login-glow 2.6s ease-in-out infinite alternate;
+        }
+        .customer-profile-action__frame {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            border-radius: inherit;
+            background: linear-gradient(135deg, color-mix(in srgb, var(--site-color-link) 60%, transparent), var(--site-color-accent));
+            -webkit-mask-image: -webkit-radial-gradient(white, black);
+        }
+        .customer-profile-action__frame::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 12rem;
+            height: 12rem;
+            background: conic-gradient(transparent 0 22%, var(--site-color-accent) 34%, var(--site-color-link) 45%, var(--site-color-text-light) 50%, transparent 50% 72%, var(--site-color-accent) 84%, var(--site-color-link) 95%, var(--site-color-text-light) 100%);
+            transform: translate(-50%, -50%) rotate(0deg);
+            animation: kira-login-orbit 4s linear infinite;
+        }
+        .customer-profile-action__core {
+            position: relative;
+            display: inline-flex;
+            min-width: 0;
+            align-self: stretch;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0 0.7rem 0 0.2rem;
+            overflow: hidden;
+            border-radius: inherit;
+            background: linear-gradient(135deg, var(--site-color-primary-dark), color-mix(in srgb, var(--site-color-primary-dark) 80%, #111827));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), inset 0 -2px 6px rgba(0, 0, 0, 0.25);
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            -webkit-mask-image: -webkit-radial-gradient(white, black);
+        }
+        .customer-profile-action__core::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 45%;
+            background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+            transform: translateX(-160%) skewX(-18deg);
+            animation: kira-login-shine 5s ease-in-out 1.6s infinite;
+            pointer-events: none;
+        }
+        .customer-profile-avatar {
+            position: relative;
+            display: inline-flex;
+            width: 1.6rem;
+            height: 1.6rem;
+            flex: 0 0 1.6rem;
+            align-items: center;
+            justify-content: center;
+            overflow: visible;
+            border: 2px solid var(--site-color-link);
+            border-radius: 9999px;
+            background: linear-gradient(135deg, var(--site-color-gradient-start), var(--site-color-gradient-end));
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        .customer-profile-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: inherit;
+            object-fit: cover;
+        }
+        .customer-profile-status {
+            position: absolute;
+            right: -0.12rem;
+            bottom: -0.12rem;
+            width: 0.5rem;
+            height: 0.5rem;
+            border: 2px solid #100A08;
+            border-radius: 9999px;
+            background: #34d399;
+        }
+        .customer-profile-status::after {
+            content: "";
+            position: absolute;
+            inset: -2px;
+            border: 2px solid rgba(52, 211, 153, 0.75);
+            border-radius: inherit;
+            animation: kira-login-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        .customer-profile-label {
+            position: relative;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+        }
+        .customer-profile-action:hover,
+        .customer-profile-action:focus-visible {
+            transform: translateY(-2px) scale(1.03);
+            outline: none;
+        }
+        .customer-profile-action:focus-visible {
+            outline: 2px solid var(--site-color-link);
+            outline-offset: 3px;
+        }
+        .customer-profile-action:active {
+            transform: translateY(0) scale(0.97);
+        }
+        .customer-profile-action:hover::before,
+        .customer-profile-action:focus-visible::before {
+            animation: none;
+            opacity: 0.85;
+        }
+        .customer-profile-action:hover .customer-profile-action__core::after,
+        .customer-profile-action:focus-visible .customer-profile-action__core::after {
+            animation: kira-login-shine-now 900ms ease-out;
+        }
+        .customer-profile-action:hover .customer-profile-avatar,
+        .customer-profile-action:focus-visible .customer-profile-avatar {
+            animation: kira-login-wiggle 600ms ease;
+        }
+        @media (max-width: 1023.98px) {
+            .customer-profile-action__core {
+                gap: 0.3rem;
+                padding: 0 0.6rem 0 0.15rem;
+                letter-spacing: 0;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .customer-profile-action,
+            .customer-profile-action::before,
+            .customer-profile-action__frame::before,
+            .customer-profile-avatar,
+            .customer-profile-action:hover .customer-profile-avatar,
+            .customer-profile-action:focus-visible .customer-profile-avatar {
+                animation: none;
+                transition: none;
+            }
+            .customer-profile-action:hover,
+            .customer-profile-action:focus-visible,
+            .customer-profile-action:active {
+                transform: none;
+            }
+            .customer-profile-action__core::after,
+            .customer-profile-status::after {
+                display: none;
+            }
+        }
+
+        /* Guest login call to action: a theme-colored pill with an accent light
+           orbiting its edge, a breathing glow and a periodic shine. Only
+           transform and opacity animate so the header stays smooth; the
+           Tailwind hidden/flex classes keep controlling visibility. */
+        .customer-login-action {
+            position: relative;
+            isolation: isolate;
+            box-sizing: border-box;
+            height: 2.5rem;
+            align-items: center;
+            padding: 2px;
+            border-radius: 9999px;
+            color: #fff;
+            text-decoration: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+            animation: kira-login-enter 700ms cubic-bezier(0.2, 0.9, 0.25, 1.25) backwards;
+        }
+        .customer-login-action::before {
+            content: "";
+            position: absolute;
+            inset: -2px;
+            z-index: -1;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--site-color-link), var(--site-color-accent));
+            filter: blur(10px);
+            opacity: 0.38;
+            animation: kira-login-glow 2.6s ease-in-out infinite alternate;
+        }
+        .customer-login-action__frame {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            border-radius: inherit;
+            background: linear-gradient(135deg, color-mix(in srgb, var(--site-color-link) 60%, transparent), var(--site-color-accent));
+            -webkit-mask-image: -webkit-radial-gradient(white, black);
+        }
+        .customer-login-action__frame::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 12rem;
+            height: 12rem;
+            background: conic-gradient(transparent 0 22%, var(--site-color-accent) 34%, var(--site-color-link) 45%, var(--site-color-text-light) 50%, transparent 50% 72%, var(--site-color-accent) 84%, var(--site-color-link) 95%, var(--site-color-text-light) 100%);
+            transform: translate(-50%, -50%) rotate(0deg);
+            animation: kira-login-orbit 3.2s linear infinite;
+        }
+        .customer-login-action__core {
+            position: relative;
+            display: inline-flex;
+            align-self: stretch;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0 0.85rem 0 0.3rem;
+            overflow: hidden;
+            border-radius: inherit;
+            background: linear-gradient(135deg, var(--site-color-primary-dark), color-mix(in srgb, var(--site-color-primary-dark) 80%, #111827));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), inset 0 -2px 6px rgba(0, 0, 0, 0.25);
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            -webkit-mask-image: -webkit-radial-gradient(white, black);
+        }
+        .customer-login-action__core::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 45%;
+            background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+            transform: translateX(-160%) skewX(-18deg);
+            animation: kira-login-shine 4.2s ease-in-out 1.2s infinite;
+            pointer-events: none;
+        }
+        .customer-login-action__icon {
+            position: relative;
+            display: inline-flex;
+            width: 1.85rem;
+            height: 1.85rem;
+            flex: 0 0 1.85rem;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            background: linear-gradient(135deg, color-mix(in srgb, var(--site-color-link) 72%, white), var(--site-color-link));
+            color: #241c17;
+            font-size: 0.8rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+        .customer-login-action__icon::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border: 2px solid color-mix(in srgb, var(--site-color-link) 85%, transparent);
+            border-radius: inherit;
+            animation: kira-login-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        .customer-login-action__label {
+            position: relative;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+        }
+        .customer-login-action__chevron {
+            position: relative;
+            margin-left: -0.15rem;
+            color: var(--site-color-link);
+            font-size: 0.65rem;
+        }
+        .customer-login-action:hover,
+        .customer-login-action:focus-visible {
+            transform: translateY(-2px) scale(1.03);
+            outline: none;
+        }
+        .customer-login-action:focus-visible {
+            outline: 2px solid var(--site-color-link);
+            outline-offset: 3px;
+        }
+        .customer-login-action:active {
+            transform: translateY(0) scale(0.97);
+        }
+        .customer-login-action:hover::before,
+        .customer-login-action:focus-visible::before {
+            animation: none;
+            opacity: 0.85;
+        }
+        .customer-login-action:hover .customer-login-action__core::after,
+        .customer-login-action:focus-visible .customer-login-action__core::after {
+            animation: kira-login-shine-now 900ms ease-out;
+        }
+        .customer-login-action:hover .customer-login-action__icon,
+        .customer-login-action:focus-visible .customer-login-action__icon {
+            animation: kira-login-wiggle 600ms ease;
+        }
+        .customer-login-action:hover .customer-login-action__chevron,
+        .customer-login-action:focus-visible .customer-login-action__chevron {
+            animation: kira-login-nudge 700ms ease-in-out infinite;
+        }
+        @keyframes kira-login-enter {
+            from { opacity: 0; transform: translateY(-6px) scale(0.9); }
+        }
+        @keyframes kira-login-glow {
+            from { opacity: 0.28; }
+            to { opacity: 0.6; }
+        }
+        @keyframes kira-login-orbit {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        @keyframes kira-login-shine {
+            0%, 62% { transform: translateX(-160%) skewX(-18deg); }
+            100% { transform: translateX(330%) skewX(-18deg); }
+        }
+        @keyframes kira-login-shine-now {
+            from { transform: translateX(-160%) skewX(-18deg); }
+            to { transform: translateX(330%) skewX(-18deg); }
+        }
+        @keyframes kira-login-ping {
+            0% { transform: scale(1); opacity: 0.9; }
+            70%, 100% { transform: scale(1.3); opacity: 0; }
+        }
+        @keyframes kira-login-wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-14deg) scale(1.08); }
+            50% { transform: rotate(10deg) scale(1.08); }
+            75% { transform: rotate(-5deg); }
+        }
+        @keyframes kira-login-nudge {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(3px); }
+        }
+        /* Phones: stay within the previous button width so the store
+           name beside the logo is never truncated. */
+        @media (max-width: 1023.98px) {
+            .customer-login-action__core {
+                gap: 0.3rem;
+                padding: 0 0.6rem 0 0.15rem;
+                letter-spacing: 0;
+            }
+            .customer-login-action__icon {
+                width: 1.5rem;
+                height: 1.5rem;
+                flex-basis: 1.5rem;
+                font-size: 0.7rem;
+            }
+            .customer-login-action__chevron {
+                display: none;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .customer-login-action,
+            .customer-login-action::before,
+            .customer-login-action__frame::before,
+            .customer-login-action__icon,
+            .customer-login-action__chevron,
+            .customer-login-action:hover .customer-login-action__icon,
+            .customer-login-action:hover .customer-login-action__chevron,
+            .customer-login-action:focus-visible .customer-login-action__icon,
+            .customer-login-action:focus-visible .customer-login-action__chevron {
+                animation: none;
+                transition: none;
+            }
+            .customer-login-action:hover,
+            .customer-login-action:focus-visible,
+            .customer-login-action:active {
+                transform: none;
+            }
+            .customer-login-action__core::after,
+            .customer-login-action__icon::after {
+                display: none;
+            }
+        }
+
+        /* Header search: a dark glass pill matching the Login button. Calm at
+           rest so Login stays the call to action; hover warms the edge and
+           focus lights an orbiting scarlet/amber ring with a soft glow. */
+        .header-search-field,
+        .header-search-button {
+            position: relative;
+            isolation: isolate;
+            box-sizing: border-box;
+            border-radius: 9999px;
+            color: #F4F4F8;
+        }
+        .header-search-field {
+            height: 2.5rem;
+        }
+        .header-search-button {
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .header-search-field::before,
+        .header-search-button::before {
+            content: "";
+            position: absolute;
+            inset: -2px;
+            z-index: -1;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #D61F1C, #FF9F1A);
+            filter: blur(10px);
+            opacity: 0;
+            transition: opacity 260ms ease;
+        }
+        .header-search-ring {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            border-radius: inherit;
+            background: rgba(255, 255, 255, 0.18);
+            transition: background 220ms ease;
+            -webkit-mask-image: -webkit-radial-gradient(white, black);
+            pointer-events: none;
+        }
+        .header-search-ring::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20rem;
+            height: 20rem;
+            background: conic-gradient(transparent 0 20%, #D61F1C 32%, #FF9F1A 43%, #FFE7B0 50%, transparent 50% 70%, #D61F1C 82%, #FF9F1A 93%, #FFE7B0 100%);
+            opacity: 0;
+            transform: translate(-50%, -50%) rotate(0deg);
+            transition: opacity 260ms ease;
+            animation: kira-login-orbit 3.6s linear infinite paused;
+        }
+        .header-search-ring::after {
+            content: "";
+            position: absolute;
+            inset: 1.5px;
+            border-radius: inherit;
+            background: linear-gradient(135deg, #505056, #444449);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            transition: background 220ms ease;
+        }
+        .header-search-icon,
+        .header-search-input,
+        .header-search-spinner {
+            position: relative;
+        }
+        .header-search-icon {
+            color: #FFD27A;
+            transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1), color 220ms ease;
+        }
+        .header-search-spinner {
+            color: #FFD27A;
+        }
+        @media (hover: hover) {
+            .header-search-field:hover .header-search-ring,
+            .header-search-button:hover .header-search-ring {
+                background: rgba(255, 191, 71, 0.55);
+            }
+            .header-search-field:hover .header-search-icon,
+            .header-search-button:hover .header-search-icon {
+                transform: rotate(-12deg) scale(1.08);
+            }
+            .header-search-button:hover {
+                transform: translateY(-1px);
+            }
+        }
+        .header-search-button:active {
+            transform: scale(0.92);
+        }
+        .header-search-button:active::before,
+        .header-search-field:focus-within::before,
+        .header-search-button:focus-visible::before {
+            opacity: 0.5;
+        }
+        .header-search-field:focus-within .header-search-ring::before,
+        .header-search-button:focus-visible .header-search-ring::before {
+            opacity: 1;
+            animation-play-state: running;
+        }
+        .header-search-field:focus-within .header-search-ring::after {
+            background: linear-gradient(135deg, #47474D, #3B3B40);
+        }
+        .header-search-field:focus-within .header-search-icon {
+            color: #FFE7B0;
+            transform: scale(1.12);
+        }
+        .header-search-button:focus-visible {
+            outline: 2px solid #FFD27A;
+            outline-offset: 3px;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .header-search-ring::before {
+                animation: none;
+            }
+            .header-search-button,
+            .header-search-icon {
+                transition: none;
+            }
+            .header-search-button:hover,
+            .header-search-button:active,
+            .header-search-field:hover .header-search-icon,
+            .header-search-button:hover .header-search-icon,
+            .header-search-field:focus-within .header-search-icon {
+                transform: none;
+            }
+        }
+        /* Keep the brand visible without crowding the header actions. */
+        .site-header-logo {
+            height: 48px;
+            width: auto;
+            max-width: 128px;
+        }
+        @media (min-width: 768px) {
+            .site-header-logo {
+                height: 52px;
+                max-width: 144px;
+            }
+        }
+        @media (min-width: 1024px) {
+            .site-header-logo {
+                height: 56px;
+                max-width: 160px;
+            }
+            /* The Profile pill and search share the
+               row with the brand inside the 1280px container: cap the title size
+               and stop the brand shrinking so "POR POR TOPUP" never ellipsizes;
+               the centred nav absorbs the remaining space instead. */
+            .site-header-brand {
+                flex-shrink: 0;
+            }
+            .site-header-brand .site-brand-title {
+                font-size: 26px;
+            }
+        }
+        @media (min-width: 1024px) and (max-width: 1279.98px) {
+            /* Narrow desktop: keep space for the profile and search controls;
+               cap the title a little more instead of overflowing the viewport. */
+            .site-header-brand .site-brand-title {
+                font-size: 22px;
+            }
+        }
+        @media (max-width: 639.98px) {
+            /* Phones: the header shares space between the brand, search and
+               avatar; scale the title with the viewport so the brand stays whole. */
+            .site-header-brand .site-brand-title {
+                font-size: clamp(14px, 4.6vw, 20px);
+            }
+        }
+        @media (max-width: 480px) {
+            /* Small phones: avatar-only circle inside the same glowing ring. */
+            .customer-profile-action {
+                width: 2.25rem;
+                flex: 0 0 2.25rem;
+            }
+            .customer-profile-action__core {
+                flex: 1 1 auto;
+                justify-content: center;
+                padding: 0;
+            }
+            .customer-profile-label {
+                display: none;
+            }
+
+.customer-login-dialog {
+                width: min(calc(100% - 2rem), 22rem);
+                border-radius: 1.1rem;
+            }
+            .customer-login-browser-fallback {
+                width: min(calc(100% - 2rem), 22rem);
+            }
+            .customer-login-panel {
+                padding: 1.1rem 1rem 1.15rem;
+            }
+            .customer-login-title {
+                font-size: 1.3rem;
+            }
+            .customer-login-provider {
+                min-height: 3rem;
+            }
+        }
+
+        /* ===================================
+           ALPINE.JS UTILITIES
+           ================================== */
+        /* Hide elements with x-cloak until Alpine.js loads (prevents FOUC) */
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
+</head>
+
+
+<body class="bg-daddy-purple font-sans text-daddy-text-light min-h-screen flex flex-col"
+      x-data="{ mobileSearchOpen: false, ...searchGames() }"
+      :class="{ 'overflow-hidden': mobileSearchOpen }">
+
+    
+    <header class="w-full sticky top-0 z-50 backdrop-blur-md bg-daddy-dark-purple/90 border-b border-daddy-light-purple/20 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-3 sm:px-4">
+            <div class="flex items-center justify-between gap-2 sm:gap-3 h-14 sm:h-16 md:h-18 lg:h-20">
+
+                
+                <a href="" class="site-header-brand group">
+                    <img src="img/porpor-logo.svg"
+                         alt="POR POR TOPUP"
+                         class="site-header-logo object-contain transition-transform group-hover:scale-105">
+                    <span class="site-brand-title text-primary font-bold">POR POR TOPUP</span>
+                </a>
+
+                
+                <nav class="hidden lg:flex items-center gap-3 xl:gap-6 flex-1 justify-center px-2" aria-label="Primary navigation">
+                    <a href=""
+                       class="flex items-center gap-1.5 xl:gap-2 px-2 xl:px-3 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all duration-200 text-daddy-text-light hover:text-daddy-orange hover:bg-daddy-orange/5"
+                       >
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </a>
+                    <a href=""
+                       class="flex items-center gap-1.5 xl:gap-2 px-2 xl:px-3 py-2 rounded-lg font-medium text-sm whitespace-nowrap text-daddy-text-light hover:text-daddy-orange hover:bg-daddy-orange/5 transition-all duration-200">
+                        <i class="fas fa-star"></i>
+                        <span>Featured</span>
+                    </a>
+                    <a href=""
+                       class="flex items-center gap-1.5 xl:gap-2 px-2 xl:px-3 py-2 rounded-lg font-medium text-sm whitespace-nowrap text-daddy-text-light hover:text-daddy-orange hover:bg-daddy-orange/5 transition-all duration-200">
+                        <i class="fas fa-gamepad"></i>
+                        <span>Games</span>
+                    </a>
+                    <a href=""
+                       class="flex items-center gap-1.5 xl:gap-2 px-2 xl:px-3 py-2 rounded-lg font-medium text-sm whitespace-nowrap text-daddy-text-light hover:text-daddy-orange hover:bg-daddy-orange/5 transition-all duration-200">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Events</span>
+                    </a>
+                </nav>
+
+                
+                <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                                                                <a href="login.html"
+                           class="customer-login-action hidden lg:flex text-sm whitespace-nowrap"
+                           data-customer-login-open
+                           aria-haspopup="dialog"
+                           aria-controls="customer-login-dialog">
+                            <span class="customer-login-action__frame" aria-hidden="true"></span>
+                            <span class="customer-login-action__core">
+                                <span class="customer-login-action__icon" aria-hidden="true"><i class="fas fa-user"></i></span>
+                                <span class="customer-login-action__label">Login</span>
+                                <i class="fas fa-chevron-right customer-login-action__chevron" aria-hidden="true"></i>
+                            </span>
+                        </a>
+                    
+                    
+                    <div class="relative">
+                        
+                        <button type="button"
+                                @click="mobileSearchOpen = true"
+                                aria-label="Search games"
+                                class="header-search-button lg:hidden flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0">
+                            <span class="header-search-ring" aria-hidden="true"></span>
+                            <i class="fas fa-search header-search-icon text-sm sm:text-base" aria-hidden="true"></i>
+                        </button>
+
+                        
+                        <form action="/search" method="GET" @submit="handleSubmit" class="hidden lg:block">
+                            <div class="relative">
+                                <div class="header-search-field flex items-center gap-2 px-3 py-2 w-40 xl:w-48 2xl:w-56">
+                                    <span class="header-search-ring" aria-hidden="true"></span>
+                                    <i class="fas fa-search header-search-icon" aria-hidden="true"></i>
+                                    <input type="text"
+                                           name="q"
+                                           x-model="query"
+                                           @input.debounce.300ms="searchGames"
+                                           @focus="showResults = true"
+                                           @keydown.escape="showResults = false"
+                                           placeholder="Search games..."
+                                           aria-label="Search games"
+                                           class="header-search-input bg-transparent text-daddy-text-light placeholder-daddy-text-darker focus:outline-none w-full text-sm"
+                                           autocomplete="off">
+                                    <i x-show="loading" class="fas fa-spinner fa-spin header-search-spinner" aria-hidden="true"></i>
+                                </div>
+
+                                
+                                <div x-show="showResults && results.length > 0"
+                                     x-cloak
+                                     @click.outside="showResults = false"
+                                     x-transition:enter="transition ease-out duration-200"
+                                     x-transition:enter-start="opacity-0 translate-y-1"
+                                     x-transition:enter-end="opacity-100 translate-y-0"
+                                     style="display: none;"
+                                     class="absolute top-full right-0 left-0 mt-2 bg-daddy-dark-purple rounded-lg shadow-2xl border border-daddy-light-purple/30 overflow-hidden max-h-[70vh] overflow-y-auto">
+                                    <template x-for="game in results" :key="game.id">
+                                        <a :href="/games/game.url || '"
+                                           :aria-disabled="(!game.status).toString()"
+                                           @click="if (!game.status) $event.preventDefault()"
+                                           :class="game.status ? 'hover:bg-daddy-purple' : 'opacity-55 grayscale cursor-not-allowed'"
+                                           class="flex items-center gap-3 p-3 transition-colors border-b border-daddy-light-purple/10 last:border-0">
+                                            <template x-if="game.image_url">
+                                                <img :src="/games/game.image_url"
+                                                     :alt="game.name"
+                                                     class="w-12 h-12 rounded-lg object-cover flex-shrink-0">
+                                            </template>
+                                            <template x-if="!game.image_url">
+                                                <div class="w-12 h-12 bg-gradient-to-br from-daddy-orange/20 to-daddy-purple/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                    <span class="text-xs text-daddy-orange/50" x-text="game.code"></span>
+                                                </div>
+                                            </template>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="font-semibold text-daddy-text-light truncate" x-text="game.name"></p>
+                                                <p class="text-xs text-daddy-text-darker" x-text="game.code"></p>
+                                            </div>
+                                            <template x-if="game.status">
+                                                <i class="fas fa-chevron-right text-daddy-text-darker text-xs"></i>
+                                            </template>
+                                            <template x-if="!game.status">
+                                                <span class="rounded bg-gray-700 px-2 py-1 text-[10px] font-bold text-white">UNAVAILABLE</span>
+                                            </template>
+                                        </a>
+                                    </template>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                                            <a href="login.html"
+                           aria-label="Open login"
+                           class="customer-login-action lg:hidden flex text-sm whitespace-nowrap"
+                           data-customer-login-open
+                           aria-haspopup="dialog"
+                           aria-controls="customer-login-dialog">
+                            <span class="customer-login-action__frame" aria-hidden="true"></span>
+                            <span class="customer-login-action__core">
+                                <span class="customer-login-action__icon" aria-hidden="true"><i class="fas fa-user"></i></span>
+                                <span class="customer-login-action__label">Login</span>
+                                <i class="fas fa-chevron-right customer-login-action__chevron" aria-hidden="true"></i>
+                            </span>
+                        </a>
+                                    </div>
+            </div>
+        </div>
+    </header>
+
+            <dialog id="customer-login-dialog"
+        class="customer-login-dialog"
+        data-customer-login-modal
+        aria-labelledby="customer-login-title"
+        aria-describedby="customer-login-description">
+    <div class="customer-login-panel">
+        <button type="button"
+                class="customer-login-close"
+                data-customer-login-close
+                aria-label="Close login">
+            <i class="fas fa-times" aria-hidden="true"></i>
+        </button>
+
+        <div class="customer-login-brand" aria-hidden="true">
+            <img src="img/porpor-logo.svg"
+                 alt=""
+                 class="customer-login-logo"
+                 data-customer-login-logo>
+        </div>
+        <h2 id="customer-login-title" class="customer-login-title">Log in</h2>
+        <p id="customer-login-description" class="customer-login-description">Choose an account to continue</p>
+
+        <div class="customer-login-error"
+             data-customer-login-error
+             role="alert"
+              hidden ></div>
+
+        <div class="customer-login-options">
+            <a href="/auth/telegram"
+       class="customer-login-provider customer-login-telegram"
+        data-customer-login-telegram >
+        <i class="fab fa-telegram-plane" aria-hidden="true"></i>
+        <span>Login with Telegram</span>
+    </a>
+
+            <a href="/auth/google" class="customer-login-provider customer-login-google">
+                <i class="fab fa-google" aria-hidden="true"></i>
+                <span>Login with Google</span>
+            </a>
+        </div>
+    </div>
+</dialog>
+    
+    
+    <div x-show="mobileSearchOpen"
+         x-cloak
+         @keydown.escape.window="mobileSearchOpen = false"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         style="display: none;"
+         class="lg:hidden fixed inset-0 bg-daddy-dark-purple/98 backdrop-blur-lg z-[9999] flex flex-col"
+         style="z-index: 1100">
+
+        
+        <div class="flex items-center gap-3 p-4 border-b border-daddy-light-purple/20">
+            <button type="button"
+                    @click="mobileSearchOpen = false"
+                    class="flex items-center justify-center w-10 h-10 text-daddy-text-light hover:text-daddy-orange transition-colors">
+                <i class="fas fa-arrow-left text-xl"></i>
+            </button>
+            <h2 class="text-lg font-semibold text-daddy-text-light">Search Games</h2>
+        </div>
+
+        
+        <div class="p-4">
+            <form action="/search" method="GET" @submit="handleSubmit">
+                <div class="flex items-center gap-3 bg-daddy-purple rounded-lg px-4 py-3 border border-daddy-light-purple/20">
+                    <i class="fas fa-search text-daddy-text-darker"></i>
+                    <input type="text"
+                           x-ref="mobileInput"
+                           name="q"
+                           x-model="query"
+                           @input.debounce.300ms="searchGames"
+                           @focus="showResults = true"
+                           placeholder="Type to search..."
+                           class="bg-transparent text-daddy-text-light placeholder-daddy-text-darker focus:outline-none w-full"
+                           autocomplete="off"
+                           x-init="$nextTick(() =&gt; $el.focus())">
+                    <i x-show="loading" class="fas fa-spinner fa-spin text-daddy-text-darker"></i>
+                </div>
+            </form>
+        </div>
+
+        
+        <div class="flex-1 overflow-y-auto px-4 pb-4">
+            <div x-show="results.length > 0">
+                <p class="text-xs text-daddy-text-darker uppercase font-semibold mb-3 px-1">Results</p>
+                <div class="space-y-2">
+                    <template x-for="game in results" :key="game.id">
+                        <a :href="/games/game.url || '"
+                           :aria-disabled="(!game.status).toString()"
+                           @click="if (!game.status) { $event.preventDefault(); return; } mobileSearchOpen = false"
+                           :class="game.status ? 'hover:bg-daddy-purple' : 'opacity-55 grayscale cursor-not-allowed'"
+                           class="flex items-center gap-3 p-3 bg-daddy-purple/50 rounded-lg transition-colors border border-daddy-light-purple/10">
+                            <template x-if="game.image_url">
+                                <img :src="/games/game.image_url"
+                                     :alt="game.name"
+                                     class="w-14 h-14 rounded-lg object-cover flex-shrink-0">
+                            </template>
+                            <template x-if="!game.image_url">
+                                <div class="w-14 h-14 bg-gradient-to-br from-daddy-orange/20 to-daddy-purple/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <span class="text-xs text-daddy-orange/50 font-medium" x-text="game.code"></span>
+                                </div>
+                            </template>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-semibold text-daddy-text-light truncate" x-text="game.name"></p>
+                                <p class="text-xs text-daddy-text-darker mt-0.5" x-text="game.code"></p>
+                            </div>
+                            <template x-if="game.status">
+                                <i class="fas fa-chevron-right text-daddy-text-darker text-sm"></i>
+                            </template>
+                            <template x-if="!game.status">
+                                <span class="rounded bg-gray-700 px-2 py-1 text-[10px] font-bold text-white">UNAVAILABLE</span>
+                            </template>
+                        </a>
+                    </template>
+                </div>
+            </div>
+
+            
+            <div x-show="query.length >= 2 && !loading && results.length === 0"
+                 class="flex flex-col items-center justify-center text-center py-16">
+                <div class="w-20 h-20 rounded-full bg-daddy-purple flex items-center justify-center mb-4">
+                    <i class="fas fa-search text-3xl text-daddy-text-darker"></i>
+                </div>
+                <p class="text-daddy-text-light font-semibold mb-1">No games found</p>
+                <p class="text-sm text-daddy-text-darker">Try searching with different keywords</p>
+            </div>
+
+            
+            <div x-show="query.length < 2"
+                 class="flex flex-col items-center justify-center text-center py-16">
+                <div class="w-20 h-20 rounded-full bg-daddy-purple flex items-center justify-center mb-4">
+                    <i class="fas fa-gamepad text-3xl text-daddy-orange"></i>
+                </div>
+                <p class="text-daddy-text-light font-semibold mb-1">Start typing to search</p>
+                <p class="text-sm text-daddy-text-darker">Find your favorite games quickly</p>
+            </div>
+        </div>
+    </div>
+
+    
+    
+    
+        <main class="max-w-7xl w-full mx-auto px-4">
+        
+
+<link rel="stylesheet" href="css/checkout-payment-methods_c2c20a.css">
+<link rel="stylesheet" href="css/game-checkout-layout_75680f.css">
+<script src="js/checkout-payment-methods_8a55ce.js" defer></script>
+
+<form id="game-checkout-form" action="/games/free-fire-indo/checkout" method="POST"
+    class="grid grid-cols-1 md:grid-cols-3 md:gap-6 pb-0 mt-5"
+        >
+    <input type="hidden" name="_token" value="tQeRp6JaDVoYQW206Ek9GN6jRLRU4rcc0RUT7Gfn" autocomplete="off">    <input type="hidden" name="payment_method" value="khqr" data-checkout-payment-input>
+    <input type="hidden" name="use_wallet" value="0" data-checkout-use-wallet>
+    <input type="hidden" name="wallet_nonce" value="bcf2f3b7-d61f-415f-8a80-1a31130cf45f" data-checkout-nonce data-wallet-checkout-nonce>            <div class="order-1 md:hidden">
+        <div class="game-header-desktop relative mb-5">
+    
+            <img src="storage/games/covers/01M7FXQM4H0PS5KVJCMBF7AVMA.jpg" alt="Free fire (INDO) Cover" class="game-header-image-desktop block w-full h-auto rounded-xl" decoding="async">
+    </div>
+    </div>
+    <section class="md:col-span-2 order-3 md:order-1" data-checkout-products-section>
+        
+        
+        
+        <div class="mb-6 rounded-2xl overflow-hidden transition-shadow" role="region" aria-label="Section">
+    <div class="daddy-card-bg bg-daddy-dark-purple p-4 md:p-6 lg:p-8 rounded-2xl">
+
+        
+        <div class="space-y-4">
+            <div class="flex items-center justify-between gap-3 mb-4 flex-wrap section-entrance" style="--section-delay: 0.05s">
+                <h2 class="flex items-center gap-2 text-[0.8rem] sm:text-[1rem] md:text-[1.2rem] font-extrabold text-primary text-left">
+                    <i class="fas fa-list-ul text-[0.8rem] sm:text-[1rem] text-daddy-orange"></i>
+                    <div class="flex items-baseline gap-2">
+                        <span>All Items</span>
+                        <span class="hidden sm:inline-block ml-2 text-sm sm:text-base font-medium text-daddy-text-darker">Product and Bundles</span>
+                    </div>
+                </h2>
+
+                <div class="inline-flex items-center gap-2 text-sm text-daddy-text-darker flex-shrink-0">
+                    <i class="fas fa-layer-group text-xs sm:text-sm mr-1"></i>
+                    <span id="all-items-count">7 items</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                                            <div class="relative rounded-lg duration-200 transition-all h-full " data-package-wrapper>
+    <style nonce="">
+    /* ===================================
+       ANIMATIONS
+       ================================== */
+    
+    /* Gentle floating motion for product icon */
+    @keyframes float-v2 { 
+        0%, 100% { 
+            transform: translateY(0) scale(1); 
+        } 
+        50% { 
+            transform: translateY(-8px) scale(1.05); 
+        } 
+    }
+    
+    /* Shine effect (reserved for future use) */
+    @keyframes shine-v2 { 
+        0% { left: -100%; } 
+        20% { left: 100%; } 
+        100% { left: 100%; } 
+    }
+
+    @keyframes coin-reward-shine-v2 {
+        0%, 62% {
+            transform: translateX(-180%) skewX(-18deg);
+            opacity: 0;
+        }
+        70% {
+            opacity: 0.65;
+        }
+        84%, 100% {
+            transform: translateX(420%) skewX(-18deg);
+            opacity: 0;
+        }
+    }
+    
+    /* Fade in and slide up entrance animation */
+    @keyframes fadeInUp-v2 { 
+        from { 
+            opacity: 0; 
+            transform: translateY(20px); 
+        } 
+        to { 
+            opacity: 1; 
+            transform: translateY(0); 
+        } 
+    }
+
+    .coin-reward-badge {
+        display: inline-flex;
+        max-width: 100%;
+        align-items: center;
+        gap: 0.2rem;
+        isolation: isolate;
+        overflow: hidden;
+        border: 1px solid rgba(255, 198, 45, 0.98);
+        border-radius: 9999px;
+        background: linear-gradient(135deg, rgba(255, 250, 221, 0.98), rgba(255, 224, 121, 0.98));
+        color: #694400;
+        padding: 0.12rem 0.34rem;
+        font-size: 0.46rem;
+        font-weight: 800;
+        line-height: 1;
+        box-shadow:
+            0 0 0 1px rgba(54, 34, 0, 0.28),
+            0 2px 6px rgba(7, 12, 28, 0.32),
+            inset 0 1px 0 rgba(255, 255, 255, 0.92);
+    }
+
+    .coin-reward-slot {
+        display: flex;
+        min-height: 1rem;
+        flex: none;
+        align-items: flex-start;
+        justify-content: flex-end;
+        margin-bottom: 0.1rem;
+    }
+
+    .coin-reward-slot--notice {
+        padding-right: 1.4rem;
+    }
+
+    .coin-reward-badge::after {
+        position: absolute;
+        z-index: 0;
+        inset: -45% auto -45% -30%;
+        width: 32%;
+        content: '';
+        background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.88), transparent);
+        animation: coin-reward-shine-v2 4s ease-in-out infinite;
+        pointer-events: none;
+        will-change: transform;
+    }
+
+    .coin-reward-badge > * {
+        position: relative;
+        z-index: 1;
+    }
+
+    .coin-reward-badge__icon {
+        display: inline-grid;
+        width: 0.72rem;
+        height: 0.72rem;
+        flex: none;
+        place-items: center;
+        border: 1px solid rgba(145, 91, 0, 0.22);
+        border-radius: 9999px;
+        background: rgba(255, 196, 35, 0.28);
+        color: #946000;
+        font-size: 0.45rem;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
+    }
+
+    /* ===================================
+       CARD BASE STYLES
+       ================================== */
+    
+    .premium-card-v2 {
+        /* Glow colors - golden theme */
+        --card-glow-color: rgba(212, 175, 55, 0.14);        /* Soft gold glow */
+        --card-glow-strong: rgba(212, 175, 55, 0.22);       /* Stronger gold glow on hover */
+        
+        /* Smooth bouncy transition for hover effects */
+        transition: transform .28s cubic-bezier(.34, 1.56, .64, 1), 
+                    box-shadow .28s cubic-bezier(.34, 1.56, .64, 1);
+        
+        /* Default shadow: dark shadow + subtle gold glow */
+        box-shadow: var(--card-elevation), 
+                    0 8px 30px -12px rgba(0, 0, 0, 0.6), 
+                    0 6px 20px var(--card-glow-color);
+        
+        /* Animation support */
+        animation-delay: var(--card-delay, 0s);
+        animation-fill-mode: both;
+        will-change: transform, box-shadow;
+        
+        /* Fixed height for consistent grid layout - Mobile: 90px */
+        height: 90px;
+    }
+
+    /* Tablet and up - same height */
+    @media (min-width: 640px) {
+        .premium-card-v2 { 
+            height: 90px; 
+        }
+    }
+
+    /* Desktop - taller cards */
+    @media (min-width: 1024px) {
+        .premium-card-v2 { 
+            height: 120px; 
+        }
+    }
+
+    /* ===================================
+       HOVER EFFECTS
+       ================================== */
+    
+    /* Only apply hover effects on devices that support hover (not touch screens) */
+    @media (hover: hover) {
+        .premium-card-v2:hover {
+            /* Lift card up and slightly scale */
+            transform: translateY(-8px) scale(1.02);
+            
+            /* Enhanced shadows and glow on hover */
+            box-shadow:
+                var(--card-elevation-hover),
+                0 10px 30px -10px rgba(255, 255, 255, 0.65),  /* White highlight */
+                0 6px 30px -6px var(--card-glow-strong),      /* Strong gold glow */
+                0 0 48px -8px var(--card-glow-color);         /* Ambient gold glow */
+            
+            /* Bring card above siblings */
+            z-index: 30;
+        }
+    }
+
+    /* Mobile/touch: apply the same effect on tap */
+    @media (hover: none) {
+        .premium-card-v2.is-tapped {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow:
+                var(--card-elevation-hover),
+                0 10px 30px -10px rgba(255, 255, 255, 0.65),
+                0 6px 30px -6px var(--card-glow-strong),
+                0 0 48px -8px var(--card-glow-color);
+            z-index: 30;
+        }
+    }
+
+    /* Accessibility: Respect user's motion preferences */
+    @media (prefers-reduced-motion: reduce) {
+        .premium-card-v2:hover { 
+            box-shadow: var(--card-elevation-hover); 
+        }
+
+        .premium-card-v2.is-tapped {
+            transform: none;
+            box-shadow: var(--card-elevation-hover);
+        }
+
+        .coin-reward-badge::after {
+            animation: none;
+            opacity: 0;
+        }
+    }
+
+    /* ===================================
+       PRODUCT ICON EFFECTS
+       ================================== */
+    
+    /* Apply floating animation to product icon container */
+    .premium-card-v2 .crystal-float-v2 { 
+        animation: float-v2 3s ease-in-out infinite; 
+    }
+
+    /* Product icon image shadow and transition */
+    .crystal-float-v2.overflow-hidden {
+        box-shadow: 0 10px 22px -10px rgba(0, 0, 0, 0.45), 
+                    inset 0 2px 8px rgba(255, 255, 255, 0.02);
+        transition: box-shadow .35s ease, 
+                    transform .35s cubic-bezier(.2, .9, .3, 1);
+        will-change: box-shadow, transform;
+    }
+    
+    /* Smooth image scaling */
+    .crystal-float-v2.overflow-hidden img { 
+        transition: transform .45s cubic-bezier(.2, .9, .3, 1), 
+                    filter .35s ease; 
+        display: block; 
+    }
+    
+    /* Enhanced icon effect on card hover */
+    .premium-card-v2:hover .crystal-float-v2.overflow-hidden { 
+        box-shadow: 0 18px 34px -16px rgba(0, 0, 0, 0.55); 
+        transform: translateY(-4px) scale(1.02); 
+    }
+
+    @media (hover: none) {
+        .premium-card-v2.is-tapped .crystal-float-v2.overflow-hidden {
+            box-shadow: 0 18px 34px -16px rgba(0, 0, 0, 0.55);
+            transform: translateY(-4px) scale(1.02);
+        }
+    }
+
+    /* ===================================
+       SELECTED STATE - TEXT CONTRAST
+       ================================== */
+    
+    /* Make price text contrast with selected background */
+    .premium-card-v2.bg-primary .card-price-text {
+        color: var(--primary-color) !important; /* Dark text for contrast */
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+        font-weight: 900;
+    }
+    
+    /* Make old price also contrast */
+    .premium-card-v2.bg-primary .old-price-text {
+        color: var(--primary-color) !important;
+        opacity: 0.8;
+    }
+    
+    /* Make title more visible on selected background */
+    .premium-card-v2.bg-primary .card-title-text {
+        color: var(--primary-color) !important;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.2);
+    }
+    
+    /* Smooth transitions for text color changes */
+    .card-price-text,
+    .old-price-text,
+    .card-title-text {
+        transition: color 0.2s ease, text-shadow 0.2s ease;
+    }
+</style>
+
+<script nonce="">
+    (() => {
+        const selector = '.premium-card-v2';
+        const tappedClass = 'is-tapped';
+        const releaseDelayMs = 140;
+        let releaseTimer = null;
+
+        const clearAllTapped = () => {
+            if (releaseTimer) {
+                clearTimeout(releaseTimer);
+                releaseTimer = null;
+            }
+            document.querySelectorAll(selector + '.' + tappedClass).forEach((el) => {
+                el.classList.remove(tappedClass);
+            });
+        };
+
+        document.addEventListener(
+            'pointerdown',
+            (e) => {
+                const card = e.target?.closest?.(selector);
+                if (!card) return;
+
+                if (typeof e.button === 'number' && e.button !== 0) return;
+
+                clearAllTapped();
+                card.classList.add(tappedClass);
+            },
+            { passive: true }
+        );
+
+        const scheduleRelease = () => {
+            if (releaseTimer) clearTimeout(releaseTimer);
+            releaseTimer = setTimeout(clearAllTapped, releaseDelayMs);
+        };
+
+        document.addEventListener('pointerup', scheduleRelease, { passive: true });
+        document.addEventListener('pointercancel', clearAllTapped, { passive: true });
+        document.addEventListener('blur', clearAllTapped, true);
+    })();
+</script>
+
+<div class="entrance-animate" style="--card-delay: 0.00s;">
+    
+    
+    <div class="premium-card-v2 package-item relative overflow-hidden rounded-xl sm:rounded-2xl bg-daddy-dark-purple group cursor-pointer flex flex-row transition-shadow duration-200 product-card-premium" data-package-id="product-519" data-supplier-unavailable="false" aria-disabled="false" onclick="setAmount('0.19', '519', this, 'product')"
+                 
+        role="button" 
+        tabindex="0"
+    >
+
+        
+        
+        
+        
+        
+                
+        
+        <div class="relative w-16 sm:w-[74px] lg:w-[84px] min-w-[64px] sm:min-w-[74px] lg:min-w-[84px] max-w-[64px] sm:max-w-[74px] lg:max-w-[84px] flex items-center justify-center flex-shrink-0 z-20">
+            
+            
+            
+            
+            <div class="crystal-float-v2 relative w-[43px] h-[43px] sm:w-[54px] sm:h-[54px] lg:w-[72px] lg:h-[72px] overflow-hidden rounded-lg sm:rounded-lg bg-gradient-to-br from-daddy-dark-purple/5 to-daddy-blue/5 border border-daddy-light-purple/10 z-24">
+                
+                                    
+                    <svg class="w-full h-full text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                            </div>
+        </div>
+
+        
+        <div data-card-details class="flex-1 min-w-0 p-1 sm:p-1 lg:p-2 relative flex flex-col justify-between min-h-0 z-10 bg-transparent">
+
+            
+                        
+            <div class="flex flex-col justify-center flex-1 min-h-0 pr-1">
+                
+                
+                <div class="flex gap-0.5 pb-1">
+                    
+                    
+                    <div class="flex items-center justify-start gap-1 flex-wrap max-w-full">
+                                                    <span class="card-price-text text-sm font-black leading-none text-daddy-orange break-words">
+                                $0.19
+                            </span>
+                                            </div>
+
+                    
+                                
+                </div>
+                
+                
+                <h3 class="card-title-text text-[12px] font-black text-white tracking-tight mb-1 sm:mb-1.5 lg:mb-2 line-clamp-2" title="12 Diamonds">
+                    12 Diamonds
+                </h3>
+            </div>
+        </div>
+    </div>
+</div>
+    <span
+        data-package-unavailable
+        class="hidden pointer-events-none absolute inset-x-2 bottom-1 z-20 rounded bg-black/80 px-1.5 py-1 text-center text-[9px] sm:text-[10px] font-bold uppercase tracking-wide text-white"
+    >Not available for this account</span>
+</div>
+                                                                                <div class="relative rounded-lg duration-200 transition-all h-full " data-package-wrapper>
+    <div class="entrance-animate" style="--card-delay: 0.06s;">
+    
+    
+    <div class="premium-card-v2 package-item relative overflow-hidden rounded-xl sm:rounded-2xl bg-daddy-dark-purple group cursor-pointer flex flex-row transition-shadow duration-200 product-card-premium" data-package-id="product-520" data-supplier-unavailable="false" aria-disabled="false" onclick="setAmount('1.09', '520', this, 'product')"
+                 
+        role="button" 
+        tabindex="0"
+    >
+
+        
+        
+        
+        
+        
+                
+        
+        <div class="relative w-16 sm:w-[74px] lg:w-[84px] min-w-[64px] sm:min-w-[74px] lg:min-w-[84px] max-w-[64px] sm:max-w-[74px] lg:max-w-[84px] flex items-center justify-center flex-shrink-0 z-20">
+            
+            
+            
+            
+            <div class="crystal-float-v2 relative w-[43px] h-[43px] sm:w-[54px] sm:h-[54px] lg:w-[72px] lg:h-[72px] overflow-hidden rounded-lg sm:rounded-lg bg-gradient-to-br from-daddy-dark-purple/5 to-daddy-blue/5 border border-daddy-light-purple/10 z-24">
+                
+                                    
+                    <svg class="w-full h-full text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                            </div>
+        </div>
+
+        
+        <div data-card-details class="flex-1 min-w-0 p-1 sm:p-1 lg:p-2 relative flex flex-col justify-between min-h-0 z-10 bg-transparent">
+
+            
+                        
+            <div class="flex flex-col justify-center flex-1 min-h-0 pr-1">
+                
+                
+                <div class="flex gap-0.5 pb-1">
+                    
+                    
+                    <div class="flex items-center justify-start gap-1 flex-wrap max-w-full">
+                                                    <span class="card-price-text text-sm font-black leading-none text-daddy-orange break-words">
+                                $1.09
+                            </span>
+                                            </div>
+
+                    
+                                
+                </div>
+                
+                
+                <h3 class="card-title-text text-[12px] font-black text-white tracking-tight mb-1 sm:mb-1.5 lg:mb-2 line-clamp-2" title="140 Diamonds">
+                    140 Diamonds
+                </h3>
+            </div>
+        </div>
+    </div>
+</div>
+    <span
+        data-package-unavailable
+        class="hidden pointer-events-none absolute inset-x-2 bottom-1 z-20 rounded bg-black/80 px-1.5 py-1 text-center text-[9px] sm:text-[10px] font-bold uppercase tracking-wide text-white"
+    >Not available for this account</span>
+</div>
+                                                                                <div class="relative rounded-lg duration-200 transition-all h-full " data-package-wrapper>
+    <div class="entrance-animate" style="--card-delay: 0.12s;">
+    
+    
+    <div class="premium-card-v2 package-item relative overflow-hidden rounded-xl sm:rounded-2xl bg-daddy-dark-purple group cursor-pointer flex flex-row transition-shadow duration-200 product-card-premium" data-package-id="product-521" data-supplier-unavailable="false" aria-disabled="false" onclick="setAmount('2.79', '521', this, 'product')"
+                 
+        role="button" 
+        tabindex="0"
+    >
+
+        
+        
+        
+        
+        
+                
+        
+        <div class="relative w-16 sm:w-[74px] lg:w-[84px] min-w-[64px] sm:min-w-[74px] lg:min-w-[84px] max-w-[64px] sm:max-w-[74px] lg:max-w-[84px] flex items-center justify-center flex-shrink-0 z-20">
+            
+            
+            
+            
+            <div class="crystal-float-v2 relative w-[43px] h-[43px] sm:w-[54px] sm:h-[54px] lg:w-[72px] lg:h-[72px] overflow-hidden rounded-lg sm:rounded-lg bg-gradient-to-br from-daddy-dark-purple/5 to-daddy-blue/5 border border-daddy-light-purple/10 z-24">
+                
+                                    
+                    <svg class="w-full h-full text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                            </div>
+        </div>
+
+        
+        <div data-card-details class="flex-1 min-w-0 p-1 sm:p-1 lg:p-2 relative flex flex-col justify-between min-h-0 z-10 bg-transparent">
+
+            
+                        
+            <div class="flex flex-col justify-center flex-1 min-h-0 pr-1">
+                
+                
+                <div class="flex gap-0.5 pb-1">
+                    
+                    
+                    <div class="flex items-center justify-start gap-1 flex-wrap max-w-full">
+                                                    <span class="card-price-text text-sm font-black leading-none text-daddy-orange break-words">
+                                $2.79
+                            </span>
+                                            </div>
+
+                    
+                                
+                </div>
+                
+                
+                <h3 class="card-title-text text-[12px] font-black text-white tracking-tight mb-1 sm:mb-1.5 lg:mb-2 line-clamp-2" title="355 Diamonds">
+                    355 Diamonds
+                </h3>
+            </div>
+        </div>
+    </div>
+</div>
+    <span
+        data-package-unavailable
+        class="hidden pointer-events-none absolute inset-x-2 bottom-1 z-20 rounded bg-black/80 px-1.5 py-1 text-center text-[9px] sm:text-[10px] font-bold uppercase tracking-wide text-white"
+    >Not available for this account</span>
+</div>
+                                                                                <div class="relative rounded-lg duration-200 transition-all h-full " data-package-wrapper>
+    <div class="entrance-animate" style="--card-delay: 0.18s;">
+    
+    
+    <div class="premium-card-v2 package-item relative overflow-hidden rounded-xl sm:rounded-2xl bg-daddy-dark-purple group cursor-pointer flex flex-row transition-shadow duration-200 product-card-premium" data-package-id="product-522" data-supplier-unavailable="false" aria-disabled="false" onclick="setAmount('5.19', '522', this, 'product')"
+                 
+        role="button" 
+        tabindex="0"
+    >
+
+        
+        
+        
+        
+        
+                
+        
+        <div class="relative w-16 sm:w-[74px] lg:w-[84px] min-w-[64px] sm:min-w-[74px] lg:min-w-[84px] max-w-[64px] sm:max-w-[74px] lg:max-w-[84px] flex items-center justify-center flex-shrink-0 z-20">
+            
+            
+            
+            
+            <div class="crystal-float-v2 relative w-[43px] h-[43px] sm:w-[54px] sm:h-[54px] lg:w-[72px] lg:h-[72px] overflow-hidden rounded-lg sm:rounded-lg bg-gradient-to-br from-daddy-dark-purple/5 to-daddy-blue/5 border border-daddy-light-purple/10 z-24">
+                
+                                    
+                    <svg class="w-full h-full text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                            </div>
+        </div>
+
+        
+        <div data-card-details class="flex-1 min-w-0 p-1 sm:p-1 lg:p-2 relative flex flex-col justify-between min-h-0 z-10 bg-transparent">
+
+            
+                        
+            <div class="flex flex-col justify-center flex-1 min-h-0 pr-1">
+                
+                
+                <div class="flex gap-0.5 pb-1">
+                    
+                    
+                    <div class="flex items-center justify-start gap-1 flex-wrap max-w-full">
+                                                    <span class="card-price-text text-sm font-black leading-none text-daddy-orange break-words">
+                                $5.19
+                            </span>
+                                            </div>
+
+                    
+                                
+                </div>
+                
+                
+                <h3 class="card-title-text text-[12px] font-black text-white tracking-tight mb-1 sm:mb-1.5 lg:mb-2 line-clamp-2" title="720 Diamonds">
+                    720 Diamonds
+                </h3>
+            </div>
+        </div>
+    </div>
+</div>
+    <span
+        data-package-unavailable
+        class="hidden pointer-events-none absolute inset-x-2 bottom-1 z-20 rounded bg-black/80 px-1.5 py-1 text-center text-[9px] sm:text-[10px] font-bold uppercase tracking-wide text-white"
+    >Not available for this account</span>
+</div>
+                                                                                <div class="relative rounded-lg duration-200 transition-all h-full " data-package-wrapper>
+    <div class="entrance-animate" style="--card-delay: 0.24s;">
+    
+    
+    <div class="premium-card-v2 package-item relative overflow-hidden rounded-xl sm:rounded-2xl bg-daddy-dark-purple group cursor-pointer flex flex-row transition-shadow duration-200 product-card-premium" data-package-id="product-523" data-supplier-unavailable="false" aria-disabled="false" onclick="setAmount('15.59', '523', this, 'product')"
+                 
+        role="button" 
+        tabindex="0"
+    >
+
+        
+        
+        
+        
+        
+                
+        
+        <div class="relative w-16 sm:w-[74px] lg:w-[84px] min-w-[64px] sm:min-w-[74px] lg:min-w-[84px] max-w-[64px] sm:max-w-[74px] lg:max-w-[84px] flex items-center justify-center flex-shrink-0 z-20">
+            
+            
+            
+            
+            <div class="crystal-float-v2 relative w-[43px] h-[43px] sm:w-[54px] sm:h-[54px] lg:w-[72px] lg:h-[72px] overflow-hidden rounded-lg sm:rounded-lg bg-gradient-to-br from-daddy-dark-purple/5 to-daddy-blue/5 border border-daddy-light-purple/10 z-24">
+                
+                                    
+                    <svg class="w-full h-full text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                            </div>
+        </div>
+
+        
+        <div data-card-details class="flex-1 min-w-0 p-1 sm:p-1 lg:p-2 relative flex flex-col justify-between min-h-0 z-10 bg-transparent">
+
+            
+                        
+            <div class="flex flex-col justify-center flex-1 min-h-0 pr-1">
+                
+                
+                <div class="flex gap-0.5 pb-1">
+                    
+                    
+                    <div class="flex items-center justify-start gap-1 flex-wrap max-w-full">
+                                                    <span class="card-price-text text-sm font-black leading-none text-daddy-orange break-words">
+                                $15.59
+                            </span>
+                                            </div>
+
+                    
+                                
+                </div>
+                
+                
+                <h3 class="card-title-text text-[12px] font-black text-white tracking-tight mb-1 sm:mb-1.5 lg:mb-2 line-clamp-2" title="2180 Diamonds">
+                    2180 Diamonds
+                </h3>
+            </div>
+        </div>
+    </div>
+</div>
+    <span
+        data-package-unavailable
+        class="hidden pointer-events-none absolute inset-x-2 bottom-1 z-20 rounded bg-black/80 px-1.5 py-1 text-center text-[9px] sm:text-[10px] font-bold uppercase tracking-wide text-white"
+    >Not available for this account</span>
+</div>
+                                                                                <div class="relative rounded-lg duration-200 transition-all h-full " data-package-wrapper>
+    <div class="entrance-animate" style="--card-delay: 0.30s;">
+    
+    
+    <div class="premium-card-v2 package-item relative overflow-hidden rounded-xl sm:rounded-2xl bg-daddy-dark-purple group cursor-pointer flex flex-row transition-shadow duration-200 product-card-premium" data-package-id="product-524" data-supplier-unavailable="false" aria-disabled="false" onclick="setAmount('26.19', '524', this, 'product')"
+                 
+        role="button" 
+        tabindex="0"
+    >
+
+        
+        
+        
+        
+        
+                
+        
+        <div class="relative w-16 sm:w-[74px] lg:w-[84px] min-w-[64px] sm:min-w-[74px] lg:min-w-[84px] max-w-[64px] sm:max-w-[74px] lg:max-w-[84px] flex items-center justify-center flex-shrink-0 z-20">
+            
+            
+            
+            
+            <div class="crystal-float-v2 relative w-[43px] h-[43px] sm:w-[54px] sm:h-[54px] lg:w-[72px] lg:h-[72px] overflow-hidden rounded-lg sm:rounded-lg bg-gradient-to-br from-daddy-dark-purple/5 to-daddy-blue/5 border border-daddy-light-purple/10 z-24">
+                
+                                    
+                    <svg class="w-full h-full text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                            </div>
+        </div>
+
+        
+        <div data-card-details class="flex-1 min-w-0 p-1 sm:p-1 lg:p-2 relative flex flex-col justify-between min-h-0 z-10 bg-transparent">
+
+            
+                        
+            <div class="flex flex-col justify-center flex-1 min-h-0 pr-1">
+                
+                
+                <div class="flex gap-0.5 pb-1">
+                    
+                    
+                    <div class="flex items-center justify-start gap-1 flex-wrap max-w-full">
+                                                    <span class="card-price-text text-sm font-black leading-none text-daddy-orange break-words">
+                                $26.19
+                            </span>
+                                            </div>
+
+                    
+                                
+                </div>
+                
+                
+                <h3 class="card-title-text text-[12px] font-black text-white tracking-tight mb-1 sm:mb-1.5 lg:mb-2 line-clamp-2" title="3640 Diamonds">
+                    3640 Diamonds
+                </h3>
+            </div>
+        </div>
+    </div>
+</div>
+    <span
+        data-package-unavailable
+        class="hidden pointer-events-none absolute inset-x-2 bottom-1 z-20 rounded bg-black/80 px-1.5 py-1 text-center text-[9px] sm:text-[10px] font-bold uppercase tracking-wide text-white"
+    >Not available for this account</span>
+</div>
+                                                                                <div class="relative rounded-lg duration-200 transition-all h-full " data-package-wrapper>
+    <div class="entrance-animate" style="--card-delay: 0.36s;">
+    
+    
+    <div class="premium-card-v2 package-item relative overflow-hidden rounded-xl sm:rounded-2xl bg-daddy-dark-purple group cursor-pointer flex flex-row transition-shadow duration-200 product-card-premium" data-package-id="product-525" data-supplier-unavailable="false" aria-disabled="false" onclick="setAmount('53.89', '525', this, 'product')"
+                 
+        role="button" 
+        tabindex="0"
+    >
+
+        
+        
+        
+        
+        
+                
+        
+        <div class="relative w-16 sm:w-[74px] lg:w-[84px] min-w-[64px] sm:min-w-[74px] lg:min-w-[84px] max-w-[64px] sm:max-w-[74px] lg:max-w-[84px] flex items-center justify-center flex-shrink-0 z-20">
+            
+            
+            
+            
+            <div class="crystal-float-v2 relative w-[43px] h-[43px] sm:w-[54px] sm:h-[54px] lg:w-[72px] lg:h-[72px] overflow-hidden rounded-lg sm:rounded-lg bg-gradient-to-br from-daddy-dark-purple/5 to-daddy-blue/5 border border-daddy-light-purple/10 z-24">
+                
+                                    
+                    <svg class="w-full h-full text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                            </div>
+        </div>
+
+        
+        <div data-card-details class="flex-1 min-w-0 p-1 sm:p-1 lg:p-2 relative flex flex-col justify-between min-h-0 z-10 bg-transparent">
+
+            
+                        
+            <div class="flex flex-col justify-center flex-1 min-h-0 pr-1">
+                
+                
+                <div class="flex gap-0.5 pb-1">
+                    
+                    
+                    <div class="flex items-center justify-start gap-1 flex-wrap max-w-full">
+                                                    <span class="card-price-text text-sm font-black leading-none text-daddy-orange break-words">
+                                $53.89
+                            </span>
+                                            </div>
+
+                    
+                                
+                </div>
+                
+                
+                <h3 class="card-title-text text-[12px] font-black text-white tracking-tight mb-1 sm:mb-1.5 lg:mb-2 line-clamp-2" title="7290 Diamonds">
+                    7290 Diamonds
+                </h3>
+            </div>
+        </div>
+    </div>
+</div>
+    <span
+        data-package-unavailable
+        class="hidden pointer-events-none absolute inset-x-2 bottom-1 z-20 rounded bg-black/80 px-1.5 py-1 text-center text-[9px] sm:text-[10px] font-bold uppercase tracking-wide text-white"
+    >Not available for this account</span>
+</div>
+                                                </div>
+        </div>
+    </div>
+</div>
+    </section>
+
+    
+    <section class="game-checkout-sidebar md:col-span-1 md:order-2 p-0">
+        
+        
+            <div data-checkout-player-section>
+            <div class="hidden md:block">
+                <div class="game-header-desktop relative mb-5">
+    
+            <img src="storage/games/covers/01M7FXQM4H0PS5KVJCMBF7AVMA.jpg" alt="Free fire (INDO) Cover" class="game-header-image-desktop block w-full h-auto rounded-xl" decoding="async">
+    </div>
+            </div>
+
+                        
+            
+            
+            
+            <style nonce="">
+    @keyframes support-badge-glow {
+        0%, 100% { box-shadow: 0 0 0 rgba(56, 189, 248, 0); }
+        50% { box-shadow: 0 0 12px rgba(56, 189, 248, 0.32); }
+    }
+
+    @keyframes support-headset-ring {
+        0%, 82%, 100% { transform: rotate(0deg) scale(1); }
+        86% { transform: rotate(-10deg) scale(1.08); }
+        90% { transform: rotate(9deg) scale(1.12); }
+        94% { transform: rotate(-5deg) scale(1.06); }
+        98% { transform: rotate(3deg) scale(1.02); }
+    }
+
+    .support-availability-badge {
+        animation: support-badge-glow 2.8s ease-in-out infinite;
+    }
+
+    .support-availability-badge__icon {
+        display: inline-block;
+        transform-origin: center;
+        animation: support-headset-ring 4.5s ease-in-out infinite;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .support-availability-badge,
+        .support-availability-badge__icon {
+            animation: none;
+        }
+    }
+</style>
+
+<div class="mb-6 rounded-2xl overflow-hidden transition-shadow  border border-white/5 shadow-2xl overflow-hidden" role="region" aria-label="Section">
+    <div class="daddy-card-bg bg-daddy-dark-purple p-4 md:p-6 lg:p-8 rounded-2xl">
+
+        
+        <div class="space-y-4">
+            <div class="flex items-center gap-2 sm:gap-4 mb-3 sm:mb-4">
+                    <img src="storage/games/01M7FXQM4FSXFS2MERJEGKXSMX.png" alt="Free fire (INDO)" class="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl border-2 border-daddy-orange shadow-lg object-cover flex-shrink-0">
+                
+        <div class="min-w-0 flex-1">
+            <h3 class="text-base sm:text-xl font-black text-white uppercase tracking-tight truncate">Free fire (INDO)</h3>
+            <div class="flex items-center flex-wrap gap-1.5 sm:gap-2 mt-1">
+                <span class="text-[9px] sm:text-[10px] font-bold text-green-400 uppercase tracking-wider sm:tracking-widest flex items-center bg-green-400/10 px-1.5 sm:px-2 py-0.5 rounded whitespace-nowrap">
+                    <i class="fas fa-check-circle mr-0.5 sm:mr-1 text-[8px] sm:text-[10px]"></i> Verified
+                </span>
+                <span class="text-[9px] sm:text-[10px] font-bold text-yellow-300 uppercase tracking-wider sm:tracking-widest flex items-center bg-yellow-300/10 px-1.5 sm:px-2 py-0.5 rounded whitespace-nowrap">
+                    <i class="fas fa-bolt mr-0.5 sm:mr-1 text-[8px] sm:text-[10px]"></i> Instant
+                </span>
+                <span
+                    class="support-availability-badge text-[9px] sm:text-[10px] font-extrabold text-sky-200 uppercase tracking-wider sm:tracking-widest inline-flex items-center gap-1 rounded border border-sky-300/20 bg-gradient-to-r from-sky-400/15 to-violet-400/15 px-1.5 sm:px-2 py-0.5 shadow-sm shadow-sky-400/10 whitespace-nowrap"
+                    title="Customer support available 24/7"
+                    aria-label="Customer support available 24 hours a day, 7 days a week"
+                >
+                    <i class="support-availability-badge__icon fas fa-headset text-[8px] sm:text-[10px] text-sky-300" aria-hidden="true"></i>
+                    24/7
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Player form header (matches KHQR card header style) -->
+    <div class="flex items-center justify-between mb-3 sm:mb-4 px-0.5 sm:px-1 section-entrance" style="--section-delay: 0.02s">
+        <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+            <div class="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-daddy-blue/10 flex items-center justify-center text-daddy-blue flex-shrink-0">
+                <i class="fas fa-user text-sm sm:text-base"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+                <div class="text-xs sm:text-sm font-semibold text-daddy-text-light truncate">Player details</div>
+                <div class="text-[10px] sm:text-xs text-daddy-text-darker truncate">Enter account ID &amp; server</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex flex-col gap-3 sm:gap-4">
+                                <div class="relative w-full">
+            
+            <input
+                type="text"
+                name="user_id" id="user_id"
+                placeholder=" "
+                class="peer block w-full bg-transparent border-[2px] border-white/20 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white focus:outline-none focus:border-daddy-orange transition-colors "
+                value=""
+                pattern="[A-Za-z0-9_#.\-]{1,50}"
+                inputmode="text"
+                title="Allowed: letters, numbers, underscore, #, dot, hyphen (1–50 chars)"
+                maxlength="50"
+                minlength="1"
+                                    oninput="this.value = this.value.replace(/[^A-Za-z0-9_#\.\-]/g,'').slice(0, 50)"
+                                data-pattern="[A-Za-z0-9_#.\-]{1,50}"
+                 required             />
+
+            <label for="user_id" 
+                class="absolute left-2 sm:left-3 top-3 sm:top-4 px-1.5 sm:px-2 text-xs sm:text-base text-gray-400 bg-daddy-dark-purple z-10 rounded transition-all duration-200 pointer-events-none truncate max-w-[calc(100%-2rem)]
+                peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs sm:peer-focus:text-sm peer-focus:text-daddy-orange peer-focus:max-w-[calc(100%-1rem)]
+                peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs sm:peer-[:not(:placeholder-shown)]:text-sm peer-[:not(:placeholder-shown)]:text-daddy-orange peer-[:not(:placeholder-shown)]:max-w-[calc(100%-1rem)]">
+                Player ID
+            </label>
+                    </div>
+        
+        
+                
+                <div class="pt-2">
+            <div id="loading-spinner" class="hidden w-full text-center text-[11px] font-semibold uppercase tracking-widest min-h-[1.25rem] px-3 py-2 rounded-lg border text-daddy-text-darker transition-colors duration-150 flex items-center justify-center gap-2 bg-green-900/30 border-green-500 text-green-400 border-green-900/30" aria-hidden="true">
+                <div class="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div> Checking ...
+            </div>
+            <div id="check-id-status" role="status" aria-live="polite"
+                class="hidden w-full text-center text-[11px] font-semibold uppercase tracking-widest min-h-[1.25rem] px-3 py-2 rounded-lg border border-transparent text-daddy-text-darker transition-colors duration-150">
+            </div>
+            <div id="checker-result-details"
+                class="hidden mt-2 w-full rounded-lg border border-white/10 bg-black/10 p-3 text-xs text-daddy-text-light"
+                aria-live="polite">
+            </div>
+        </div>
+                    <input type="hidden" id="amount" value="">
+    <input type="hidden" name="product_id" id="product_id" value="">
+        <input type="hidden" name="bundle_id" id="bundle_id" value="">
+        </div>
+        </div>
+    </div>
+</div>
+            </div>
+
+            <div data-checkout-payment-section>
+                
+                                    <div class="mt-4 rounded-xl border border-daddy-light-purple/40 p-3" data-coupon-panel>
+                                            <label for="coupon-login-disabled" class="block text-sm font-semibold text-daddy-text-light mb-2">Coupon code (optional)</label>
+                        <div class="flex gap-2">
+                            <input id="coupon-login-disabled" type="text" placeholder="Login to use coupons" disabled
+                                class="min-w-0 flex-1 rounded-lg border border-daddy-light-purple/50 bg-daddy-dark-purple px-3 py-2 text-white opacity-60 cursor-not-allowed">
+                            <button type="button" disabled class="rounded-lg bg-primary px-4 py-2 font-bold text-white opacity-50 cursor-not-allowed">Apply</button>
+                        </div>
+                        <p class="mt-2 text-xs text-daddy-text-light">Login to use coupons. <a class="text-primary underline" href="login.html">Login</a></p>
+                                    </div>
+            
+            <div class="md:hidden">
+                <div class="mb-6 rounded-2xl overflow-hidden transition-shadow" role="region" aria-label="Section">
+    <div class="daddy-card-bg bg-daddy-dark-purple p-4 md:p-6 lg:p-8 rounded-2xl">
+
+        
+        <div class="space-y-4">
+            <div class="checkout-payment" data-payment-method-selector
+         data-wallet-available="false"
+         data-wallet-signed-in="false"
+         data-wallet-balance-url=""
+         data-wallet-balance="">
+        <div class="checkout-payment__heading">
+            <div>
+                <h3 id="payment-heading-mobile">Payment Method</h3>
+                <p>Choose how you want to pay</p>
+            </div>
+            <span class="checkout-payment__secure"><i class="fas fa-shield-alt" aria-hidden="true"></i> Secure</span>
+        </div>
+
+        <div class="checkout-payment__options" role="group" aria-labelledby="payment-heading-mobile">
+            <button type="button" class="checkout-payment__option" aria-pressed="true"
+                    data-checkout-payment-choice="khqr" data-selected="true" tabindex="0">
+                <span class="checkout-payment__icon checkout-payment__icon--aba">
+                    <img src="payments/aba_khqr_logo.png" alt="" aria-hidden="true">
+                </span>
+                <span class="checkout-payment__copy">
+                    <span class="checkout-payment__name">ABA KHQR</span>
+                    <span class="checkout-payment__description">Scan to pay with any banking app</span>
+                </span>
+            </button>
+
+                    </div>
+
+        <p class="checkout-payment__feedback" data-payment-feedback role="status" aria-live="polite" hidden></p>
+                <p class="checkout-payment__summary" data-payment-summary aria-live="polite">បង់តាម ABA KHQR · Full amount with ABA KHQR</p>
+        <div class="checkout-payment__terms">
+            <input type="checkbox" id="checkout-terms-mobile"
+                   name="terms_accepted" value="1" form="game-checkout-form" required checked
+                   class="checkout-payment__terms-checkbox" data-checkout-terms="mobile">
+            <label for="checkout-terms-mobile">
+                I agree to the <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer"
+                    class="text-daddy-link underline" aria-label="Terms and Conditions (opens in a new tab)">Terms and Conditions</a> before paying.
+            </label>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>            </div>
+
+            <!-- Payment methods follow coupon and order details on desktop. -->
+            <div class="hidden md:block">
+                <div class="mb-6 rounded-2xl overflow-hidden transition-shadow" role="region" aria-label="Section">
+    <div class="daddy-card-bg bg-daddy-dark-purple p-4 md:p-6 lg:p-8 rounded-2xl">
+
+        
+        <div class="space-y-4">
+            <div class="checkout-payment" data-payment-method-selector
+         data-wallet-available="false"
+         data-wallet-signed-in="false"
+         data-wallet-balance-url=""
+         data-wallet-balance="">
+        <div class="checkout-payment__heading">
+            <div>
+                <h3 id="payment-heading-desktop">Payment Method</h3>
+                <p>Choose how you want to pay</p>
+            </div>
+            <span class="checkout-payment__secure"><i class="fas fa-shield-alt" aria-hidden="true"></i> Secure</span>
+        </div>
+
+        <div class="checkout-payment__options" role="group" aria-labelledby="payment-heading-desktop">
+            <button type="button" class="checkout-payment__option" aria-pressed="true"
+                    data-checkout-payment-choice="khqr" data-selected="true" tabindex="0">
+                <span class="checkout-payment__icon checkout-payment__icon--aba">
+                    <img src="payments/aba_khqr_logo.png" alt="" aria-hidden="true">
+                </span>
+                <span class="checkout-payment__copy">
+                    <span class="checkout-payment__name">ABA KHQR</span>
+                    <span class="checkout-payment__description">Scan to pay with any banking app</span>
+                </span>
+            </button>
+
+                    </div>
+
+        <p class="checkout-payment__feedback" data-payment-feedback role="status" aria-live="polite" hidden></p>
+                <p class="checkout-payment__summary" data-payment-summary aria-live="polite">បង់តាម ABA KHQR · Full amount with ABA KHQR</p>
+        <div class="checkout-payment__terms">
+            <input type="checkbox" id="checkout-terms-desktop"
+                   name="terms_accepted" value="1" form="game-checkout-form" required checked
+                   class="checkout-payment__terms-checkbox" data-checkout-terms="desktop">
+            <label for="checkout-terms-desktop">
+                I agree to the <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer"
+                    class="text-daddy-link underline" aria-label="Terms and Conditions (opens in a new tab)">Terms and Conditions</a> before paying.
+            </label>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>            </div>
+
+            
+                        <div class="space-y-4 md:daddy-card-bg mt-5 md:mt-5 fixed md:static bottom-0 left-0 right-0 bg-daddy-dark-purple md:bg-transparent p-4 md:p-0 border-t md:border-t-0 border-daddy-light-purple/50 z-50 shadow-2xl md:shadow-none sm:mb-2">
+
+                                <div class="flex justify-between items-center md:border-t border-daddy-light-purple/50 md:pt-4">
+                    <div class="text-lg font-bold">
+                        Total: <span id="total_price" class="text-daddy-orange">$0.00</span>
+                    </div>
+                    <button id="pay-now-btn" type="submit" class="bg-primary text-white font-bold py-2 px-5 rounded-lg shadow-xl transition-colors hover:bg-[#FFC700] flex items-center hidden" disabled>
+                        <svg id="pay-now-spinner" class="animate-spin -ml-1 mr-2 h-4 w-4 text-daddy-dark-purple hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <i id="pay-now-icon" class="fas fa-shopping-bag mr-2"></i> 
+                        <span id="pay-now-text">Pay Now</span>
+                    </button>
+
+                    <button id="pay-now-btn-fake" type="button" class="bg-primary text-white font-bold py-2 px-5 rounded-lg shadow-xl transition-colors hover:bg-[#FFC700] flex items-center">
+                        <svg id="pay-now-spinner" class="animate-spin -ml-1 mr-2 h-4 w-4 text-daddy-dark-purple hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <i id="pay-now-icon" class="fas fa-shopping-bag mr-2"></i> 
+                        <span id="pay-now-text">Pay Now</span>
+                    </button>
+                </div>
+            </div>
+            </div>
+    </section>
+</form>
+
+        <form id="aba_merchant_request"
+            method="POST"
+            action=""
+            target="aba_webservice"
+            style="display: none;"></form>
+
+        
+
+
+
+
+
+<div id="qrModal" class="fixed inset-0 bg-black bg-opacity-70 z-50 hidden items-center justify-center p-4" style="z-index: 1000">
+        <div class="bg-daddy-dark-purple p-6 rounded-xl shadow-2xl max-w-sm sm:max-w-md md:max-w-lg w-full relative border border-daddy-light-purple max-h-[90vh] overflow-y-auto">
+
+        
+        <button  onclick="closeModal()"  class="absolute top-3 right-3 text-daddy-text-light hover:text-daddy-red-khor transition">
+            <i class="fas fa-times text-xl"></i>
+        </button>
+
+        <h3 class="text-2xl font-bold text-center mb-4 text-daddy-orange">Scan to Pay</h3>
+
+        <div class="text-center">
+            
+            <img id="qrImageDisplay" src="" alt="QR Code" class="mx-auto rounded-lg border-2 border-daddy-orange p-1">
+        </div>
+
+        <p class="text-center text-daddy-text-light mt-4">
+            Total Amount: <span id="modal_total_price" class="font-bold text-daddy-orange"></span>
+        </p>
+
+        <p class="text-center text-xs text-daddy-text-darker mt-2">
+            This QR code is valid for 5 minutes.
+        </p>
+    </div>
+</div>
+
+
+<style nonce="">
+    /* ===================================
+       BASE TYPOGRAPHY
+       ================================== */
+    
+    #notice_modal_content {
+        line-height: 1.65;
+    }
+
+    /* ===================================
+       HEADINGS
+       ================================== */
+    
+    #notice_modal_content h1,
+    #notice_modal_content h2,
+    #notice_modal_content h3,
+    #notice_modal_content h4,
+    #notice_modal_content h5,
+    #notice_modal_content h6 {
+        font-weight: 600;
+        line-height: 1.3;
+        margin-top: 1.25em;
+        margin-bottom: 0.5em;
+        color: rgba(255, 255, 255, 0.95);
+    }
+
+    #notice_modal_content h1 { font-size: 1.5em; }
+    #notice_modal_content h2 { font-size: 1.35em; }
+    #notice_modal_content h3 { font-size: 1.2em; }
+    #notice_modal_content h4 { font-size: 1.1em; }
+    #notice_modal_content h5 { font-size: 1em; font-weight: 600; }
+    #notice_modal_content h6 { 
+        font-size: 0.95em; 
+        font-weight: 600; 
+        text-transform: uppercase; 
+        letter-spacing: 0.025em; 
+    }
+
+    /* ===================================
+       PARAGRAPHS
+       ================================== */
+    
+    #notice_modal_content p {
+        margin-bottom: 1em;
+    }
+
+    /* ===================================
+       LISTS
+       ================================== */
+    
+    #notice_modal_content ol,
+    #notice_modal_content ul {
+        margin: 0.75em 0;
+        padding-left: 1.75em;
+    }
+
+    #notice_modal_content ol { list-style-type: decimal; }
+    #notice_modal_content ul { list-style-type: disc; }
+    
+    #notice_modal_content li { 
+        margin: 0.25em 0; 
+        padding-left: 0.25em; 
+    }
+    
+    /* Nested lists */
+    #notice_modal_content ol ol { 
+        list-style-type: lower-alpha; 
+        margin-top: 0.25em; 
+    }
+    
+    #notice_modal_content ul ul { 
+        list-style-type: circle; 
+        margin-top: 0.25em; 
+    }
+
+    /* ===================================
+       LINKS
+       ================================== */
+    
+    #notice_modal_content a {
+        color: var(--site-color-link);
+        text-decoration: none;
+        border-bottom: 1px solid color-mix(in srgb, var(--site-color-link) 30%, transparent);
+        transition: border-color 0.2s ease, color 0.2s ease;
+    }
+
+    #notice_modal_content a:hover {
+        color: var(--site-color-accent);
+        border-bottom-color: color-mix(in srgb, var(--site-color-accent) 50%, transparent);
+    }
+
+    /* ===================================
+       TEXT EMPHASIS
+       ================================== */
+    
+    /* Bold text */
+    #notice_modal_content strong,
+    #notice_modal_content b {
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.95);
+    }
+
+    /* Italic text */
+    #notice_modal_content em,
+    #notice_modal_content i {
+        font-style: italic;
+    }
+
+    /* Highlighted text */
+    #notice_modal_content mark {
+        background: linear-gradient(90deg, rgba(231, 76, 60, 0.2), rgba(241, 196, 15, 0.2));
+        padding: 0.1em 0.3em;
+        border-radius: 2px;
+    }
+
+    /* ===================================
+       CODE BLOCKS
+       ================================== */
+    
+    /* Inline code */
+    #notice_modal_content code {
+        font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+        font-size: 0.9em;
+        background: rgba(0, 0, 0, 0.4);
+        padding: 0.2em 0.4em;
+        border-radius: 3px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Code blocks */
+    #notice_modal_content pre {
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 6px;
+        padding: 1em;
+        margin: 1em 0;
+        overflow-x: auto;
+        line-height: 1.5;
+    }
+
+    #notice_modal_content pre code {
+        background: transparent;
+        border: none;
+        padding: 0;
+    }
+
+    /* ===================================
+       BLOCKQUOTES
+       ================================== */
+    
+    #notice_modal_content blockquote {
+        border-left: 3px solid rgba(241, 196, 15, 0.6);
+        padding-left: 1em;
+        margin: 1em 0;
+        color: rgba(255, 255, 255, 0.8);
+        font-style: italic;
+    }
+
+    /* ===================================
+       HORIZONTAL RULES
+       ================================== */
+    
+    #notice_modal_content hr {
+        border: none;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        margin: 1.5em 0;
+    }
+
+    /* ===================================
+       TABLES
+       ================================== */
+    
+    #notice_modal_content table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin: 1em 0;
+        border-radius: 6px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    #notice_modal_content th,
+    #notice_modal_content td {
+        padding: 0.65em 0.85em;
+        text-align: left;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    #notice_modal_content th {
+        background: rgba(0, 0, 0, 0.3);
+        font-weight: 600;
+        font-size: 0.9em;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    #notice_modal_content tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* ===================================
+       IMAGES
+       ================================== */
+    
+    #notice_modal_content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 6px;
+        margin: 1em 0;
+    }
+
+    /* ===================================
+       SPACING CLEANUP
+       ================================== */
+    
+    /* Remove top margin from first element */
+    #notice_modal_content > *:first-child { 
+        margin-top: 0; 
+    }
+    
+    /* Remove bottom margin from last element */
+    #notice_modal_content > *:last-child { 
+        margin-bottom: 0; 
+    }
+</style>
+
+
+<div 
+    id="noticeModal" 
+    class="fixed inset-0 z-50 hidden items-center justify-center p-4 sm:p-6"
+    style="z-index: 1000"
+    aria-hidden="true"
+    role="dialog" 
+    aria-modal="true"
+>
+    
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" data-action="close-notice"></div>
+
+    
+    <div 
+        class="relative w-full max-w-md md:max-w-lg lg:max-w-xl bg-daddy-dark-purple border border-white/10 rounded-xl shadow-2xl transform transition-transform duration-200 max-h-[90vh] overflow-y-auto"
+        role="document"
+    >
+        
+        <div class="h-18 sm:h-20 bg-primary relative flex items-center px-5 py-2">
+            
+            
+            <div class="absolute right-3 top-1/2 -translate-y-1/2">
+                <button 
+                    type="button"
+                    class="p-2 bg-transparent text-daddy-text-light hover:text-daddy-red-khor rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-daddy-orange/20"
+                    data-action="close-notice"
+                    aria-label="Close modal"
+                >
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+
+            
+            <div class="flex items-center gap-3">
+                <div class="p-3">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <h3 
+                    id="noticeModal_title"
+                    class="text-white text-xl sm:text-2xl font-black italic tracking-tight"
+                >
+                    Notice!
+                </h3>
+            </div>
+        </div>
+
+        
+        <div class="p-6 space-y-4">
+            
+            
+            <div id="notice_modal_content" data-youtube-richtext class="text-sm text-daddy-text-light leading-relaxed"></div>
+
+            
+            <div 
+                class="bg-[#1a1a1a] rounded-2xl p-4 border border-daddy-light-purple/10 space-y-3 hidden"
+                id="noticeModal_actions"
+            >
+            </div>
+
+            
+            <div class="pt-2">
+                <button 
+                    type="button" 
+                    data-action="close-notice"
+                    class="w-full py-4 bg-primary text-daddy-text-light font-black rounded-lg hover:brightness-110 transition-all uppercase tracking-widest text-sm shadow-md focus:outline-none focus:ring-4 focus:ring-daddy-orange/20"
+                >
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<link rel="stylesheet" href="css/youtube-embeds_8a55ce.css">
+    <script src="js/youtube-embeds_8a55ce.js" defer></script>
+<script nonce="">
+    (function () {
+        /**
+         * Initialize modal elements and functionality
+         */
+        
+        // Get modal DOM elements
+        const modal = document.getElementById('noticeModal');
+        const titleEl = modal?.querySelector('#noticeModal_title');
+        const contentEl = modal?.querySelector('#notice_modal_content');
+        const closeSelectors = modal?.querySelectorAll('[data-action="close-notice"]') || [];
+
+        /**
+         * Open the modal with given title and HTML content
+         * @param {string} title - Modal title text
+         * @param {string} html - HTML content to display
+         */
+        function openModal(title = 'Notice', html = '') {
+            if (!modal) return;
+            
+            // Set title and content
+            titleEl.textContent = title || 'Notice';
+            contentEl.innerHTML = html || '';
+            
+            // Show modal and prevent body scroll
+            modal.classList.add('flex');
+            modal.classList.remove('hidden');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+            
+            // Focus close button for accessibility
+            const closeBtn = modal.querySelector('[data-action="close-notice"]');
+            if (closeBtn) closeBtn.focus();
+        }
+
+        /**
+         * Close the modal and restore body scroll
+         */
+        function closeModal() {
+            if (!modal) return;
+            
+            // Hide modal
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+            modal.setAttribute('aria-hidden', 'true');
+            
+            // Restore body scroll
+            document.body.style.overflow = '';
+        }
+
+        /**
+         * GLOBAL API: Expose function for external scripts to trigger modal
+         * Usage: window.showNoticeModal('Title', '<p>Content</p>')
+         */
+        window.showNoticeModal = function (title, html) {
+            openModal(title, html);
+        };
+
+        /**
+         * EVENT LISTENER: Support custom event for showing modal
+         * Usage: window.dispatchEvent(new CustomEvent('show-notice-modal', { detail: { title, html } }))
+         */
+        window.addEventListener('show-notice-modal', function (e) {
+            const d = e?.detail || {};
+            openModal(d.title || 'Notice', d.html || d.content || '');
+        });
+
+        /**
+         * EVENT LISTENER: Close button clicks
+         */
+        closeSelectors.forEach(el => {
+            el.addEventListener('click', function (ev) { 
+                ev.stopPropagation(); 
+                closeModal(); 
+            });
+        });
+
+        /**
+         * EVENT LISTENER: Click backdrop to close
+         */
+        modal?.addEventListener('click', function (ev) {
+            if (ev.target === modal || ev.target.getAttribute('data-action') === 'close-notice') {
+                closeModal();
+            }
+        });
+
+        /**
+         * EVENT LISTENER: ESC key to close
+         */
+        document.addEventListener('keydown', function (ev) {
+            if (ev.key === 'Escape') {
+                closeModal();
+            }
+        });
+    })();
+</script>
+
+
+<script src="js/mlbb-bonus-catalog.js"></script>
+<script src="js/free-fire-level-up-pass-catalog_8a55ce.js"></script>
+<script>
+/**
+ * ============================================
+ * GAME PAGE - PLAYER VALIDATION & CHECKOUT
+ * ============================================
+ * 
+ * This script handles:
+ * 1. Player ID validation with API calls
+ * 2. LocalStorage caching for validated players
+ * 3. Product/bundle selection with visual feedback
+ * 4. Pay button state management
+ * 5. PayWay checkout integration
+ * 6. QR code modal display
+ * 
+ * State Management:
+ * - isPlayerValidated: Whether current player ID is validated
+ * - selectedProductId/selectedBundleId: Currently selected item
+ * - activePackageItem: Currently highlighted card element
+ */
+
+// ============================================
+// CONFIGURATION & CONSTANTS
+// ============================================
+const playerFormSchema = {"custom_checker":false,"checker_enabled":true,"checker_mode":"checker","checker_fingerprint":"cc151061b06deb0153ea93fa17cd9866c2d8a4f8f2372e4df0395e92b009b391","manual_entry_allowed":false,"client_cache_enabled":true,"checker_presentation":{"region_enabled":false,"bonus_enabled":false,"free_fire_bonus_enabled":false,"free_fire_level_up_pass_enabled":false,"package_dependent":false},"fields":[{"key":"user_id","label":"Player ID","placeholder":"Enter your player\/user ID","required":true,"visible":true,"options":[]},{"key":"server_id","label":"Server ID \/ Zone ID","placeholder":"Enter your server \/ zone ID","required":false,"visible":false,"options":[]},{"key":"region","label":"Region","placeholder":"Select a region","required":false,"visible":false,"options":[]}]};
+const giftcardCheckout = false;
+const checkUserUrl = "/games/free-fire-indo/check-user";
+const csrfTokenUrl = "/session/csrf-token";
+let csrfToken = "tQeRp6JaDVoYQW206Ek9GN6jRLRU4rcc0RUT7Gfn";
+const playerCheckDisabled = !Boolean(playerFormSchema.checker_enabled);
+const customPlayerChecker = Boolean(playerFormSchema.custom_checker);
+const playerCheckClientCacheEnabled = playerFormSchema.client_cache_enabled !== false;
+const bonusFilterEnabled = Boolean(playerFormSchema.checker_presentation?.bonus_enabled);
+const freeFireBonusCheckerEnabled = Boolean(playerFormSchema.checker_presentation?.free_fire_bonus_enabled);
+const freeFireLevelUpPassCheckerEnabled = Boolean(playerFormSchema.checker_presentation?.free_fire_level_up_pass_enabled);
+const freeFirePromotionCheckerEnabled = freeFireBonusCheckerEnabled || freeFireLevelUpPassCheckerEnabled;
+const packageDependentChecker = Boolean(playerFormSchema.checker_presentation?.package_dependent);
+const BONUS_CATALOG_POLICY_VERSION = 2;
+const PLAYER_CHECK_CACHE_POLICY_VERSION = 7;
+const PLAYER_CHECK_CACHE_MS = 300000;
+const AUTO_CHECK_DELAY = 700; // Debounce delay for auto-validation (milliseconds)
+
+// ============================================
+// STATE VARIABLES
+// ============================================
+let activePackageItem = null;       // Currently selected product card element
+let isPlayerValidated = false; // True only after checker approval or complete valid manual fields
+let selectedProductId = null;       // Selected product ID
+let selectedBundleId = null;        // Selected bundle ID
+let bonusEligibleProductIds = null; // null means the normal catalog is unrestricted
+let levelUpPassDetails = null;      // null until the six-level eligibility response is verified
+const levelUpOnlyCatalog = (() => {
+    const cards = Array.from(document.querySelectorAll('[data-package-id]'));
+    return cards.length > 0 && cards.every(card => Boolean(card.getAttribute('data-level-up-pass-level')));
+})();
+let latestBonusEligibility = null;  // raw server result used when level restrictions redraw cards
+let playerCheckRevision = 0;
+
+// ============================================
+// LOCALSTORAGE CACHING
+// Cache validated player data to avoid repeated API calls
+// ============================================
+const gameSlug = "free-fire-indo";
+const storageKey = `daddy_player_${gameSlug}`;
+
+/**
+ * Load cached player data from localStorage
+ * @returns {Object|null} Cached player data or null if not found
+ */
+const loadCachedPlayerData = () => {
+        if (!playerCheckClientCacheEnabled) return null;
+
+        try {
+            const cached = localStorage.getItem(storageKey);
+            if (cached) {
+                const parsed = JSON.parse(cached);
+
+                if (!parsed.timestamp || Date.now() - parsed.timestamp > PLAYER_CHECK_CACHE_MS) {
+                    localStorage.removeItem(storageKey);
+                    return null;
+                }
+
+                if (parsed.checker_fingerprint !== playerFormSchema.checker_fingerprint) {
+                    localStorage.removeItem(storageKey);
+                    return null;
+                }
+
+                if (parsed.player_check_cache_policy_version !== PLAYER_CHECK_CACHE_POLICY_VERSION) {
+                    localStorage.removeItem(storageKey);
+                    return null;
+                }
+
+                // Old client-cache entries predate promo eligibility. Never use
+                // one to restore an unfiltered x2 catalog.
+                if (bonusFilterEnabled
+                    && (!Object.hasOwn(parsed, 'bonus_eligibility')
+                        || !Object.hasOwn(parsed, 'checker_sections')
+                        || parsed.bonus_catalog_policy_version !== BONUS_CATALOG_POLICY_VERSION)) {
+                    localStorage.removeItem(storageKey);
+                    return null;
+                }
+
+                if (packageDependentChecker
+                    && (!Object.hasOwn(parsed, 'selected_product_id')
+                        || !Object.hasOwn(parsed, 'selected_bundle_id'))) {
+                    localStorage.removeItem(storageKey);
+                    return null;
+                }
+
+                return parsed;
+            }
+        } catch (e) {
+            console.error('Failed to load cached player data:', e);
+        }
+        return null;
+    };
+
+/**
+ * Save validated player data to localStorage
+ * @param {string} userId - Player's user ID
+ * @param {string} serverId - Player's server ID
+ * @param {string} region - Player's region
+ * @param {string} displayName - Player's display name from API
+ */
+const saveCachedPlayerData = (userId, serverId, region, displayName, bonusEligibility, checkerSections, checkerMessage) => {
+        if (!playerCheckClientCacheEnabled) return;
+
+        try {
+            const data = {
+                user_id: userId,
+                server_id: serverId,
+                region: region,
+                display_name: displayName,
+                bonus_eligibility: bonusEligibility ?? null,
+                checker_sections: checkerSections ?? null,
+                checker_message: checkerMessage ?? null,
+                checker_fingerprint: playerFormSchema.checker_fingerprint,
+                selected_product_id: selectedProductId ? String(selectedProductId) : '',
+                selected_bundle_id: selectedBundleId ? String(selectedBundleId) : '',
+                bonus_catalog_policy_version: BONUS_CATALOG_POLICY_VERSION,
+                player_check_cache_policy_version: PLAYER_CHECK_CACHE_POLICY_VERSION,
+                timestamp: Date.now()
+            };
+            localStorage.setItem(storageKey, JSON.stringify(data));
+        } catch (e) {
+            console.error('Failed to save cached player data:', e);
+        }
+    };
+
+/**
+ * Clear cached player data from localStorage
+ */
+const clearCachedPlayerData = () => {
+        try {
+            localStorage.removeItem(storageKey);
+        } catch (e) {
+            console.error('Failed to clear cached player data:', e);
+        }
+    };
+
+// ============================================
+// DOM ELEMENT REFERENCES
+// ============================================
+// Payment button elements
+const payNowButton = document.getElementById('pay-now-btn');
+const payNowSpinner = document.getElementById('pay-now-spinner');
+const payNowIcon = document.getElementById('pay-now-icon');
+const payNowText = document.getElementById('pay-now-text');
+
+// Form elements
+const paywayForm = document.getElementById('aba_merchant_request');
+const productInput = document.getElementById('product_id');
+const bundleInput = document.getElementById('bundle_id');
+const amountInput = document.getElementById('amount');
+const totalPriceElement = document.getElementById('total_price');
+const setDisplayedTotal = value => {
+    const display = '$' + value;
+    if (totalPriceElement) totalPriceElement.textContent = display;
+};
+const couponInput = document.getElementById('coupon-code');
+const couponStatus = document.querySelector('[data-coupon-status]');
+let couponPreviewApplied = false;
+let couponPreviewSequence = 0;
+const clearCouponPreview = () => {
+    couponPreviewSequence++;
+    if (couponPreviewApplied && totalPriceElement) {
+        const base = giftcardQuantity > 1 ? giftcardTotal() : amountInput?.value;
+        if (base) setDisplayedTotal(Number(String(base).replace(/,/g, '')).toFixed(2));
+    }
+    couponPreviewApplied = false;
+    if (couponStatus) delete couponStatus.dataset.state;
+    if (couponStatus) couponStatus.textContent = 'Select a product and apply the code to see your discounted total.';
+};
+
+// Giftcard quantity. Display only: quantities above 1 go to the bulk checkout,
+// where the server re-prices every item and enforces giftcard-only and 10 items.
+const giftcardBulkCheckoutUrl = null;
+const giftcardBulkEligibleProductIds = [];
+const giftcardBulkNonce = document.querySelector('[data-checkout-nonce]')?.value;
+const giftcardQuantityLimits = [];
+const giftcardQuantityMax = 10;
+let giftcardQuantity = 1;
+let selectedUnitPrice = null;
+
+const giftcardCents = value => {
+    const match = String(value ?? '').replace(/,/g, '').match(/^\s*(\d+)(?:\.(\d{1,2}))?\s*$/);
+    return match ? Number(match[1]) * 100 + Number((match[2] || '0').padEnd(2, '0')) : null;
+};
+
+const giftcardTotal = () => {
+    const cents = giftcardCents(selectedUnitPrice);
+    return cents === null ? null : ((cents * giftcardQuantity) / 100).toFixed(2);
+};
+
+const renderGiftcardQuantity = () => {
+    const limit = !giftcardBulkCheckoutUrl || selectedBundleId ? 1
+        : (selectedProductId ? (giftcardQuantityLimits[Number(selectedProductId)] || 1) : giftcardQuantityMax);
+    const locked = limit <= 1;
+    giftcardQuantity = Math.min(limit, Math.max(1, giftcardQuantity));
+    document.querySelectorAll('[data-giftcard-quantity]').forEach(root => {
+        const input = root.querySelector('[data-giftcard-quantity-input]');
+        if (input) {
+            input.value = String(giftcardQuantity);
+            input.disabled = locked;
+        }
+        root.querySelector('[data-giftcard-quantity-step="-1"]').disabled = locked || giftcardQuantity <= 1;
+        root.querySelector('[data-giftcard-quantity-step="1"]').disabled = locked || giftcardQuantity >= limit;
+    });
+    const total = selectedProductId ? giftcardTotal() : null;
+    if (total !== null) setDisplayedTotal(total);
+};
+
+const setGiftcardQuantity = value => {
+    giftcardQuantity = Math.min(giftcardQuantityMax, Math.max(1, Number.parseInt(value, 10) || 1));
+    renderGiftcardQuantity();
+    clearCouponPreview();
+};
+
+if (document.querySelector('[data-giftcard-quantity]')) {
+    document.querySelectorAll('[data-giftcard-quantity]').forEach(root => {
+        root.querySelectorAll('[data-giftcard-quantity-step]').forEach(button => {
+            button.addEventListener('click', () => setGiftcardQuantity(giftcardQuantity + Number(button.dataset.giftcardQuantityStep)));
+        });
+        const input = root.querySelector('[data-giftcard-quantity-input]');
+        input?.addEventListener('input', () => { input.value = input.value.replace(/\D/g, '').slice(0, 2); });
+        input?.addEventListener('change', () => setGiftcardQuantity(input.value));
+        input?.addEventListener('keydown', event => {
+            if (event.key !== 'Enter') return;
+            event.preventDefault();
+            setGiftcardQuantity(input.value);
+        });
+    });
+    renderGiftcardQuantity();
+}
+
+// Player validation elements
+const checkIdButton = document.getElementById('check-id-btn');
+const checkIdStatus = document.getElementById('check-id-status');
+const checkerResultDetails = document.getElementById('checker-result-details');
+const userIdInput = document.querySelector('input[name="user_id"]');
+const serverIdInput = document.querySelector('input[name="server_id"], select[name="server_id"]');
+const regionInput = document.querySelector('select[name="region"]');
+const customPlayerInputs = Array.from(document.querySelectorAll('input[name^="custom_fields["]'));
+const customPlayerValues = () => Object.fromEntries(customPlayerInputs.map(input => [input.name.slice(14, -1), input.value]));
+
+// ============================================
+// UI STATE MANAGEMENT
+// ============================================
+/* Fake Pay Now */
+const payNowButtonFake = document.getElementById('pay-now-btn-fake');
+if(payNowButtonFake) {
+    payNowButtonFake.addEventListener('click', () => {
+        notify('Warning', 'Please verify your Player ID and select a package to enable checkout.', { duration: 3000 });
+    });
+}
+
+/**
+ * Update Pay Now button enabled/disabled state
+ * Button is enabled only when both product AND player are validated
+ */
+const updatePayNowButton = () => {
+        if (!payNowButton) return;
+
+        // ENABLE/DISABLE: require both a selected product/bundle AND validated player
+        const selectedLevel = activePackageItem?.getAttribute?.('data-level-up-pass-level') || '';
+        const selectedLevelAllowed = !freeFireLevelUpPassCheckerEnabled
+            || window.FreeFireLevelUpPassCatalog.isPackageEligible(levelUpPassDetails, selectedLevel);
+        const shouldEnable = !!(
+            (selectedProductId || selectedBundleId)
+            && isPlayerValidated
+            && selectedLevelAllowed
+        );
+        payNowButton.disabled = !shouldEnable;
+
+        // VISUAL: apply `text-white` only when the button is actually enabled (clear affordance)
+        if (shouldEnable) {
+            payNowButton.classList.add('text-white');
+            payNowButton.classList.remove('hidden');
+            payNowButtonFake.classList.add('hidden');
+        } else {
+            payNowButton.classList.remove('text-white');
+            payNowButton.classList.add('hidden');
+            payNowButtonFake.classList.remove('hidden');
+        }
+    };
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+
+/**
+ * Escape HTML special characters to prevent XSS
+ * @param {string} s - String to escape
+ * @returns {string} Escaped string
+ */
+const _escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+
+/**
+ * Show notification toast (tries Filament, Toastify, then fallback)
+ * @param {string} title - Notification title
+ * @param {string} message - Notification message
+ * @param {Object} options - Options object
+ * @param {number} options.duration - Duration in milliseconds
+ */
+const notify = (title, message, {duration = 3000} = {}) => {
+        try {
+            const text = String(message ?? '');
+            if (window.FilamentNotification) {
+                return new FilamentNotification().title(title).body(text).success().seconds(Math.ceil(duration/1000)).send();
+            }
+            if (typeof Toastify !== 'undefined') {
+                return Toastify({ text: `${title}: ${text}`, duration }).showToast();
+            }
+            // safe fallback: escape before injecting into inline toast
+            return showInlineToast(title, _escapeHtml(text), duration);
+        } catch (err) {
+            console.error('notify error:', err);
+        }
+    };
+
+const clearPackageSelection = () => {
+    if (activePackageItem) {
+        activePackageItem.classList.remove('bg-primary', 'ring-2', 'ring-daddy-orange/40', 'scale-105', 'shadow-2xl', 'p-0.5', 'scale-1.05');
+    }
+
+    activePackageItem = null;
+    selectedProductId = null;
+    selectedBundleId = null;
+    if (productInput) productInput.value = '';
+    if (bundleInput) bundleInput.value = '';
+    if (amountInput) amountInput.value = '';
+    setDisplayedTotal('0.00');
+    selectedUnitPrice = null;
+    updatePayNowButton();
+};
+
+/**
+ * The server performs the strict promo/product matching. The browser only
+ * applies the returned product IDs; it never tries to interpret promo text.
+ */
+const applyBonusEligibility = (eligibility) => {
+    latestBonusEligibility = eligibility ?? null;
+    const eligibilityState = window.MlbbBonusCatalog.normalize(eligibility);
+    bonusEligibleProductIds = eligibilityState.eligibleProductIds;
+
+    document.querySelectorAll('[data-package-id]').forEach((card) => {
+        const packageKey = String(card.getAttribute('data-package-id') || '');
+        const [type, id] = packageKey.split('-', 2);
+        const bonusEligible = window.MlbbBonusCatalog.isPackageEligible(eligibilityState, type, id);
+        const level = String(card.getAttribute('data-level-up-pass-level') || '');
+        const levelEligible = !freeFireLevelUpPassCheckerEnabled
+            || window.FreeFireLevelUpPassCatalog.isPackageSelectable(levelUpPassDetails, level);
+        const supplierUnavailable = card.getAttribute('data-supplier-unavailable') === 'true';
+        const eligible = !supplierUnavailable && bonusEligible && levelEligible;
+        const wrapper = card.closest('[data-package-wrapper]');
+        const unavailableLabel = wrapper?.querySelector('[data-package-unavailable]');
+
+        wrapper?.classList.toggle('cursor-not-allowed', !eligible);
+        card.classList.toggle('opacity-40', !eligible);
+        card.classList.toggle('grayscale', !eligible);
+        card.classList.toggle('pointer-events-none', !eligible);
+        card.setAttribute('aria-disabled', eligible ? 'false' : 'true');
+        if (eligible) {
+            card.removeAttribute('tabindex');
+            card.removeAttribute('title');
+        } else {
+            card.setAttribute('tabindex', '-1');
+            card.setAttribute('title', supplierUnavailable ? 'Currently unavailable' : 'Not available for this account');
+        }
+        if (unavailableLabel) {
+            unavailableLabel.textContent = supplierUnavailable
+                ? 'Currently unavailable'
+                : level && !levelEligible
+                ? 'Level Up Pass not available for this account'
+                : 'Not available for this account';
+            unavailableLabel.classList.toggle('hidden', eligible);
+        }
+    });
+
+    const countElement = document.getElementById('all-items-count');
+    if (countElement) {
+        const count = Number(7);
+        countElement.textContent = `${count} ${count === 1 ? 'item' : 'items'}`;
+    }
+
+    const selectedLevel = activePackageItem?.getAttribute?.('data-level-up-pass-level') || '';
+    if (freeFireLevelUpPassCheckerEnabled
+        && window.FreeFireLevelUpPassCatalog.shouldClearSelection(levelUpPassDetails, selectedLevel)) {
+        clearPackageSelection();
+        notify('Level Up Pass unavailable', `This account cannot purchase ${selectedLevel}.`);
+    } else if (window.MlbbBonusCatalog.shouldClearSelection(eligibilityState, selectedProductId, selectedBundleId)) {
+        clearPackageSelection();
+        if (eligibilityState.eligibleProductIds.size === 0) {
+            notify('Bonus unavailable', 'This account has no eligible x2 bonus packages.');
+        } else {
+            notify('Choose another package', 'Your previous package is not available for this account. Choose an eligible x2 bonus package.');
+        }
+    }
+};
+
+/**
+ * Debounce function calls to reduce API requests
+ * @param {Function} fn - Function to debounce
+ * @param {number} wait - Wait time in milliseconds
+ * @returns {Function} Debounced function with cancel() method
+ */
+const debounce = (fn, wait = 250) => {
+        let timer = null;
+        const debounced = (...args) => {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(() => { timer = null; fn(...args); }, wait);
+        };
+        debounced.cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
+        return debounced;
+    };
+
+// ============================================
+// PLAYER VALIDATION - CACHE CHECKING
+// ============================================
+
+/**
+ * Check if current form values match cached player data
+ * @returns {boolean} True if current inputs match cached data
+ */
+const checkIfMatchesCachedData = () => {
+        const cached = loadCachedPlayerData();
+        if (!cached) return false;
+
+        const userId = userIdInput?.value?.trim();
+        const serverId = serverIdInput?.value?.trim();
+        const region = regionInput?.value?.trim();
+
+        return (
+            cached.user_id === userId &&
+            cached.server_id === (serverId || '') &&
+            cached.region === (region || '') &&
+            (!packageDependentChecker
+                || (cached.selected_product_id === (selectedProductId ? String(selectedProductId) : '')
+                    && cached.selected_bundle_id === (selectedBundleId ? String(selectedBundleId) : '')))
+        );
+    };
+
+/**
+ * Auto-validate player if current inputs match cached validated data
+ * Skips API call if we already validated these exact values
+ * @returns {boolean} True if auto-validated from cache
+ */
+const autoValidateFromCache = () => {
+        const cached = loadCachedPlayerData();
+        
+        if (!cached) {
+            return false;
+        }
+
+        const userId = userIdInput?.value?.trim();
+        const serverId = serverIdInput?.value?.trim();
+        const region = regionInput?.value?.trim();
+
+        const matches = (
+            cached.user_id === userId &&
+            (cached.server_id || '') === (serverId || '') &&
+            (cached.region || '') === (region || '') &&
+            (!packageDependentChecker
+                || (cached.selected_product_id === (selectedProductId ? String(selectedProductId) : '')
+                    && cached.selected_bundle_id === (selectedBundleId ? String(selectedBundleId) : '')))
+        );
+
+        const selectedLevel = activePackageItem?.getAttribute('data-level-up-pass-level') || '';
+        const hasLevelProof = !freeFireLevelUpPassCheckerEnabled || (!selectedLevel && !levelUpOnlyCatalog)
+            || window.FreeFireLevelUpPassCatalog.normalize(cached.checker_sections?.free_fire_level_up_pass) !== null;
+
+        if (matches && hasLevelProof) {
+            isPlayerValidated = true;
+            const identifier = cached.display_name || userId;
+            if (freeFireLevelUpPassCheckerEnabled && !freeFireBonusCheckerEnabled) {
+                setCheckIdStatus(cached.checker_message || identifier, 'success');
+            } else if (freeFirePromotionCheckerEnabled) {
+                setCheckIdStatus(cached.checker_message || 'មានប្រូម៉ូសិន។', 'success');
+            } else {
+                setCheckIdStatus(identifier, 'success');
+            }
+            renderCheckerResultDetails(
+                cached.checker_sections,
+                freeFirePromotionCheckerEnabled ? cached.display_name : null
+            );
+            applyBonusEligibility(cached.bonus_eligibility);
+            updatePayNowButton();
+            return true;
+        }
+        
+        return false;
+    };
+
+// ============================================
+// PRODUCT/BUNDLE SELECTION
+// ============================================
+
+/**
+ * Handle product or bundle selection
+ * Updates form inputs, highlights selected card, shows notice modal
+ * 
+ * @param {number} price - Item price
+ * @param {number} id - Product or bundle ID
+ * @param {HTMLElement} element - Clicked card element
+ * @param {string} type - 'product' or 'bundle'
+ */
+const setAmount = (price, id, element, type = 'product') => {
+        if (element?.getAttribute('data-supplier-unavailable') === 'true') {
+            notify('Package unavailable', 'This package is currently unavailable.');
+            return;
+        }
+        const level = element?.getAttribute('data-level-up-pass-level') || '';
+        if (freeFireLevelUpPassCheckerEnabled
+            && !window.FreeFireLevelUpPassCatalog.isPackageSelectable(levelUpPassDetails, level)) {
+            notify('Package unavailable', 'This Level Up Pass is not available for this account.');
+            return;
+        }
+        if (bonusEligibleProductIds !== null
+            && (type !== 'product' || !bonusEligibleProductIds.has(String(id)))) {
+            notify('Package unavailable', 'This package is not available for this account\'s active x2 bonus offers.');
+            return;
+        }
+        playerCheckRevision++;
+        hideCheckIdLoading();
+
+    // STEP 0: Immediate visual feedback — swap active card before anything else
+        if (activePackageItem) {
+            activePackageItem.classList.remove('bg-primary', 'ring-2', 'ring-daddy-orange/40', 'scale-105', 'shadow-2xl');
+            activePackageItem.classList.remove('p-0.5', 'scale-1.05');
+        }
+        element.classList.add('bg-primary', 'ring-2', 'ring-daddy-orange/40', 'scale-105', 'shadow-2xl');
+        element.classList.remove('p-0.5', 'scale-1.05');
+        activePackageItem = element;
+
+    // STEP 1: Update form inputs and price display
+        if (amountInput) {
+            amountInput.value = price;
+        }
+        if (totalPriceElement) {
+            setDisplayedTotal(price);
+        }
+
+        if (type === 'bundle') {
+            selectedBundleId = id;
+            selectedProductId = null;
+            if (bundleInput) bundleInput.value = id;
+            if (productInput) productInput.value = '';
+        } else {
+            selectedProductId = id;
+            selectedBundleId = null;
+            if (productInput) productInput.value = id;
+            if (bundleInput) bundleInput.value = '';
+        }
+        selectedUnitPrice = type === 'bundle' ? null : price;
+        clearCouponPreview();
+        const loadingEventInput = document.querySelector('[data-loading-time-event-id]');
+        if (loadingEventInput && (type !== loadingEventInput.dataset.targetType || String(id) !== loadingEventInput.dataset.targetId)) {
+            loadingEventInput.remove();
+        }
+        if (document.querySelector('[data-giftcard-quantity]')) renderGiftcardQuantity();
+
+        // If the clicked element has inline `data-notice`, show the notice modal immediately (applies to products and bundles)
+        try {
+            const raw = element?.getAttribute?.('data-notice');
+            let elNoticeHtml = null;
+
+            if (raw) {
+                try {
+                    elNoticeHtml = JSON.parse(raw);
+                } catch (e) {
+                    try {
+                        const safe = raw.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+                        elNoticeHtml = JSON.parse('"' + safe + '"');
+                    } catch (e2) {
+                        elNoticeHtml = raw
+                            .replace(/\\u003C/g, '<')
+                            .replace(/\\u003E/g, '>')
+                            .replace(/\\u002F/g, '/')
+                            .replace(/\\u0026/g, '&');
+                    }
+                }
+            }
+
+            let elNoticeTitle = element?.getAttribute?.('data-notice-title') || itemName || 'Notice';
+            try { if (/^\s*".*"\s*$/.test(elNoticeTitle) || elNoticeTitle.includes('\\u003C')) elNoticeTitle = JSON.parse(elNoticeTitle); } catch (e) { /* ignore */ }
+
+            if (elNoticeHtml) {
+                // show modal (content may contain HTML)
+                if (typeof window.showNoticeModal === 'function') {
+                    window.showNoticeModal(elNoticeTitle, elNoticeHtml);
+                } else {
+                    window.dispatchEvent(new CustomEvent('show-notice-modal', { detail: { title: elNoticeTitle, html: elNoticeHtml } }));
+                }
+            }
+        } catch (err) {
+            // ignore - not critical
+            console.warn('notice modal show failed', err);
+        }
+        
+        if (playerCheckDisabled) {
+            updateManualPlayerReadiness();
+        } else {
+            // Check if cached data matches current inputs and auto-validate
+            const cacheValidated = autoValidateFromCache();
+            if (!cacheValidated) {
+                // No cache match - reset validation
+                isPlayerValidated = false;
+                if (selectedProductId || selectedBundleId) {
+                    setCheckIdStatus('Please verify your Player ID for this package.', 'info');
+
+                    // The customer may enter their UID before choosing a package.
+                    // Selecting or changing a package must trigger the checker too,
+                    // rather than waiting for another change to the UID field.
+                    if (validateRequiredFields().length === 0) {
+                        scheduleAutoCheck();
+                    }
+                } else {
+                    setCheckIdStatus('');
+                }
+            }
+        }
+        
+        // Always update button state after checking cache
+        updatePayNowButton();
+
+        // Notify (centralized helper handles Filament / Toastify / inline fallback)
+        const itemNameEl = element?.querySelector('[title]') || element?.querySelector('.text-xs');
+        const itemName = itemNameEl ? itemNameEl.textContent.trim() : '';
+        const label = (type === 'bundle') ? 'Bundle selected' : 'Package selected';
+        const message = itemName ? `${itemName} — $${price}` : `$${price}`;
+        notify(label, message, { duration: 3000 });
+    };
+    
+// Expose setAmount to global scope for onclick handlers in Blade
+window.setAmount = setAmount;
+
+// ============================================
+// PLAYER VALIDATION - UI FEEDBACK
+// ============================================
+
+/**
+ * Set validation status message with appropriate styling
+ * @param {string} message - Status message to display
+ * @param {string} tone - Message tone: 'success', 'error', or 'info'
+ */
+const setCheckIdStatus = (message, tone = 'info') => {
+    if (!checkIdStatus) return;
+    
+    if (!message) {
+        checkIdStatus.classList.add('hidden');
+        checkIdStatus.classList.remove('flex', 'items-center', 'justify-center', 'gap-2');
+        return;
+    }
+    
+    checkIdStatus.classList.remove('hidden');
+    checkIdStatus.classList.add('flex', 'items-center', 'justify-center', 'gap-2');
+    
+    // Remove all tone classes
+    checkIdStatus.classList.remove(
+        'bg-green-900/30', 'border-green-500', 'text-green-400',
+        'bg-red-900/30', 'border-daddy-red-khor', 'text-daddy-red-khor',
+        'bg-blue-900/30', 'border-daddy-blue', 'text-daddy-text-light'
+    );
+    
+    let iconClass;
+
+    // Apply tone-specific classes
+    if (tone === 'success') {
+        checkIdStatus.classList.add('bg-green-900/30', 'border-green-500', 'text-green-400');
+        iconClass = 'fas fa-check-circle mr-2';
+    } else if (tone === 'error') {
+        checkIdStatus.classList.add('bg-red-900/30', 'border-daddy-red-khor', 'text-daddy-red-khor');
+        iconClass = 'fas fa-exclamation-circle mr-2';
+    } else {
+        checkIdStatus.classList.add('bg-blue-900/30', 'border-daddy-blue', 'text-daddy-text-light');
+        iconClass = 'fas fa-info-circle mr-2';
+    }
+
+    // Supplier responses and cached player names are untrusted text. Never
+    // interpolate them into HTML, even after server-side sanitization.
+    checkIdStatus.textContent = '';
+    const icon = document.createElement('i');
+    icon.className = iconClass;
+    checkIdStatus.appendChild(icon);
+    checkIdStatus.append(document.createTextNode(String(message)));
+};
+
+const clearCheckerResultDetails = (preserveLevelEligibility = false) => {
+    if (!preserveLevelEligibility) levelUpPassDetails = null;
+    if (!checkerResultDetails) return;
+    checkerResultDetails.replaceChildren();
+    checkerResultDetails.classList.add('hidden');
+};
+
+const appendCheckerDetail = (container, label, value) => {
+    if (value === null || value === undefined || value === '') return;
+
+    const row = document.createElement('div');
+    row.className = 'flex items-start justify-between gap-3 py-1';
+    const labelNode = document.createElement('span');
+    labelNode.className = 'text-daddy-text-darker';
+    labelNode.textContent = String(label);
+    const valueNode = document.createElement('span');
+    valueNode.className = 'text-right font-semibold text-white';
+    valueNode.textContent = String(value);
+    row.append(labelNode, valueNode);
+    container.appendChild(row);
+};
+
+const renderCheckerResultDetails = (sections, displayName = null) => {
+    clearCheckerResultDetails(true);
+
+    const safeSections = sections && typeof sections === 'object' ? sections : {};
+    const levelSection = safeSections.free_fire_level_up_pass;
+    levelUpPassDetails = window.FreeFireLevelUpPassCatalog.normalize(levelSection);
+    applyBonusEligibility(latestBonusEligibility);
+    if (!checkerResultDetails) return;
+    appendCheckerDetail(checkerResultDetails, 'Player name', displayName);
+
+    if (safeSections.region && typeof safeSections.region === 'object') {
+        appendCheckerDetail(checkerResultDetails, 'Nickname', safeSections.region.nickname);
+        appendCheckerDetail(checkerResultDetails, 'Country', safeSections.region.country);
+        appendCheckerDetail(checkerResultDetails, 'Country code', safeSections.region.country_code);
+    }
+
+    if (safeSections.bonus && typeof safeSections.bonus === 'object') {
+        appendCheckerDetail(
+            checkerResultDetails,
+            'x2 bonus available',
+            safeSections.bonus.bonus_available ? 'Yes' : 'No'
+        );
+        appendCheckerDetail(checkerResultDetails, 'Promotions', safeSections.bonus.promo_count ?? 0);
+
+        if (Array.isArray(safeSections.bonus.promos)) {
+            safeSections.bonus.promos.forEach((promo) => {
+                if (!promo || typeof promo !== 'object') return;
+                appendCheckerDetail(
+                    checkerResultDetails,
+                    'Bonus package',
+                    promo.display || `${promo.diamonds || ''} + ${promo.bonus || ''}`
+                );
+            });
+        }
+    }
+
+    if (safeSections.free_fire_bonus && typeof safeSections.free_fire_bonus === 'object') {
+        appendCheckerDetail(checkerResultDetails, 'Package', safeSections.free_fire_bonus.package);
+        appendCheckerDetail(
+            checkerResultDetails,
+            'Promotion eligible',
+            safeSections.free_fire_bonus.eligible ? 'Yes' : 'No'
+        );
+        appendCheckerDetail(checkerResultDetails, 'Bonus diamonds', safeSections.free_fire_bonus.bonus);
+    }
+
+    if (checkerResultDetails.childElementCount > 0) {
+        checkerResultDetails.classList.remove('hidden');
+    }
+};
+
+/**
+ * Show loading state on Check ID button
+ */
+const showCheckIdLoading = () => {
+        const spinner = document.getElementById('check-id-spinner') || document.getElementById('loading-spinner');
+        const icon = document.getElementById('check-id-icon');
+        const text = document.getElementById('check-id-text');
+        
+        if (spinner) spinner.classList.remove('hidden');
+        if (icon) icon.classList.add('hidden');
+        if (text) text.textContent = 'Checking...';
+        if (checkIdButton) checkIdButton.disabled = true;
+    };
+
+/**
+ * Hide loading state on Check ID button
+ */
+const hideCheckIdLoading = () => {
+        const spinner = document.getElementById('check-id-spinner') || document.getElementById('loading-spinner');
+        const icon = document.getElementById('check-id-icon');
+        const text = document.getElementById('check-id-text');
+        
+        if (spinner) spinner.classList.add('hidden');
+        if (icon) icon.classList.remove('hidden');
+        if (text) text.textContent = 'Check ID';
+        if (checkIdButton) checkIdButton.disabled = false;
+    };
+
+// ============================================
+// INPUT VALIDATION & SANITIZATION
+// ============================================
+
+/**
+ * Sanitize user input to prevent XSS and clean data
+ * @param {string} input - Raw input string
+ * @returns {string} Sanitized input
+ */
+const sanitizeInput = (input) => {
+        if (!input) return input;
+        return input.toString()
+            .replace(/[<>\"'&]/g, '') // Remove dangerous characters
+            .trim()
+            .slice(0, 50); // Limit length
+    };
+
+/**
+ * Validate that all required form fields are filled
+ * Checks visibility and requirement flags from playerFormSchema
+ * @returns {Array<string>} Array of error messages (empty if valid)
+ */
+const validateRequiredFields = () => {
+        const errors = [];
+        if (customPlayerChecker) {
+            for (const field of playerFormSchema.fields || []) {
+                const input = customPlayerInputs.find(item => item.name === `custom_fields[${field.key}]`);
+                if (field.required && !input?.value) errors.push(`Please enter ${field.label}.`);
+                else if (input?.value && !input.checkValidity()) errors.push(`${field.label} has an invalid format.`);
+            }
+            return errors;
+        }
+        
+        // Check user_id if visible and required
+        const userField = playerFormSchema.fields?.find(f => f.key === 'user_id');
+        if (userField && userField.visible && userField.required) {
+            const userId = userIdInput?.value?.trim();
+            if (!userId) {
+                errors.push(`Please enter your ${userField.label || 'User ID'}.`);
+            } else if (freeFirePromotionCheckerEnabled && !/^[0-9]+$/.test(userId)) {
+                errors.push(`${userField.label || 'User ID'} must contain numbers only.`);
+            } else if (!/^[a-zA-Z0-9_#.-]+$/.test(userId)) {
+                errors.push(`${userField.label || 'User ID'} contains invalid characters.`);
+            }
+        }
+        
+        // Check server_id if visible and required
+        const serverField = playerFormSchema.fields?.find(f => f.key === 'server_id');
+        if (serverField && serverField.visible && serverField.required) {
+            const serverId = serverIdInput?.value?.trim();
+            if (!serverId) {
+                errors.push(`Please enter your ${serverField.label || 'Server ID'}.`);
+            } else if (serverIdInput?.tagName === 'INPUT' && !/^[a-zA-Z0-9_#.-]+$/.test(serverId)) {
+                // Only validate pattern for text inputs, not dropdowns
+                errors.push(`${serverField.label || 'Server ID'} contains invalid characters.`);
+            }
+        }
+        
+        // Check region if visible and required
+        const regionField = playerFormSchema.fields?.find(f => f.key === 'region');
+        if (regionField && regionField.visible && regionField.required) {
+            const region = regionInput?.value?.trim();
+            if (!region) {
+                errors.push(`Please select your ${regionField.label || 'Region'}.`);
+            }
+        }
+        
+        if (freeFireBonusCheckerEnabled && (!selectedProductId || selectedBundleId)) {
+            errors.push('Please select a supported Free Fire diamond package first.');
+        }
+
+        return errors;
+    };
+
+/**
+ * Manual mode never calls a supplier API. It only confirms that the fields
+ * selected by the admin are present and syntactically valid.
+ */
+const updateManualPlayerReadiness = () => {
+        if (!playerCheckDisabled) return false;
+
+        // Giftcards do not have player/server fields or a checker. Keep the
+        // checkout ready without rendering a misleading player status.
+        if (giftcardCheckout) {
+            isPlayerValidated = true;
+            clearCheckerResultDetails();
+            updatePayNowButton();
+            return true;
+        }
+
+        const validationErrors = validateRequiredFields();
+        isPlayerValidated = validationErrors.length === 0;
+
+        if (!isPlayerValidated) {
+            setCheckIdStatus(
+                (selectedProductId || selectedBundleId) ? validationErrors[0] : '',
+                'info'
+            );
+            updatePayNowButton();
+            return false;
+        }
+
+        const userId = sanitizeInput(userIdInput?.value?.trim());
+        const serverId = sanitizeInput(serverIdInput?.value?.trim());
+        const identifier = userId || serverId;
+
+        setCheckIdStatus(`${identifier} ready`, 'success');
+        clearCheckerResultDetails();
+        updatePayNowButton();
+        return true;
+    };
+
+// ============================================
+// PLAYER VALIDATION - API CALL
+// ============================================
+
+/**
+ * Validate player ID with backend API
+ * Checks if player exists in the game system
+ * Caches successful validations to localStorage
+ */
+const refreshCsrfToken = async () => {
+    const response = await fetch(csrfTokenUrl, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        credentials: 'same-origin',
+        cache: 'no-store',
+    });
+
+    if (!response.ok) return false;
+
+    const data = await response.json().catch(() => ({}));
+    if (typeof data.token !== 'string' || data.token.length < 20) return false;
+
+    csrfToken = data.token;
+    return true;
+};
+
+const sendPlayerCheckRequest = async (payload, canRetryCsrf = true) => {
+    const response = await fetch(checkUserUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify(payload),
+    });
+
+    if (response.status === 419 && canRetryCsrf && await refreshCsrfToken()) {
+        return sendPlayerCheckRequest(payload, false);
+    }
+
+    return response;
+};
+
+const handleCheckId = async () => {
+        if (!checkUserUrl) return;
+        const revision = ++playerCheckRevision;
+        if (typeof scheduleAutoCheck?.cancel === "function") scheduleAutoCheck.cancel();
+
+        if (giftcardCheckout) {
+            updateManualPlayerReadiness();
+            return;
+        } else if (playerCheckDisabled) {
+            updateManualPlayerReadiness();
+            return;
+        }
+
+        if (customPlayerChecker) {
+            const errors = validateRequiredFields();
+            if (errors.length) { isPlayerValidated = false; setCheckIdStatus(errors[0], 'error'); updatePayNowButton(); return; }
+            isPlayerValidated = false;
+            updatePayNowButton();
+            try {
+                const response = await sendPlayerCheckRequest({custom_fields: customPlayerValues()});
+                const result = await response.json().catch(() => ({}));
+                if (revision !== playerCheckRevision) return;
+                if (!response.ok || result.valid !== true) {
+                    setCheckIdStatus(Object.values(result.errors || {}).flat()[0] || result.message || 'Please check your player details.', 'error');
+                    return;
+                }
+                const accepted = (playerFormSchema.fields || []).filter(field => result.values?.[field.key])
+                    .map(field => `${field.label}: ${result.values[field.key]}`).join(' · ');
+                setCheckIdStatus(accepted, 'success');
+                isPlayerValidated = true;
+                updatePayNowButton();
+            } catch (_) {
+                if (revision === playerCheckRevision) setCheckIdStatus('Unable to validate the fields. Please try again.', 'error');
+            }
+            return;
+        }
+
+        // Check if data matches cache - skip API call
+        if (autoValidateFromCache()) {
+            return;
+        }
+
+        // Validate all required fields dynamically
+        const validationErrors = validateRequiredFields();
+        if (validationErrors.length > 0) {
+            setCheckIdStatus(validationErrors[0], 'error');
+            return;
+        }
+
+        const userId = sanitizeInput(userIdInput?.value?.trim());
+        const serverId = sanitizeInput(serverIdInput?.value?.trim());
+        const region = sanitizeInput(regionInput?.value?.trim());
+        const productId = productInput?.value;
+        const bundleId = bundleInput?.value;
+
+        setCheckIdStatus('', 'info');
+        isPlayerValidated = false;
+        clearCheckerResultDetails();
+        applyBonusEligibility(null);
+        updatePayNowButton();
+        showCheckIdLoading();
+
+        try {
+        const response = await sendPlayerCheckRequest({
+            user_id: userId,
+            server_id: serverId || null,
+            region: region || null,
+            product_id: productId || null,
+            bundle_id: bundleId || null,
+        });
+
+            const data = await response.json().catch(() => ({}));
+            if (revision !== playerCheckRevision) return;
+
+            if (response.status === 419) {
+                setCheckIdStatus('Your session expired. Please refresh the page and try again.', 'error');
+                applyBonusEligibility(null);
+                isPlayerValidated = false;
+                updatePayNowButton();
+                return;
+            }
+
+            const selectedLevel = activePackageItem?.getAttribute('data-level-up-pass-level') || '';
+            const missingLevelProof = freeFireLevelUpPassCheckerEnabled && (selectedLevel || levelUpOnlyCatalog)
+                && window.FreeFireLevelUpPassCatalog.normalize(data.checker_sections?.free_fire_level_up_pass) === null;
+            if (response.ok && data.valid && !missingLevelProof) {
+                const identifier = data.display_name || userId;
+                if (freeFirePromotionCheckerEnabled) {
+                    setCheckIdStatus(data.message || 'មានប្រូម៉ូសិន។', 'success');
+                } else {
+                    setCheckIdStatus(identifier, 'success');
+                }
+                renderCheckerResultDetails(
+                    data.checker_sections,
+                    freeFirePromotionCheckerEnabled ? data.display_name : null
+                );
+                applyBonusEligibility(data.bonus_eligibility);
+                isPlayerValidated = true;
+                
+                // Save to localStorage for future use
+                saveCachedPlayerData(
+                    userId,
+                    serverId,
+                    region,
+                    data.display_name,
+                    data.bonus_eligibility,
+                    data.checker_sections,
+                    data.message,
+                );
+                
+                updatePayNowButton();
+                return;
+            }
+
+            const firstError = data?.errors
+                ? Object.values(data.errors).flat()[0]
+                : null;
+
+            setCheckIdStatus(missingLevelProof && data.valid
+                ? 'Please verify this package again. Level Up Pass eligibility is not available yet.'
+                : (firstError || data.message || 'Player not found or invalid.'), 'error');
+            renderCheckerResultDetails(data.checker_sections);
+            applyBonusEligibility(null);
+            isPlayerValidated = false;
+            
+            // Clear cache on validation failure
+            clearCachedPlayerData();
+            
+            updatePayNowButton();
+        } catch (error) {
+            if (revision !== playerCheckRevision) return;
+            setCheckIdStatus('Unable to verify your ID right now, please try again.', 'error');
+            clearCheckerResultDetails();
+            applyBonusEligibility(null);
+            isPlayerValidated = false;
+            updatePayNowButton();
+        } finally {
+            if (revision === playerCheckRevision) hideCheckIdLoading();
+        }
+    };
+
+// ============================================
+// EVENT LISTENERS - CHECK ID BUTTON
+// ============================================
+if (checkIdButton) {
+    checkIdButton.addEventListener('click', handleCheckId);
+}
+
+// ============================================
+// EVENT LISTENERS - RESE T VALIDATION ON INPUT CHANGE
+// ============================================
+
+/**
+ * Reset player validation state when user modifies inputs
+ * This ensures data accuracy - forces re-validation on any change
+ */
+const resetPlayerValidation = () => {
+        playerCheckRevision++;
+        hideCheckIdLoading();
+        if (typeof scheduleAutoCheck?.cancel === "function") scheduleAutoCheck.cancel();
+
+        if (giftcardCheckout) {
+            updateManualPlayerReadiness();
+            return;
+        }
+
+        if (customPlayerChecker) {
+            isPlayerValidated = false;
+            setCheckIdStatus('');
+            updatePayNowButton();
+            return;
+        }
+
+        if (playerCheckDisabled) {
+            updateManualPlayerReadiness();
+            return;
+        }
+
+        isPlayerValidated = false;
+        clearCheckerResultDetails();
+        applyBonusEligibility(null);
+        updatePayNowButton();
+
+        if (!autoValidateFromCache()) {
+            if (selectedProductId || selectedBundleId) {
+                setCheckIdStatus('Player ID changed. Please verify again.', 'info');
+            } else {
+                setCheckIdStatus('');
+            }
+        }
+    };
+
+/**
+ * Schedule auto-check with debouncing
+ * Only triggers when all required fields are filled
+ */
+const scheduleAutoCheck = debounce(() => {
+        if (playerCheckDisabled) {
+            return;
+        }
+
+        // Only auto-check when required user/server/region fields are satisfied
+        const validationErrors = validateRequiredFields();
+        if (validationErrors.length === 0) {
+            handleCheckId();
+        }
+    }, AUTO_CHECK_DELAY);
+
+    if (userIdInput) {
+        userIdInput.addEventListener('input', resetPlayerValidation);
+        userIdInput.addEventListener('keyup', scheduleAutoCheck);
+        userIdInput.addEventListener('paste', scheduleAutoCheck);
+        userIdInput.addEventListener('blur', scheduleAutoCheck);
+        userIdInput.addEventListener('change', scheduleAutoCheck);
+    }
+    customPlayerInputs.forEach(input => {
+        input.addEventListener('input', () => { resetPlayerValidation(); scheduleAutoCheck(); });
+        input.addEventListener('change', () => { resetPlayerValidation(); scheduleAutoCheck(); });
+    });
+    if (serverIdInput) {
+        serverIdInput.addEventListener('input', resetPlayerValidation);
+        serverIdInput.addEventListener('keyup', scheduleAutoCheck);
+        serverIdInput.addEventListener('paste', scheduleAutoCheck);
+        serverIdInput.addEventListener('blur', scheduleAutoCheck);
+        serverIdInput.addEventListener('change', scheduleAutoCheck);
+    }
+    if (regionInput) {
+        regionInput.addEventListener('input', resetPlayerValidation);
+        regionInput.addEventListener('keyup', scheduleAutoCheck);
+        regionInput.addEventListener('paste', scheduleAutoCheck);
+        regionInput.addEventListener('blur', scheduleAutoCheck);
+        regionInput.addEventListener('change', () => { resetPlayerValidation(); scheduleAutoCheck(); });
+    }
+
+// ============================================
+// INITIALIZATION - LOAD CACHED DATA
+// ============================================
+
+/**
+ * Initialize form with cached player data on page load
+ * Restores previously validated player IDs for better UX
+ */
+const initializeCachedData = () => {
+        const cached = loadCachedPlayerData();
+        if (cached) {
+            // Populate form fields if empty
+            if (userIdInput && !userIdInput.value) {
+                userIdInput.value = cached.user_id || '';
+            }
+            if (serverIdInput && !serverIdInput.value) {
+                serverIdInput.value = cached.server_id || '';
+            }
+            if (regionInput && !regionInput.value) {
+                regionInput.value = cached.region || '';
+            }
+        }
+    };
+
+// Initialize immediately (before DOMContentLoaded for instant UX)
+initializeCachedData();
+if (giftcardCheckout || playerCheckDisabled) updateManualPlayerReadiness();
+
+// ============================================
+// INPUT VALIDATION - BLUR EVENTS
+// Sanitize inputs when user leaves the field
+// ============================================
+if (userIdInput) {
+        userIdInput.addEventListener('blur', function() {
+            this.value = sanitizeInput(this.value);
+        });
+    }
+    if (serverIdInput) {
+        serverIdInput.addEventListener('blur', function() {
+            this.value = sanitizeInput(this.value);
+        });
+    }
+
+// ============================================
+// CACHE MANAGEMENT - URL PARAMETER
+// Support ?nocache parameter to force cache clear
+// ============================================
+const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('nocache')) {
+        clearCachedPlayerData();
+
+        // Remove the nocache parameter from URL without reloading
+        const newUrl = window.location.pathname + window.location.hash;
+        window.history.replaceState({}, document.title, newUrl);
+    }
+
+// ============================================
+// TOAST NOTIFICATION SYSTEM
+// Minimal inline toast for notifications
+// ============================================
+
+/**
+ * Show inline toast notification under navbar
+ * Fallback when Filament/Toastify not available
+ * @param {string} title - Toast title
+ * @param {string} message - Toast message (pre-escaped HTML)
+ * @param {number} duration - Display duration in milliseconds
+ */
+const showInlineToast = (title = '', message = '', duration = 3000) => {
+        try {
+            const hdr = document.querySelector('header');
+            const top = hdr ? `${Math.ceil(hdr.getBoundingClientRect().height) + 8}px` : '16px';
+
+            let c = document.getElementById('daddy-toast-container');
+            if (!c) {
+                c = document.createElement('div');
+                c.id = 'daddy-toast-container';
+                Object.assign(c.style, { position: 'fixed', right: '1rem', top, zIndex: 99999, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' });
+                document.body.appendChild(c);
+            } else c.style.top = top;
+
+            if (c._timer) clearTimeout(c._timer);
+
+            const k = (title || '').toLowerCase();
+            const [icon, iconBg] = k.includes('bundle') ? ['fas fa-gift','bg-daddy-orange text-daddy-dark-purple']
+                : k.includes('package') ? ['fas fa-shopping-bag','bg-daddy-orange text-daddy-dark-purple']
+                : (k.includes('verified')||k.includes('check')||k.includes('success')) ? ['fas fa-check-circle','bg-green-600 text-white']
+                : ['fas fa-info-circle','bg-daddy-blue text-white'];
+
+            c.innerHTML = `<div role="status" aria-live="polite" class="bg-daddy-dark-purple text-white px-3 py-2 rounded shadow-lg mb-2 max-w-xs flex items-start gap-3" style="opacity:0;transition:opacity .18s,transform .18s;transform:translateY(-6px)"><div class="w-9 h-9 flex items-center justify-center rounded-full ${iconBg} flex-shrink-0"><i class="${icon}"></i></div><div class="flex-1 min-w-0">${title?`<div class="font-semibold text-sm leading-5 truncate">${title}</div>`:''}<div class="text-xs text-daddy-text-darker mt-0.5 truncate">${message}</div></div><button aria-label="Dismiss" class="ml-3 text-daddy-text-darker opacity-80 bg-transparent border-0 text-lg leading-none cursor-pointer">&times;</button></div>`;
+
+            const toast = c.firstElementChild; if (!toast) return;
+            toast.querySelector('button')?.addEventListener('click', () => { if (c._timer) clearTimeout(c._timer); c.remove(); });
+            requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; });
+            c._timer = setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => { c.remove(); c._timer = null; }, 200); }, duration);
+        } catch (e) { console.error('Toast error:', e); }
+    };
+
+// ============================================
+// QR CODE MODAL
+// ============================================
+
+/**
+ * Show QR code modal for payment
+ * @param {string} qrImageUrl - QR code image URL
+ * @param {string} price - Total price to display
+ */
+const showModal = (qrImageUrl, price) => {
+        document.getElementById('qrImageDisplay').src = qrImageUrl;
+        document.getElementById('modal_total_price').textContent = '$' + price;
+        document.getElementById('qrModal').style.display = 'flex';
+    }
+
+    /**
+     * Hides the QR Modal.
+     */
+    const closeModal = () => {
+        document.getElementById('qrModal').style.display = 'none';
+    }
+
+// ============================================
+// DOM READY - QR MODAL & FORM STATE
+// ============================================
+// Check for QR image on page load (after form submission redirect)
+document.addEventListener('DOMContentLoaded', function() {
+        // Check if the qrImage flash session data exists
+        const qrImage = "";
+
+        // Check if old amount data exists (useful if validation failed on redirect)
+        const oldAmount = "";
+
+        // Use the session amount if it's there (assuming you flashed the amount with the image)
+        // If not, use the old input value. We need *some* price to display in the modal.
+        const price = oldAmount || document.getElementById('total_price').textContent.replace('$', '');
+
+        if (qrImage) {
+            showModal(qrImage, price);
+        }
+    });
+
+// Set initial active state if form was submitted (old values present)
+document.addEventListener('DOMContentLoaded', function() {
+        const initialProductId = "";
+        const initialBundleId = "";
+        if (initialProductId || initialBundleId) {
+            const initialPackageId = initialProductId ? `product-${initialProductId}` : `bundle-${initialBundleId}`;
+            const initialCard = Array.from(document.querySelectorAll('[data-package-id]'))
+                .find(card => card.getAttribute('data-package-id') === initialPackageId);
+            if (initialCard?.getAttribute('data-supplier-unavailable') === 'true') {
+                clearPackageSelection();
+                return;
+            }
+            if (false && initialCard) {
+                initialCard.click();
+                return;
+            }
+            // Find and click the package item corresponding to the old ID
+            // NOTE: This assumes your products have a data-id or similar attribute.
+            // Since they don't, we'll iterate and check the price which is less reliable.
+            // A more robust solution would require modifying the product card HTML to include data-id.
+
+            // For now, let's just make sure the initial price is set correctly:
+            const initialPrice = amountInput?.value;
+            if (initialPrice && initialPrice != 0.00) {
+                setDisplayedTotal(initialPrice);
+            }
+            if (payNowButton) {
+                payNowButton.disabled = false;
+            }
+            if (initialProductId && productInput) {
+                selectedProductId = initialProductId;
+                productInput.value = initialProductId;
+            }
+            if (initialBundleId && bundleInput) {
+                selectedBundleId = initialBundleId;
+                bundleInput.value = initialBundleId;
+            }
+        }
+    });
+
+// ============================================
+// PAYMENT PROCESSING - LOADING STATES
+// ============================================
+
+/**
+ * Show loading state on Pay Now button
+ */
+const showPayNowLoading = () => {
+        if (payNowSpinner) payNowSpinner.classList.remove('hidden');
+        if (payNowIcon) payNowIcon.classList.add('hidden');
+        if (payNowText) payNowText.textContent = 'Processing...';
+        if (payNowButton) payNowButton.disabled = true;
+    };
+
+/**
+ * Hide loading state on Pay Now button
+ */
+const hidePayNowLoading = () => {
+        if (payNowSpinner) payNowSpinner.classList.add('hidden');
+        if (payNowIcon) payNowIcon.classList.remove('hidden');
+        if (payNowText) payNowText.textContent = 'Pay Now';
+        if (payNowButton) payNowButton.disabled = false;
+    };
+
+// ============================================
+// PAYWAY INTEGRATION
+// ============================================
+
+/**
+ * Wait for PayWay SDK to load
+ * @param {number} attempts - Number of retry attempts
+ * @returns {Promise} Resolves when PayWay is available
+ */
+const waitForPayway = (attempts = 10) => new Promise((resolve, reject) => {
+        const check = () => {
+            if (typeof AbaPayway !== 'undefined' && typeof AbaPayway.checkout === 'function') {
+                resolve(AbaPayway);
+                return;
+            }
+
+            if (attempts-- <= 0) {
+                reject();
+                return;
+            }
+
+            setTimeout(check, 400);
+        };
+
+        check();
+    });
+
+/**
+ * Dynamically load PayWay script
+ * @param {string} src - Script URL
+ * @returns {Promise} Resolves when script is loaded
+ */
+const loadPaywayScript = (src) => new Promise((resolve, reject) => {
+        if (typeof AbaPayway !== 'undefined') {
+            resolve();
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = src;
+        script.defer = true;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.body.appendChild(script);
+    });
+
+/**
+ * Build PayWay form dynamically
+ * @param {Object} payload - PayWay payment data
+ * @param {string} action - Form action URL
+ * @returns {HTMLFormElement} Generated form element
+ */
+const buildPaywayForm = (payload, action) => {
+        if (!paywayForm) {
+            return;
+        }
+        paywayForm.innerHTML = '';
+        paywayForm.action = action || paywayForm.action || '';
+        Object.entries(payload || {}).forEach(([field, value]) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = field;
+            input.value = Array.isArray(value) || typeof value === 'object' ? JSON.stringify(value) : value;
+            paywayForm.appendChild(input);
+        });
+    };
+
+    const startPaywayCheckout = (scriptUrl) => {
+        loadPaywayScript(scriptUrl)
+            .then(() => waitForPayway())
+            .then(() => {
+                AbaPayway.checkout();
+                // Keep loading visible for 2 seconds to allow PayWay to initialize
+                setTimeout(() => {
+                    hidePayNowLoading();
+                }, 2000);
+            })
+            .catch(() => {
+                alert('Unable to initialize ABA PayWay checkout. Please try again.');
+                hidePayNowLoading();
+            });
+    };
+
+    const payForm = document.querySelector('form[action*=\"/games/\"][method=\"POST\"]');
+
+    couponInput?.addEventListener('input', clearCouponPreview);
+    document.querySelector('[data-coupon-apply]')?.addEventListener('click', async () => {
+        const code = couponInput?.value.trim() || '';
+        if (!code || !selectedProductId || selectedBundleId || giftcardQuantity > 1) {
+            if (couponStatus) {
+                couponStatus.textContent = 'Select one product and enter a coupon code.';
+                couponStatus.dataset.state = 'error';
+            }
+            return;
+        }
+        const sequence = ++couponPreviewSequence;
+        if (couponStatus) {
+            couponStatus.textContent = 'Checking coupon...';
+            couponStatus.dataset.state = 'checking';
+        }
+        try {
+            const response = await fetch("\/games\/free-fire-indo\/coupon\/preview", {
+                method: 'POST', credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json',
+                    'X-CSRF-TOKEN': payForm.elements._token.value },
+                body: JSON.stringify({ coupon_code: code, product_id: Number(selectedProductId) }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(Object.values(data.errors || {}).flat()[0] || 'Coupon unavailable.');
+            if (sequence !== couponPreviewSequence) return;
+            setDisplayedTotal(data.payable_amount);
+            couponPreviewApplied = true;
+            if (couponStatus) {
+                couponStatus.textContent = 'Discount -$' + data.discount_amount + ' applied. Final price $' + data.payable_amount + '.';
+                couponStatus.dataset.state = 'applied';
+            }
+        } catch (error) {
+            if (sequence === couponPreviewSequence && couponStatus) {
+                couponStatus.textContent = error.message || 'Coupon unavailable.';
+                couponStatus.dataset.state = 'error';
+            }
+        }
+    });
+
+    // Quantity 1 keeps the existing single checkout. Larger quantities open
+    // the same PayWay popup without leaving the selected giftcard page.
+    const submitGiftcardQuantityCheckout = () => {
+        const total = giftcardTotal();
+        if (!selectedProductId || selectedBundleId || total === null) {
+            notify('Warning', 'Please select a giftcard first.', { duration: 3000 });
+            return;
+        }
+        showPayNowLoading();
+        fetch(giftcardBulkCheckoutUrl, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': payForm.elements._token.value,
+            },
+            body: JSON.stringify({
+                items: [{ product_id: Number(selectedProductId), quantity: giftcardQuantity }],
+                payment_method: payForm.elements.payment_method.value,
+                use_wallet: payForm.elements.payment_method.value === 'wallet',
+                checkout_nonce: giftcardBulkNonce,
+                expected_total: total,
+            }),
+        })
+            .then(async response => {
+                const data = await response.json().catch(() => null);
+                if (response.status === 401) {
+                    throw new Error('Please log in to buy more than one giftcard.');
+                }
+                if (!response.ok) {
+                    window.CheckoutPaymentMethods.handleFailure(data);
+                    throw new Error(Object.values(data?.errors || {}).flat()[0] || 'Unable to prepare payment. Please try again.');
+                }
+                if (window.CheckoutPaymentMethods.redirectWalletResponse(data, window.location)) return;
+                if (!data?.payload || !data?.script_url) {
+                    throw new Error('Unable to complete payment. Please check Order History before trying again.');
+                }
+                buildPaywayForm(data.payload, data.checkout_url || paywayForm.action);
+                startPaywayCheckout(data.script_url);
+            })
+            .catch(error => {
+                alert(error?.message || 'Unable to prepare payment. Please try again.');
+                hidePayNowLoading();
+            });
+    };
+
+    if (payForm) {
+        payForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!payNowButton || payNowButton.disabled) {
+                return;
+            }
+
+            // Validate all required fields before payment
+            const validationErrors = validateRequiredFields();
+            if (validationErrors.length > 0) {
+                alert(validationErrors.join('\n'));
+                return;
+            }
+
+            if (couponInput?.value.trim() && !couponPreviewApplied) {
+                alert('Apply your coupon before paying, or clear the coupon code.');
+                return;
+            }
+
+            if (giftcardBulkCheckoutUrl && giftcardQuantity > 1) {
+                submitGiftcardQuantityCheckout();
+                return;
+            }
+
+            showPayNowLoading();
+
+            const formData = new FormData(payForm);
+            fetch(payForm.action, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: formData
+            })
+                .then(response => window.CheckoutPaymentMethods.parseCheckoutResponse(response))
+                .then(data => {
+                    if (window.CheckoutPaymentMethods.redirectWalletResponse(data, window.location)) return;
+                    if (!data || !data.payload || !data.script_url) {
+                        throw new Error('Unable to complete payment. Please check Order History before trying again.');
+                    }
+
+                    buildPaywayForm(data.payload, data.checkout_url || paywayForm.action);
+                    startPaywayCheckout(data.script_url);
+                })
+                .catch(error => {
+                    alert(error?.message || 'Unable to prepare payment. Please try again.');
+                    hidePayNowLoading();
+                });
+        });
+    }
+
+
+</script>
+
+    </main>
+
+    
+    
+
+        
+
+    
+        <footer
+        id="storefront-footer"
+        class=" mt-auto py-3 px-2 bg-daddy-dark-purple/90 shadow-inner  pb-24 md:pb-2 ">
+        <div class="max-w-7xl px-2 mx-auto">
+            <!-- Mobile Footer: Single Line with Social Media & Payment -->
+            <div class="md:hidden">
+                <div class="storefront-footer__payment-row mb-2">
+                    <!-- Social Media Icons -->
+                    <div class="flex items-center gap-2 text-lg">
+                                            </div>
+
+                    <!-- Payment -->
+                    <div class="storefront-footer__payments flex items-center gap-2 bg-daddy-purple/30 px-2 py-1 rounded-lg border border-daddy-light-purple/20">
+                        <span class="text-xs text-daddy-text-light font-medium">We accept:</span>
+                        <img src="payments/aba-payway.png" alt="ABA" class="h-5">
+                        <img src="payments/khqr-mark.png" alt="KHQR" class="h-5">
+                    </div>
+                </div>
+                <div class="storefront-footer__copy flex flex-col items-center text-center space-y-1 pt-2 border-t border-daddy-light-purple/10">
+                    <p class="text-xs text-daddy-text-light/80">
+                        Copyright ©POR POR TOPUP. All Rights Reserved.
+                    </p>
+                    <p class="text-xs">
+                        <a href="/terms-and-conditions" class="text-daddy-orange hover:text-primary-yellow underline transition-colors" data-footer-terms-link>Terms and Conditions</a>
+                    </p>
+                    <p class="text-xs text-daddy-text-light/70">
+                        Built & Maintained by: <a href="https://t.me/smos_sne1" target="_blank"
+                            class="text-daddy-orange hover:text-primary-yellow underline transition-colors">Developer Team</a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Desktop Footer: Full Layout -->
+            <div class="hidden md:grid grid-cols-1 gap-4 md:grid-cols-3 text-sm">
+
+                <div class="flex flex-col items-start space-y-2">
+                                    </div>
+
+                <div class="flex flex-col items-center justify-center space-y-1">
+                    <p class="text-xs text-daddy-text-light/80">
+                        Copyright ©POR POR TOPUP. All Rights Reserved.
+                    </p>
+                    <p class="text-xs">
+                        <a href="/terms-and-conditions" class="text-daddy-orange hover:text-primary-yellow underline transition-colors" data-footer-terms-link>Terms and Conditions</a>
+                    </p>
+                    <p class="text-xs text-daddy-text-light/70">
+                        Built & Maintained by: <a href="https://t.me/smos_sne1" target="_blank"
+                            class="text-daddy-orange hover:text-primary-yellow underline transition-colors">Developer Team</a>
+                    </p>
+                </div>
+
+                <div class="flex flex-col items-end justify-center space-y-1">
+                    <div class="storefront-footer__payments flex items-center gap-2 bg-daddy-purple/30 px-3 py-1.5 rounded-lg border border-daddy-light-purple/20">
+                        <span class="font-semibold text-daddy-text-light">We accept:</span>
+                        <img src="payments/aba-payway.png" alt="ABA" class="h-5">
+                        <img src="payments/khqr-mark.png" alt="KHQR" class="h-5">
+                    </div>
+                </div>
+            </div>
+
+            <nav aria-label="Store policies" class="flex flex-wrap items-center justify-center gap-4 pt-3 text-xs text-daddy-orange">
+                <a href="/terms-and-conditions" class="underline hover:text-primary-yellow">Terms and Conditions</a>
+                <a href="/terms-and-conditions" class="underline hover:text-primary-yellow">Privacy Policy</a>
+                <a href="/terms-and-conditions" class="underline hover:text-primary-yellow">Contact Us</a>
+            </nav>
+        </div>
+    </footer>
+
+    
+    <script nonce="">
+    /**
+     * ============================================
+     * ALPINE.JS SEARCH COMPONENT
+     * ============================================
+     *
+     * Provides real-time game search functionality:
+     * - Desktop: Dropdown results under search bar
+     * - Mobile: Full-screen overlay
+     * - Debounced API calls (300ms)
+     * - Minimum 2 characters to search
+     */
+    function searchGames() {
+        return {
+            query: "",  // Preserve query text in JavaScript safely.
+            results: [],                   // Search results array
+            showResults: false,            // Show/hide dropdown
+            loading: false,                // Loading state
+
+            /**
+             * Perform search via API
+             * Debounced by Alpine.js @input.debounce.300ms
+             */
+            async searchGames() {
+                    if (this.query.length < 2) {
+                        this.results = [];
+                        this.showResults = false;
+                        return;
+                    }
+
+                    this.loading = true;
+
+                    try {
+                        const response = await fetch(`/api/search-games?q=${encodeURIComponent(this.query)}`);
+                        this.results = await response.json();
+                        this.showResults = this.results.length > 0;
+                    } catch (error) {
+                        console.error('Search error:', error);
+                        this.results = [];
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                handleSubmit(e) {
+                    if (this.query.length < 2) {
+                        e.preventDefault();
+                    }
+                }
+            }
+        }
+
+        
+        // clear focus/hover artifacts when navigating back (fixes sticky hover on mobile after Back)
+        window.addEventListener('pageshow', () => {
+            try { if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); } catch(e){}
+        });
+
+        // Keep CSS variable `--header-height` in sync with the actual header height so
+        // `scroll-padding-top` / `scroll-margin-top` always match the sticky navbar.
+        (function syncHeaderHeight(){
+            const header = document.querySelector('header');
+            if (!header) return;
+            const setHeaderHeight = () => document.documentElement.style.setProperty('--header-height', header.offsetHeight + 'px');
+            setHeaderHeight();
+            window.addEventListener('resize', setHeaderHeight, { passive: true });
+            window.addEventListener('load', setHeaderHeight);
+            // watch for dynamic changes to header size (fonts, account state, etc.)
+            if (window.ResizeObserver) {
+                const ro = new ResizeObserver(setHeaderHeight);
+                ro.observe(header);
+            }
+        })();
+    </script>
+
+    
+    
+    <noscript>
+        <style nonce="">
+            .entrance-animate {
+                opacity: 1 !important;
+                transform: none !important;
+                animation: none !important;
+            }
+        </style>
+    </noscript>
+
+    
+    <script src="js/entrance-animate.js" defer></script>
+    
+    <script type="module" src="js/customer-login-modal_8a55ce.js"></script>
+</body>
+</html>

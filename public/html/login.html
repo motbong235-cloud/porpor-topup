@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8">
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>POR POR TOPUP - Customer Login</title>
+    <meta name="description" content="">
+    <meta property="description" content="">
+
+    
+    <meta property="og:description" content="">
+    <meta property="og:title" content="POR POR TOPUP - Customer Login">
+    <meta property="og:site_name" content="POR POR TOPUP">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="/login">
+    <meta property="og:image" content="/storage/site/01M46V5TS3VPNFE0X4SGEY6SH8.png" />
+
+    
+    <link rel="icon" type="image/png" href="img/porpor-logo.svg">
+    <link rel="apple-touch-icon" sizes="192x192" href="img/porpor-logo.svg">
+    <link rel="shortcut icon" href="img/porpor-logo.svg">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#100A08">
+
+    
+    
+            <script src="https://cdn.tailwindcss.com"></script>
+    
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+            <link href="css/site-header-brand_925661.css" rel="stylesheet">
+        <link href="css/storefront-brand-theme_73c35e.css" rel="stylesheet">
+    
+    
+            <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+    
+    
+    <script nonce="">
+        /**
+         * Custom color palette from database settings
+         * Used throughout the app for consistent theming
+         */
+        const temporary_colors = {
+            'daddy-purple': '#474342',              // Primary background
+            'daddy-dark-purple': '#242121',     // Darker variant
+            'daddy-light-purple': '#F2A51A',         // Accent color
+            'daddy-text-light': '#FFF7E5',        // Light text
+            'daddy-text-darker': '#EBD6B6',        // Muted text
+            'daddy-orange': '#FFD447',                 // Link/accent (gold)
+            'daddy-blue': '#3498DB',                                          // Info blue
+            'daddy-link': '#FFD447',                   // Link color
+            'daddy-red-khor': '#F2A51A',         // Primary red
+            'primary-red': '#F2A51A',            // Gradient start
+            'primary-yellow': '#FFD447',      // Gradient end
+        };
+
+        /**
+         * Tailwind configuration
+         * Extends default theme with custom colors and fonts
+         */
+                tailwind.config = {
+            theme: {
+                extend: {
+                    colors: temporary_colors,
+                    fontFamily: {
+                        sans: ['"Space Grotesk"', 'Sora', 'Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+            </script>
+
+    
+        <style type="text/tailwindcss">
+        @layer utilities {
+            /* Site Preferences provides the gold gradient and its dark label color. */
+            .bg-primary {
+                @apply bg-gradient-to-r from-primary-red to-primary-yellow;
+            }
+
+            /* Primary gradient text (with background clip) */
+            .text-primary {
+                @apply bg-gradient-to-r from-primary-red to-primary-yellow bg-clip-text text-transparent;
+            }
+        }
+    </style>
+    
+    
+    <style nonce="">
+        /* ===================================
+           FONTS
+           ================================== */
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Sora:wght@600;700&display=swap');
+
+        /* ===================================
+           CSS CUSTOM PROPERTIES
+           ================================== */
+        :root {
+            /* Brand colors */
+            --site-color-primary: #474342;
+            --site-color-primary-dark: #242121;
+            --site-color-accent: #F2A51A;
+            --site-color-text-light: #FFF7E5;
+            --site-color-text-dark: #EBD6B6;
+            --site-color-link: #FFD447;
+            --site-color-gradient-start: #F2A51A;
+            --site-color-gradient-end: #FFD447;
+            --daddy-orange: '#FFD447';
+            --primary-color: linear-gradient(90deg, #F2A51A, #FFD447);
+            --daddy-light-purple: #F2A51A;
+
+            /* Card elevation shadows */
+            --card-elevation: 0 10px 30px -10px rgba(2,6,23,0.18);
+            --card-elevation-hover: 0 20px 50px -15px rgba(2,6,23,0.28);
+        }
+
+        /* ===================================
+           SCROLLBAR UTILITIES
+           ================================== */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;      /* Firefox */
+        }
+
+        /* ===================================
+           BASE STYLES
+           ================================== */
+        body {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===================================
+           SWIPER SLIDER
+           Using default Swiper styles
+           ================================== */
+
+        /* ===================================
+           PRINT STYLES
+           For receipts and order confirmations
+           ================================== */
+        @media print {
+            body {
+                background: #fff !important;
+                padding: 0;
+                margin: 0;
+            }
+            .print-container {
+                max-width: 640px !important;
+                margin: 0 auto !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-header {
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 12px;
+            }
+            header, footer {
+                display: none !important;
+            }
+        }
+
+        /* ===================================
+           FORM INPUTS
+           ================================== */
+        .daddy-input {
+            width: 100%;
+            padding: 6px 10px;
+            background: #8B8787;
+            border: 1px solid #D4AF37;
+        }
+
+        /* ===================================
+           ENTRANCE ANIMATIONS
+           ================================== */
+        /* Section header fade-in with slide up */
+        @keyframes sectionFadeInUp {
+            0% { opacity: 0; transform: translateY(8px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .section-entrance {
+            opacity: 0;
+            will-change: transform, opacity;
+            animation: sectionFadeInUp .48s cubic-bezier(.2,.8,.2,1) both;
+            animation-delay: var(--section-delay, 0s);
+        }
+
+        /* ===================================
+           SCROLL OFFSET FOR STICKY HEADER
+           Prevents anchor links from being hidden behind navbar
+           ================================== */
+        /*
+         * Keep anchored sections visible when scrolling to them:
+         * - --header-height: Synced with actual header height via JS
+         * - scroll-padding-top: Offsets scrolling for anchors
+         * - scroll-margin-top: Adds margin to targeted elements
+         */
+        :root { --header-height: 72px; /* fallback */ }
+        html { scroll-padding-top: var(--header-height); }
+        main [id], section[id], [id^="section-"] {
+            scroll-margin-top: calc(var(--header-height) + 0.5rem);
+        }
+
+        /* ===================================
+           CUSTOMER LOGIN DIALOG
+           ================================== */
+        .customer-login-dialog {
+            width: min(calc(100% - 2.5rem), 22rem);
+            max-width: 22rem;
+            max-height: calc(100dvh - 2rem);
+            margin: auto;
+            padding: 0;
+            overflow: auto;
+            border: 0;
+            border-radius: 1.25rem;
+            background: #fff;
+            color: #111827;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.32);
+        }
+        .customer-login-dialog:not([open]) {
+            display: none;
+        }
+        .customer-login-dialog::backdrop {
+            background: rgba(17, 24, 39, 0.72);
+            backdrop-filter: blur(3px);
+        }
+        .customer-login-panel {
+            position: relative;
+            padding: 1.25rem 1.25rem 1.35rem;
+            text-align: center;
+        }
+        .customer-login-close {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            display: inline-flex;
+            width: 2.75rem;
+            height: 2.75rem;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e5e7eb;
+            border-radius: 9999px;
+            background: #fff;
+            color: #4b5563;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .customer-login-close:hover,
+        .customer-login-close:focus-visible {
+            background: #f3f4f6;
+            outline: 2px solid #9ca3af;
+            outline-offset: 2px;
+        }
+        .customer-login-brand {
+            display: flex;
+            width: 3.25rem;
+            height: 3.25rem;
+            margin: 0 auto 0.65rem;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 1px solid var(--daddy-orange);
+            border-radius: 1rem;
+            background: #f9fafb;
+            box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.04);
+        }
+        .customer-login-logo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .customer-login-title {
+            margin: 0;
+            padding: 0 2.5rem;
+            color: #111827;
+            font-size: 1.4rem;
+            font-weight: 700;
+            line-height: 1.25;
+        }
+        .customer-login-description {
+            margin: 0.4rem 0 0;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        .customer-login-error {
+            margin-top: 1.25rem;
+            border: 1px solid #fecaca;
+            border-radius: 0.75rem;
+            background: #fef2f2;
+            padding: 0.75rem 1rem;
+            color: #b91c1c;
+            font-size: 0.875rem;
+        }
+        .customer-login-options {
+            display: grid;
+            gap: 0.65rem;
+            margin-top: 1.1rem;
+        }
+        .customer-login-provider {
+            display: flex;
+            min-height: 3.15rem;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            border-radius: 0.85rem;
+            padding: 0.7rem 0.85rem;
+            font-size: 0.925rem;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .customer-login-provider i {
+            width: 1.25rem;
+            font-size: 1.15rem;
+        }
+        .customer-login-telegram {
+            border: 1px solid #229ed9;
+            background: #229ed9;
+            color: #fff;
+        }
+        .customer-login-google {
+            border: 1px solid #d1d5db;
+            background: #fff;
+            color: #1f2937;
+        }
+        .customer-login-google i {
+            color: #4285f4;
+        }
+        .customer-login-provider:hover,
+        .customer-login-provider:focus-visible {
+            filter: brightness(0.96);
+            box-shadow: 0 8px 20px rgba(17, 24, 39, 0.14);
+            outline: 3px solid rgba(212, 175, 55, 0.45);
+            outline-offset: 2px;
+        }
+        .customer-login-browser-fallback {
+            width: min(calc(100% - 2.5rem), 22rem);
+            margin: 4rem auto;
+            border-radius: 1.25rem;
+            background: #fff;
+            padding: 1.25rem 1.25rem 1.35rem;
+            color: #111827;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+        }
+        .customer-login-browser-fallback[hidden] {
+            display: none;
+        }
+
+        /* Signed-in Profile action: the same scarlet pill as the guest Login
+           button (orbiting amber edge, glow, shine) with the customer's avatar
+           in an amber ring and a live status dot. Reuses the kira-login-*
+           keyframes; Tailwind classes keep controlling visibility. */
+        .customer-profile-action {
+            position: relative;
+            isolation: isolate;
+            box-sizing: border-box;
+            height: 2.25rem;
+            max-width: 8.5rem;
+            align-items: center;
+            padding: 2px;
+            border-radius: 9999px;
+            color: #fff;
+            text-decoration: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .customer-profile-action::before {
+            content: "";
+            position: absolute;
+            inset: -2px;
+            z-index: -1;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--site-color-link), var(--site-color-accent));
+            filter: blur(10px);
+            opacity: 0.32;
+            animation: kira-login-glow 2.6s ease-in-out infinite alternate;
+        }
+        .customer-profile-action__frame {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            border-radius: inherit;
+            background: linear-gradient(135deg, color-mix(in srgb, var(--site-color-link) 60%, transparent), var(--site-color-accent));
+            -webkit-mask-image: -webkit-radial-gradient(white, black);
+        }
+        .customer-profile-action__frame::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 12rem;
+            height: 12rem;
+            background: conic-gradient(transparent 0 22%, var(--site-color-accent) 34%, var(--site-color-link) 45%, var(--site-color-text-light) 50%, transparent 50% 72%, var(--site-color-accent) 84%, var(--site-color-link) 95%, var(--site-color-text-light) 100%);
+            transform: translate(-50%, -50%) rotate(0deg);
+            animation: kira-login-orbit 4s linear infinite;
+        }
+        .customer-profile-action__core {
+            position: relative;
+            display: inline-flex;
+            min-width: 0;
+            align-self: stretch;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0 0.7rem 0 0.2rem;
+            overflow: hidden;
+            border-radius: inherit;
+            background: linear-gradient(135deg, var(--site-color-primary-dark), color-mix(in srgb, var(--site-color-primary-dark) 80%, #111827));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), inset 0 -2px 6px rgba(0, 0, 0, 0.25);
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            -webkit-mask-image: -webkit-radial-gradient(white, black);
+        }
+        .customer-profile-action__core::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 45%;
+            background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+            transform: translateX(-160%) skewX(-18deg);
+            animation: kira-login-shine 5s ease-in-out 1.6s infinite;
+            pointer-events: none;
+        }
+        .customer-profile-avatar {
+            position: relative;
+            display: inline-flex;
+            width: 1.6rem;
+            height: 1.6rem;
+            flex: 0 0 1.6rem;
+            align-items: center;
+            justify-content: center;
+            overflow: visible;
+            border: 2px solid var(--site-color-link);
+            border-radius: 9999px;
+            background: linear-gradient(135deg, var(--site-color-gradient-start), var(--site-color-gradient-end));
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        .customer-profile-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: inherit;
+            object-fit: cover;
+        }
+        .customer-profile-status {
+            position: absolute;
+            right: -0.12rem;
+            bottom: -0.12rem;
+            width: 0.5rem;
+            height: 0.5rem;
+            border: 2px solid #100A08;
+            border-radius: 9999px;
+            background: #34d399;
+        }
+        .customer-profile-status::after {
+            content: "";
+            position: absolute;
+            inset: -2px;
+            border: 2px solid rgba(52, 211, 153, 0.75);
+            border-radius: inherit;
+            animation: kira-login-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        .customer-profile-label {
+            position: relative;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+        }
+        .customer-profile-action:hover,
+        .customer-profile-action:focus-visible {
+            transform: translateY(-2px) scale(1.03);
+            outline: none;
+        }
+        .customer-profile-action:focus-visible {
+            outline: 2px solid var(--site-color-link);
+            outline-offset: 3px;
+        }
+        .customer-profile-action:active {
+            transform: translateY(0) scale(0.97);
+        }
+        .customer-profile-action:hover::before,
+        .customer-profile-action:focus-visible::before {
+            animation: none;
+            opacity: 0.85;
+        }
+        .customer-profile-action:hover .customer-profile-action__core::after,
+        .customer-profile-action:focus-visible .customer-profile-action__core::after {
+            animation: kira-login-shine-now 900ms ease-out;
+        }
+        .customer-profile-action:hover .customer-profile-avatar,
+        .customer-profile-action:focus-visible .customer-profile-avatar {
+            animation: kira-login-wiggle 600ms ease;
+        }
+        @media (max-width: 1023.98px) {
+            .customer-profile-action__core {
+                gap: 0.3rem;
+                padding: 0 0.6rem 0 0.15rem;
+                letter-spacing: 0;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .customer-profile-action,
+            .customer-profile-action::before,
+            .customer-profile-action__frame::before,
+            .customer-profile-avatar,
+            .customer-profile-action:hover .customer-profile-avatar,
+            .customer-profile-action:focus-visible .customer-profile-avatar {
+                animation: none;
+                transition: none;
+            }
+            .customer-profile-action:hover,
+            .customer-profile-action:focus-visible,
+            .customer-profile-action:active {
+                transform: none;
+            }
+            .customer-profile-action__core::after,
+            .customer-profile-status::after {
+                display: none;
+            }
+        }
+
+        /* Guest login call to action: a theme-colored pill with an accent light
+           orbiting its edge, a breathing glow and a periodic shine. Only
+           transform and opacity animate so the header stays smooth; the
+           Tailwind hidden/flex classes keep controlling visibility. */
+        .customer-login-action {
+            position: relative;
+            isolation: isolate;
+            box-sizing: border-box;
+            height: 2.5rem;
+            align-items: center;
+            padding: 2px;
+            border-radius: 9999px;
+            color: #fff;
+            text-decoration: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+            animation: kira-login-enter 700ms cubic-bezier(0.2, 0.9, 0.25, 1.25) backwards;
+        }
+        .customer-login-action::before {
+            content: "";
+            position: absolute;
+            inset: -2px;
+            z-index: -1;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--site-color-link), var(--site-color-accent));
+            filter: blur(10px);
+            opacity: 0.38;
+            animation: kira-login-glow 2.6s ease-in-out infinite alternate;
+        }
+        .customer-login-action__frame {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            border-radius: inherit;
+            background: linear-gradient(135deg, color-mix(in srgb, var(--site-color-link) 60%, transparent), var(--site-color-accent));
+            -webkit-mask-image: -webkit-radial-gradient(white, black);
+        }
+        .customer-login-action__frame::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 12rem;
+            height: 12rem;
+            background: conic-gradient(transparent 0 22%, var(--site-color-accent) 34%, var(--site-color-link) 45%, var(--site-color-text-light) 50%, transparent 50% 72%, var(--site-color-accent) 84%, var(--site-color-link) 95%, var(--site-color-text-light) 100%);
+            transform: translate(-50%, -50%) rotate(0deg);
+            animation: kira-login-orbit 3.2s linear infinite;
+        }
+        .customer-login-action__core {
+            position: relative;
+            display: inline-flex;
+            align-self: stretch;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0 0.85rem 0 0.3rem;
+            overflow: hidden;
+            border-radius: inherit;
+            background: linear-gradient(135deg, var(--site-color-primary-dark), color-mix(in srgb, var(--site-color-primary-dark) 80%, #111827));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), inset 0 -2px 6px rgba(0, 0, 0, 0.25);
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            -webkit-mask-image: -webkit-radial-gradient(white, black);
+        }
+        .customer-login-action__core::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 45%;
+            background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+            transform: translateX(-160%) skewX(-18deg);
+            animation: kira-login-shine 4.2s ease-in-out 1.2s infinite;
+            pointer-events: none;
+        }
+        .customer-login-action__icon {
+            position: relative;
+            display: inline-flex;
+            width: 1.85rem;
+            height: 1.85rem;
+            flex: 0 0 1.85rem;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            background: linear-gradient(135deg, color-mix(in srgb, var(--site-color-link) 72%, white), var(--site-color-link));
+            color: #241c17;
+            font-size: 0.8rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+        .customer-login-action__icon::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border: 2px solid color-mix(in srgb, var(--site-color-link) 85%, transparent);
+            border-radius: inherit;
+            animation: kira-login-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        .customer-login-action__label {
+            position: relative;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+        }
+        .customer-login-action__chevron {
+            position: relative;
+            margin-left: -0.15rem;
+            color: var(--site-color-link);
+            font-size: 0.65rem;
+        }
+        .customer-login-action:hover,
+        .customer-login-action:focus-visible {
+            transform: translateY(-2px) scale(1.03);
+            outline: none;
+        }
+        .customer-login-action:focus-visible {
+            outline: 2px solid var(--site-color-link);
+            outline-offset: 3px;
+        }
+        .customer-login-action:active {
+            transform: translateY(0) scale(0.97);
+        }
+        .customer-login-action:hover::before,
+        .customer-login-action:focus-visible::before {
+            animation: none;
+            opacity: 0.85;
+        }
+        .customer-login-action:hover .customer-login-action__core::after,
+        .customer-login-action:focus-visible .customer-login-action__core::after {
+            animation: kira-login-shine-now 900ms ease-out;
+        }
+        .customer-login-action:hover .customer-login-action__icon,
+        .customer-login-action:focus-visible .customer-login-action__icon {
+            animation: kira-login-wiggle 600ms ease;
+        }
+        .customer-login-action:hover .customer-login-action__chevron,
+        .customer-login-action:focus-visible .customer-login-action__chevron {
+            animation: kira-login-nudge 700ms ease-in-out infinite;
+        }
+        @keyframes kira-login-enter {
+            from { opacity: 0; transform: translateY(-6px) scale(0.9); }
+        }
+        @keyframes kira-login-glow {
+            from { opacity: 0.28; }
+            to { opacity: 0.6; }
+        }
+        @keyframes kira-login-orbit {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        @keyframes kira-login-shine {
+            0%, 62% { transform: translateX(-160%) skewX(-18deg); }
+            100% { transform: translateX(330%) skewX(-18deg); }
+        }
+        @keyframes kira-login-shine-now {
+            from { transform: translateX(-160%) skewX(-18deg); }
+            to { transform: translateX(330%) skewX(-18deg); }
+        }
+        @keyframes kira-login-ping {
+            0% { transform: scale(1); opacity: 0.9; }
+            70%, 100% { transform: scale(1.3); opacity: 0; }
+        }
+        @keyframes kira-login-wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-14deg) scale(1.08); }
+            50% { transform: rotate(10deg) scale(1.08); }
+            75% { transform: rotate(-5deg); }
+        }
+        @keyframes kira-login-nudge {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(3px); }
+        }
+        /* Phones: stay within the previous button width so the store
+           name beside the logo is never truncated. */
+        @media (max-width: 1023.98px) {
+            .customer-login-action__core {
+                gap: 0.3rem;
+                padding: 0 0.6rem 0 0.15rem;
+                letter-spacing: 0;
+            }
+            .customer-login-action__icon {
+                width: 1.5rem;
+                height: 1.5rem;
+                flex-basis: 1.5rem;
+                font-size: 0.7rem;
+            }
+            .customer-login-action__chevron {
+                display: none;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .customer-login-action,
+            .customer-login-action::before,
+            .customer-login-action__frame::before,
+            .customer-login-action__icon,
+            .customer-login-action__chevron,
+            .customer-login-action:hover .customer-login-action__icon,
+            .customer-login-action:hover .customer-login-action__chevron,
+            .customer-login-action:focus-visible .customer-login-action__icon,
+            .customer-login-action:focus-visible .customer-login-action__chevron {
+                animation: none;
+                transition: none;
+            }
+            .customer-login-action:hover,
+            .customer-login-action:focus-visible,
+            .customer-login-action:active {
+                transform: none;
+            }
+            .customer-login-action__core::after,
+            .customer-login-action__icon::after {
+                display: none;
+            }
+        }
+
+        /* Header search: a dark glass pill matching the Login button. Calm at
+           rest so Login stays the call to action; hover warms the edge and
+           focus lights an orbiting scarlet/amber ring with a soft glow. */
+        .header-search-field,
+        .header-search-button {
+            position: relative;
+            isolation: isolate;
+            box-sizing: border-box;
+            border-radius: 9999px;
+            color: #F4F4F8;
+        }
+        .header-search-field {
+            height: 2.5rem;
+        }
+        .header-search-button {
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .header-search-field::before,
+        .header-search-button::before {
+            content: "";
+            position: absolute;
+            inset: -2px;
+            z-index: -1;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #D61F1C, #FF9F1A);
+            filter: blur(10px);
+            opacity: 0;
+            transition: opacity 260ms ease;
+        }
+        .header-search-ring {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            border-radius: inherit;
+            background: rgba(255, 255, 255, 0.18);
+            transition: background 220ms ease;
+            -webkit-mask-image: -webkit-radial-gradient(white, black);
+            pointer-events: none;
+        }
+        .header-search-ring::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20rem;
+            height: 20rem;
+            background: conic-gradient(transparent 0 20%, #D61F1C 32%, #FF9F1A 43%, #FFE7B0 50%, transparent 50% 70%, #D61F1C 82%, #FF9F1A 93%, #FFE7B0 100%);
+            opacity: 0;
+            transform: translate(-50%, -50%) rotate(0deg);
+            transition: opacity 260ms ease;
+            animation: kira-login-orbit 3.6s linear infinite paused;
+        }
+        .header-search-ring::after {
+            content: "";
+            position: absolute;
+            inset: 1.5px;
+            border-radius: inherit;
+            background: linear-gradient(135deg, #505056, #444449);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            transition: background 220ms ease;
+        }
+        .header-search-icon,
+        .header-search-input,
+        .header-search-spinner {
+            position: relative;
+        }
+        .header-search-icon {
+            color: #FFD27A;
+            transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1), color 220ms ease;
+        }
+        .header-search-spinner {
+            color: #FFD27A;
+        }
+        @media (hover: hover) {
+            .header-search-field:hover .header-search-ring,
+            .header-search-button:hover .header-search-ring {
+                background: rgba(255, 191, 71, 0.55);
+            }
+            .header-search-field:hover .header-search-icon,
+            .header-search-button:hover .header-search-icon {
+                transform: rotate(-12deg) scale(1.08);
+            }
+            .header-search-button:hover {
+                transform: translateY(-1px);
+            }
+        }
+        .header-search-button:active {
+            transform: scale(0.92);
+        }
+        .header-search-button:active::before,
+        .header-search-field:focus-within::before,
+        .header-search-button:focus-visible::before {
+            opacity: 0.5;
+        }
+        .header-search-field:focus-within .header-search-ring::before,
+        .header-search-button:focus-visible .header-search-ring::before {
+            opacity: 1;
+            animation-play-state: running;
+        }
+        .header-search-field:focus-within .header-search-ring::after {
+            background: linear-gradient(135deg, #47474D, #3B3B40);
+        }
+        .header-search-field:focus-within .header-search-icon {
+            color: #FFE7B0;
+            transform: scale(1.12);
+        }
+        .header-search-button:focus-visible {
+            outline: 2px solid #FFD27A;
+            outline-offset: 3px;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .header-search-ring::before {
+                animation: none;
+            }
+            .header-search-button,
+            .header-search-icon {
+                transition: none;
+            }
+            .header-search-button:hover,
+            .header-search-button:active,
+            .header-search-field:hover .header-search-icon,
+            .header-search-button:hover .header-search-icon,
+            .header-search-field:focus-within .header-search-icon {
+                transform: none;
+            }
+        }
+        /* Keep the brand visible without crowding the header actions. */
+        .site-header-logo {
+            height: 48px;
+            width: auto;
+            max-width: 128px;
+        }
+        @media (min-width: 768px) {
+            .site-header-logo {
+                height: 52px;
+                max-width: 144px;
+            }
+        }
+        @media (min-width: 1024px) {
+            .site-header-logo {
+                height: 56px;
+                max-width: 160px;
+            }
+            /* The Profile pill and search share the
+               row with the brand inside the 1280px container: cap the title size
+               and stop the brand shrinking so "POR POR TOPUP" never ellipsizes;
+               the centred nav absorbs the remaining space instead. */
+            .site-header-brand {
+                flex-shrink: 0;
+            }
+            .site-header-brand .site-brand-title {
+                font-size: 26px;
+            }
+        }
+        @media (min-width: 1024px) and (max-width: 1279.98px) {
+            /* Narrow desktop: keep space for the profile and search controls;
+               cap the title a little more instead of overflowing the viewport. */
+            .site-header-brand .site-brand-title {
+                font-size: 22px;
+            }
+        }
+        @media (max-width: 639.98px) {
+            /* Phones: the header shares space between the brand, search and
+               avatar; scale the title with the viewport so the brand stays whole. */
+            .site-header-brand .site-brand-title {
+                font-size: clamp(14px, 4.6vw, 20px);
+            }
+        }
+        @media (max-width: 480px) {
+            /* Small phones: avatar-only circle inside the same glowing ring. */
+            .customer-profile-action {
+                width: 2.25rem;
+                flex: 0 0 2.25rem;
+            }
+            .customer-profile-action__core {
+                flex: 1 1 auto;
+                justify-content: center;
+                padding: 0;
+            }
+            .customer-profile-label {
+                display: none;
+            }
+
+.customer-login-dialog {
+                width: min(calc(100% - 2rem), 22rem);
+                border-radius: 1.1rem;
+            }
+            .customer-login-browser-fallback {
+                width: min(calc(100% - 2rem), 22rem);
+            }
+            .customer-login-panel {
+                padding: 1.1rem 1rem 1.15rem;
+            }
+            .customer-login-title {
+                font-size: 1.3rem;
+            }
+            .customer-login-provider {
+                min-height: 3rem;
+            }
+        }
+
+        /* ===================================
+           ALPINE.JS UTILITIES
+           ================================== */
+        /* Hide elements with x-cloak until Alpine.js loads (prevents FOUC) */
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
+</head>
+
+
+<body class="bg-daddy-purple font-sans text-daddy-text-light min-h-screen flex flex-col"
+      x-data="{ mobileSearchOpen: false, ...searchGames() }"
+      :class="{ 'overflow-hidden': mobileSearchOpen }">
+
+    
+    <header class="w-full sticky top-0 z-50 backdrop-blur-md bg-daddy-dark-purple/90 border-b border-daddy-light-purple/20 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-3 sm:px-4">
+            <div class="flex items-center justify-between gap-2 sm:gap-3 h-14 sm:h-16 md:h-18 lg:h-20">
+
+                
+                <a href="" class="site-header-brand group">
+                    <img src="img/porpor-logo.svg"
+                         alt="POR POR TOPUP"
+                         class="site-header-logo object-contain transition-transform group-hover:scale-105">
+                    <span class="site-brand-title text-primary font-bold">POR POR TOPUP</span>
+                </a>
+
+                
+                <nav class="hidden lg:flex items-center gap-3 xl:gap-6 flex-1 justify-center px-2" aria-label="Primary navigation">
+                    <a href=""
+                       class="flex items-center gap-1.5 xl:gap-2 px-2 xl:px-3 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all duration-200 text-daddy-text-light hover:text-daddy-orange hover:bg-daddy-orange/5"
+                       >
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </a>
+                    <a href=""
+                       class="flex items-center gap-1.5 xl:gap-2 px-2 xl:px-3 py-2 rounded-lg font-medium text-sm whitespace-nowrap text-daddy-text-light hover:text-daddy-orange hover:bg-daddy-orange/5 transition-all duration-200">
+                        <i class="fas fa-star"></i>
+                        <span>Featured</span>
+                    </a>
+                    <a href=""
+                       class="flex items-center gap-1.5 xl:gap-2 px-2 xl:px-3 py-2 rounded-lg font-medium text-sm whitespace-nowrap text-daddy-text-light hover:text-daddy-orange hover:bg-daddy-orange/5 transition-all duration-200">
+                        <i class="fas fa-gamepad"></i>
+                        <span>Games</span>
+                    </a>
+                    <a href=""
+                       class="flex items-center gap-1.5 xl:gap-2 px-2 xl:px-3 py-2 rounded-lg font-medium text-sm whitespace-nowrap text-daddy-text-light hover:text-daddy-orange hover:bg-daddy-orange/5 transition-all duration-200">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Events</span>
+                    </a>
+                </nav>
+
+                
+                <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                                                                <a href="login.html"
+                           class="customer-login-action hidden lg:flex text-sm whitespace-nowrap"
+                           data-customer-login-open
+                           aria-haspopup="dialog"
+                           aria-controls="customer-login-dialog">
+                            <span class="customer-login-action__frame" aria-hidden="true"></span>
+                            <span class="customer-login-action__core">
+                                <span class="customer-login-action__icon" aria-hidden="true"><i class="fas fa-user"></i></span>
+                                <span class="customer-login-action__label">Login</span>
+                                <i class="fas fa-chevron-right customer-login-action__chevron" aria-hidden="true"></i>
+                            </span>
+                        </a>
+                    
+                    
+                    <div class="relative">
+                        
+                        <button type="button"
+                                @click="mobileSearchOpen = true"
+                                aria-label="Search games"
+                                class="header-search-button lg:hidden flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0">
+                            <span class="header-search-ring" aria-hidden="true"></span>
+                            <i class="fas fa-search header-search-icon text-sm sm:text-base" aria-hidden="true"></i>
+                        </button>
+
+                        
+                        <form action="/search" method="GET" @submit="handleSubmit" class="hidden lg:block">
+                            <div class="relative">
+                                <div class="header-search-field flex items-center gap-2 px-3 py-2 w-40 xl:w-48 2xl:w-56">
+                                    <span class="header-search-ring" aria-hidden="true"></span>
+                                    <i class="fas fa-search header-search-icon" aria-hidden="true"></i>
+                                    <input type="text"
+                                           name="q"
+                                           x-model="query"
+                                           @input.debounce.300ms="searchGames"
+                                           @focus="showResults = true"
+                                           @keydown.escape="showResults = false"
+                                           placeholder="Search games..."
+                                           aria-label="Search games"
+                                           class="header-search-input bg-transparent text-daddy-text-light placeholder-daddy-text-darker focus:outline-none w-full text-sm"
+                                           autocomplete="off">
+                                    <i x-show="loading" class="fas fa-spinner fa-spin header-search-spinner" aria-hidden="true"></i>
+                                </div>
+
+                                
+                                <div x-show="showResults && results.length > 0"
+                                     x-cloak
+                                     @click.outside="showResults = false"
+                                     x-transition:enter="transition ease-out duration-200"
+                                     x-transition:enter-start="opacity-0 translate-y-1"
+                                     x-transition:enter-end="opacity-100 translate-y-0"
+                                     style="display: none;"
+                                     class="absolute top-full right-0 left-0 mt-2 bg-daddy-dark-purple rounded-lg shadow-2xl border border-daddy-light-purple/30 overflow-hidden max-h-[70vh] overflow-y-auto">
+                                    <template x-for="game in results" :key="game.id">
+                                        <a :href="/game.url || '"
+                                           :aria-disabled="(!game.status).toString()"
+                                           @click="if (!game.status) $event.preventDefault()"
+                                           :class="game.status ? 'hover:bg-daddy-purple' : 'opacity-55 grayscale cursor-not-allowed'"
+                                           class="flex items-center gap-3 p-3 transition-colors border-b border-daddy-light-purple/10 last:border-0">
+                                            <template x-if="game.image_url">
+                                                <img :src="/game.image_url"
+                                                     :alt="game.name"
+                                                     class="w-12 h-12 rounded-lg object-cover flex-shrink-0">
+                                            </template>
+                                            <template x-if="!game.image_url">
+                                                <div class="w-12 h-12 bg-gradient-to-br from-daddy-orange/20 to-daddy-purple/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                    <span class="text-xs text-daddy-orange/50" x-text="game.code"></span>
+                                                </div>
+                                            </template>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="font-semibold text-daddy-text-light truncate" x-text="game.name"></p>
+                                                <p class="text-xs text-daddy-text-darker" x-text="game.code"></p>
+                                            </div>
+                                            <template x-if="game.status">
+                                                <i class="fas fa-chevron-right text-daddy-text-darker text-xs"></i>
+                                            </template>
+                                            <template x-if="!game.status">
+                                                <span class="rounded bg-gray-700 px-2 py-1 text-[10px] font-bold text-white">UNAVAILABLE</span>
+                                            </template>
+                                        </a>
+                                    </template>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                                            <a href="login.html"
+                           aria-label="Open login"
+                           class="customer-login-action lg:hidden flex text-sm whitespace-nowrap"
+                           data-customer-login-open
+                           aria-haspopup="dialog"
+                           aria-controls="customer-login-dialog">
+                            <span class="customer-login-action__frame" aria-hidden="true"></span>
+                            <span class="customer-login-action__core">
+                                <span class="customer-login-action__icon" aria-hidden="true"><i class="fas fa-user"></i></span>
+                                <span class="customer-login-action__label">Login</span>
+                                <i class="fas fa-chevron-right customer-login-action__chevron" aria-hidden="true"></i>
+                            </span>
+                        </a>
+                                    </div>
+            </div>
+        </div>
+    </header>
+
+            <dialog id="customer-login-dialog"
+        class="customer-login-dialog"
+        data-customer-login-modal
+        aria-labelledby="customer-login-title"
+        aria-describedby="customer-login-description">
+    <div class="customer-login-panel">
+        <button type="button"
+                class="customer-login-close"
+                data-customer-login-close
+                aria-label="Close login">
+            <i class="fas fa-times" aria-hidden="true"></i>
+        </button>
+
+        <div class="customer-login-brand" aria-hidden="true">
+            <img src="img/porpor-logo.svg"
+                 alt=""
+                 class="customer-login-logo"
+                 data-customer-login-logo>
+        </div>
+        <h2 id="customer-login-title" class="customer-login-title">Log in</h2>
+        <p id="customer-login-description" class="customer-login-description">Choose an account to continue</p>
+
+        <div class="customer-login-error"
+             data-customer-login-error
+             role="alert"
+              hidden ></div>
+
+        <div class="customer-login-options">
+            <a href="/auth/telegram"
+       class="customer-login-provider customer-login-telegram"
+        data-customer-login-telegram >
+        <i class="fab fa-telegram-plane" aria-hidden="true"></i>
+        <span>Login with Telegram</span>
+    </a>
+
+            <a href="/auth/google" class="customer-login-provider customer-login-google">
+                <i class="fab fa-google" aria-hidden="true"></i>
+                <span>Login with Google</span>
+            </a>
+        </div>
+    </div>
+</dialog>
+    
+    
+    <div x-show="mobileSearchOpen"
+         x-cloak
+         @keydown.escape.window="mobileSearchOpen = false"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         style="display: none;"
+         class="lg:hidden fixed inset-0 bg-daddy-dark-purple/98 backdrop-blur-lg z-[9999] flex flex-col"
+         style="z-index: 1100">
+
+        
+        <div class="flex items-center gap-3 p-4 border-b border-daddy-light-purple/20">
+            <button type="button"
+                    @click="mobileSearchOpen = false"
+                    class="flex items-center justify-center w-10 h-10 text-daddy-text-light hover:text-daddy-orange transition-colors">
+                <i class="fas fa-arrow-left text-xl"></i>
+            </button>
+            <h2 class="text-lg font-semibold text-daddy-text-light">Search Games</h2>
+        </div>
+
+        
+        <div class="p-4">
+            <form action="/search" method="GET" @submit="handleSubmit">
+                <div class="flex items-center gap-3 bg-daddy-purple rounded-lg px-4 py-3 border border-daddy-light-purple/20">
+                    <i class="fas fa-search text-daddy-text-darker"></i>
+                    <input type="text"
+                           x-ref="mobileInput"
+                           name="q"
+                           x-model="query"
+                           @input.debounce.300ms="searchGames"
+                           @focus="showResults = true"
+                           placeholder="Type to search..."
+                           class="bg-transparent text-daddy-text-light placeholder-daddy-text-darker focus:outline-none w-full"
+                           autocomplete="off"
+                           x-init="$nextTick(() =&gt; $el.focus())">
+                    <i x-show="loading" class="fas fa-spinner fa-spin text-daddy-text-darker"></i>
+                </div>
+            </form>
+        </div>
+
+        
+        <div class="flex-1 overflow-y-auto px-4 pb-4">
+            <div x-show="results.length > 0">
+                <p class="text-xs text-daddy-text-darker uppercase font-semibold mb-3 px-1">Results</p>
+                <div class="space-y-2">
+                    <template x-for="game in results" :key="game.id">
+                        <a :href="/game.url || '"
+                           :aria-disabled="(!game.status).toString()"
+                           @click="if (!game.status) { $event.preventDefault(); return; } mobileSearchOpen = false"
+                           :class="game.status ? 'hover:bg-daddy-purple' : 'opacity-55 grayscale cursor-not-allowed'"
+                           class="flex items-center gap-3 p-3 bg-daddy-purple/50 rounded-lg transition-colors border border-daddy-light-purple/10">
+                            <template x-if="game.image_url">
+                                <img :src="/game.image_url"
+                                     :alt="game.name"
+                                     class="w-14 h-14 rounded-lg object-cover flex-shrink-0">
+                            </template>
+                            <template x-if="!game.image_url">
+                                <div class="w-14 h-14 bg-gradient-to-br from-daddy-orange/20 to-daddy-purple/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <span class="text-xs text-daddy-orange/50 font-medium" x-text="game.code"></span>
+                                </div>
+                            </template>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-semibold text-daddy-text-light truncate" x-text="game.name"></p>
+                                <p class="text-xs text-daddy-text-darker mt-0.5" x-text="game.code"></p>
+                            </div>
+                            <template x-if="game.status">
+                                <i class="fas fa-chevron-right text-daddy-text-darker text-sm"></i>
+                            </template>
+                            <template x-if="!game.status">
+                                <span class="rounded bg-gray-700 px-2 py-1 text-[10px] font-bold text-white">UNAVAILABLE</span>
+                            </template>
+                        </a>
+                    </template>
+                </div>
+            </div>
+
+            
+            <div x-show="query.length >= 2 && !loading && results.length === 0"
+                 class="flex flex-col items-center justify-center text-center py-16">
+                <div class="w-20 h-20 rounded-full bg-daddy-purple flex items-center justify-center mb-4">
+                    <i class="fas fa-search text-3xl text-daddy-text-darker"></i>
+                </div>
+                <p class="text-daddy-text-light font-semibold mb-1">No games found</p>
+                <p class="text-sm text-daddy-text-darker">Try searching with different keywords</p>
+            </div>
+
+            
+            <div x-show="query.length < 2"
+                 class="flex flex-col items-center justify-center text-center py-16">
+                <div class="w-20 h-20 rounded-full bg-daddy-purple flex items-center justify-center mb-4">
+                    <i class="fas fa-gamepad text-3xl text-daddy-orange"></i>
+                </div>
+                <p class="text-daddy-text-light font-semibold mb-1">Start typing to search</p>
+                <p class="text-sm text-daddy-text-darker">Find your favorite games quickly</p>
+            </div>
+        </div>
+    </div>
+
+    
+    
+    
+        <main class="max-w-7xl w-full mx-auto px-4">
+        <div data-customer-login-auto-open data-customer-login-return-url=""></div>
+<section class="customer-login-browser-fallback" data-customer-login-fallback hidden>
+    <div class="customer-login-brand" aria-hidden="true">
+        <img src="img/porpor-logo.svg"
+             alt=""
+             class="customer-login-logo">
+    </div>
+    <h1 class="customer-login-title">Log in</h1>
+    <p class="customer-login-description">Choose an account to continue</p>
+    <div class="customer-login-options">
+        <a href="/auth/telegram"
+       class="customer-login-provider customer-login-telegram"
+       >
+        <i class="fab fa-telegram-plane" aria-hidden="true"></i>
+        <span>Login with Telegram</span>
+    </a>
+        <a href="/auth/google" class="customer-login-provider customer-login-google">
+            <i class="fab fa-google" aria-hidden="true"></i>
+            <span>Login with Google</span>
+        </a>
+    </div>
+</section>
+<noscript>
+    <section class="mx-auto max-w-md py-12 text-center sm:py-20">
+        <h1 class="text-2xl font-bold text-daddy-text-light">Log in</h1>
+        
+        <p class="mt-3 text-daddy-text-darker">Telegram login needs JavaScript to finish. Google login works without it.</p>
+        <div class="mt-6 flex flex-col gap-3">
+            <a href="/auth/google">Login with Google</a>
+        </div>
+    </section>
+</noscript>
+    </main>
+
+    
+    
+
+        
+
+    
+        <footer
+        id="storefront-footer"
+        class=" mt-auto py-3 px-2 bg-daddy-dark-purple/90 shadow-inner ">
+        <div class="max-w-7xl px-2 mx-auto">
+            <!-- Mobile Footer: Single Line with Social Media & Payment -->
+            <div class="md:hidden">
+                <div class="storefront-footer__payment-row mb-2">
+                    <!-- Social Media Icons -->
+                    <div class="flex items-center gap-2 text-lg">
+                                            </div>
+
+                    <!-- Payment -->
+                    <div class="storefront-footer__payments flex items-center gap-2 bg-daddy-purple/30 px-2 py-1 rounded-lg border border-daddy-light-purple/20">
+                        <span class="text-xs text-daddy-text-light font-medium">We accept:</span>
+                        <img src="payments/aba-payway.png" alt="ABA" class="h-5">
+                        <img src="payments/khqr-mark.png" alt="KHQR" class="h-5">
+                    </div>
+                </div>
+                <div class="storefront-footer__copy flex flex-col items-center text-center space-y-1 pt-2 border-t border-daddy-light-purple/10">
+                    <p class="text-xs text-daddy-text-light/80">
+                        Copyright ©POR POR TOPUP. All Rights Reserved.
+                    </p>
+                    <p class="text-xs">
+                        <a href="/terms-and-conditions" class="text-daddy-orange hover:text-primary-yellow underline transition-colors" data-footer-terms-link>Terms and Conditions</a>
+                    </p>
+                    <p class="text-xs text-daddy-text-light/70">
+                        Built & Maintained by: <a href="https://t.me/smos_sne1" target="_blank"
+                            class="text-daddy-orange hover:text-primary-yellow underline transition-colors">Developer Team</a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Desktop Footer: Full Layout -->
+            <div class="hidden md:grid grid-cols-1 gap-4 md:grid-cols-3 text-sm">
+
+                <div class="flex flex-col items-start space-y-2">
+                                    </div>
+
+                <div class="flex flex-col items-center justify-center space-y-1">
+                    <p class="text-xs text-daddy-text-light/80">
+                        Copyright ©POR POR TOPUP. All Rights Reserved.
+                    </p>
+                    <p class="text-xs">
+                        <a href="/terms-and-conditions" class="text-daddy-orange hover:text-primary-yellow underline transition-colors" data-footer-terms-link>Terms and Conditions</a>
+                    </p>
+                    <p class="text-xs text-daddy-text-light/70">
+                        Built & Maintained by: <a href="https://t.me/smos_sne1" target="_blank"
+                            class="text-daddy-orange hover:text-primary-yellow underline transition-colors">Developer Team</a>
+                    </p>
+                </div>
+
+                <div class="flex flex-col items-end justify-center space-y-1">
+                    <div class="storefront-footer__payments flex items-center gap-2 bg-daddy-purple/30 px-3 py-1.5 rounded-lg border border-daddy-light-purple/20">
+                        <span class="font-semibold text-daddy-text-light">We accept:</span>
+                        <img src="payments/aba-payway.png" alt="ABA" class="h-5">
+                        <img src="payments/khqr-mark.png" alt="KHQR" class="h-5">
+                    </div>
+                </div>
+            </div>
+
+            <nav aria-label="Store policies" class="flex flex-wrap items-center justify-center gap-4 pt-3 text-xs text-daddy-orange">
+                <a href="/terms-and-conditions" class="underline hover:text-primary-yellow">Terms and Conditions</a>
+                <a href="/terms-and-conditions" class="underline hover:text-primary-yellow">Privacy Policy</a>
+                <a href="/terms-and-conditions" class="underline hover:text-primary-yellow">Contact Us</a>
+            </nav>
+        </div>
+    </footer>
+
+    
+    <script nonce="">
+    /**
+     * ============================================
+     * ALPINE.JS SEARCH COMPONENT
+     * ============================================
+     *
+     * Provides real-time game search functionality:
+     * - Desktop: Dropdown results under search bar
+     * - Mobile: Full-screen overlay
+     * - Debounced API calls (300ms)
+     * - Minimum 2 characters to search
+     */
+    function searchGames() {
+        return {
+            query: "",  // Preserve query text in JavaScript safely.
+            results: [],                   // Search results array
+            showResults: false,            // Show/hide dropdown
+            loading: false,                // Loading state
+
+            /**
+             * Perform search via API
+             * Debounced by Alpine.js @input.debounce.300ms
+             */
+            async searchGames() {
+                    if (this.query.length < 2) {
+                        this.results = [];
+                        this.showResults = false;
+                        return;
+                    }
+
+                    this.loading = true;
+
+                    try {
+                        const response = await fetch(`/api/search-games?q=${encodeURIComponent(this.query)}`);
+                        this.results = await response.json();
+                        this.showResults = this.results.length > 0;
+                    } catch (error) {
+                        console.error('Search error:', error);
+                        this.results = [];
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                handleSubmit(e) {
+                    if (this.query.length < 2) {
+                        e.preventDefault();
+                    }
+                }
+            }
+        }
+
+        
+        // clear focus/hover artifacts when navigating back (fixes sticky hover on mobile after Back)
+        window.addEventListener('pageshow', () => {
+            try { if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); } catch(e){}
+        });
+
+        // Keep CSS variable `--header-height` in sync with the actual header height so
+        // `scroll-padding-top` / `scroll-margin-top` always match the sticky navbar.
+        (function syncHeaderHeight(){
+            const header = document.querySelector('header');
+            if (!header) return;
+            const setHeaderHeight = () => document.documentElement.style.setProperty('--header-height', header.offsetHeight + 'px');
+            setHeaderHeight();
+            window.addEventListener('resize', setHeaderHeight, { passive: true });
+            window.addEventListener('load', setHeaderHeight);
+            // watch for dynamic changes to header size (fonts, account state, etc.)
+            if (window.ResizeObserver) {
+                const ro = new ResizeObserver(setHeaderHeight);
+                ro.observe(header);
+            }
+        })();
+    </script>
+
+    
+    
+    <noscript>
+        <style nonce="">
+            .entrance-animate {
+                opacity: 1 !important;
+                transform: none !important;
+                animation: none !important;
+            }
+        </style>
+    </noscript>
+
+    
+    <script src="js/entrance-animate.js" defer></script>
+    
+    <script type="module" src="js/customer-login-modal_8a55ce.js"></script>
+</body>
+</html>
