@@ -212,7 +212,7 @@ export const dict = {
     statGames: "Games available",
     statSpeed: "Average delivery time",
     statChat: "Working hours",
-    topup: "TOPUP",
+    topup: "TOP UP",
     off: "OFF",
     maintenance: "MAINTENANCE",
     hot: "HOT",

@@ -237,7 +237,7 @@ export default function Home({ lang, settings }) {
   ];
 
   return (
-    <div className="container">
+    <div className="container natsu-home">
       <section className={`banner banner-v2${hasCustom ? " banner-has-photo" : ""}`}>
         {hasCustom
           ? custom.map((url, i) => (
