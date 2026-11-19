@@ -84,6 +84,14 @@
                 @apply bg-gradient-to-r from-primary-red to-primary-yellow bg-clip-text text-transparent;
             }
         }
+    
+        .tg-login-card { max-width: 420px; margin: 48px auto 64px; padding: 28px 22px; border-radius: 18px; background: var(--tg-card, #2a2421); border: 1px solid rgba(242,165,26,.25); text-align: center; color: #fff7e5; }
+        .tg-login-card .customer-login-title i { color: #f2a51a; margin-right: 6px; }
+        .tg-login-widget { display: grid; justify-items: center; min-height: 52px; margin-top: 18px; }
+        .tg-login-widget iframe { max-width: 100%; }
+        .tg-login-msg { margin-top: 12px; font-size: 14px; color: #f5c542; }
+        img.h-5 { height: 20px; width: auto; }
+        .storefront-footer__payments img { height: 20px; width: auto; }
     </style>
     
     
@@ -1003,8 +1011,8 @@
                                                                 <a href="/login"
                            class="customer-login-action hidden lg:flex text-sm whitespace-nowrap"
                            data-customer-login-open
-                           aria-haspopup="dialog"
-                           aria-controls="customer-login-dialog">
+
+                           >
                             <span class="customer-login-action__frame" aria-hidden="true"></span>
                             <span class="customer-login-action__core">
                                 <span class="customer-login-action__icon" aria-hidden="true"><i class="fas fa-user"></i></span>
@@ -1089,8 +1097,8 @@
                            aria-label="Open login"
                            class="customer-login-action lg:hidden flex text-sm whitespace-nowrap"
                            data-customer-login-open
-                           aria-haspopup="dialog"
-                           aria-controls="customer-login-dialog">
+
+                           >
                             <span class="customer-login-action__frame" aria-hidden="true"></span>
                             <span class="customer-login-action__core">
                                 <span class="customer-login-action__icon" aria-hidden="true"><i class="fas fa-user"></i></span>
@@ -1103,48 +1111,7 @@
         </div>
     </header>
 
-            <dialog id="customer-login-dialog"
-        class="customer-login-dialog"
-        data-customer-login-modal
-        aria-labelledby="customer-login-title"
-        aria-describedby="customer-login-description">
-    <div class="customer-login-panel">
-        <button type="button"
-                class="customer-login-close"
-                data-customer-login-close
-                aria-label="Close login">
-            <i class="fas fa-times" aria-hidden="true"></i>
-        </button>
-
-        <div class="customer-login-brand" aria-hidden="true">
-            <img src="img/porpor-logo.svg"
-                 alt=""
-                 class="customer-login-logo"
-                 data-customer-login-logo>
-        </div>
-        <h2 id="customer-login-title" class="customer-login-title">Log in</h2>
-        <p id="customer-login-description" class="customer-login-description">Choose an account to continue</p>
-
-        <div class="customer-login-error"
-             data-customer-login-error
-             role="alert"
-              hidden ></div>
-
-        <div class="customer-login-options">
-            <a href="/auth/telegram"
-       class="customer-login-provider customer-login-telegram"
-        data-customer-login-telegram >
-        <i class="fab fa-telegram-plane" aria-hidden="true"></i>
-        <span>Login with Telegram</span>
-    </a>
-
-            <a href="/auth/google" class="customer-login-provider customer-login-google">
-                <i class="fab fa-google" aria-hidden="true"></i>
-                <span>Login with Google</span>
-            </a>
-        </div>
-    </div>
-</dialog>
+            
     
     
     <div x-show="mobileSearchOpen"
@@ -1252,38 +1219,50 @@
     
     
         <main class="max-w-7xl w-full mx-auto px-4">
-        <div data-customer-login-auto-open data-customer-login-return-url=""></div>
-<section class="customer-login-browser-fallback" data-customer-login-fallback hidden>
+        <section class="tg-login-card" aria-labelledby="tg-login-title">
     <div class="customer-login-brand" aria-hidden="true">
-        <img src="img/porpor-logo.svg"
-             alt=""
-             class="customer-login-logo">
+        <img src="img/porpor-logo.svg" alt="" class="customer-login-logo">
     </div>
-    <h1 class="customer-login-title">Log in</h1>
-    <p class="customer-login-description">Choose an account to continue</p>
-    <div class="customer-login-options">
-        <a href="/auth/telegram"
-       class="customer-login-provider customer-login-telegram"
-       >
-        <i class="fab fa-telegram-plane" aria-hidden="true"></i>
-        <span>Login with Telegram</span>
-    </a>
-        <a href="/auth/google" class="customer-login-provider customer-login-google">
-            <i class="fab fa-google" aria-hidden="true"></i>
-            <span>Login with Google</span>
-        </a>
-    </div>
+    <h1 id="tg-login-title" class="customer-login-title"><i class="fas fa-user" aria-hidden="true"></i> Log in</h1>
+    <p class="customer-login-description">Log in with your Telegram account to continue</p>
+    <div id="tg-login-widget" class="tg-login-widget"></div>
+    <p id="tg-login-msg" class="tg-login-msg" role="status" hidden></p>
+    <noscript><p class="tg-login-msg">Telegram login needs JavaScript. Please turn it on and reload.</p></noscript>
 </section>
-<noscript>
-    <section class="mx-auto max-w-md py-12 text-center sm:py-20">
-        <h1 class="text-2xl font-bold text-daddy-text-light">Log in</h1>
-        
-        <p class="mt-3 text-daddy-text-darker">Telegram login needs JavaScript to finish. Google login works without it.</p>
-        <div class="mt-6 flex flex-col gap-3">
-            <a href="/auth/google">Login with Google</a>
-        </div>
-    </section>
-</noscript>
+<script>
+(function () {
+  var box = document.getElementById('tg-login-widget');
+  var msg = document.getElementById('tg-login-msg');
+  function fail(text) { msg.textContent = text; msg.hidden = false; }
+  fetch('/api/auth/telegram/config', { credentials: 'include', cache: 'no-store' })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (!d || !d.ok || !d.botUsername) return fail('Telegram login is not configured yet.');
+      var origin = location.origin;
+      var authUrl = origin + '/api/auth/telegram/callback';
+      var iframe = document.createElement('iframe');
+      iframe.src = 'https://oauth.telegram.org/embed/' + encodeURIComponent(d.botUsername) +
+        '?origin=' + encodeURIComponent(origin) + '&size=large&request_access=write&return_to=' + encodeURIComponent(authUrl);
+      iframe.setAttribute('title', 'Telegram Login');
+      iframe.setAttribute('scrolling', 'no');
+      iframe.style.cssText = 'border:0;overflow:hidden;width:100%;height:48px;display:block;';
+      box.appendChild(iframe);
+      var sc = document.createElement('script');
+      sc.src = 'https://telegram.org/js/telegram-widget.js?22';
+      sc.async = true;
+      sc.setAttribute('data-telegram-login', d.botUsername);
+      sc.setAttribute('data-size', 'large');
+      sc.setAttribute('data-radius', '12');
+      sc.setAttribute('data-auth-url', authUrl);
+      sc.setAttribute('data-request-access', 'write');
+      box.appendChild(sc);
+      setTimeout(function () {
+        if (!box.querySelector('iframe')) fail('If the button does not appear, check the bot domain in BotFather (/setdomain).');
+      }, 4000);
+    })
+    .catch(function () { fail('Could not reach the login service. Please try again.'); });
+})();
+</script>
     </main>
 
     
@@ -1451,7 +1430,5 @@
     
     <script src="js/site-branding.js" defer></script>
     <script src="js/entrance-animate.js" defer></script>
-    
-    <script type="module" src="js/customer-login-modal_8a55ce.js"></script>
 </body>
 </html>

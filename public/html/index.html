@@ -1368,9 +1368,7 @@ body.install-app-banner-visible #storefront-footer.storefront-footer--with-suppo
                 <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                                                                 <a href="/login"
                            class="customer-login-action hidden lg:flex text-sm whitespace-nowrap"
-                           data-customer-login-open
-                           aria-haspopup="dialog"
-                           aria-controls="customer-login-dialog">
+                           data-customer-login-open>
                             <span class="customer-login-action__frame" aria-hidden="true"></span>
                             <span class="customer-login-action__core">
                                 <span class="customer-login-action__icon" aria-hidden="true"><i class="fas fa-user"></i></span>
@@ -1454,9 +1452,7 @@ body.install-app-banner-visible #storefront-footer.storefront-footer--with-suppo
                                             <a href="/login"
                            aria-label="Open login"
                            class="customer-login-action lg:hidden flex text-sm whitespace-nowrap"
-                           data-customer-login-open
-                           aria-haspopup="dialog"
-                           aria-controls="customer-login-dialog">
+                           data-customer-login-open>
                             <span class="customer-login-action__frame" aria-hidden="true"></span>
                             <span class="customer-login-action__core">
                                 <span class="customer-login-action__icon" aria-hidden="true"><i class="fas fa-user"></i></span>
@@ -1469,48 +1465,7 @@ body.install-app-banner-visible #storefront-footer.storefront-footer--with-suppo
         </div>
     </header>
 
-            <dialog id="customer-login-dialog"
-        class="customer-login-dialog"
-        data-customer-login-modal
-        aria-labelledby="customer-login-title"
-        aria-describedby="customer-login-description">
-    <div class="customer-login-panel">
-        <button type="button"
-                class="customer-login-close"
-                data-customer-login-close
-                aria-label="Close login">
-            <i class="fas fa-times" aria-hidden="true"></i>
-        </button>
-
-        <div class="customer-login-brand" aria-hidden="true">
-            <img src="img/porpor-logo.svg"
-                 alt=""
-                 class="customer-login-logo"
-                 data-customer-login-logo>
-        </div>
-        <h2 id="customer-login-title" class="customer-login-title">Log in</h2>
-        <p id="customer-login-description" class="customer-login-description">Choose an account to continue</p>
-
-        <div class="customer-login-error"
-             data-customer-login-error
-             role="alert"
-              hidden ></div>
-
-        <div class="customer-login-options">
-            <a href="/auth/telegram"
-       class="customer-login-provider customer-login-telegram"
-        data-customer-login-telegram >
-        <i class="fab fa-telegram-plane" aria-hidden="true"></i>
-        <span>Login with Telegram</span>
-    </a>
-
-            <a href="/auth/google" class="customer-login-provider customer-login-google">
-                <i class="fab fa-google" aria-hidden="true"></i>
-                <span>Login with Google</span>
-            </a>
-        </div>
-    </div>
-</dialog>
+            
     
     
     <div x-show="mobileSearchOpen"
@@ -3538,7 +3493,5 @@ body.install-app-banner-visible #storefront-footer.storefront-footer--with-suppo
     <script src="js/site-branding.js" defer></script>
     <script src="js/home-games.js" defer></script>
     <script src="js/entrance-animate.js" defer></script>
-    
-    <script type="module" src="js/customer-login-modal_8a55ce.js"></script>
 </body>
 </html>
