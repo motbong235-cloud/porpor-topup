@@ -1272,6 +1272,7 @@
     .then(function (r) { return r.json(); })
     .then(function (d) {
       if (!d || !d.ok || !d.botUsername) return fail('Telegram login is not configured yet.');
+      if (!d.hasToken) return fail('Telegram login needs a Bot Token. Please ask the admin to add it in Admin → Settings → Telegram Login.');
       var origin = location.origin;
       var authUrl = origin + '/api/auth/telegram/callback';
       var iframe = document.createElement('iframe');

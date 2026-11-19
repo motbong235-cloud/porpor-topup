@@ -16,6 +16,8 @@ const DEFAULT_SETTINGS = {
   taglineKm: "ហាងហ្គេមព្រីមៀម",
   taglineEn: "PREMIUM GAME STORE",
   telegram: "https://t.me/porportopup",
+  /** Messenger support link shown in the storefront support widget (Admin → Settings) */
+  messenger: "https://m.me/966156173243491",
   /** Telegram Login Widget — can set in Admin (env TELEGRAM_* still overrides if set) */
   tgBotToken: "", // set via env TELEGRAM_BOT_TOKEN or Admin → Settings (never commit)
   tgBotUsername: "porporwebbot",

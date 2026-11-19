@@ -620,6 +620,7 @@ app.get("/api/settings", (_req, res) => {
     taglineKm: s.taglineKm,
     taglineEn: s.taglineEn,
     telegram: s.telegram,
+    messenger: s.messenger || "",
     announcementKm: s.announcementKm,
     announcementEn: s.announcementEn,
     maintenance: s.maintenance,
@@ -1868,7 +1869,7 @@ app.get("/api/admin/robux-auto/test", adminAuth, async (_req, res) => {
 app.put("/api/admin/settings", adminAuth, (req, res) => {
   const body = req.body || {};
   const allowed = [
-    "siteName", "taglineKm", "taglineEn", "telegram", "announcementKm", "announcementEn", "kaiBotToken", "kaiOrderBotToken", "kaiBotUsername", "kaiChatId", "kaiChannelId", "kaiRouteGames", "kaiAbaKey", "kaiAbaMerchant",
+    "siteName", "taglineKm", "taglineEn", "telegram", "messenger", "announcementKm", "announcementEn", "kaiBotToken", "kaiOrderBotToken", "kaiBotUsername", "kaiChatId", "kaiChannelId", "kaiRouteGames", "kaiAbaKey", "kaiAbaMerchant",
     "supportEmail", "maintenance", "coupons", "autoTopup", "topupProvider", "logoUrl", "bannerUrls", "localProducts",
     "deliveryHours", "tickerSoldBase", "tickerSoldLabel", "resellers", "resellerPrices",
     "tgBotToken", "tgBotUsername", "tgChannelId",

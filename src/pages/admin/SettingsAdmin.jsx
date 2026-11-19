@@ -149,6 +149,9 @@ export default function SettingsAdmin() {
         <Field label="តំណ Telegram">
           <input value={form.telegram || ""} onChange={(e) => set("telegram", e.target.value)} placeholder="https://t.me/…" />
         </Field>
+        <Field label="តំណ Messenger (ជំនួយ)" hint="ទុកទទេ = លាក់ប៊ូតុង Messenger">
+          <input value={form.messenger || ""} onChange={(e) => set("messenger", e.target.value)} placeholder="https://m.me/…" />
+        </Field>
       </section>
 
       
