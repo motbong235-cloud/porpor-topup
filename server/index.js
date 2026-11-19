@@ -2326,20 +2326,6 @@ app.get("/manifest.webmanifest", (_req, res) => {
 /** OPEN ABA Mobile — MUST be before SPA catch-all or React treats /open-aba as admin */
 app.get("/open-aba", (req, res) => khmerSystemPay.openAbaRoute(req, res));
 
-/* PORPOR_CLEAN_URL_REDIRECTS */
-app.get(["/html", "/html/", "/html/index.html"], (_req, res) => { res.redirect(301, "/"); });
-app.get("/html/game.html", (req, res) => {
-  const id = String(req.query.id || req.query.game || "").trim();
-  if (id) return res.redirect(301, "/game/" + encodeURIComponent(id));
-  return res.redirect(301, "/");
-});
-app.get("/html/login.html", (_req, res) => res.redirect(301, "/"));
-app.get(/^\/html\/.+\.html$/i, (req, res) => {
-  const base = String(req.path || "").replace(/^\/html\//, "").replace(/\.html$/i, "");
-  if (base && base !== "index" && base !== "login") return res.redirect(301, "/game/" + encodeURIComponent(base));
-  return res.redirect(301, "/");
-});
-
 if (fs.existsSync(DIST)) {
   // Serve assets but NEVER auto-serve index.html (we inject ADMIN_PATH ourselves)
   app.use(
@@ -2357,6 +2343,50 @@ if (fs.existsSync(DIST)) {
       },
     }),
   );
+
+  // ---- HTML storefront (Natsu look from public/html) — clean URLs ----
+  const HTML_SITE = path.join(DIST, "html");
+  const HTML_FALLBACK = path.join(ROOT, "public", "html");
+  const htmlRoot = fs.existsSync(path.join(HTML_SITE, "index.html")) ? HTML_SITE : HTML_FALLBACK;
+  const sendHtml = (res, name) => {
+    const fp = path.join(htmlRoot, name);
+    if (!fs.existsSync(fp)) return false;
+    res.setHeader("Cache-Control", "no-cache");
+    res.sendFile(fp);
+    return true;
+  };
+  app.use("/html", express.static(htmlRoot, { index: false, maxAge: isProd ? "1d" : 0 }));
+  app.get(["/", "/index.html"], (req, res, next) => {
+    if (!sendHtml(res, "index.html")) return next();
+  });
+  app.get("/login", (req, res, next) => {
+    if (!sendHtml(res, "login.html")) return next();
+  });
+  const SAFE_GAME_ID = /^[A-Za-z0-9_-]+$/;
+  app.get("/game/:id", (req, res, next) => {
+    const id = String(req.params.id || "");
+    if (!SAFE_GAME_ID.test(id)) return res.redirect(302, "/");
+    const dedicated = path.join(htmlRoot, id + ".html");
+    if (fs.existsSync(dedicated)) {
+      res.setHeader("Cache-Control", "no-cache");
+      return res.sendFile(dedicated);
+    }
+    const fp = path.join(htmlRoot, "game.html");
+    if (!fs.existsSync(fp)) return next();
+    if (!req.query.id) {
+      return res.redirect(302, "/game/" + encodeURIComponent(id) + "?id=" + encodeURIComponent(id));
+    }
+    res.setHeader("Cache-Control", "no-cache");
+    return res.sendFile(fp);
+  });
+  app.get("/html/game.html", (req, res) => {
+    const id = String(req.query.id || "").trim();
+    if (id && SAFE_GAME_ID.test(id)) return res.redirect(301, "/game/" + encodeURIComponent(id) + "?id=" + encodeURIComponent(id));
+    return res.redirect(301, "/");
+  });
+  app.get("/html/index.html", (_req, res) => res.redirect(301, "/"));
+  app.get(["/html", "/html/"], (_req, res) => res.redirect(301, "/"));
+
   app.get("*", (req, res, next) => {
     if (req.path.startsWith("/api")) return next();
     if (req.path.startsWith("/assets/") || /\.[a-z0-9]{2,5}$/i.test(req.path)) return res.status(404).end();
