@@ -1,0 +1,9 @@
+Add near static serving in server/index.js:
+
+// Legacy static path: never expose /html/index.html — send users to clean root
+app.get(["/html", "/html/", "/html/index.html"], (_req, res) => {
+  res.redirect(301, "/");
+});
+app.get(/^\/html\/.+/, (_req, res) => {
+  res.redirect(301, "/");
+});
