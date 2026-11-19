@@ -85,13 +85,6 @@
             }
         }
     
-        .tg-login-card { max-width: 420px; margin: 48px auto 64px; padding: 28px 22px; border-radius: 18px; background: var(--tg-card, #2a2421); border: 1px solid rgba(242,165,26,.25); text-align: center; color: #fff7e5; }
-        .tg-login-card .customer-login-title i { color: #f2a51a; margin-right: 6px; }
-        .tg-login-widget { display: grid; justify-items: center; min-height: 52px; margin-top: 18px; }
-        .tg-login-widget iframe { max-width: 100%; }
-        .tg-login-msg { margin-top: 12px; font-size: 14px; color: #f5c542; }
-        img.h-5 { height: 20px; width: auto; }
-        .storefront-footer__payments img { height: 20px; width: auto; }
     </style>
     
     
@@ -961,6 +954,31 @@
             display: none !important;
         }
     </style>
+    <style>
+        main { display: block; padding: 0 16px; box-sizing: border-box; }
+        .tg-login-card { display: block; width: 100%; box-sizing: border-box; max-width: 420px; margin: 48px auto 64px; padding: 28px 22px; border-radius: 18px; background: var(--tg-card, #2a2421); border: 1px solid rgba(242,165,26,.25); text-align: center; color: #fff7e5; }
+        .tg-login-card .customer-login-title { color: #fff7e5; margin: 14px 0 4px; font-size: 22px; font-weight: 800; }
+        .tg-login-card .customer-login-title .ico { color: #f2a51a; margin-right: 6px; }
+        .tg-login-card .customer-login-description { color: #d9cbb0; font-size: 14px; }
+        .tg-login-widget { display: grid; justify-items: center; min-height: 52px; margin-top: 18px; }
+        .tg-login-widget iframe { max-width: 100%; }
+        .tg-login-msg { margin-top: 12px; font-size: 14px; color: #f5c542; }
+        .ico { width: 1em; height: 1em; display: inline-block; vertical-align: -0.125em; flex: none; }
+        html, body { background: #474342; color: #fff7e5; margin: 0; }
+        body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+        img { max-width: 100%; }
+        .flex { display: flex; } .hidden { display: none !important; }
+        .flex-col { flex-direction: column; } .w-full { width: 100%; } .mx-auto { margin-left: auto; margin-right: auto; } .mt-auto { margin-top: auto; }
+        .fixed { position: fixed; } .inset-0 { inset: 0; }
+        @media (min-width: 1024px) {
+            .lg\:flex { display: flex !important; } .lg\:hidden { display: none !important; } .lg\:block { display: block !important; }
+        }
+        .site-header-brand img { height: 40px; width: auto; }
+        footer img { height: 20px; width: auto; }
+        .tg-login-card .ico { font-size: 1em; }
+        img.h-5 { height: 20px; width: auto; }
+        .storefront-footer__payments img { height: 20px; width: auto; }
+    </style>
 </head>
 
 
@@ -986,22 +1004,22 @@
                     <a href=""
                        class="flex items-center gap-1.5 xl:gap-2 px-2 xl:px-3 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all duration-200 text-daddy-text-light hover:text-daddy-orange hover:bg-daddy-orange/5"
                        >
-                        <i class="fas fa-home"></i>
+                        <svg class="ico" viewBox="0 0 24 24"  aria-hidden="true"><path d="M3 11l9-8 9 8v9h-6v-6H9v6H3z" fill="currentColor" stroke="none"/></svg>
                         <span>Home</span>
                     </a>
                     <a href=""
                        class="flex items-center gap-1.5 xl:gap-2 px-2 xl:px-3 py-2 rounded-lg font-medium text-sm whitespace-nowrap text-daddy-text-light hover:text-daddy-orange hover:bg-daddy-orange/5 transition-all duration-200">
-                        <i class="fas fa-star"></i>
+                        <svg class="ico" viewBox="0 0 24 24"  aria-hidden="true"><path fill="currentColor" stroke="none" d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>
                         <span>Featured</span>
                     </a>
                     <a href=""
                        class="flex items-center gap-1.5 xl:gap-2 px-2 xl:px-3 py-2 rounded-lg font-medium text-sm whitespace-nowrap text-daddy-text-light hover:text-daddy-orange hover:bg-daddy-orange/5 transition-all duration-200">
-                        <i class="fas fa-gamepad"></i>
+                        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12a4 4 0 014 4v2a4 4 0 01-4 4l-2-2H8l-2 2a4 4 0 01-4-4v-2a4 4 0 014-4z"/></svg>
                         <span>Games</span>
                     </a>
                     <a href=""
                        class="flex items-center gap-1.5 xl:gap-2 px-2 xl:px-3 py-2 rounded-lg font-medium text-sm whitespace-nowrap text-daddy-text-light hover:text-daddy-orange hover:bg-daddy-orange/5 transition-all duration-200">
-                        <i class="fas fa-calendar-alt"></i>
+                        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="6" width="16" height="14" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/></svg>
                         <span>Events</span>
                     </a>
                 </nav>
@@ -1015,9 +1033,9 @@
                            >
                             <span class="customer-login-action__frame" aria-hidden="true"></span>
                             <span class="customer-login-action__core">
-                                <span class="customer-login-action__icon" aria-hidden="true"><i class="fas fa-user"></i></span>
+                                <span class="customer-login-action__icon" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"  aria-hidden="true"><path fill="currentColor" stroke="none" d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5z"/></svg></span>
                                 <span class="customer-login-action__label">Login</span>
-                                <i class="fas fa-chevron-right customer-login-action__chevron" aria-hidden="true"></i>
+                                <svg class="ico customer-login-action__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
                             </span>
                         </a>
                     
@@ -1029,7 +1047,7 @@
                                 aria-label="Search games"
                                 class="header-search-button lg:hidden flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0">
                             <span class="header-search-ring" aria-hidden="true"></span>
-                            <i class="fas fa-search header-search-icon text-sm sm:text-base" aria-hidden="true"></i>
+                            <svg class="ico header-search-icon text-sm sm:text-base" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
                         </button>
 
                         
@@ -1037,7 +1055,7 @@
                             <div class="relative">
                                 <div class="header-search-field flex items-center gap-2 px-3 py-2 w-40 xl:w-48 2xl:w-56">
                                     <span class="header-search-ring" aria-hidden="true"></span>
-                                    <i class="fas fa-search header-search-icon" aria-hidden="true"></i>
+                                    <svg class="ico header-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
                                     <input type="text"
                                            name="q"
                                            x-model="query"
@@ -1081,7 +1099,7 @@
                                                 <p class="text-xs text-daddy-text-darker" x-text="game.code"></p>
                                             </div>
                                             <template x-if="game.status">
-                                                <i class="fas fa-chevron-right text-daddy-text-darker text-xs"></i>
+                                                <svg class="ico text-daddy-text-darker text-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
                                             </template>
                                             <template x-if="!game.status">
                                                 <span class="rounded bg-gray-700 px-2 py-1 text-[10px] font-bold text-white">UNAVAILABLE</span>
@@ -1101,9 +1119,9 @@
                            >
                             <span class="customer-login-action__frame" aria-hidden="true"></span>
                             <span class="customer-login-action__core">
-                                <span class="customer-login-action__icon" aria-hidden="true"><i class="fas fa-user"></i></span>
+                                <span class="customer-login-action__icon" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"  aria-hidden="true"><path fill="currentColor" stroke="none" d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5z"/></svg></span>
                                 <span class="customer-login-action__label">Login</span>
-                                <i class="fas fa-chevron-right customer-login-action__chevron" aria-hidden="true"></i>
+                                <svg class="ico customer-login-action__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
                             </span>
                         </a>
                                     </div>
@@ -1123,16 +1141,15 @@
          x-transition:leave="transition ease-in duration-200"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         style="display: none;"
-         class="lg:hidden fixed inset-0 bg-daddy-dark-purple/98 backdrop-blur-lg z-[9999] flex flex-col"
-         style="z-index: 1100">
+         style="display: none; z-index: 1100;"
+         class="lg:hidden fixed inset-0 bg-daddy-dark-purple/98 backdrop-blur-lg z-[9999] flex flex-col">
 
         
         <div class="flex items-center gap-3 p-4 border-b border-daddy-light-purple/20">
             <button type="button"
                     @click="mobileSearchOpen = false"
                     class="flex items-center justify-center w-10 h-10 text-daddy-text-light hover:text-daddy-orange transition-colors">
-                <i class="fas fa-arrow-left text-xl"></i>
+                <svg class="ico text-xl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
             </button>
             <h2 class="text-lg font-semibold text-daddy-text-light">Search Games</h2>
         </div>
@@ -1141,7 +1158,7 @@
         <div class="p-4">
             <form action="/search" method="GET" @submit="handleSubmit">
                 <div class="flex items-center gap-3 bg-daddy-purple rounded-lg px-4 py-3 border border-daddy-light-purple/20">
-                    <i class="fas fa-search text-daddy-text-darker"></i>
+                    <svg class="ico text-daddy-text-darker" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
                     <input type="text"
                            x-ref="mobileInput"
                            name="q"
@@ -1183,7 +1200,7 @@
                                 <p class="text-xs text-daddy-text-darker mt-0.5" x-text="game.code"></p>
                             </div>
                             <template x-if="game.status">
-                                <i class="fas fa-chevron-right text-daddy-text-darker text-sm"></i>
+                                <svg class="ico text-daddy-text-darker text-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
                             </template>
                             <template x-if="!game.status">
                                 <span class="rounded bg-gray-700 px-2 py-1 text-[10px] font-bold text-white">UNAVAILABLE</span>
@@ -1197,7 +1214,7 @@
             <div x-show="query.length >= 2 && !loading && results.length === 0"
                  class="flex flex-col items-center justify-center text-center py-16">
                 <div class="w-20 h-20 rounded-full bg-daddy-purple flex items-center justify-center mb-4">
-                    <i class="fas fa-search text-3xl text-daddy-text-darker"></i>
+                    <svg class="ico text-3xl text-daddy-text-darker" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
                 </div>
                 <p class="text-daddy-text-light font-semibold mb-1">No games found</p>
                 <p class="text-sm text-daddy-text-darker">Try searching with different keywords</p>
@@ -1207,7 +1224,7 @@
             <div x-show="query.length < 2"
                  class="flex flex-col items-center justify-center text-center py-16">
                 <div class="w-20 h-20 rounded-full bg-daddy-purple flex items-center justify-center mb-4">
-                    <i class="fas fa-gamepad text-3xl text-daddy-orange"></i>
+                    <svg class="ico text-3xl text-daddy-orange" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12a4 4 0 014 4v2a4 4 0 01-4 4l-2-2H8l-2 2a4 4 0 01-4-4v-2a4 4 0 014-4z"/></svg>
                 </div>
                 <p class="text-daddy-text-light font-semibold mb-1">Start typing to search</p>
                 <p class="text-sm text-daddy-text-darker">Find your favorite games quickly</p>
@@ -1223,7 +1240,7 @@
     <div class="customer-login-brand" aria-hidden="true">
         <img src="img/porpor-logo.svg" alt="" class="customer-login-logo">
     </div>
-    <h1 id="tg-login-title" class="customer-login-title"><i class="fas fa-user" aria-hidden="true"></i> Log in</h1>
+    <h1 id="tg-login-title" class="customer-login-title"><svg class="ico" viewBox="0 0 24 24"  aria-hidden="true" aria-hidden="true"><path fill="currentColor" stroke="none" d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5z"/></svg> Log in</h1>
     <p class="customer-login-description">Log in with your Telegram account to continue</p>
     <div id="tg-login-widget" class="tg-login-widget"></div>
     <p id="tg-login-msg" class="tg-login-msg" role="status" hidden></p>
