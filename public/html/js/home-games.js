@@ -30,7 +30,7 @@
     const art = g.image
       ? `<img src="${esc(g.image)}" alt="" loading="lazy">`
       : `<span class="pp-game-mark">${esc(String(g.name || "?").trim().charAt(0).toUpperCase())}</span>`;
-    return `<a class="pp-game-card" href="/games/${encodeURIComponent(g.id)}">
+    return `<a class="pp-game-card" href="/game/${encodeURIComponent(g.id)}">
       <div class="pp-game-art">${hot ? '<span class="pp-game-badge">TOP</span>' : ""}${art}</div>
       <div class="pp-game-body">
         <div class="pp-game-name" title="${esc(g.name)}">${esc(g.name)}</div>

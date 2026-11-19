@@ -5,7 +5,7 @@
 import { getSettings } from "./store.js";
 import * as khmerTopup from "./khmerTopup.js";
 import * as foxTopup from "./foxTopup.js";
-import { localCatalog, findLocalPack, cleanBanners } from "./localProducts.js";
+import { localCatalog, findLocalPack, cleanBanners, DEFAULT_LOCAL_PRODUCTS } from "./localProducts.js";
 
 const TTL = 60_000;
 let cache = { at: 0, games: null, raw: null };
@@ -149,11 +149,15 @@ export async function storefront() {
     const isOpen = !!s?.enabled;
     const hasOwn = s && s.markup !== undefined && s.markup !== null && s.markup !== "" && Number.isFinite(Number(s.markup));
     const markup = hasOwn ? Number(s.markup) : globalMarkup;
-    const allowed = Array.isArray(s?.packages) ? new Set(s.packages.map(String)) : null;
+    // Empty package list = all packages (admin enabled game without narrowing packs)
+    const allowed =
+      Array.isArray(s?.packages) && s.packages.length > 0
+        ? new Set(s.packages.map(String))
+        : null;
 
     const packPrices = (s && s.packPrices) || {};
     const packs = (g.packs || [])
-      .filter((p) => p.inStock && (!allowed || allowed.has(p.id)))
+      .filter((p) => p.inStock !== false && (!allowed || allowed.has(String(p.id))))
       .map((p) => {
         const pid = String(p.id);
         const cost = Number(p.cost) || 0;
@@ -221,12 +225,22 @@ export async function publicCatalog() {
     foxStorefront().catch(() => []),
   ]);
 
-  const local = localCatalog()
+  let local = localCatalog()
     .filter((g) => g.open !== false || g.showWhenOff)
     .map((g) => ({
       ...g,
-      packs: g.packs.map(({ cost, ...p }) => p),
+      packs: (Array.isArray(g.packs) ? g.packs : []).map(({ cost, ...p }) => p),
+      provider: g.provider || "local",
     }));
+  if (!local.length) {
+    local = (DEFAULT_LOCAL_PRODUCTS || [])
+      .filter((g) => g && g.open !== false)
+      .map((g) => ({
+        ...g,
+        packs: (Array.isArray(g.packs) ? g.packs : []).map(({ cost, ...p }) => p),
+        provider: "local",
+      }));
+  }
 
   // Merge: local, Khmer, Fox
   const seen = new Set(local.map((g) => String(g.id)));
