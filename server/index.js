@@ -2326,6 +2326,20 @@ app.get("/manifest.webmanifest", (_req, res) => {
 /** OPEN ABA Mobile — MUST be before SPA catch-all or React treats /open-aba as admin */
 app.get("/open-aba", (req, res) => khmerSystemPay.openAbaRoute(req, res));
 
+/* PORPOR_CLEAN_URL_REDIRECTS */
+app.get(["/html", "/html/", "/html/index.html"], (_req, res) => { res.redirect(301, "/"); });
+app.get("/html/game.html", (req, res) => {
+  const id = String(req.query.id || req.query.game || "").trim();
+  if (id) return res.redirect(301, "/game/" + encodeURIComponent(id));
+  return res.redirect(301, "/");
+});
+app.get("/html/login.html", (_req, res) => res.redirect(301, "/"));
+app.get(/^\/html\/.+\.html$/i, (req, res) => {
+  const base = String(req.path || "").replace(/^\/html\//, "").replace(/\.html$/i, "");
+  if (base && base !== "index" && base !== "login") return res.redirect(301, "/game/" + encodeURIComponent(base));
+  return res.redirect(301, "/");
+});
+
 if (fs.existsSync(DIST)) {
   // Serve assets but NEVER auto-serve index.html (we inject ADMIN_PATH ourselves)
   app.use(
@@ -2343,52 +2357,6 @@ if (fs.existsSync(DIST)) {
       },
     }),
   );
-  // ---- Static HTML storefront (public/html → dist/html) ----
-  // Pages live under /html/ so their relative css/img/js paths resolve.
-  const HTML_SITE = path.join(DIST, "html");
-  const siteHas = (name) => fs.existsSync(path.join(HTML_SITE, `${name}.html`));
-  app.get(["/html", "/html/"], (_req, res) => res.redirect(302, "/html/index.html"));
-  app.get("/", (_req, res) => res.sendFile(path.join(HTML_SITE, "index.html")));
-  app.get("/login", (_req, res) => res.redirect(302, "/html/login.html"));
-  // Game ids come from the admin catalog and may contain letters, digits, "-" and "_".
-  const SAFE_GAME_ID = /^[A-Za-z0-9_-]+$/;
-  app.get("/game/:id", (req, res) => {
-    const id = String(req.params.id || "");
-    if (!SAFE_GAME_ID.test(id)) return res.redirect(302, "/html/index.html");
-    if (siteHas(id)) return res.redirect(302, `/html/${id}.html`);
-    return res.redirect(302, `/html/game.html?id=${encodeURIComponent(id)}`);
-  });
-  app.get("/games/:slug", (req, res) => {
-    const slug = String(req.params.slug || "");
-    if (!SAFE_GAME_ID.test(slug)) return res.redirect(302, "/html/index.html");
-    if (siteHas(slug)) return res.redirect(302, `/html/${slug}.html`);
-    return res.redirect(302, `/html/game.html?id=${encodeURIComponent(slug)}`);
-  });
-  // Search used by the static storefront (same response shape it expects)
-  app.get("/api/search-games", async (req, res) => {
-    try {
-      const q = String(req.query.q || "").trim().toLowerCase();
-      const games = (await catalog.publicCatalog()) || [];
-      const hits = games
-        .filter((g) => !q || String(g.name || "").toLowerCase().includes(q))
-        .slice(0, 8)
-        .map((g) => {
-          const slug = String(g.id || "");
-          return {
-            id: g.id,
-            name: g.name,
-            image_url: g.image || g.image_url || "",
-            status: g.open !== false,
-            url: siteHas(slug) ? `/html/${slug}.html` : `/html/game.html?id=${encodeURIComponent(slug)}`,
-          };
-        });
-      res.set("Cache-Control", "public, max-age=15");
-      res.json(hits);
-    } catch {
-      res.json([]);
-    }
-  });
-
   app.get("*", (req, res, next) => {
     if (req.path.startsWith("/api")) return next();
     if (req.path.startsWith("/assets/") || /\.[a-z0-9]{2,5}$/i.test(req.path)) return res.status(404).end();
