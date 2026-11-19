@@ -1,8 +1,4 @@
-/**
- * Remove legacy static /html storefront redirects that loop with React routes.
- * BAD:  /game/x → /html/game.html?id=x  AND  /html/game.html → /game/x
- * GOOD: serve React SPA at / and /game/:id only
- */
+/** Remove legacy static /html storefront redirects that loop with React routes. */
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -23,16 +19,10 @@ if (t.includes(START)) {
   }
 }
 
-t = t.replace(
-  /app\.get\(\s*["']\/game\/:id["'][\s\S]*?\/html\/game\.html[\s\S]*?\}\);/g,
-  "/* removed legacy /game → /html redirect */",
-);
-
 const MARKER = "/* PORPOR_CLEAN_URL_REDIRECTS */";
 if (!t.includes(MARKER)) {
   const needle = "if (fs.existsSync(DIST)) {";
   const block = `${MARKER}
-// Legacy bookmarks only: /html/* → React routes (never the reverse)
 app.get(["/html", "/html/", "/html/index.html"], (_req, res) => {
   res.redirect(301, "/");
 });
@@ -54,19 +44,9 @@ app.get(/^\\/html\\/.+\\.html$/i, (req, res) => {
   if (t.includes(needle)) {
     t = t.replace(needle, block + needle);
     console.log("[html-redirect] installed clean one-way redirects");
-  } else {
-    console.log("[html-redirect] WARN no DIST block");
   }
 } else {
-  console.log("[html-redirect] clean redirects already present");
-}
-
-if (t.includes("`/html/${slug}.html`") || t.includes("/html/game.html?id=")) {
-  t = t.replace(
-    /url:\s*siteHas\(slug\)\s*\?\s*`\/html\/\$\{slug\}\.html`\s*:\s*`\/html\/game\.html\?id=\$\{encodeURIComponent\(slug\)\}`/g,
-    "url: `/game/${encodeURIComponent(slug)}`",
-  );
-  console.log("[html-redirect] search urls → /game/");
+  console.log("[html-redirect] already present");
 }
 
 fs.writeFileSync(file, t);
