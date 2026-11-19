@@ -15,6 +15,8 @@ services:
         sync: false
       - key: DATA_DIR
         value: /var/data
+      - key: TRUST_PROXY
+        value: "2"
       - key: ABA_API_KEY
         sync: false
       - key: ABA_MERCHANT_ID
@@ -27,18 +29,14 @@ services:
         sync: false
       - key: FOX_TOPUP_API_SECRET
         sync: false
-      - key: FOX_WEBHOOK_SECRET
-        sync: false
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: TELEGRAM_CHANNEL_ID
         sync: false
+      - key: RIELPAY_API_KEY
+        sync: false
       - key: RIELPAY_WEBHOOK_SECRET
         sync: false
-      - key: ROBUX_WORKER_SECRET
-        sync: false
-      - key: TRUST_PROXY
-        value: "1"   # set 2 if Cloudflare proxies in front of Render
       - key: QR_EXPIRE_SEC
         value: "3600"
     healthCheckPath: /api/health
