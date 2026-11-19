@@ -9,7 +9,12 @@
   const root = $("#game-root");
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const money = (n) => "$" + (Number(n) || 0).toFixed(2);
-  const gameId = new URLSearchParams(location.search).get("id") || "";
+  const gameId = (() => {
+    const q = new URLSearchParams(location.search).get("id") || "";
+    if (q) return q;
+    const m = location.pathname.match(/^\/games?\/([^/]+)/i);
+    return m ? decodeURIComponent(m[1]) : "";
+  })();
 
   const S = {
     game: null, error: "", check: null, checkMsg: "", pack: null, qty: 1,

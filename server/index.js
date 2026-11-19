@@ -2363,6 +2363,12 @@ if (fs.existsSync(DIST)) {
     if (!sendHtml(res, "login.html")) return next();
   });
   const SAFE_GAME_ID = /^[A-Za-z0-9_-]+$/;
+  // Common typo / legacy plural — never fall through to React admin
+  app.get("/games/:id", (req, res) => {
+    const id = String(req.params.id || "");
+    if (!SAFE_GAME_ID.test(id)) return res.redirect(302, "/");
+    return res.redirect(302, "/game/" + encodeURIComponent(id) + "?id=" + encodeURIComponent(id));
+  });
   app.get("/game/:id", (req, res, next) => {
     const id = String(req.params.id || "");
     if (!SAFE_GAME_ID.test(id)) return res.redirect(302, "/");
@@ -2389,6 +2395,11 @@ if (fs.existsSync(DIST)) {
 
   app.get("*", (req, res, next) => {
     if (req.path.startsWith("/api")) return next();
+    // HTML storefront owns these — never inject React admin shell
+    // If HTML handlers called next(), send users home — never React admin for storefront paths
+    if (req.path.startsWith("/game") || req.path.startsWith("/games") || req.path === "/login") {
+      return res.redirect(302, "/");
+    }
     if (req.path.startsWith("/assets/") || /\.[a-z0-9]{2,5}$/i.test(req.path)) return res.status(404).end();
     const htmlPath = path.join(DIST, "index.html");
     try {
