@@ -956,13 +956,16 @@
     </style>
     <style>
         main { display: block; padding: 0 16px; box-sizing: border-box; }
-        .tg-login-card { display: block; width: 100%; box-sizing: border-box; max-width: 420px; margin: 48px auto 64px; padding: 28px 22px; border-radius: 18px; background: var(--tg-card, #2a2421); border: 1px solid rgba(242,165,26,.25); text-align: center; color: #fff7e5; }
-        .tg-login-card .customer-login-title { color: #fff7e5; margin: 14px 0 4px; font-size: 22px; font-weight: 800; }
-        .tg-login-card .customer-login-title .ico { color: #f2a51a; margin-right: 6px; }
-        .tg-login-card .customer-login-description { color: #d9cbb0; font-size: 14px; }
-        .tg-login-widget { display: grid; justify-items: center; min-height: 52px; margin-top: 18px; }
+        .tg-login-card { position: relative; display: block; width: 100%; box-sizing: border-box; max-width: 400px; margin: 40px auto 56px; padding: 36px 24px 28px; border-radius: 22px; background: linear-gradient(180deg, #3a2f28 0%, #241e1b 100%); border: 1px solid rgba(242,165,26,.28); box-shadow: 0 24px 60px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.06); text-align: center; color: #fff7e5; overflow: hidden; }
+        .tg-login-card::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: linear-gradient(90deg, transparent, #f2a51a, #ffd447, transparent); }
+        .tg-login-card .customer-login-brand { display: grid; place-items: center; width: 92px; height: 92px; margin: 0 auto; border-radius: 28px; background: radial-gradient(circle, rgba(242,165,26,.32), rgba(242,165,26,0) 70%); }
+        .tg-login-card .customer-login-logo { width: 72px; height: 72px; object-fit: contain; filter: drop-shadow(0 6px 14px rgba(0,0,0,.4)); }
+        .tg-login-card .customer-login-title { color: #fff7e5; margin: 16px 0 6px; font-size: 24px; font-weight: 800; letter-spacing: .01em; }
+        .tg-login-card .customer-login-title .ico { color: #f2a51a; margin-right: 8px; }
+        .tg-login-card .customer-login-description { color: #d9cbb0; font-size: 14px; line-height: 1.5; margin: 0 auto; max-width: 280px; }
+        .tg-login-widget { display: grid; justify-items: center; min-height: 64px; margin: 24px auto 0; padding: 14px; border-radius: 16px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); }
+        .tg-login-msg { margin-top: 14px; font-size: 13px; color: #f5c542; line-height: 1.5; }
         .tg-login-widget iframe { max-width: 100%; }
-        .tg-login-msg { margin-top: 12px; font-size: 14px; color: #f5c542; }
         .ico { width: 1em; height: 1em; display: inline-block; vertical-align: -0.125em; flex: none; }
         html, body { background: #474342; color: #fff7e5; margin: 0; }
         body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
@@ -975,6 +978,10 @@
         }
         .site-header-brand img { height: 40px; width: auto; }
         footer img { height: 20px; width: auto; }
+        footer { text-align: center; padding: 28px 16px 36px; font-size: 14px; line-height: 1.6; }
+        footer a { color: #f5c542; }
+        footer img { margin: 0 3px; vertical-align: middle; }
+        footer div { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; }
         .tg-login-card .ico { font-size: 1em; }
         img.h-5 { height: 20px; width: auto; }
         .storefront-footer__payments img { height: 20px; width: auto; }
