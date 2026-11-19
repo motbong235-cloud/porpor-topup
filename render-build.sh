@@ -30,8 +30,9 @@ run_build() {
 
 install_deps
 
-echo "==> html redirect patch"
+echo "==> patches"
 node patches/fix_html_redirect.mjs || true
+node patches/fix_payment_and_local.mjs || true
 
 if ! run_build; then
   echo "==> build failed - retrying once after npm cache clean + fresh install"
