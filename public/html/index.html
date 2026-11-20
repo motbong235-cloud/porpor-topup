@@ -1322,6 +1322,19 @@ body.install-app-banner-visible #storefront-footer.storefront-footer--with-suppo
 <style>
 .ico { width: 1em; height: 1em; display: inline-block; vertical-align: -0.125em; flex: none; }
 </style>
+
+<style id="pp-support-icons">
+.floating-support-widget__contact-icon.pp-icon-tg,
+.floating-support-widget__contact-icon.pp-icon-lc{
+  display:grid!important;place-items:center!important;
+  width:2.75rem!important;height:2.75rem!important;
+  border-radius:30%!important;overflow:hidden;
+}
+.floating-support-widget__contact-icon.pp-icon-tg svg,
+.floating-support-widget__contact-icon.pp-icon-lc svg{display:block}
+.customer-login-action__icon{flex-shrink:0}
+</style>
+
 </head>
 
 
@@ -1374,7 +1387,7 @@ body.install-app-banner-visible #storefront-footer.storefront-footer--with-suppo
                            data-customer-login-open>
                             <span class="customer-login-action__frame" aria-hidden="true"></span>
                             <span class="customer-login-action__core">
-                                <span class="customer-login-action__icon" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5z"/></svg></span>
+                                <span class="customer-login-action__icon" aria-hidden="true" style="display:inline-grid;place-items:center;width:1.35rem;height:1.35rem;border-radius:999px;background:linear-gradient(145deg,#FFD447,#F2A51A);box-shadow:0 2px 6px rgba(242,165,26,.35)"><svg viewBox="0 0 24 24" width="14" height="14" fill="#1a1412" aria-hidden="true"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5z"/></svg></span>
                                 <span class="customer-login-action__label">Login</span>
                                 <svg class="ico customer-login-action__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
                             </span>
@@ -3304,9 +3317,9 @@ body.install-app-banner-visible #storefront-footer.storefront-footer--with-suppo
                             rel="noopener noreferrer"
                             role="listitem"
                         >
-                            <span class="floating-support-widget__contact-icon" aria-hidden="true">
-                                                                    <svg class="ico" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true" style="color: #0084ff"><path d="M21.5 3.5L2.8 10.7c-.9.4-.9 1.1 0 1.3l4.8 1.5 1.8 5.6c.2.6.5.8 1 .5l2.7-2.2 4.9 3.6c.9.5 1.5.2 1.7-.8L23 4.7c.2-1-.4-1.4-1.5-1.2z"/></svg>
-                                                            </span>
+                            <span class="floating-support-widget__contact-icon pp-icon-tg" aria-hidden="true" style="background:linear-gradient(145deg,#2AABEE,#229ED9)!important;box-shadow:0 4px 12px rgba(42,171,238,.4)">
+<svg viewBox="0 0 24 24" width="22" height="22" fill="#fff" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06-.01.24 0 .38z"/></svg>
+</span>
                             <span class="floating-support-widget__contact-text">
                                 <span class="floating-support-widget__contact-label">Telegram</span>
                                                                     <span class="floating-support-widget__contact-sublabel">24H/7 ជំនួយ</span>
@@ -3320,9 +3333,9 @@ body.install-app-banner-visible #storefront-footer.storefront-footer--with-suppo
                             role="listitem"
                             id="pp-open-livechat"
                         >
-                            <span class="floating-support-widget__contact-icon" aria-hidden="true">
-                                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#f2a51a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a4 4 0 01-4 4H8l-5 3V7a4 4 0 014-4h10a4 4 0 014 4z"/></svg>
-                            </span>
+                            <span class="floating-support-widget__contact-icon pp-icon-lc" aria-hidden="true" style="background:linear-gradient(145deg,#FFD447,#F2A51A)!important;box-shadow:0 4px 12px rgba(242,165,26,.35)">
+<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#1a1412" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 01-8.5 8.5H8l-4.5 2.5V11.5A8.5 8.5 0 0112.5 3h0a8.5 8.5 0 018.5 8.5z"/><circle cx="9" cy="11.5" r="1" fill="#1a1412" stroke="none"/><circle cx="12.5" cy="11.5" r="1" fill="#1a1412" stroke="none"/><circle cx="16" cy="11.5" r="1" fill="#1a1412" stroke="none"/></svg>
+</span>
                             <span class="floating-support-widget__contact-text">
                                 <span class="floating-support-widget__contact-label">Live Chat</span>
                                 <span class="floating-support-widget__contact-sublabel">ជជែកក្នុង website</span>
