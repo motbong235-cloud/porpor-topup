@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="utf-8">
+<head><base href="/html/"><meta charset="utf-8">
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1050,7 +1050,7 @@
                            >
                             <span class="customer-login-action__frame" aria-hidden="true"></span>
                             <span class="customer-login-action__core">
-                                <span class="customer-login-action__icon" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"  aria-hidden="true"><path fill="currentColor" stroke="none" d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5z"/></svg></span>
+                                <span class="customer-login-action__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1a1412" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H4"/></svg></span>
                                 <span class="customer-login-action__label">Login</span>
                                 <svg class="ico customer-login-action__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
                             </span>
@@ -1136,7 +1136,7 @@
                            >
                             <span class="customer-login-action__frame" aria-hidden="true"></span>
                             <span class="customer-login-action__core">
-                                <span class="customer-login-action__icon" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"  aria-hidden="true"><path fill="currentColor" stroke="none" d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5z"/></svg></span>
+                                <span class="customer-login-action__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1a1412" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H4"/></svg></span>
                                 <span class="customer-login-action__label">Login</span>
                                 <svg class="ico customer-login-action__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
                             </span>
@@ -1275,25 +1275,32 @@
       if (!d.hasToken) return fail('Telegram login needs a Bot Token. Please ask the admin to add it in Admin → Settings → Telegram Login.');
       var origin = location.origin;
       var authUrl = origin + '/api/auth/telegram/callback';
-      var iframe = document.createElement('iframe');
-      iframe.src = 'https://oauth.telegram.org/embed/' + encodeURIComponent(d.botUsername) +
-        '?origin=' + encodeURIComponent(origin) + '&size=large&request_access=write&return_to=' + encodeURIComponent(authUrl);
-      iframe.setAttribute('title', 'Telegram Login');
-      iframe.setAttribute('scrolling', 'no');
-      iframe.style.cssText = 'border:0;overflow:hidden;width:100%;height:48px;display:block;';
-      box.appendChild(iframe);
-      var sc = document.createElement('script');
-      sc.src = 'https://telegram.org/js/telegram-widget.js?22';
-      sc.async = true;
-      sc.setAttribute('data-telegram-login', d.botUsername);
-      sc.setAttribute('data-size', 'large');
-      sc.setAttribute('data-radius', '12');
-      sc.setAttribute('data-auth-url', authUrl);
-      sc.setAttribute('data-request-access', 'write');
-      box.appendChild(sc);
+      function addScript() {
+        var sc = document.createElement('script');
+        sc.src = 'https://telegram.org/js/telegram-widget.js?22';
+        sc.async = true;
+        sc.setAttribute('data-telegram-login', d.botUsername);
+        sc.setAttribute('data-size', 'large');
+        sc.setAttribute('data-radius', '12');
+        sc.setAttribute('data-auth-url', authUrl);
+        sc.setAttribute('data-request-access', 'write');
+        box.appendChild(sc);
+      }
+      // Fallback if telegram-widget.js is blocked: embed the same button directly.
+      function addEmbed() {
+        var iframe = document.createElement('iframe');
+        iframe.src = 'https://oauth.telegram.org/embed/' + encodeURIComponent(d.botUsername) +
+          '?origin=' + encodeURIComponent(origin) + '&size=large&request_access=write&return_to=' + encodeURIComponent(authUrl);
+        iframe.setAttribute('title', 'Telegram Login');
+        iframe.setAttribute('scrolling', 'no');
+        iframe.style.cssText = 'border:0;overflow:hidden;width:100%;height:48px;display:block;';
+        box.appendChild(iframe);
+      }
+      addScript();
+      setTimeout(function () { if (!box.querySelector('iframe')) addEmbed(); }, 3000);
       setTimeout(function () {
         if (!box.querySelector('iframe')) fail('If the button does not appear, check the bot domain in BotFather (/setdomain).');
-      }, 4000);
+      }, 7000);
     })
     .catch(function () { fail('Could not reach the login service. Please try again.'); });
 })();
