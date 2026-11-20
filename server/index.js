@@ -1051,6 +1051,68 @@ app.get("/api/auth/telegram/config", (_req, res) => {
     hasToken: Boolean(typeof tg.botToken === "function" ? tg.botToken() : false),
   });
 });
+
+/** Natsu-compatible start: returns oauth.telegram.org URL + our callback (popup / full-page). */
+let _tgBotIdCache = { at: 0, id: null };
+async function resolveTelegramBotId() {
+  if (_tgBotIdCache.id && Date.now() - _tgBotIdCache.at < 3600_000) return _tgBotIdCache.id;
+  const token = typeof tg.botToken === "function" ? tg.botToken() : "";
+  if (!token) return null;
+  try {
+    const r = await fetch(`https://api.telegram.org/bot${token}/getMe`, { signal: AbortSignal.timeout(8000) });
+    const d = await r.json();
+    const id = d?.result?.id != null ? String(d.result.id) : null;
+    if (id) _tgBotIdCache = { at: Date.now(), id };
+    return id;
+  } catch (e) {
+    console.warn("[tg-login] getMe failed:", e.message);
+    return _tgBotIdCache.id;
+  }
+}
+app.get("/api/auth/telegram/start", limit("tglogin", { limit: 30, windowMs: 60_000 }), async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  if (!tg.isLoginReady()) return res.status(503).json({ error: "not_configured" });
+  const botId = await resolveTelegramBotId();
+  if (!botId || !/^\d{6,20}$/.test(botId)) {
+    return res.status(503).json({ error: "bot_id_unavailable", hint: "Check TELEGRAM_BOT_TOKEN" });
+  }
+  const proto = (req.headers["x-forwarded-proto"] || req.protocol || "https").toString().split(",")[0].trim();
+  const host = (req.headers["x-forwarded-host"] || req.get("host") || "").toString().split(",")[0].trim();
+  const origin = `${proto}://${host}`;
+  const callback = `${origin}/api/auth/telegram/callback`;
+  let returnTo = String(req.query.return_to || "").trim() || `${origin}/`;
+  try {
+    const u = new URL(returnTo, origin);
+    if (u.origin !== origin) returnTo = `${origin}/`;
+    else {
+      u.hash = "";
+      returnTo = u.toString();
+    }
+  } catch {
+    returnTo = `${origin}/`;
+  }
+  // Store return path in cookie so callback can bounce user back to game page
+  res.cookie("porpor_tg_return", returnTo, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: isProd,
+    maxAge: 10 * 60 * 1000,
+    path: "/",
+  });
+  const authorization_url =
+    `https://oauth.telegram.org/auth?bot_id=${encodeURIComponent(botId)}` +
+    `&origin=${encodeURIComponent(origin)}` +
+    `&request_access=write` +
+    `&return_to=${encodeURIComponent(callback)}`;
+  res.json({
+    ok: true,
+    authorization_url,
+    callback_url: callback,
+    bot_id: botId,
+    botUsername: tg.botUsername(),
+  });
+});
+
 function setTgCookie(res, user) {
   const token = tg.signTgSession(user);
   res.cookie("porpor_tg", token, {
@@ -1078,11 +1140,24 @@ app.get("/api/auth/telegram/callback", limit("tglogin", { limit: 30, windowMs: 6
   const v = tg.verifyTelegramLogin(req.query || {});
   if (!v.ok) {
     console.warn("[tg-login-callback]", v.error, req.query?.id);
-    return res.redirect("/?tg_login=fail");
+    return res.redirect("/?tg_login=fail&reason=" + encodeURIComponent(v.error || "fail"));
   }
   setTgCookie(res, v.user);
   auditLog("tg_login", { tgId: v.user.id, username: v.user.username, ip: clientIp(req), via: "callback" });
-  res.redirect("/?tg_login=ok");
+  let dest = "/?tg_login=ok";
+  try {
+    const ret = String(req.cookies?.porpor_tg_return || "").trim();
+    if (ret) {
+      const u = new URL(ret, `${req.protocol}://${req.get("host")}`);
+      const host = (req.headers["x-forwarded-host"] || req.get("host") || "").toString().split(",")[0].trim();
+      if (u.host === host || u.hostname.endsWith("porportopup.com")) {
+        u.searchParams.set("tg_login", "ok");
+        dest = u.pathname + u.search + u.hash;
+      }
+    }
+  } catch {}
+  res.clearCookie("porpor_tg_return", { path: "/" });
+  res.redirect(dest);
 });
 app.get("/api/auth/me", (req, res) => {
   const user = tg.readTgSession(req.cookies?.porpor_tg);
