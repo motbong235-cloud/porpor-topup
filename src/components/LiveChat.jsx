@@ -7,6 +7,33 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 const FALLBACK_LOGO = "/images/porpor-logo.svg";
 
 const SEP_GAP = 15 * 60 * 1000;
+
+const MAX_UPLOAD = 2.9 * 1024 * 1024;
+/** Resize + re-encode as JPEG so camera photos fit the server's 3MB upload limit. */
+async function shrinkImage(file) {
+  if (file.type === "image/gif") {
+    if (file.size <= MAX_UPLOAD) return file;
+    throw new Error("too_big");
+  }
+  const bmp = await createImageBitmap(file);
+  const encode = (max, q) =>
+    new Promise((res) => {
+      const k = Math.min(1, max / Math.max(bmp.width, bmp.height));
+      const c = document.createElement("canvas");
+      c.width = Math.max(1, Math.round(bmp.width * k));
+      c.height = Math.max(1, Math.round(bmp.height * k));
+      const x = c.getContext("2d");
+      x.fillStyle = "#fff";
+      x.fillRect(0, 0, c.width, c.height);
+      x.drawImage(bmp, 0, 0, c.width, c.height);
+      c.toBlob((b) => res(b), "image/jpeg", q);
+    });
+  let blob = await encode(1600, 0.85);
+  if (blob && blob.size > MAX_UPLOAD) blob = await encode(1280, 0.7);
+  if (blob && blob.size > MAX_UPLOAD) blob = await encode(960, 0.6);
+  if (!blob || blob.size > MAX_UPLOAD) throw new Error("too_big");
+  return blob;
+}
 const EMOJI_ONLY = /^(?:\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*){1,3}$/u;
 
 /** Messenger-style grouping: consecutive messages from one side share a cluster. */
@@ -211,13 +238,10 @@ export function LiveChat({ lang = "km", openSignal = 0, logoUrl = "", lift = fal
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file || !file.type.startsWith("image/")) return;
-    if (file.size > 5 * 1024 * 1024) {
-      alert(lang === "km" ? "រូបធំពេក (អត់លើស 5MB)" : "Image too large (max 5MB)");
-      return;
-    }
     setSending(true);
     try {
-      const up = await uploadBlob(file);
+      const small = await shrinkImage(file); // phone photos are often > the server's 3MB limit
+      const up = await uploadBlob(small);
       await sendPayload({ type: "image", mediaUrl: up.url, text: "" });
     } catch {
       alert(lang === "km" ? "ផ្ញើរូបមិនបាន" : "Could not send image");
