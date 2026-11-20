@@ -1,11 +1,76 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Icon } from "./Icons";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 /**
  * Messenger-style in-site Live Chat — text, image, voice.
  * Thread bound to IP on server.
  */
 const FALLBACK_LOGO = "/images/porpor-logo.svg";
+
+const SEP_GAP = 15 * 60 * 1000;
+const EMOJI_ONLY = /^(?:\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*){1,3}$/u;
+
+/** Messenger-style grouping: consecutive messages from one side share a cluster. */
+function buildRows(msgs) {
+  const out = [];
+  let prev = null;
+  msgs.forEach((m, i) => {
+    const next = msgs[i + 1];
+    const sep = !prev || (m.at || 0) - (prev.at || 0) > SEP_GAP;
+    if (sep) out.push({ kind: "sep", key: `s${m.id}`, at: m.at });
+    const joinPrev = !!prev && !sep && prev.role === m.role;
+    const joinNext = !!next && next.role === m.role && (next.at || 0) - (m.at || 0) <= SEP_GAP;
+    out.push({ kind: "msg", key: m.id, m, first: !joinPrev, last: !joinNext });
+    prev = m;
+  });
+  return out;
+}
+
+function VoiceBubble({ src, duration }) {
+  const ref = useRef(null);
+  const [playing, setPlaying] = useState(false);
+  const [prog, setProg] = useState(0);
+  const total = duration || 0;
+  const bars = useMemo(() => Array.from({ length: 26 }, (_, i) => 6 + ((i * 7 + 3) % 6) * 3), []);
+  function toggle() {
+    const a = ref.current;
+    if (!a) return;
+    if (a.paused) a.play().catch(() => {});
+    else a.pause();
+  }
+  return (
+    <div className="mx-voice">
+      <audio
+        ref={ref}
+        preload="metadata"
+        src={src}
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+        onEnded={() => {
+          setPlaying(false);
+          setProg(0);
+        }}
+        onTimeUpdate={(e) => {
+          const a = e.currentTarget;
+          const d = Number.isFinite(a.duration) && a.duration > 0 ? a.duration : total;
+          setProg(d ? Math.min(1, a.currentTime / d) : 0);
+        }}
+      />
+      <button type="button" className="mx-voice-btn" onClick={toggle} aria-label={playing ? "Pause" : "Play"}>
+        {playing ? (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.2" /><rect x="14" y="5" width="4" height="14" rx="1.2" /></svg>
+        ) : (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" /></svg>
+        )}
+      </button>
+      <div className="mx-wave" aria-hidden="true">
+        {bars.map((h, i) => (
+          <i key={i} className={i / bars.length < prog ? "on" : ""} style={{ height: h }} />
+        ))}
+      </div>
+      {total ? <span className="mx-dur">0:{String(total).padStart(2, "0")}</span> : null}
+    </div>
+  );
+}
 
 export function LiveChat({ lang = "km", openSignal = 0, logoUrl = "", lift = false }) {
   const [open, setOpen] = useState(false);
@@ -24,6 +89,7 @@ export function LiveChat({ lang = "km", openSignal = 0, logoUrl = "", lift = fal
   const mediaRec = useRef(null);
   const recChunks = useRef([]);
   const recTimer = useRef(null);
+  const recSecsRef = useRef(0);
   const fileRef = useRef(null);
 
   const scrollBottom = () => {
@@ -176,7 +242,7 @@ export function LiveChat({ lang = "km", openSignal = 0, logoUrl = "", lift = fal
       rec.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
         clearInterval(recTimer.current);
-        const secs = recSecs;
+        const secs = recSecsRef.current;
         setRecording(false);
         setRecSecs(0);
         const blob = new Blob(recChunks.current, { type: rec.mimeType || "audio/webm" });
@@ -194,7 +260,11 @@ export function LiveChat({ lang = "km", openSignal = 0, logoUrl = "", lift = fal
       rec.start();
       setRecording(true);
       setRecSecs(0);
-      recTimer.current = setInterval(() => setRecSecs((s) => s + 1), 1000);
+      recSecsRef.current = 0;
+      recTimer.current = setInterval(() => {
+        recSecsRef.current += 1;
+        setRecSecs(recSecsRef.current);
+      }, 1000);
     } catch {
       alert(lang === "km" ? "មិនអាចបើកមីក្រូហ្វូន" : "Microphone permission denied");
     }
@@ -219,15 +289,29 @@ export function LiveChat({ lang = "km", openSignal = 0, logoUrl = "", lift = fal
     }
   }
 
-  const title = lang === "km" ? "Live Chat · POR POR" : "Live Chat · POR POR";
+  const title = "POR POR TOPUP";
   const online = lang === "km" ? "កំពុងអនឡាញ" : "Active now";
-  const placeholder = lang === "km" ? "Aa" : "Aa";
+  const placeholder = lang === "km" ? "សរសេរសារ…" : "Aa";
+  const rows = useMemo(() => buildRows(messages), [messages]);
+  const avatar = logoUrl || FALLBACK_LOGO;
+
+  function fmtSep(at) {
+    try {
+      const d = new Date(at);
+      const loc = lang === "km" ? "km-KH" : "en-US";
+      const time = d.toLocaleTimeString(loc, { hour: "numeric", minute: "2-digit" });
+      if (d.toDateString() === new Date().toDateString()) return time;
+      return `${d.toLocaleDateString(loc, { day: "numeric", month: "short" })}, ${time}`;
+    } catch {
+      return "";
+    }
+  }
 
   return (
     <>
       <button
         type="button"
-        className={`float-chat bg-brand livechat-fab${lift ? " above-install" : ""}${open ? " is-open" : ""}`}
+        className={`float-chat livechat-fab mx-fab${lift ? " above-install" : ""}${open ? " is-open" : ""}`}
         aria-label="Live Chat"
         aria-expanded={open}
         onClick={() => {
@@ -236,75 +320,83 @@ export function LiveChat({ lang = "km", openSignal = 0, logoUrl = "", lift = fal
         }}
       >
         {open ? (
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round">
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
-        ) : logoUrl || FALLBACK_LOGO ? (
-          <img src={logoUrl || FALLBACK_LOGO} alt="" className="livechat-fab-logo" />
         ) : (
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2">
-            <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z" />
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
+            <path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.91 1.2 5.42 3.15 7.16.16.14.26.35.27.57l.05 1.78a.8.8 0 0 0 1.12.71l1.98-.87a.8.8 0 0 1 .53-.04c.9.25 1.86.38 2.9.38 5.64 0 10-4.13 10-9.69C22 6.13 17.64 2 12 2zm6 7.46-2.94 4.66a1.5 1.5 0 0 1-2.17.4l-2.34-1.75a.6.6 0 0 0-.72 0l-3.16 2.4c-.42.31-.97-.19-.69-.64l2.94-4.66a1.5 1.5 0 0 1 2.17-.4l2.34 1.75a.6.6 0 0 0 .72 0l3.16-2.4c.42-.31.97.19.69.64z" />
           </svg>
         )}
         {!open && unread > 0 ? <span className="livechat-badge">{unread > 9 ? "9+" : unread}</span> : null}
       </button>
 
-      <div className={`msgr-panel${open ? " open" : ""}`} role="dialog" aria-label={title}>
-        <header className="msgr-head">
-          <div className="msgr-head-left">
-            <div className="msgr-avatar">
-              {logoUrl ? <img src={logoUrl} alt="" /> : <span>PP</span>}
+      <div className={`mx-panel${open ? " open" : ""}`} role="dialog" aria-label={title}>
+        <header className="mx-head">
+          <div className="mx-head-who">
+            <div className="mx-av mx-av-lg">
+              <img src={avatar} alt="" />
+              <span className="mx-active" />
             </div>
-            <div>
+            <div className="mx-head-text">
               <strong>{title}</strong>
-              <span className="msgr-status"><span className="msgr-dot" /> {online}</span>
+              <span>{online}</span>
             </div>
           </div>
-          <button type="button" className="msgr-x" aria-label="Close" onClick={() => setOpen(false)}>
-            <Icon name="x" size={16} />
+          <button type="button" className="mx-head-x" aria-label="Close" onClick={() => setOpen(false)}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
           </button>
         </header>
 
-        <div className="msgr-list" ref={listRef}>
-          {/* Pinned guide — Storefront */}
-          <div className={`msgr-pin${pinOpen ? " open" : ""}`}>
-            <button type="button" className="msgr-pin-head" onClick={() => setPinOpen((v) => !v)}>
-              <span className="msgr-pin-ico"><Icon name="bell" size={16} /></span>
-              <span className="msgr-pin-title">
-                {lang === "km" ? "PINNED GUIDE · របៀបប្រើ" : "PINNED GUIDE"}
+        <div className="mx-list" ref={listRef}>
+          <div className="mx-intro">
+            <div className="mx-av mx-av-xl">
+              <img src={avatar} alt="" />
+            </div>
+            <strong>{title}</strong>
+            <span>{lang === "km" ? "ជាធម្មតាឆ្លើយតបក្នុងពេលប៉ុន្មាននាទី" : "Typically replies within minutes"}</span>
+          </div>
+
+          <div className={`mx-pin${pinOpen ? " open" : ""}`}>
+            <button type="button" className="mx-pin-head" onClick={() => setPinOpen((v) => !v)}>
+              <span className="mx-pin-ico">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M14.5 3.5 20.5 9.5l-2 .6-3.6 3.6.4 4.2-1.4 1.4-3-3.6-4.9 4.9-1.1-1.1 4.9-4.9-3.6-3 1.4-1.4 4.2.4 3.6-3.6z" /></svg>
               </span>
-              <span className="msgr-pin-chev"><Icon name={pinOpen ? "chevD" : "chevR"} size={14} /></span>
+              <span className="mx-pin-title">{lang === "km" ? "ការណែនាំដែលបានខ្ទាស់" : "Pinned guide"}</span>
+              <span className={`mx-pin-chev${pinOpen ? " up" : ""}`}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+              </span>
             </button>
             {pinOpen ? (
-              <div className="msgr-pin-body">
+              <div className="mx-pin-body">
                 {lang === "km" ? (
                   <>
                     <p><b>1.</b> បន្ទាប់ពីបង់ប្រាក់រួច សូមផ្ញើ Order ID មកក្នុង chat នេះ</p>
                     <p><b>2.</b> Robux / Roblox: ធ្វើ <b>Quick Sign-in</b> (ម៉ឺនុយ → Quick Sign-in → កូដ ៦ខ្ទង់ → Confirm)</p>
                     <p><b>3.</b> គណនីត្រូវ Uncheck Kid · កុំផ្ញើ Password</p>
                     <p><b>4.</b> Admin ដំណើរការ និង update ស្ថានភាព order</p>
-                    <p className="msgr-pin-note">កុំផ្ញើពាក្យសម្ងាត់ក្នុង chat បើមិនចាំបាច់</p>
                   </>
                 ) : (
                   <>
                     <p><b>1.</b> After payment, send your Order ID in this chat</p>
                     <p><b>2.</b> For login-required items, send username when asked</p>
                     <p><b>3.</b> Support will process and update your order</p>
-                    <p className="msgr-pin-note">Never share passwords unless support requests a secure flow</p>
                   </>
                 )}
+                <p className="mx-pin-note">{lang === "km" ? "កុំផ្ញើពាក្យសម្ងាត់ក្នុង chat បើមិនចាំបាច់" : "Never share passwords unless support requests a secure flow"}</p>
               </div>
             ) : null}
           </div>
 
-          {/* New Order card */}
           {orderContext?.orderId ? (
-            <div className="msgr-order-card">
-              <div className="msgr-order-top">
+            <div className="mx-order">
+              <div className="mx-order-top">
                 <strong>{orderContext.title || (lang === "km" ? "ការបញ្ជាទិញថ្មី" : "New Order")}</strong>
-                <span className="msgr-order-badge">{orderContext.status || "ASSIGNED"}</span>
+                <span className="mx-order-badge">{orderContext.status || "ASSIGNED"}</span>
               </div>
-              <div className="msgr-order-rows">
+              <div className="mx-order-rows">
                 <div><span>Order ID</span><b>{orderContext.orderId}</b></div>
                 {orderContext.username || orderContext.name ? (
                   <div><span>Username</span><b>{orderContext.username || orderContext.name}</b></div>
@@ -312,63 +404,68 @@ export function LiveChat({ lang = "km", openSignal = 0, logoUrl = "", lift = fal
                 {orderContext.amount != null && orderContext.amount !== "" ? (
                   <div><span>Amount</span><b>${Number(orderContext.amount).toFixed(2)} USD</b></div>
                 ) : null}
-                {orderContext.item ? (
-                  <div><span>Item</span><b>{orderContext.item}</b></div>
-                ) : null}
+                {orderContext.item ? <div><span>Item</span><b>{orderContext.item}</b></div> : null}
               </div>
             </div>
           ) : null}
 
-          {messages.map((m) => (
-            <div key={m.id} className={`msgr-row ${m.role === "user" ? "me" : "them"}`}>
-              {m.role !== "user" ? <div className="msgr-mini-av">PP</div> : null}
-              <div className="msgr-col">
-                <div className={`msgr-bubble ${m.type || "text"}`}>
-                  {m.type === "image" && m.mediaUrl ? (
-                    <a href={m.mediaUrl} target="_blank" rel="noreferrer">
-                      <img src={m.mediaUrl} alt="" className="msgr-img" />
-                    </a>
-                  ) : null}
-                  {m.type === "voice" && m.mediaUrl ? (
-                    <div className="msgr-voice">
-                      <audio controls preload="metadata" src={m.mediaUrl} />
-                      {m.duration ? <span className="msgr-dur">{m.duration}s</span> : null}
-                    </div>
-                  ) : null}
-                  {(m.type === "text" || !m.type) && m.text ? <span className="msgr-text">{m.text}</span> : null}
-                </div>
-                <time className="msgr-time">{fmtTime(m.at)}</time>
+          {rows.map((r) => {
+            if (r.kind === "sep") {
+              return <div key={r.key} className="mx-sep">{fmtSep(r.at)}</div>;
+            }
+            const m = r.m;
+            const me = m.role === "user";
+            const txt = (m.text || "").trim();
+            const emojiOnly = (m.type === "text" || !m.type) && txt && EMOJI_ONLY.test(txt);
+            const pos = `${r.first ? " first" : ""}${r.last ? " last" : ""}`;
+            return (
+              <div key={r.key} className={`mx-row ${me ? "me" : "them"}${pos}`} title={fmtTime(m.at)}>
+                {!me ? (
+                  <div className="mx-side">
+                    {r.last ? (
+                      <div className="mx-av mx-av-sm"><img src={avatar} alt="" /></div>
+                    ) : null}
+                  </div>
+                ) : null}
+                {m.type === "image" && m.mediaUrl ? (
+                  <a className="mx-img" href={m.mediaUrl} target="_blank" rel="noreferrer">
+                    <img src={m.mediaUrl} alt="" />
+                  </a>
+                ) : (
+                  <div className={`mx-bubble${emojiOnly ? " emoji" : ""}${m.type === "voice" ? " voice" : ""}`}>
+                    {m.type === "voice" && m.mediaUrl ? <VoiceBubble src={m.mediaUrl} duration={m.duration} /> : null}
+                    {(m.type === "text" || !m.type) && m.text ? <span className="mx-text">{m.text}</span> : null}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {recording ? (
-          <div className="msgr-rec-bar">
-            <span className="msgr-rec-dot" />
-            {lang === "km" ? "កំពុងថត" : "Recording"}… {recSecs}s
-            <button type="button" className="msgr-rec-stop" onClick={stopRec}>
+          <div className="mx-rec">
+            <span className="mx-rec-dot" />
+            <span className="mx-rec-t">{lang === "km" ? "កំពុងថត" : "Recording"} · 0:{String(recSecs).padStart(2, "0")}</span>
+            <button type="button" className="mx-rec-send" onClick={stopRec}>
               {lang === "km" ? "ផ្ញើ" : "Send"}
             </button>
           </div>
         ) : null}
 
-        <form className="msgr-composer" onSubmit={sendText}>
+        <form className="mx-composer" onSubmit={sendText}>
           <input ref={fileRef} type="file" accept="image/*" hidden onChange={onPickImage} />
-          <button
-            type="button"
-            className="msgr-icon-btn"
-            title="Photo"
-            disabled={sending || recording}
-            onClick={() => fileRef.current?.click()}
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="5" width="18" height="14" rx="2" />
-              <circle cx="8.5" cy="10.5" r="1.5" />
-              <path d="m21 15-5-5L5 19" />
-            </svg>
-          </button>
+          {text.trim() ? null : (
+            <>
+              <button type="button" className="mx-ic" title="Voice" aria-label="Voice message" disabled={sending || recording} onClick={startRec}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-6a3.5 3.5 0 0 0-7 0v6A3.5 3.5 0 0 0 12 15zm6-3.5a1 1 0 0 0-2 0 4 4 0 0 1-8 0 1 1 0 0 0-2 0 6 6 0 0 0 5 5.92V20H9.5a1 1 0 0 0 0 2h5a1 1 0 0 0 0-2H13v-2.58A6 6 0 0 0 18 11.5z" /></svg>
+              </button>
+              <button type="button" className="mx-ic" title="Photo" aria-label="Send a photo" disabled={sending || recording} onClick={() => fileRef.current?.click()}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4H5a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3zM8.5 8a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM4.2 17.6l3.9-4.5a1 1 0 0 1 1.5 0l2 2.3 3-3.7a1 1 0 0 1 1.5 0l3.6 4.4a.5.5 0 0 1-.4.8H4.6a.5.5 0 0 1-.4-.8z" /></svg>
+              </button>
+            </>
+          )}
           <input
+            className="mx-input"
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder={placeholder}
@@ -377,23 +474,12 @@ export function LiveChat({ lang = "km", openSignal = 0, logoUrl = "", lift = fal
             disabled={recording}
           />
           {text.trim() ? (
-            <button type="submit" className="msgr-send" disabled={sending} aria-label="Send">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M2 21 23 12 2 3v7l15 2-15 2v7z" />
-              </svg>
+            <button type="submit" className="mx-ic mx-send" disabled={sending} aria-label="Send">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4 21.85 12.5a.6.6 0 0 0 0-1.1L3.4 3.6a.6.6 0 0 0-.84.7L4.7 10.7 14 12l-9.3 1.3-2.14 6.4a.6.6 0 0 0 .84.7z" /></svg>
             </button>
           ) : (
-            <button
-              type="button"
-              className={`msgr-icon-btn mic${recording ? " on" : ""}`}
-              title="Voice"
-              disabled={sending}
-              onClick={recording ? stopRec : startRec}
-            >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="9" y="2" width="6" height="12" rx="3" />
-                <path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8" />
-              </svg>
+            <button type="button" className="mx-ic mx-like" aria-label="Like" disabled={sending || recording} onClick={() => sendPayload({ type: "text", text: "👍" })}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M2 10.5A1.5 1.5 0 0 1 3.5 9h2A1.5 1.5 0 0 1 7 10.5v9A1.5 1.5 0 0 1 5.5 21h-2A1.5 1.5 0 0 1 2 19.5v-9zM8.5 10.2c0-.4.15-.8.43-1.1l4.1-4.5a1.1 1.1 0 0 1 1.9.8L14.2 8.5h4.6a2.2 2.2 0 0 1 2.15 2.7l-1.6 7.1a2.5 2.5 0 0 1-2.44 1.95H10a1.5 1.5 0 0 1-1.5-1.5v-9.55z" /></svg>
             </button>
           )}
         </form>
