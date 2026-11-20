@@ -59,23 +59,21 @@
   const ICON_STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>';
   const ICON_BAG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l1 13H5L6 7zm3-2a3 3 0 016 0v2H9V5z"/></svg>';
 
-  /* Package card in the reference "Recommended" style:
-     +coin badge (top-right, from p.bonus), icon box, name, gold price,
-     optional ribbon (p.tag) bottom-left. */
+  /* Package cards — Natsu premium-card-v2 layout (horizontal icon + title + gold price) */
   function packOption(p) {
     const sel = S.pack && String(S.pack.id) === String(p.id);
     const oos = p.inStock === false;
     const icon = p.image
-      ? `<img src="${esc(p.image)}" alt="" loading="lazy">`
-      : `<span>${esc(String(p.name || "?").charAt(0))}</span>`;
-    return `<button type="button" class="pk-item" role="radio" aria-checked="${!!sel}" data-selected="${!!sel}" data-pack="${esc(p.id)}" ${oos ? "disabled" : ""}>
-      ${p.bonus ? `<span class="pk-coin"><i></i>${esc(p.bonus)}</span>` : ""}
-      <span class="pk-icon">${icon}</span>
-      <span class="pk-copy">
-        <span class="pk-name">${esc(p.name)}</span>
-        <span class="pk-price">${oos ? "Out of stock" : money(p.price)}</span>
+      ? `<img src="${esc(p.image)}" alt="" loading="lazy" decoding="async">`
+      : `<span class="pk-icon-letter">${esc(String(p.name || "?").charAt(0).toUpperCase())}</span>`;
+    return `<button type="button" class="pk-item premium-card-v2 package-item${sel ? " is-selected" : ""}${oos ? " is-oos" : ""}" role="radio" aria-checked="${!!sel}" data-selected="${!!sel}" data-pack="${esc(p.id)}" ${oos ? "disabled" : ""}>
+      ${p.bonus ? `<span class="pk-coin" title="bonus"><i class="fas fa-coins"></i> ${esc(p.bonus)}</span>` : ""}
+      ${p.tag || (p.hot ? "HOT" : "") ? `<span class="pk-ribbon">${esc(p.tag || "HOT")}</span>` : ""}
+      <span class="pk-icon crystal-float-v2">${icon}</span>
+      <span class="pk-copy" data-card-details>
+        <span class="pk-name card-title-text">${esc(p.name)}</span>
+        <span class="pk-price card-price-text">${oos ? "Out of stock" : money(p.price)}</span>
       </span>
-      ${p.tag ? `<span class="pk-ribbon">${esc(p.tag)}</span>` : ""}
     </button>`;
   }
 
@@ -99,7 +97,7 @@
   function render() {
     const g = S.game;
     if (!g) {
-      root.innerHTML = `<section class="checkout-card"><p>${esc(S.error || "Game not found.")}</p><a class="checkout-btn" href="index.html">Back to home</a></section>`;
+      root.innerHTML = `<section class="checkout-card"><p>${esc(S.error || "Game not found.")}</p><a class="checkout-btn" href="/">Back to home</a></section>`;
       return;
     }
     const open = g.open !== false;
