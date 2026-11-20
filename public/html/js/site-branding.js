@@ -18,7 +18,13 @@
     };
     let visible = 0;
     widget.querySelectorAll("[data-support-contact]").forEach((a) => {
-      const url = links[a.getAttribute("data-support-contact")];
+      const kind = a.getAttribute("data-support-contact");
+      // Live Chat is built in (no link to configure) — always keep it.
+      if (kind === "livechat") {
+        visible += 1;
+        return;
+      }
+      const url = links[kind];
       if (url) {
         a.href = url;
         visible += 1;
