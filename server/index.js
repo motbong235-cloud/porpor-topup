@@ -2430,7 +2430,13 @@ if (fs.existsSync(DIST)) {
     res.sendFile(fp);
     return true;
   };
-  app.use("/html", express.static(htmlRoot, { index: false, maxAge: isProd ? "1d" : 0 }));
+  app.use("/html", express.static(htmlRoot, {
+    index: false,
+    setHeaders: (res, fp) => {
+      if (/\.(js|css|html)$/i.test(fp)) res.setHeader("Cache-Control", "no-cache");
+      else res.setHeader("Cache-Control", "public, max-age=86400");
+    },
+  }));
   app.get(["/", "/index.html"], (req, res, next) => {
     if (!sendHtml(res, "index.html")) return next();
   });
@@ -2470,6 +2476,10 @@ if (fs.existsSync(DIST)) {
 
   app.get("*", (req, res, next) => {
     if (req.path.startsWith("/api")) return next();
+    // React shell is for the admin console only; everything else goes to the storefront
+    if (req.path !== "/" + ADMIN_PATH && !req.path.startsWith("/" + ADMIN_PATH + "/")) {
+      return res.redirect(302, "/");
+    }
     // HTML storefront owns these — never inject React admin shell
     // If HTML handlers called next(), send users home — never React admin for storefront paths
     if (req.path.startsWith("/game") || req.path.startsWith("/games") || req.path === "/login") {
