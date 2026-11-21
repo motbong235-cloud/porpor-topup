@@ -159,29 +159,24 @@ html.dark .ad-login {
   border-bottom: 1px solid rgba(233, 180, 76, 0.25);
 }
 .ad .ad-tabs {
-  display: flex;
-  overflow-x: auto;
-  scrollbar-width: none;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 2px;
-  margin: 0 8px 8px;
+  margin: 0 8px calc(8px + env(safe-area-inset-bottom, 0px));
   left: 0;
   right: 0;
-  bottom: env(safe-area-inset-bottom);
+  bottom: 0;
+  padding: 6px 4px;
   border: 1px solid var(--ad-line);
   border-radius: 20px;
-  background: color-mix(in srgb, var(--ad-card) 92%, transparent);
+  background: color-mix(in srgb, var(--ad-card) 94%, transparent);
   backdrop-filter: blur(14px);
   box-shadow: var(--ad-shadow-lg);
-  padding: 6px;
 }
-.ad .ad-tabs::-webkit-scrollbar { display: none; }
-.ad .ad-tabs a {
-  flex: 0 0 auto;
-  min-width: 64px;
-  border-radius: 14px;
-  padding: 7px 8px;
-}
-.ad .ad-tabs a.active {
+.ad .ad-tabs a,
+.ad .ad-tabs-more-btn { border-radius: 14px; }
+.ad .ad-tabs a.active,
+.ad .ad-tabs-more-btn.active {
   background: linear-gradient(135deg, var(--ad-gold-2), var(--ad-gold));
   color: #2b1d00;
 }
@@ -470,17 +465,16 @@ html.dark .ad-login {
    into its own scroll container (breaks touch scroll and sticky sidebar).
    While the admin is mounted, clip horizontally instead and let the
    document scroll normally. */
+html.ad-mode,
+html.ad-mode body,
 html:has(.ad),
-html:has(.ad) body,
-html:has(.ad-login),
-html:has(.ad-login) body {
+html:has(.ad) body {
   overflow-x: clip;
   overflow-y: visible;
   height: auto;
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: none;
 }
-html:has(.ad) { scroll-behavior: auto; }
+html.ad-mode { scroll-behavior: auto; }
 html:has(.ad) #root { min-height: 100dvh; }
 
 .ad { width: 100%; min-height: 100dvh; align-items: start; }
@@ -496,3 +490,9 @@ html:has(.ad) #root { min-height: 100dvh; }
 .ad .ad-content > * { min-width: 0; }
 .ad img, .ad video { max-width: 100%; }
 .ad .ad-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* Avoid nested scroll containers: overflow-x:hidden forces overflow-y:auto */
+.ad .ad-main,
+.ad .ad-content { overflow: visible; overflow-x: clip; }
+.ad .ad-main { padding-bottom: calc(86px + env(safe-area-inset-bottom, 0px)); }
+@media (min-width: 960px) { .ad .ad-main { padding-bottom: 0; } }
