@@ -460,11 +460,12 @@ export default function SettingsAdmin() {
 
 
       <section className="ad-card" id="set-pay">
-        <h2>ការទូទាត់ — ABA PayWay</h2>
+        <h2>ការទូទាត់ — TikTok Khmer តែប៉ុណ្ណោះ</h2>
         <p className="ad-hint">
-          Key នេះសម្រាប់ <b>TikTok Khmer</b> តែប៉ុណ្ណោះ។
-          Service ផ្សេងប្រើ <code>RIELPAY_API_KEY</code> លើ Render។
-          បំពេញ API Key ខាងក្រោម — Save រួចប្រើភ្លាម (ទុកទទេ = រក្សាចាស់)។
+          <b>ABA PayWay API Key ក្នុង Admin នេះ = TikTok Khmer តែមួយ។</b>
+          <br />Robux / Fox / Free Fire / service ផ្សេង <b>មិន</b> ប្រើ key នេះ។
+          <br />Service ផ្សេង: ដាក់ <code>RIELPAY_API_KEY</code> (ឬ ABA Khmer System) លើ <b>Render Environment</b>។
+          <br />ទុកទទេពេល Save = រក្សា key ចាស់។
         </p>
         <Field label="ABA PayWay API Key">
           <input
@@ -476,7 +477,7 @@ export default function SettingsAdmin() {
           />
         </Field>
         <button type="button" className="ad-btn ghost" disabled={testing} onClick={testPayment}>
-          {testing ? "…" : "Test ABA PayWay"}
+          {testing ? "…" : "Test key (TikTok Khmer)"}
         </button>
         {testOut ? <pre className="ad-pre">{testOut}</pre> : null}
       </section>

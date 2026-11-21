@@ -36,23 +36,33 @@ function settingsBag() {
 
 /**
  * @param {"settings"|"env"|"auto"} source
- * - settings: Admin Settings only (TikTok Khmer)
- * - env: Render RIELPAY_API_KEY only (other services)
- * - auto: settings if set, else env
+ * - settings: Admin Settings only (TikTok Khmer ONLY)
+ * - env: Render RIELPAY_API_KEY only (all other services)
+ * - auto: env only (never borrow TikTok settings key)
  */
 export function apiKey(source = "auto") {
   const fromAdmin = clean(settingsBag().rielpayApiKey || "");
   const fromEnv = clean(process.env.RIELPAY_API_KEY || "");
   if (source === "settings") return fromAdmin;
   if (source === "env") return fromEnv;
-  if (fromAdmin.length >= 8) return fromAdmin;
+  // auto: other services — env only
   return fromEnv;
 }
 
-export function webhookSecret() {
+export function webhookSecret(source = "auto") {
   const fromAdmin = clean(settingsBag().rielpayWebhookSecret || "");
-  if (fromAdmin) return fromAdmin;
-  return clean(process.env.RIELPAY_WEBHOOK_SECRET || "");
+  const fromEnv = clean(process.env.RIELPAY_WEBHOOK_SECRET || "");
+  if (source === "settings") return fromAdmin;
+  if (source === "env") return fromEnv;
+  // Prefer env; fall back to admin so TikTok webhooks still verify
+  return fromEnv || fromAdmin;
+}
+
+/** Secrets to try when verifying webhooks (order/env + TikTok settings). */
+export function webhookSecrets() {
+  const a = clean(settingsBag().rielpayWebhookSecret || "");
+  const e = clean(process.env.RIELPAY_WEBHOOK_SECRET || "");
+  return [...new Set([e, a].filter(Boolean))];
 }
 
 export function isReady(source = "auto") {
@@ -266,40 +276,54 @@ export async function checkPayment(paymentId, opts = {}) {
   return last;
 }
 
-/** Verify webhook signature (HMAC-SHA256 of raw body). Supports hex or v1= style. */
+/** Verify webhook signature (HMAC-SHA256 of raw body). Tries env + TikTok settings secrets. */
 export function verifyWebhookSignature(rawBody, signatureHeader) {
-  const secret = webhookSecret();
-  if (!secret) return { ok: false, error: "no_webhook_secret" };
+  const secrets = webhookSecrets();
+  if (!secrets.length) return { ok: false, error: "no_webhook_secret" };
   const sig = String(signatureHeader || "").trim();
   if (!sig) return { ok: false, error: "missing_signature" };
   const body = typeof rawBody === "string" ? rawBody : Buffer.from(rawBody || "").toString("utf8");
-  const expected = crypto.createHmac("sha256", secret).update(body, "utf8").digest("hex");
   const candidates = [sig, sig.replace(/^sha256=/i, ""), sig.replace(/^v1=/i, "")];
-  for (const c of candidates) {
+  for (const secret of secrets) {
+    const expected = crypto.createHmac("sha256", secret).update(body, "utf8").digest("hex");
+    for (const c of candidates) {
+      try {
+        const a = Buffer.from(expected, "hex");
+        const b = Buffer.from(c, "hex");
+        if (a.length === b.length && crypto.timingSafeEqual(a, b)) return { ok: true };
+      } catch {}
+      if (c === expected) return { ok: true };
+    }
     try {
-      const a = Buffer.from(expected, "hex");
-      const b = Buffer.from(c, "hex");
-      if (a.length === b.length && crypto.timingSafeEqual(a, b)) return { ok: true };
+      const b64 = crypto.createHmac("sha256", secret).update(body, "utf8").digest("base64");
+      if (candidates.includes(b64)) return { ok: true };
     } catch {}
-    if (c === expected) return { ok: true };
   }
-  // Some gateways use base64 HMAC
-  try {
-    const b64 = crypto.createHmac("sha256", secret).update(body, "utf8").digest("base64");
-    if (candidates.includes(b64)) return { ok: true };
-  } catch {}
   return { ok: false, error: "invalid_signature" };
 }
 
 export async function diagnose() {
-  const key = apiKey();
   const info = {
-    ready: isReady(),
-    keyLength: key.length,
+    readyEnv: isReady("env"),
+    readyTikTokSettings: isReady("settings"),
+    keyLengthEnv: apiKey("env").length,
+    keyLengthTikTok: apiKey("settings").length,
     baseUrl: baseUrl(),
-    hasWebhookSecret: !!webhookSecret(),
+    hasWebhookSecret: webhookSecrets().length > 0,
+    note: "settings key = TikTok Khmer only; env key = other services",
   };
-  if (!isReady()) return { ...info, test: null, error: "missing_key" };
-  const test = await createPayment(0.05, `diag-${Date.now()}`, "Porpor RielPay test");
-  return { ...info, test };
+  // Admin "Test" button should verify TikTok settings key first
+  if (isReady("settings")) {
+    const test = await createPayment(0.05, `diag-ttk-${Date.now()}`, "TikTok Khmer payment test", {
+      keySource: "settings",
+    });
+    return { ...info, testScope: "tiktok_settings", test };
+  }
+  if (isReady("env")) {
+    const test = await createPayment(0.05, `diag-env-${Date.now()}`, "Env payment test", {
+      keySource: "env",
+    });
+    return { ...info, testScope: "env", test };
+  }
+  return { ...info, test: null, error: "missing_key" };
 }

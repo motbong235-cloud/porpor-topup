@@ -1215,7 +1215,7 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
   if (!rielPay.isReady("settings") && !rielPay.isReady("env") && !khmerSystemPay.isPaymentReady()) {
     return res.status(503).json({
       error: "not_configured",
-      detail: "No payment key — TikTok needs Admin Settings ABA PayWay key; other services need RIELPAY_API_KEY on Render",
+      detail: "Payment not ready — TikTok Khmer: Admin→Settings ABA key; other services: RIELPAY_API_KEY or ABA on Render",
     });
   }
   if (!body.gameId || !body.packId) {
@@ -1521,13 +1521,20 @@ async function tryConfirmPayment(order, meta = {}) {
     gw === "khmer_system" ||
     (!gw.includes("riel") && khmerSystemPay.isPaymentReady() && !rielPay.isReady());
   if (useAba && !khmerSystemPay.isPaymentReady()) return order;
-  if (!useAba && !rielPay.isReady()) return order;
+  if (!useAba && !(rielPay.isReady("env") || rielPay.isReady("settings"))) return order;
 
   _payConfirmLock.add(order.id);
   try {
     const pay = useAba
       ? await khmerSystemPay.checkPayment(order.transactionId)
-      : await rielPay.checkPayment(order.transactionId, { keySource: order.paymentKeySource || "auto" });
+      : await rielPay.checkPayment(order.transactionId, {
+          keySource:
+            order.paymentKeySource === "settings" || order.paymentKeySource === "env"
+              ? order.paymentKeySource
+              : (order.payViaKai || order.kaiRoute || /tiktok/i.test(String(order.gameId || "") + String(order.gameName || "")))
+                ? "settings"
+                : "env",
+        });
     console.log("[pay-reconcile]", order.id, useAba ? "aba" : "rielpay", pay.status, pay.paid, pay.error || "", meta.source || "");
     if (useAba) {
       if (!(pay && pay.paid === true && !pay.simulation && !pay.error)) return order;
