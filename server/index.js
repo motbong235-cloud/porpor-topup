@@ -2155,7 +2155,14 @@ app.get("/api/admin/local-products", adminAuth, (_req, res) => {
   } else {
     products = DEFAULT_LOCAL_PRODUCTS;
   }
-  products = products.filter((g) => !isHiddenLocal(g.id));
+  products = products.filter((g) => g && g.id);
+  {
+    const byId = new Map(products.map((g) => [String(g.id), g]));
+    for (const d of DEFAULT_LOCAL_PRODUCTS) {
+      if (!byId.has(String(d.id))) byId.set(String(d.id), { ...d });
+    }
+    products = [...byId.values()];
+  }
   res.json({
     products,
     usingDefaults,
