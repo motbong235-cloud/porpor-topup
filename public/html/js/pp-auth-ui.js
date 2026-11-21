@@ -88,7 +88,7 @@
     const st = document.createElement("style");
     st.textContent = `
       #pp-account-menu{position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.35);display:flex;align-items:flex-start;justify-content:flex-end;padding:64px 12px 12px}
-      .pp-acc-card{background:#1a1614;border:1px solid rgba(242,165,26,.35);border-radius:14px;padding:14px;min-width:220px;max-width:92vw;box-shadow:0 16px 40px rgba(0,0,0,.45)}
+      .pp-acc-card{background:#1a1614;border:1px solid rgba(29, 106, 223,.35);border-radius:14px;padding:14px;min-width:220px;max-width:92vw;box-shadow:0 16px 40px rgba(0,0,0,.45)}
       .pp-acc-row{display:flex;gap:10px;align-items:center;margin-bottom:12px}
       .pp-acc-av{width:40px;height:40px;border-radius:999px;object-fit:cover}
       .pp-acc-ph{background:linear-gradient(145deg,#5eb0ff,#1d6adf);display:inline-block}

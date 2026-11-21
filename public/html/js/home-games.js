@@ -7,7 +7,7 @@
 
   const style = document.createElement("style");
   style.textContent =
-    ".pp-game-card{display:block;text-decoration:none;color:#e8f1ff;background:#2d2a29;border:1px solid rgba(242,165,26,.22);border-radius:14px;overflow:hidden;min-width:0}" +
+    ".pp-game-card{display:block;text-decoration:none;color:#e8f1ff;background:#2d2a29;border:1px solid rgba(29, 106, 223,.22);border-radius:14px;overflow:hidden;min-width:0}" +
     ".pp-game-card:hover{border-color:#5eb0ff}" +
     ".pp-game-art{position:relative;aspect-ratio:1/1;background:#242121;display:flex;align-items:center;justify-content:center;overflow:hidden}" +
     ".pp-game-art img{width:100%;height:100%;object-fit:cover;display:block}" +

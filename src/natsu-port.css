@@ -13,7 +13,7 @@ html:not(.dark) {
   --card: #2d2a29;
   --ink: #e8f1ff;
   --muted: #b8d4f5;
-  --line: rgba(242, 165, 26, 0.2);
+  --line: rgba(29, 106, 223, 0.2);
   --primary: #1d6adf;
   --primary-2: #5eb0ff;
   --navy: #242121;
@@ -25,7 +25,7 @@ html:not(.dark) {
   --purple: #474342;
   --radius: 1rem;
   --shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.45);
-  --shadow-lg: 0 20px 50px -18px rgba(242, 165, 26, 0.35);
+  --shadow-lg: 0 20px 50px -18px rgba(29, 106, 223, 0.35);
   color-scheme: dark;
 }
 
@@ -58,7 +58,7 @@ body {
   background: rgba(36, 33, 33, 0.92) !important;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(242, 165, 26, 0.2) !important;
+  border-bottom: 1px solid rgba(29, 106, 223, 0.2) !important;
   box-shadow: none !important;
 }
 
@@ -74,7 +74,7 @@ body {
   background: linear-gradient(90deg, #5eb0ff, #1d6adf) !important;
   color: #fff !important;
   font-weight: 700;
-  box-shadow: 0 0 18px rgba(242, 165, 26, 0.35);
+  box-shadow: 0 0 18px rgba(29, 106, 223, 0.35);
   transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .natsu-login-btn > * {
@@ -95,14 +95,14 @@ body {
 .search-input,
 .search-panel {
   background: #242121 !important;
-  border: 1px solid rgba(242, 165, 26, 0.3) !important;
+  border: 1px solid rgba(29, 106, 223, 0.3) !important;
   color: #e8f1ff !important;
   border-radius: 9999px;
 }
 .search-bar:focus-within,
 .search-input:focus {
   border-color: #5eb0ff !important;
-  box-shadow: 0 0 0 3px rgba(255, 212, 71, 0.25);
+  box-shadow: 0 0 0 3px rgba(94, 176, 255, 0.25);
   outline: none;
 }
 .search-hits .hit-tile,
@@ -121,7 +121,7 @@ body {
 }
 .natsu-pill {
   background: #242121 !important;
-  border: 1px solid rgba(242, 165, 26, 0.3) !important;
+  border: 1px solid rgba(29, 106, 223, 0.3) !important;
   color: #b8d4f5 !important;
   border-radius: 9999px !important;
 }
@@ -136,14 +136,14 @@ body {
 .game-card,
 .game-card.sf-card {
   background: #2d2a29 !important;
-  border: 1px solid rgba(242, 165, 26, 0.16) !important;
+  border: 1px solid rgba(29, 106, 223, 0.16) !important;
   border-radius: 1rem !important;
   box-shadow: var(--shadow) !important;
   overflow: hidden;
 }
 .game-card.card-hover:hover {
-  border-color: rgba(255, 212, 71, 0.55) !important;
-  box-shadow: 0 16px 36px -16px rgba(242, 165, 26, 0.4) !important;
+  border-color: rgba(94, 176, 255, 0.55) !important;
+  box-shadow: 0 16px 36px -16px rgba(29, 106, 223, 0.4) !important;
   transform: translateY(-3px);
 }
 .game-card-body .game-name {
@@ -214,7 +214,7 @@ body {
 .footer,
 .site-footer {
   background: #242121 !important;
-  border-top: 1px solid rgba(242, 165, 26, 0.2);
+  border-top: 1px solid rgba(29, 106, 223, 0.2);
   color: #b8d4f5;
 }
 .footer-tag,

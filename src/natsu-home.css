@@ -190,7 +190,7 @@
   padding: 4px 12px;
   border-radius: 999px;
   background: rgba(36, 33, 33, 0.8);
-  border: 1px solid rgba(242, 165, 26, 0.3);
+  border: 1px solid rgba(29, 106, 223, 0.3);
   font-size: 12px;
   font-weight: 700;
   color: var(--daddy-orange);
@@ -249,7 +249,7 @@
   transition: box-shadow 0.2s ease;
 }
 .natsu-home .game-card.card-hover:hover {
-  box-shadow: 0 8px 22px rgba(242, 165, 26, 0.2) !important;
+  box-shadow: 0 8px 22px rgba(29, 106, 223, 0.2) !important;
 }
 
 .natsu-home .game-card-visual {
@@ -368,7 +368,7 @@
   font-size: 11px !important;
   font-weight: 900 !important;
   border: none !important;
-  box-shadow: 0 3px 10px rgba(242, 165, 26, 0.35) !important;
+  box-shadow: 0 3px 10px rgba(29, 106, 223, 0.35) !important;
   letter-spacing: 0.03em;
 }
 .natsu-home .game-cta.on::before {

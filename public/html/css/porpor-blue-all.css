@@ -1,5 +1,5 @@
-/* PORPOR BLUE ALL — force brand blue across storefront */
-:root, html, body {
+/* PORPOR BLUE ALL v2 — every accent is electric blue */
+:root, html, body, .ad {
   --site-color-accent: #1d6adf !important;
   --site-color-link: #5eb0ff !important;
   --site-color-gradient-start: #1d6adf !important;
@@ -12,44 +12,88 @@
   --daddy-light-purple: #1d6adf !important;
   --daddy-orange: #5eb0ff !important;
   --daddy-link: #5eb0ff !important;
+  --daddy-text-light: #e8f1ff !important;
+  --daddy-text-darker: #b8d4f5 !important;
   --primary-color: linear-gradient(90deg, #1d6adf, #5eb0ff) !important;
+  --primary: #1d6adf !important;
+  --primary-2: #5eb0ff !important;
+  --gold: #5eb0ff !important;
+  --gold-2: #1d6adf !important;
+  --ad-amber: #1d6adf !important;
+  --ad-amber-soft: #12315c !important;
+  --ad-blue: #1d6adf !important;
 }
-/* Buttons / CTAs */
+
+/* CTAs / buttons */
 .pp-game-cta,
 .game-cta,
 .game-cta.on,
 button.checkout-btn--pay,
 .checkout-btn--pay,
+.checkout-btn,
 .pk-bar__pay,
 .customer-login-action__core,
 a.customer-login-telegram,
 .pk-item.is-selected,
-.pk-item[data-selected="true"] {
+.pk-item[data-selected="true"],
+.bg-primary,
+body .bg-primary {
   background: linear-gradient(90deg, #1d6adf, #5eb0ff) !important;
+  background-image: linear-gradient(90deg, #1d6adf, #5eb0ff) !important;
   border-color: #1d6adf !important;
   color: #ffffff !important;
 }
-.pp-game-badge, .pk-ribbon, .pk-coin {
+
+.pp-game-badge,
+.pk-ribbon,
+.pk-coin,
+.pk-head__count {
   background: #1d6adf !important;
   color: #ffffff !important;
+  border-color: #1d6adf !important;
 }
-.pk-price, .card-price-text, .text-daddy-orange, .text-primary,
-.pk-head__title, a.text-daddy-orange {
+
+.pk-price,
+.card-price-text,
+.text-daddy-orange,
+.text-primary,
+.pk-head__title,
+a.text-daddy-orange,
+.site-brand-title,
+.font-semibold.text-daddy-orange {
   color: #5eb0ff !important;
 }
+
 .pp-game-card:hover,
-.pk-item:hover:not(:disabled) {
+.pk-item:hover:not(:disabled),
+.premium-card-v2:hover {
   border-color: #5eb0ff !important;
 }
-/* Login pill */
+
 .customer-login-action {
   border-color: #1d6adf !important;
 }
-.customer-login-action__core {
-  color: #fff !important;
+
+/* Borders that were gold */
+.border-daddy-light-purple\/20,
+.border-daddy-light-purple\/30,
+[class*="border-daddy-light"] {
+  border-color: rgba(29, 106, 223, 0.35) !important;
 }
-/* Support gold leftovers */
+
+/* Floating support accents */
 .floating-support-widget__contact:hover,
 .floating-support-widget__contact:focus-visible {
-  border-color: rgba(94, 176, 255, 0.7) !important;
+  border-color: rgba(94, 176, 255, 0.75) !important;
+}
+.floating-support-widget__contact-go {
+  color: #5eb0ff !important;
+  background: rgba(29, 106, 223, 0.15) !important;
+}
+
+/* Login telegram btn stays TG blue — ok */
+/* Header logo title */
+.site-header-brand .site-brand-title,
+header .text-daddy-orange {
+  color: #5eb0ff !important;
 }

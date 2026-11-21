@@ -9,7 +9,7 @@ html:not(.dark) {
   --surface: #1c1917;
   --ink: #e8f1ff;
   --muted: #c4b8a8;
-  --line: rgba(242, 165, 26, 0.18);
+  --line: rgba(29, 106, 223, 0.18);
   --primary: #1d6adf;
   --primary-2: #5eb0ff;
   --navy: #0e0c0b;
@@ -38,14 +38,14 @@ body {
 .header,
 .site-header {
   background: rgba(20, 18, 16, 0.98) !important;
-  border-bottom: 1px solid rgba(242, 165, 26, 0.15) !important;
+  border-bottom: 1px solid rgba(29, 106, 223, 0.15) !important;
   backdrop-filter: blur(12px);
 }
 .logo-mark {
   background: linear-gradient(135deg, #1d6adf, #5eb0ff) !important;
   color: #100a08 !important;
-  box-shadow: 0 4px 14px rgba(242, 165, 26, 0.4) !important;
-  border: 1px solid rgba(255, 212, 71, 0.5) !important;
+  box-shadow: 0 4px 14px rgba(29, 106, 223, 0.4) !important;
+  border: 1px solid rgba(94, 176, 255, 0.5) !important;
 }
 .logo-name {
   color: #e8f1ff !important;
@@ -64,12 +64,12 @@ body {
 }
 .icon-btn:hover {
   color: #5eb0ff !important;
-  background: rgba(242, 165, 26, 0.1) !important;
+  background: rgba(29, 106, 223, 0.1) !important;
 }
 
 .lang-btn,
 .header-lang {
-  border: 1.5px solid rgba(242, 165, 26, 0.5) !important;
+  border: 1.5px solid rgba(29, 106, 223, 0.5) !important;
   color: #5eb0ff !important;
   background: transparent !important;
   border-radius: 999px !important;
@@ -94,7 +94,7 @@ body {
   cursor: pointer !important;
   box-shadow:
     0 0 0 2px #1d6adf,
-    0 0 16px rgba(255, 212, 71, 0.35) !important;
+    0 0 16px rgba(94, 176, 255, 0.35) !important;
 }
 .header-user-btn > span,
 .natsu-login-btn > span,
@@ -104,7 +104,7 @@ body {
   z-index: 1;
 }
 .header-user-btn.is-on {
-  box-shadow: 0 0 0 2px #5eb0ff, 0 0 12px rgba(255, 212, 71, 0.3) !important;
+  box-shadow: 0 0 0 2px #5eb0ff, 0 0 12px rgba(94, 176, 255, 0.3) !important;
 }
 .header-user-photo {
   width: 26px !important;
@@ -134,7 +134,7 @@ a.bg-brand,
   color: #100a08 !important;
   border: none !important;
   font-weight: 800 !important;
-  box-shadow: 0 4px 16px rgba(242, 165, 26, 0.35) !important;
+  box-shadow: 0 4px 16px rgba(29, 106, 223, 0.35) !important;
 }
 .btn-ghost {
   background: rgba(255, 247, 229, 0.06) !important;
@@ -174,8 +174,8 @@ a.bg-brand,
 }
 .game-card:hover,
 .sf-card:hover {
-  border-color: rgba(255, 212, 71, 0.45) !important;
-  box-shadow: 0 12px 28px rgba(242, 165, 26, 0.18) !important;
+  border-color: rgba(94, 176, 255, 0.45) !important;
+  box-shadow: 0 12px 28px rgba(29, 106, 223, 0.18) !important;
 }
 .game-card-art,
 .game-tile {
@@ -225,7 +225,7 @@ a.bg-brand,
   font-size: 12px !important;
   font-weight: 900 !important;
   border: none !important;
-  box-shadow: 0 4px 12px rgba(242, 165, 26, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(29, 106, 223, 0.3) !important;
 }
 .game-cta.on::before {
   content: none !important;
@@ -250,27 +250,27 @@ a.bg-brand,
 }
 .search-panel {
   background: #1c1917 !important;
-  border: 1px solid rgba(242, 165, 26, 0.25) !important;
+  border: 1px solid rgba(29, 106, 223, 0.25) !important;
 }
 .search-input,
 .search-bar input {
   background: #1c1917 !important;
-  border: 1px solid rgba(242, 165, 26, 0.2) !important;
+  border: 1px solid rgba(29, 106, 223, 0.2) !important;
   color: #e8f1ff !important;
 }
 .search-input:focus {
   border-color: #5eb0ff !important;
-  box-shadow: 0 0 0 3px rgba(255, 212, 71, 0.2) !important;
+  box-shadow: 0 0 0 3px rgba(94, 176, 255, 0.2) !important;
 }
 
 /* Drawer */
 .drawer {
   background: #141210 !important;
-  border-left: 1px solid rgba(242, 165, 26, 0.2) !important;
+  border-left: 1px solid rgba(29, 106, 223, 0.2) !important;
   color: #e8f1ff !important;
 }
 .drawer-link:hover {
-  background: rgba(242, 165, 26, 0.12) !important;
+  background: rgba(29, 106, 223, 0.12) !important;
   color: #5eb0ff !important;
 }
 .drawer-section {
@@ -290,7 +290,7 @@ a.bg-brand,
 /* Footer */
 .footer {
   background: rgba(20, 18, 16, 0.98) !important;
-  border-top: 1px solid rgba(242, 165, 26, 0.12) !important;
+  border-top: 1px solid rgba(29, 106, 223, 0.12) !important;
   color: #a89f94 !important;
 }
 .footer-name {
@@ -308,7 +308,7 @@ a.bg-brand,
 }
 .pay-pill {
   background: rgba(71, 67, 66, 0.5) !important;
-  border: 1px solid rgba(242, 165, 26, 0.2) !important;
+  border: 1px solid rgba(29, 106, 223, 0.2) !important;
 }
 
 /* Game packs */
@@ -316,7 +316,7 @@ a.bg-brand,
 .pack-item,
 .pkg-card {
   background: #1c1917 !important;
-  border: 1.5px solid rgba(242, 165, 26, 0.15) !important;
+  border: 1.5px solid rgba(29, 106, 223, 0.15) !important;
   border-radius: 14px !important;
   color: #e8f1ff !important;
 }
@@ -324,7 +324,7 @@ a.bg-brand,
 .pack.active,
 .pkg-card.active {
   border-color: #5eb0ff !important;
-  background: rgba(242, 165, 26, 0.12) !important;
+  background: rgba(29, 106, 223, 0.12) !important;
 }
 .pack-price,
 .price {
@@ -337,13 +337,13 @@ select,
 textarea {
   background: #1c1917 !important;
   color: #e8f1ff !important;
-  border-color: rgba(242, 165, 26, 0.2) !important;
+  border-color: rgba(29, 106, 223, 0.2) !important;
 }
 input:focus,
 select:focus,
 textarea:focus {
   border-color: #5eb0ff !important;
-  box-shadow: 0 0 0 3px rgba(255, 212, 71, 0.2) !important;
+  box-shadow: 0 0 0 3px rgba(94, 176, 255, 0.2) !important;
 }
 
 .live-chat-fab,
@@ -351,12 +351,12 @@ textarea:focus {
 [class*="chat-fab"] {
   background: linear-gradient(145deg, #1d6adf, #5eb0ff) !important;
   color: #100a08 !important;
-  box-shadow: 0 8px 24px rgba(242, 165, 26, 0.45) !important;
+  box-shadow: 0 8px 24px rgba(29, 106, 223, 0.45) !important;
 }
 
 .tg-login-modal {
   background: #1c1917 !important;
-  border: 1px solid rgba(242, 165, 26, 0.3) !important;
+  border: 1px solid rgba(29, 106, 223, 0.3) !important;
   color: #e8f1ff !important;
   border-radius: 1.25rem !important;
 }

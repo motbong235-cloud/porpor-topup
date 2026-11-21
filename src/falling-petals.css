@@ -39,7 +39,7 @@
   display: block;
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 0 4px rgba(255, 212, 71, 0.35));
+  filter: drop-shadow(0 0 4px rgba(94, 176, 255, 0.35));
 }
 
 .falling-petal[data-depth="near"] .petal-sprite::before {
