@@ -376,7 +376,7 @@ function localCatalogAll() {
               category: normCategory(p.category),
               bonus: p.bonus ? String(p.bonus) : "",
               tag: p.tag ? String(p.tag) : "",
-              image: String(p.image || ""),
+              image: String(p.image || (String(g.id) === "tiktok-khmer" ? ttkPackImage(p) : "") || ""),
               stock: dt === "stock" ? left : null,
               inStock: (dt === "live_chat" || dt === "robux_send") ? true : left > 0,
             };
