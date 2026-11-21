@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Shell } from "./components/Shell";
 import { getPrefs, savePrefs } from "./lib/store";
-import Home from "./pages/Home";
-import Game from "./pages/Game";
 import SpecialItems from "./pages/SpecialItems";
 import Orders from "./pages/Orders";
 import Track from "./pages/Track";
@@ -28,6 +26,21 @@ function readBootAdminPath() {
 }
 
 /** Map /admin/orders → /{adminPath}/orders */
+/** Full page load so the server can serve the HTML storefront (guarded against reload loops). */
+function HardGo({ to }) {
+  useEffect(() => {
+    const target = to || window.location.pathname + window.location.search;
+    const key = "pp_hardgo:" + target;
+    try {
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, "1");
+      setTimeout(() => { try { sessionStorage.removeItem(key); } catch {} }, 4000);
+    } catch {}
+    window.location.replace(target);
+  }, [to]);
+  return null;
+}
+
 function AdminLegacyRedirect({ adminPath }) {
   const location = useLocation();
   const rest = location.pathname.replace(/^\/admin\/?/, "");
@@ -192,8 +205,9 @@ export default function App() {
   return (
     <Shell lang={lang} theme={theme} setLang={setLang} setTheme={setTheme} settings={remoteSettings}>
       <Routes>
-        <Route path="/" element={<Home lang={lang} settings={remoteSettings} />} />
-        <Route path="/game/:id" element={<Game lang={lang} addOrder={addOrder} settings={remoteSettings} />} />
+        {/* "/" and "/game/:id" are the HTML storefront (public/html) — load them as real pages */}
+        <Route path="/" element={<HardGo />} />
+        <Route path="/game/:id" element={<HardGo />} />
         <Route path="/special" element={<SpecialItems lang={lang} settings={remoteSettings} />} />
         <Route path="/orders" element={<Orders lang={lang} orders={orders} />} />
         <Route path="/track" element={<Track lang={lang} settings={remoteSettings} />} />
@@ -201,7 +215,7 @@ export default function App() {
         <Route path="/support" element={<Support lang={lang} settings={remoteSettings} />} />
         <Route path="/reseller" element={<Reseller lang={lang} settings={remoteSettings} />} />
         <Route path="/legal/:slug" element={<Legal lang={lang} />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<HardGo to="/" />} />
       </Routes>
     </Shell>
   );
