@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { AIcon, api } from "./ui";
 import "./Admin.css";
+import "./AdminTheme.css";
 
 export { api };
 
@@ -12,14 +13,14 @@ export default function AdminLayout({ adminPath = "pp-console" }) {
   const navigate = useNavigate();
   const base = `/${String(adminPath || "pp-console").replace(/^\/+|\/+$/g, "")}`;
   const NAV = [
-    { to: base, end: true, icon: "dashboard", km: "ផ្ទាំងគ្រប់គ្រង", en: "Dashboard" },
-    { to: `${base}/orders`, icon: "orders", km: "ការបញ្ជាទិញ", en: "Orders" },
-    { to: `${base}/services`, icon: "services", km: "សេវាហ្គេម", en: "Services" },
+    { g: "ទូទៅ", to: base, end: true, icon: "dashboard", km: "ផ្ទាំងគ្រប់គ្រង", en: "Dashboard" },
+    { g: "លក់", to: `${base}/orders`, icon: "orders", km: "ការបញ្ជាទិញ", en: "Orders" },
+    { g: "កាតាឡុក", to: `${base}/services`, icon: "services", km: "សេវាហ្គេម", en: "Services" },
     { to: `${base}/special-items`, icon: "star", km: "★ កញ្ចប់ពិសេស", en: "★ Special packs" },
     { to: `${base}/tiktok-khmer`, icon: "services", km: "TikTok Khmer", en: "TikTok packs" },
     { to: `${base}/prices`, icon: "orders", km: "តាមដានតម្លៃ", en: "Prices" },
-    { to: `${base}/chat`, icon: "send", km: "Live Chat", en: "Live Chat" },
-    { to: `${base}/settings`, icon: "settings", km: "ការកំណត់", en: "Settings" },
+    { g: "គាំទ្រ", to: `${base}/chat`, icon: "send", km: "Live Chat", en: "Live Chat" },
+    { g: "ប្រព័ន្ធ", to: `${base}/settings`, icon: "settings", km: "ការកំណត់", en: "Settings" },
   ];
 
   const [ready, setReady] = useState(false);
@@ -102,11 +103,24 @@ export default function AdminLayout({ adminPath = "pp-console" }) {
   if (!authed) {
     return (
       <div className="ad-login">
+        <aside className="ad-login-art" aria-hidden="true">
+          <div className="ad-login-art-in">
+            <span className="ad-logo">PP</span>
+            <h2>Porpor TopUp<br />Control Center</h2>
+            <p>គ្រប់គ្រងការបញ្ជាទិញ សេវាហ្គេម និង Live Chat ក្នុងកន្លែងតែមួយ។</p>
+            <ul>
+              <li>⚡ តាមដានការបញ្ជាទិញភ្លាមៗ</li>
+              <li>💬 ឆ្លើយ Live Chat ពីអតិថិជន</li>
+              <li>📈 ចំណូល និងប្រាក់ចំណេញរាល់ថ្ងៃ</li>
+            </ul>
+          </div>
+        </aside>
         <form className="ad-login-box" onSubmit={login}>
           <div className="ad-logo">PP</div>
           <h1>
-            Porpor <span>Admin</span>
+            សូមស្វាគមន៍ <span>Admin</span>
           </h1>
+          <p>បញ្ចូលពាក្យសម្ងាត់ដើម្បីចូលប្រើ</p>
           <label>
             ពាក្យសម្ងាត់
             <input
@@ -115,7 +129,7 @@ export default function AdminLayout({ adminPath = "pp-console" }) {
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder=""
+              placeholder="••••••••"
             />
           </label>
           {err ? <div className="ad-login-err">{err}</div> : null}
@@ -138,18 +152,20 @@ export default function AdminLayout({ adminPath = "pp-console" }) {
         </Link>
         <nav>
           {NAV.map((n) => (
-            <NavLink
-              key={n.to}
-              to={n.to}
-              end={n.end}
-              className={({ isActive }) => (isActive ? "ad-link active" : "ad-link")}
-            >
-              <AIcon name={n.icon} />
-              <span>
-                {n.km}
-                <small>{n.en}</small>
-              </span>
-            </NavLink>
+            <div key={n.to} className="ad-navitem">
+              {n.g ? <div className="ad-navgroup">{n.g}</div> : null}
+              <NavLink
+                to={n.to}
+                end={n.end}
+                className={({ isActive }) => (isActive ? "ad-link active" : "ad-link")}
+              >
+                <AIcon name={n.icon} />
+                <span>
+                  {n.km}
+                  <small>{n.en}</small>
+                </span>
+              </NavLink>
+            </div>
           ))}
         </nav>
         <div className="ad-side-foot">
@@ -185,6 +201,18 @@ export default function AdminLayout({ adminPath = "pp-console" }) {
             </button>
           </div>
         </header>
+        <div className="ad-topbar">
+          <div className="ad-topbar-hello">
+            <b>{greet()}, Admin 👋</b>
+            <small>{todayKm()}</small>
+          </div>
+          <div className="ad-topbar-r">
+            <span className="ad-live"><i /> Online</span>
+            <Link to="/" className="ad-btn sm soft">
+              <AIcon name="store" size={15} /> មើលហាង
+            </Link>
+          </div>
+        </div>
         <main className="ad-content">
           <Outlet />
         </main>
@@ -206,6 +234,21 @@ export default function AdminLayout({ adminPath = "pp-console" }) {
       <Toasts />
     </div>
   );
+}
+
+function greet() {
+  const h = new Date().getHours();
+  if (h < 11) return "អរុណសួស្តី";
+  if (h < 14) return "ទិវាសួស្តី";
+  if (h < 18) return "សាយណ្ហសួស្តី";
+  return "សុភមង្គលរាត្រី";
+}
+function todayKm() {
+  try {
+    return new Date().toLocaleDateString("km-KH", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  } catch {
+    return new Date().toDateString();
+  }
 }
 
 function Toasts() {
