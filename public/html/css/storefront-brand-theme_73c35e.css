@@ -211,3 +211,24 @@ body.install-app-banner-visible .floating-support-widget__menu {
 body.install-app-banner-visible #storefront-footer.storefront-footer--with-support {
     padding-bottom: calc(12px + var(--install-banner-offset, 94px) + env(safe-area-inset-bottom, 0px));
 }
+
+/* PORPOR_BLUE_BRAND */
+:root {
+  --site-color-accent: #1d6adf !important;
+  --site-color-link: #5eb0ff !important;
+  --site-color-gradient-start: #1d6adf !important;
+  --site-color-gradient-end: #5eb0ff !important;
+  --site-color-text-light: #e8f1ff !important;
+  --site-color-text-dark: #b8d4f5 !important;
+  --natsu-brand-gold: #5eb0ff !important;
+  --natsu-brand-start: #1d6adf !important;
+  --natsu-brand-end: #5eb0ff !important;
+  --daddy-light-purple: #1d6adf !important;
+  --daddy-orange: #5eb0ff !important;
+  --daddy-link: #5eb0ff !important;
+}
+body .text-daddy-orange { color: #5eb0ff !important; }
+.pp-game-cta, .game-cta.on {
+  background: linear-gradient(90deg, #1d6adf, #5eb0ff) !important;
+  color: #fff !important;
+}

@@ -7,17 +7,17 @@
 
   const style = document.createElement("style");
   style.textContent =
-    ".pp-game-card{display:block;text-decoration:none;color:#fff7e5;background:#2d2a29;border:1px solid rgba(242,165,26,.22);border-radius:14px;overflow:hidden;min-width:0}" +
-    ".pp-game-card:hover{border-color:#ffd447}" +
+    ".pp-game-card{display:block;text-decoration:none;color:#e8f1ff;background:#2d2a29;border:1px solid rgba(242,165,26,.22);border-radius:14px;overflow:hidden;min-width:0}" +
+    ".pp-game-card:hover{border-color:#5eb0ff}" +
     ".pp-game-art{position:relative;aspect-ratio:1/1;background:#242121;display:flex;align-items:center;justify-content:center;overflow:hidden}" +
     ".pp-game-art img{width:100%;height:100%;object-fit:cover;display:block}" +
-    ".pp-game-mark{font-size:28px;font-weight:800;color:#f2a51a}" +
+    ".pp-game-mark{font-size:28px;font-weight:800;color:#1d6adf}" +
     ".pp-game-body{padding:8px 10px 10px;min-width:0}" +
     ".pp-game-name{font-weight:700;font-size:13px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +
-    ".pp-game-from{font-size:11px;color:#ebd6b6;opacity:.85;margin-top:2px}" +
-    ".pp-game-cta{display:block;text-align:center;margin-top:8px;padding:7px 0;border-radius:999px;font-weight:800;font-size:12px;color:#1a1412;background:linear-gradient(90deg,#f2a51a,#ffd447)}" +
-    ".pp-game-badge{position:absolute;top:0;left:0;background:#f2a51a;color:#1a1412;font-size:10px;font-weight:800;font-style:italic;padding:2px 8px;border-bottom-right-radius:8px}" +
-    ".pp-game-empty{grid-column:1/-1;color:#ebd6b6;text-align:center;padding:16px 0;opacity:.8}";
+    ".pp-game-from{font-size:11px;color:#b8d4f5;opacity:.85;margin-top:2px}" +
+    ".pp-game-cta{display:block;text-align:center;margin-top:8px;padding:7px 0;border-radius:999px;font-weight:800;font-size:12px;color:#1a1412;background:linear-gradient(90deg,#1d6adf,#5eb0ff)}" +
+    ".pp-game-badge{position:absolute;top:0;left:0;background:#1d6adf;color:#1a1412;font-size:10px;font-weight:800;font-style:italic;padding:2px 8px;border-bottom-right-radius:8px}" +
+    ".pp-game-empty{grid-column:1/-1;color:#b8d4f5;text-align:center;padding:16px 0;opacity:.8}";
   document.head.appendChild(style);
 
   function minPrice(g) {

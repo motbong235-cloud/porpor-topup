@@ -22,7 +22,7 @@
     <link rel="apple-touch-icon" sizes="192x192" href="img/porpor-logo.svg">
     <link rel="shortcut icon" href="img/porpor-logo.svg">
     <link rel="manifest" href="manifest.webmanifest">
-    <meta name="theme-color" content="#100A08">
+    <meta name="theme-color" content="#082044">
 
     
     
@@ -45,15 +45,15 @@
         const temporary_colors = {
             'daddy-purple': '#474342',              // Primary background
             'daddy-dark-purple': '#242121',     // Darker variant
-            'daddy-light-purple': '#F2A51A',         // Accent color
-            'daddy-text-light': '#FFF7E5',        // Light text
-            'daddy-text-darker': '#EBD6B6',        // Muted text
-            'daddy-orange': '#FFD447',                 // Link/accent (gold)
+            'daddy-light-purple': '#1d6adf',         // Accent color
+            'daddy-text-light': '#e8f1ff',        // Light text
+            'daddy-text-darker': '#b8d4f5',        // Muted text
+            'daddy-orange': '#5eb0ff',                 // Link/accent (gold)
             'daddy-blue': '#3498DB',                                          // Info blue
-            'daddy-link': '#FFD447',                   // Link color
-            'daddy-red-khor': '#F2A51A',         // Primary red
-            'primary-red': '#F2A51A',            // Gradient start
-            'primary-yellow': '#FFD447',      // Gradient end
+            'daddy-link': '#5eb0ff',                   // Link color
+            'daddy-red-khor': '#1d6adf',         // Primary red
+            'primary-red': '#1d6adf',            // Gradient start
+            'primary-yellow': '#5eb0ff',      // Gradient end
         };
 
         /**
@@ -102,15 +102,15 @@
             /* Brand colors */
             --site-color-primary: #474342;
             --site-color-primary-dark: #242121;
-            --site-color-accent: #F2A51A;
-            --site-color-text-light: #FFF7E5;
-            --site-color-text-dark: #EBD6B6;
-            --site-color-link: #FFD447;
-            --site-color-gradient-start: #F2A51A;
-            --site-color-gradient-end: #FFD447;
-            --daddy-orange: '#FFD447';
-            --primary-color: linear-gradient(90deg, #F2A51A, #FFD447);
-            --daddy-light-purple: #F2A51A;
+            --site-color-accent: #1d6adf;
+            --site-color-text-light: #e8f1ff;
+            --site-color-text-dark: #b8d4f5;
+            --site-color-link: #5eb0ff;
+            --site-color-gradient-start: #1d6adf;
+            --site-color-gradient-end: #5eb0ff;
+            --daddy-orange: '#5eb0ff';
+            --primary-color: linear-gradient(90deg, #1d6adf, #5eb0ff);
+            --daddy-light-purple: #1d6adf;
 
             /* Card elevation shadows */
             --card-elevation: 0 10px 30px -10px rgba(2,6,23,0.18);
@@ -957,18 +957,18 @@
     </style>
     <style>
         main { display: block; padding: 0 16px; box-sizing: border-box; }
-        .tg-login-card { position: relative; display: block; width: 100%; box-sizing: border-box; max-width: 400px; margin: 40px auto 56px; padding: 36px 24px 28px; border-radius: 22px; background: linear-gradient(180deg, #3a2f28 0%, #241e1b 100%); border: 1px solid rgba(242,165,26,.28); box-shadow: 0 24px 60px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.06); text-align: center; color: #fff7e5; overflow: hidden; }
-        .tg-login-card::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: linear-gradient(90deg, transparent, #f2a51a, #ffd447, transparent); }
+        .tg-login-card { position: relative; display: block; width: 100%; box-sizing: border-box; max-width: 400px; margin: 40px auto 56px; padding: 36px 24px 28px; border-radius: 22px; background: linear-gradient(180deg, #3a2f28 0%, #241e1b 100%); border: 1px solid rgba(242,165,26,.28); box-shadow: 0 24px 60px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.06); text-align: center; color: #e8f1ff; overflow: hidden; }
+        .tg-login-card::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: linear-gradient(90deg, transparent, #1d6adf, #5eb0ff, transparent); }
         .tg-login-card .customer-login-brand { display: grid; place-items: center; width: 92px; height: 92px; margin: 0 auto; border-radius: 28px; background: radial-gradient(circle, rgba(242,165,26,.32), rgba(242,165,26,0) 70%); }
         .tg-login-card .customer-login-logo { width: 72px; height: 72px; object-fit: contain; filter: drop-shadow(0 6px 14px rgba(0,0,0,.4)); }
-        .tg-login-card .customer-login-title { color: #fff7e5; margin: 16px 0 6px; font-size: 24px; font-weight: 800; letter-spacing: .01em; }
-        .tg-login-card .customer-login-title .ico { color: #f2a51a; margin-right: 8px; }
+        .tg-login-card .customer-login-title { color: #e8f1ff; margin: 16px 0 6px; font-size: 24px; font-weight: 800; letter-spacing: .01em; }
+        .tg-login-card .customer-login-title .ico { color: #1d6adf; margin-right: 8px; }
         .tg-login-card .customer-login-description { color: #d9cbb0; font-size: 14px; line-height: 1.5; margin: 0 auto; max-width: 280px; }
         .tg-login-widget { display: grid; justify-items: center; min-height: 64px; margin: 24px auto 0; padding: 14px; border-radius: 16px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); }
         .tg-login-msg { margin-top: 14px; font-size: 13px; color: #f5c542; line-height: 1.5; }
         .tg-login-widget iframe { max-width: 100%; }
         .ico { width: 1em; height: 1em; display: inline-block; vertical-align: -0.125em; flex: none; }
-        html, body { background: #474342; color: #fff7e5; margin: 0; }
+        html, body { background: #474342; color: #e8f1ff; margin: 0; }
         body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
         img { max-width: 100%; }
         .flex { display: flex; } .hidden { display: none !important; }
