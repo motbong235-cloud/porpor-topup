@@ -173,7 +173,8 @@ export async function storefront() {
           price,
           cost,
           category: p.category,
-          bonus: p.bonus,
+          bonus: (s && s.packBonus?.[pid]) || p.bonus || "",
+          tag: (s && s.packTags?.[pid]) || p.tag || "",
           image: (s && (s.packImages?.[p.id] || s.packIcon)) || p.image || "",
         };
       });
@@ -329,6 +330,16 @@ export function sanitizeSelection(input) {
       const clean = cleanImg(url);
       if (clean && String(pid).length <= 60) packImages[String(pid)] = clean;
     }
+    const cleanLabels = (obj) => {
+      const m = {};
+      for (const [pid, txt] of Object.entries(obj || {}).slice(0, 2000)) {
+        const t = String(txt ?? "").trim().replace(/[<>"']/g, "").slice(0, 24);
+        if (t && String(pid).length <= 80) m[String(pid)] = t;
+      }
+      return m;
+    };
+    const packTags = cleanLabels(v?.packTags);
+    const packBonus = cleanLabels(v?.packBonus);
     const packPrices = {};
     for (const [pid, pr] of Object.entries(v?.packPrices || {}).slice(0, 2000)) {
       const n = Number(pr);
@@ -348,6 +359,8 @@ export function sanitizeSelection(input) {
       banner: cleanBanners(v?.banners, v?.banner)[0] || "",
       packIcon: cleanImg(v?.packIcon),
       packImages,
+      packTags,
+      packBonus,
     };
   }
   return out;
@@ -430,6 +443,8 @@ export async function foxStorefront() {
         foxId: p.foxId || pid,
         price,
         cost,
+        bonus: s?.packBonus?.[pid] || p.bonus || "",
+        tag: s?.packTags?.[pid] || p.tag || "",
         image: p.image || s?.packImages?.[pid] || g.image || "",
       };
     });

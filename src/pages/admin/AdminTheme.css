@@ -496,3 +496,12 @@ html:has(.ad) #root { min-height: 100dvh; }
 .ad .ad-content { overflow: visible; overflow-x: clip; }
 .ad .ad-main { padding-bottom: calc(86px + env(safe-area-inset-bottom, 0px)); }
 @media (min-width: 960px) { .ad .ad-main { padding-bottom: 0; } }
+
+/* ---------- Pack rows: image + tag + bonus ---------- */
+.ad .ad-pack-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ad .ad-pack-row input { flex: 1 1 110px; min-width: 0; height: 40px; }
+.ad .ad-pack-row input[placeholder="id"] { flex: 0 1 90px; }
+.ad .ad-pack-row input[type="number"] { flex: 0 1 84px; }
+.ad .ad-pack-row .ad-pack-mini { flex: 0 1 92px; }
+.ad .ad-pk-badges { display: flex; gap: 6px; margin-top: 6px; }
+.ad .ad-pk-badges input { height: 34px; min-height: 34px; font-size: 13px; padding: 0 10px; flex: 1 1 0; min-width: 0; }

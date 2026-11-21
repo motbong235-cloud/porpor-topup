@@ -59,21 +59,34 @@
   const ICON_STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>';
   const ICON_BAG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l1 13H5L6 7zm3-2a3 3 0 016 0v2H9V5z"/></svg>';
 
-  /* Package cards — Natsu premium-card-v2 layout (horizontal icon + title + gold price) */
+  const ICON_COIN = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#f2a51a"/><circle cx="12" cy="12" r="7.2" fill="#ffd447"/><path d="M12 7.2v9.6M9.6 9.6h3.6a1.5 1.5 0 010 3H10.8a1.5 1.5 0 000 3h3.6" fill="none" stroke="#b36a00" stroke-width="1.5" stroke-linecap="round"/></svg>';
+  const ICON_THUMB = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 10h4v11H2V10zm6 0l4-8c1.4 0 2.5 1.1 2.5 2.5V8H20a2 2 0 012 2.3l-1.4 8A2 2 0 0118.6 20H8V10z"/></svg>';
+  const ICON_TAG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>';
+
+  /* "1" -> "+1 Coin"; anything else is shown as typed (e.g. "+5 Bonus") */
+  function bonusText(b) {
+    const t = String(b == null ? "" : b).trim();
+    if (!t) return "";
+    return /^\+?\d+(\.\d+)?$/.test(t) ? "+" + t.replace(/^\+/, "") + " Coin" : t;
+  }
+
+  /* Package cards — icon + gold price + name, coin chip (top-right), tag ribbon (bottom-left) */
   function packOption(p) {
     const sel = S.pack && String(S.pack.id) === String(p.id);
     const oos = p.inStock === false;
     const icon = p.image
       ? `<img src="${esc(p.image)}" alt="" loading="lazy" decoding="async">`
       : `<span class="pk-icon-letter">${esc(String(p.name || "?").charAt(0).toUpperCase())}</span>`;
-    return `<button type="button" class="pk-item premium-card-v2 package-item${sel ? " is-selected" : ""}${oos ? " is-oos" : ""}" role="radio" aria-checked="${!!sel}" data-selected="${!!sel}" data-pack="${esc(p.id)}" ${oos ? "disabled" : ""}>
-      ${p.bonus ? `<span class="pk-coin" title="bonus"><i class="fas fa-coins"></i> ${esc(p.bonus)}</span>` : ""}
-      ${p.tag || (p.hot ? "HOT" : "") ? `<span class="pk-ribbon">${esc(p.tag || "HOT")}</span>` : ""}
+    const bonus = bonusText(p.bonus);
+    const tag = String(p.tag || (p.hot ? "HOT" : "")).trim();
+    return `<button type="button" class="pk-item premium-card-v2 package-item${sel ? " is-selected" : ""}${oos ? " is-oos" : ""}${tag ? " has-tag" : ""}" role="radio" aria-checked="${!!sel}" data-selected="${!!sel}" data-pack="${esc(p.id)}" ${oos ? "disabled" : ""}>
+      ${bonus ? `<span class="pk-coin">${ICON_COIN}${esc(bonus)}</span>` : ""}
       <span class="pk-icon crystal-float-v2">${icon}</span>
       <span class="pk-copy" data-card-details>
-        <span class="pk-name card-title-text">${esc(p.name)}</span>
         <span class="pk-price card-price-text">${oos ? "Out of stock" : money(p.price)}</span>
+        <span class="pk-name card-title-text">${esc(p.name)}</span>
       </span>
+      ${tag ? `<span class="pk-ribbon">${ICON_TAG}${esc(tag)}</span>` : ""}
     </button>`;
   }
 
@@ -88,7 +101,7 @@
       <div class="pk-group">
         <div class="pk-head">
           <span class="pk-head__title">${ICON_STAR}${esc(cat)}</span>
-          <span class="pk-head__count">${list.length}</span>
+          <span class="pk-head__count">${ICON_THUMB}${list.length}</span>
         </div>
         <div class="pk-grid" role="radiogroup">${list.map(packOption).join("")}</div>
       </div>`).join("");

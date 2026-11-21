@@ -2145,7 +2145,8 @@ app.put("/api/admin/local-products", adminAuth, (req, res) => {
             price: Number(p.price),
             cost: Number(p.cost != null ? p.cost : p.price),
             category: (String(p.category || "").trim().toLowerCase() === "gift card" ? "Roblox" : String(p.category || "Roblox")),
-            bonus: p.bonus ? String(p.bonus) : "",
+            bonus: p.bonus ? String(p.bonus).trim().slice(0, 24) : "",
+            tag: p.tag ? String(p.tag).trim().slice(0, 24) : "",
             image: img,
           };
         })

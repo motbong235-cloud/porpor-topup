@@ -371,6 +371,7 @@ function localCatalogAll() {
               cost: Number(p.cost ?? p.price),
               category: normCategory(p.category),
               bonus: p.bonus ? String(p.bonus) : "",
+              tag: p.tag ? String(p.tag) : "",
               image: String(p.image || ""),
               stock: dt === "stock" ? left : null,
               inStock: (dt === "live_chat" || dt === "robux_send") ? true : left > 0,

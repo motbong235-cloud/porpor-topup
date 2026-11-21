@@ -30,6 +30,14 @@ function GameCard({ g, s, defaultMarkup, isOpen, onToggleOpen, patch }) {
     patch(g.slug, { packages: set.size === g.packs.length ? null : Array.from(set) });
   }
 
+  function setPackLabel(field, id, val) {
+    const next = { ...(s[field] || {}) };
+    const v = String(val || "").slice(0, 24);
+    if (v.trim()) next[id] = v;
+    else delete next[id];
+    patch(g.slug, { [field]: next });
+  }
+
   function setPackImage(id, url) {
     const next = { ...(s.packImages || {}) };
     if (url) next[id] = url;
@@ -178,6 +186,22 @@ function GameCard({ g, s, defaultMarkup, isOpen, onToggleOpen, patch }) {
                     {p.category}
                     {p.inStock ? "" : " · អស់ស្តុក"}
                   </small>
+                  <span className="ad-pk-badges">
+                    <input
+                      placeholder="ស្លាក (GAMEPASS)"
+                      maxLength={24}
+                      value={s.packTags?.[p.id] || ""}
+                      onChange={(e) => setPackLabel("packTags", p.id, e.target.value)}
+                      aria-label="Tag"
+                    />
+                    <input
+                      placeholder="+1 Coin"
+                      maxLength={24}
+                      value={s.packBonus?.[p.id] || ""}
+                      onChange={(e) => setPackLabel("packBonus", p.id, e.target.value)}
+                      aria-label="Bonus"
+                    />
+                  </span>
                 </div>
                 <span className="r muted">{usd(p.cost)}</span>
                 <span className="r price ad-pk-price-edit">
@@ -804,6 +828,22 @@ function LocalServicesPanel() {
                             placeholder="cost"
                             value={pk.cost}
                             onChange={(e) => updatePack(i, j, { cost: Number(e.target.value) })}
+                          />
+                          <input
+                            className="ad-pack-mini"
+                            placeholder="ស្លាក"
+                            maxLength={24}
+                            value={pk.tag || ""}
+                            onChange={(e) => updatePack(i, j, { tag: e.target.value })}
+                            aria-label="Tag"
+                          />
+                          <input
+                            className="ad-pack-mini"
+                            placeholder="+Coin"
+                            maxLength={24}
+                            value={pk.bonus || ""}
+                            onChange={(e) => updatePack(i, j, { bonus: e.target.value })}
+                            aria-label="Bonus"
                           />
                           <button type="button" className="ad-btn danger sm" onClick={() => removePack(i, j)}>
                             <AIcon name="x" size={14} />

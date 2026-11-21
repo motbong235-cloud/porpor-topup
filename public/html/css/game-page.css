@@ -267,3 +267,74 @@ img { max-width: 100%; height: auto; }
   color: #5eb0ff;
   margin: 0 0 12px;
 }
+
+
+/* ===== Package cards v3 — reference layout (icon · price · name · coin chip · tag ribbon) ===== */
+.pk-group { background: #232020; border: 1px solid rgba(242,165,26,.22); border-radius: 20px; padding: 14px 12px 12px; }
+.pk-head { margin: 0 0 12px; padding: 0 4px; }
+.pk-head__title { font-size: 17px; color: #ffd447; }
+.pk-head__title svg { width: 20px; height: 20px; }
+.pk-head__count {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 15px; font-weight: 800; color: #ffd447;
+  background: transparent; border: 1.5px solid rgba(242,165,26,.5);
+  border-radius: 999px; padding: 6px 14px;
+}
+.pk-head__count svg { width: 17px; height: 17px; fill: #ffd447; }
+.pk-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (min-width: 900px) { .pk-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; } }
+.pk-item.premium-card-v2, .pk-item {
+  align-items: center; gap: 10px;
+  min-height: 92px; padding: 30px 8px 22px 10px;
+  background: #2a2726 !important;
+  border: 1px solid rgba(255,255,255,.05) !important;
+  border-radius: 16px !important;
+}
+.pk-item:not(.has-tag) { padding-bottom: 14px; }
+.pk-icon, .crystal-float-v2 {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #3a3532, #1d1a19);
+  border: 2px solid rgba(242,165,26,.35);
+  box-shadow: 0 4px 12px rgba(0,0,0,.45);
+}
+@media (min-width: 640px) { .pk-icon, .crystal-float-v2 { width: 64px; height: 64px; } }
+.pk-icon img { object-fit: cover; }
+.pk-copy { gap: 3px; }
+.pk-price, .card-price-text { order: 1; font-size: 19px; font-weight: 800; line-height: 1.1; letter-spacing: 0; }
+.pk-name, .card-title-text {
+  order: 2; font-size: 15px; font-weight: 700; line-height: 1.2;
+  white-space: normal; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+.pk-coin {
+  top: 8px; right: 8px; gap: 5px;
+  padding: 3px 9px 3px 4px; font-size: 11px; font-weight: 800;
+  color: #4a3200; background: linear-gradient(180deg, #fff1b8, #ffd86b);
+  box-shadow: 0 2px 6px rgba(0,0,0,.3);
+}
+.pk-coin svg { width: 16px; height: 16px; flex: none; }
+.pk-ribbon {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 10.5px; padding: 3px 12px 3px 8px;
+  color: #3a2600; background: linear-gradient(90deg, #f2a51a, #ffd447);
+  border-top-right-radius: 10px; max-width: 92%;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pk-ribbon svg { width: 11px; height: 11px; fill: #3a2600; flex: none; }
+.pk-item[data-selected="true"], .pk-item.is-selected {
+  background: linear-gradient(135deg, #43361a 0%, #2a2726 70%) !important;
+}
+.pk-item[data-selected="true"]::after {
+  content: "✓"; position: absolute; right: 8px; bottom: 6px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: #f2a51a; color: #2b1d05; font-size: 12px; font-weight: 900;
+  display: grid; place-items: center;
+}
+.gp-main { padding-bottom: 96px; }
+/* v3 fixes: no chip overlap, no mid-word wraps */
+.pk-item.premium-card-v2, .pk-item { padding-top: 40px; padding-left: 9px; padding-right: 7px; gap: 8px; }
+.pk-icon, .crystal-float-v2 { width: 46px; height: 46px; }
+.pk-copy { min-width: 0; }
+.pk-price, .card-price-text { font-size: 17px; white-space: nowrap; overflow-wrap: normal; word-break: normal; }
+.pk-name, .card-title-text { font-size: 14px; overflow-wrap: break-word; word-break: normal; hyphens: none; }
+@media (min-width: 640px) { .pk-icon, .crystal-float-v2 { width: 60px; height: 60px; } .pk-price, .card-price-text { font-size: 19px; } }
