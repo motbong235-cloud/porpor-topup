@@ -1,8 +1,8 @@
 /* =========================================================
    Natsu UI port — final override layer (imported last in main.jsx)
    Tokens and component styling copied from the NatsuTOPUP storefront:
-   body #474342 · header/footer #242121 · accent #F2A51A · gold #FFD447
-   text #FFF7E5 · muted #EBD6B6 · login pill (gold ring, glow, shine)
+   body #474342 · header/footer #242121 · accent #1d6adf · gold #5eb0ff
+   text #e8f1ff · muted #b8d4f5 · login pill (gold ring, glow, shine)
    ========================================================= */
 
 :root,
@@ -11,17 +11,17 @@ html:not(.dark) {
   --bg: #474342;
   --surface: #242121;
   --card: #2d2a29;
-  --ink: #fff7e5;
-  --muted: #ebd6b6;
+  --ink: #e8f1ff;
+  --muted: #b8d4f5;
   --line: rgba(242, 165, 26, 0.2);
-  --primary: #f2a51a;
-  --primary-2: #ffd447;
+  --primary: #1d6adf;
+  --primary-2: #5eb0ff;
   --navy: #242121;
   --ice: #3a3635;
   --on-primary: #1a1412;
-  --on-navy: #fff7e5;
-  --gold: #ffd447;
-  --gold-2: #f2a51a;
+  --on-navy: #e8f1ff;
+  --gold: #5eb0ff;
+  --gold-2: #1d6adf;
   --purple: #474342;
   --radius: 1rem;
   --shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.45);
@@ -45,7 +45,7 @@ body {
 .logo-name,
 .sec-title,
 .section-head h2 {
-  background: linear-gradient(90deg, #f2a51a, #ffd447);
+  background: linear-gradient(90deg, #1d6adf, #5eb0ff);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -71,7 +71,7 @@ body {
   padding: 2px !important;
   border: 0 !important;
   border-radius: 9999px !important;
-  background: linear-gradient(90deg, #ffd447, #f2a51a) !important;
+  background: linear-gradient(90deg, #5eb0ff, #1d6adf) !important;
   color: #fff !important;
   font-weight: 700;
   box-shadow: 0 0 18px rgba(242, 165, 26, 0.35);
@@ -83,7 +83,7 @@ body {
 .natsu-login-btn:hover,
 .natsu-login-btn:focus-visible {
   transform: translateY(-2px) scale(1.03);
-  outline: 2px solid #ffd447;
+  outline: 2px solid #5eb0ff;
   outline-offset: 3px;
 }
 .natsu-login-btn:active {
@@ -96,12 +96,12 @@ body {
 .search-panel {
   background: #242121 !important;
   border: 1px solid rgba(242, 165, 26, 0.3) !important;
-  color: #fff7e5 !important;
+  color: #e8f1ff !important;
   border-radius: 9999px;
 }
 .search-bar:focus-within,
 .search-input:focus {
-  border-color: #ffd447 !important;
+  border-color: #5eb0ff !important;
   box-shadow: 0 0 0 3px rgba(255, 212, 71, 0.25);
   outline: none;
 }
@@ -112,22 +112,22 @@ body {
 
 /* ---------- Category pills ---------- */
 .natsu-cat {
-  color: #ebd6b6 !important;
+  color: #b8d4f5 !important;
 }
 .natsu-cat:hover,
 .natsu-cat.on,
 .natsu-cat[aria-pressed="true"] {
-  color: #ffd447 !important;
+  color: #5eb0ff !important;
 }
 .natsu-pill {
   background: #242121 !important;
   border: 1px solid rgba(242, 165, 26, 0.3) !important;
-  color: #ebd6b6 !important;
+  color: #b8d4f5 !important;
   border-radius: 9999px !important;
 }
 .natsu-pill.on,
 .natsu-pill[aria-pressed="true"] {
-  background: linear-gradient(90deg, #f2a51a, #ffd447) !important;
+  background: linear-gradient(90deg, #1d6adf, #5eb0ff) !important;
   color: #1a1412 !important;
   border-color: transparent !important;
 }
@@ -147,14 +147,14 @@ body {
   transform: translateY(-3px);
 }
 .game-card-body .game-name {
-  color: #fff7e5;
+  color: #e8f1ff;
 }
 .game-card-body .game-from {
-  color: #ebd6b6;
+  color: #b8d4f5;
   opacity: 0.85;
 }
 .game-cta.on {
-  background: linear-gradient(90deg, #f2a51a, #ffd447) !important;
+  background: linear-gradient(90deg, #1d6adf, #5eb0ff) !important;
   color: #1a1412 !important;
   border-radius: 9999px;
   font-weight: 700;
@@ -165,7 +165,7 @@ body {
   border-radius: 9999px;
 }
 .game-badge.hot {
-  background: #f2a51a !important;
+  background: #1d6adf !important;
   color: #1a1412 !important;
 }
 .game-card.disabled {
@@ -215,11 +215,11 @@ body {
 .site-footer {
   background: #242121 !important;
   border-top: 1px solid rgba(242, 165, 26, 0.2);
-  color: #ebd6b6;
+  color: #b8d4f5;
 }
 .footer-tag,
 .footer-label {
-  color: #ebd6b6;
+  color: #b8d4f5;
   opacity: 0.8;
 }
 

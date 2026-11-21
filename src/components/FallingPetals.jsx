@@ -57,8 +57,8 @@ export function FallingPetals() {
                 />
                 <defs>
                   <linearGradient id="pp-petal-gold" x1="4" y1="3" x2="20" y2="20">
-                    <stop stopColor="#FFD447" />
-                    <stop offset="0.55" stopColor="#F2A51A" />
+                    <stop stopColor="#5eb0ff" />
+                    <stop offset="0.55" stopColor="#1d6adf" />
                     <stop offset="1" stopColor="#E8B84A" />
                   </linearGradient>
                 </defs>

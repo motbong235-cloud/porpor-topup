@@ -25,13 +25,13 @@
 
 .icon-btn:hover .icon-svg,
 .drawer-link:hover .icon-svg {
-  color: #ffd447;
+  color: #5eb0ff;
 }
 
 /* Login pill icon */
 .natsu-login-btn .icon-svg,
 .header-user-btn .icon-svg {
-  color: #ffd447;
+  color: #5eb0ff;
 }
 
 /* Drawer icons slightly larger + gold tint on hover already in theme */

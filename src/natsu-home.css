@@ -5,16 +5,16 @@
    ========================================================= */
 
 :root {
-  --site-color-gradient-start: #F2A51A;
-  --site-color-gradient-end: #FFD447;
-  --site-color-link: #FFD447;
-  --site-color-text-light: #FFF7E5;
+  --site-color-gradient-start: #1d6adf;
+  --site-color-gradient-end: #5eb0ff;
+  --site-color-link: #5eb0ff;
+  --site-color-text-light: #e8f1ff;
   --site-color-text-dark: #b0b0b0;
   --site-color-primary-dark: #100A08;
-  --site-color-accent: #F2A51A;
+  --site-color-accent: #1d6adf;
   --daddy-purple: #474342;
   --daddy-dark-purple: #242121;
-  --daddy-orange: #FFD447;
+  --daddy-orange: #5eb0ff;
 }
 
 .natsu-home {
@@ -45,7 +45,7 @@
 }
 
 .catalog-categories__item {
-  --category-accent: var(--site-color-gradient-start, #F2A51A);
+  --category-accent: var(--site-color-gradient-start, #1d6adf);
   flex: 0 0 auto;
   width: 56px;
   min-height: 60px;
@@ -65,7 +65,7 @@
 }
 
 .catalog-categories__item[data-catalog-category="giftcard"] {
-  --category-accent: var(--site-color-gradient-end, #FFD447);
+  --category-accent: var(--site-color-gradient-end, #5eb0ff);
 }
 
 .catalog-categories__badge {
@@ -173,7 +173,7 @@
   width: 28px;
   height: 28px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #F2A51A, #FFD447);
+  background: linear-gradient(135deg, #1d6adf, #5eb0ff);
   color: #100A08;
   flex-shrink: 0;
 }
@@ -210,7 +210,7 @@
   margin-bottom: 8px;
 }
 .natsu-star {
-  color: #FFD447;
+  color: #5eb0ff;
   margin-right: 4px;
 }
 
@@ -320,7 +320,7 @@
   display: inline-flex !important;
   align-items: center !important;
   gap: 3px;
-  background: linear-gradient(90deg, #F2A51A, #FFD447) !important;
+  background: linear-gradient(90deg, #1d6adf, #5eb0ff) !important;
   color: #100A08 !important;
   font-size: 9px !important;
   font-weight: 900 !important;
@@ -363,7 +363,7 @@
   margin-top: auto !important;
   padding: 8px 6px !important;
   border-radius: 10px !important;
-  background: linear-gradient(90deg, #F2A51A, #FFD447) !important;
+  background: linear-gradient(90deg, #1d6adf, #5eb0ff) !important;
   color: #100A08 !important;
   font-size: 11px !important;
   font-weight: 900 !important;
