@@ -2267,6 +2267,7 @@ app.put("/api/admin/fox-selection", adminAuth, (req, res) => {
     games: body.games && typeof body.games === "object" ? body.games : (cur.foxSelection?.games || {}),
   };
   updateSettings({ foxSelection });
+  try { clearPublicCatalogCache(); } catch {}
   res.json({ ok: true, foxSelection });
 });
 

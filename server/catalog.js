@@ -213,6 +213,10 @@ export async function storefront() {
 
 
 let _publicCatCache = { at: 0, games: null };
+export function clearPublicCatalogCache() {
+  _publicCatCache = { at: 0, games: null };
+}
+
 const PUBLIC_CAT_TTL_MS = 15_000;
 
 export async function publicCatalog() {
@@ -438,7 +442,10 @@ export async function foxStorefront() {
       nameKm: s?.titleKm || g.nameKm || g.name,
       image: s?.image || g.image,
       open: true,
-      famous: !!s?.famous,
+      // Admin chip uses `featured`; older rows may have `famous` — accept both
+      famous: !!(s?.famous || s?.featured),
+      hot: !!(s?.famous || s?.featured),
+      featured: !!(s?.famous || s?.featured),
       provider: "fox",
       packs,
     });

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AIcon, BannerManager, ImageSlot, PageHead, Switch, WideImageSlot, api, toast, usd } from "./ui";
 
-const blank = { enabled: false, showWhenOff: false, featured: false, markup: null, packages: null, packPrices: {}, image: "", banner: "", banners: [], packIcon: "", packImages: {} };
+const blank = { enabled: false, showWhenOff: false, featured: false, famous: false, markup: null, packages: null, packPrices: {}, image: "", banner: "", banners: [], packIcon: "", packImages: {} };
 
 function sellPrice(cost, markup) {
   return Math.ceil(cost * (1 + (Number(markup) || 0) / 100) * 100 - 1e-9) / 100;
@@ -83,7 +83,10 @@ function GameCard({ g, s, defaultMarkup, isOpen, onToggleOpen, patch }) {
         <button
           type="button"
           className={`ad-chip small${s.featured ? " active" : ""}`}
-          onClick={() => patch(g.slug, { featured: !s.featured })}
+          onClick={() => {
+            const next = !s.featured;
+            patch(g.slug, { featured: next, famous: next });
+          }}
           title="បង្ហាញក្នុងផ្នែកពេញនិយមលើទំព័រដើម"
         >
           <AIcon name="star" size={13} /> ពេញនិយម
@@ -1212,7 +1215,7 @@ export default function ServicesAdmin() {
     <div className="ad-page-services">
       <PageHead km="សេវាកម្ម" en="Local · Khmer · Fox" />
 
-      <div className="ad-seg" role="tablist">
+      <div className="ad-svc-tabs" role="tablist">
         <button type="button" role="tab" className={tab === "local" ? "on" : ""} onClick={() => setTab("local")}>
           ស្តុក / Live Chat
         </button>
