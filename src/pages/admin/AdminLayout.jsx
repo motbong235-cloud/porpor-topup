@@ -179,12 +179,12 @@ export default function AdminLayout({ adminPath = "pp-console" }) {
           ))}
         </nav>
         <div className="ad-side-foot">
-          <Link to="/" className="ad-link">
+          <a href="/" className="ad-link">
             <AIcon name="store" />
             <span>
               ទៅកាន់ហាង<small>View store</small>
             </span>
-          </Link>
+          </a>
           <button type="button" className="ad-link" onClick={logout}>
             <AIcon name="logout" />
             <span>
@@ -203,9 +203,9 @@ export default function AdminLayout({ adminPath = "pp-console" }) {
             </span>
           </Link>
           <div className="ad-mbar-actions">
-            <Link to="/" aria-label="Store">
+            <a href="/" aria-label="Store">
               <AIcon name="store" />
-            </Link>
+            </a>
             <button type="button" onClick={logout} aria-label="Logout">
               <AIcon name="logout" />
             </button>
@@ -218,9 +218,9 @@ export default function AdminLayout({ adminPath = "pp-console" }) {
           </div>
           <div className="ad-topbar-r">
             <span className="ad-live"><i /> Online</span>
-            <Link to="/" className="ad-btn sm soft">
+            <a href="/" className="ad-btn sm soft">
               <AIcon name="store" size={15} /> មើលហាង
-            </Link>
+            </a>
           </div>
         </div>
         <main className="ad-content">
