@@ -56,12 +56,12 @@
   const zoneLabel = () => S.game.zoneLabelEn || S.game.zoneLabelKm || "Zone ID";
 
   /* ---------- render ---------- */
-  const ICON_STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>';
-  const ICON_BAG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l1 13H5L6 7zm3-2a3 3 0 016 0v2H9V5z"/></svg>';
+  const ICON_STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8c.4 0 .8.2 1 .6l2 4.1 4.5.7c.9.1 1.2 1.2.6 1.8l-3.3 3.2.8 4.5c.2.9-.8 1.6-1.6 1.1L12 16.7l-4 2.1c-.8.4-1.700-.2-1.600-1.100l.8-4.500-3.300-3.200c-.6-.6-.3-1.700.6-1.800l4.500-.7 2-4.100c.2-.4.600-.6 1-.6z"/></svg>';
+  const ICON_BAG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8V7a4.5 4.5 0 019 0v1h1.700c.9 0 1.600.7 1.700 1.600l.8 9.100c.1 1.200-.8 2.300-2 2.300H5.300c-1.200 0-2.100-1.100-2-2.300l.8-9.100C4.200 8.700 4.900 8 5.800 8h1.700zm2 0h5V7a2.500 2.500 0 00-5 0v1z"/></svg>';
 
-  const ICON_COIN = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#f2a51a"/><circle cx="12" cy="12" r="7.2" fill="#ffd447"/><path d="M12 7.2v9.6M9.6 9.6h3.6a1.5 1.5 0 010 3H10.8a1.5 1.5 0 000 3h3.6" fill="none" stroke="#b36a00" stroke-width="1.5" stroke-linecap="round"/></svg>';
-  const ICON_THUMB = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 10h4v11H2V10zm6 0l4-8c1.4 0 2.5 1.1 2.5 2.5V8H20a2 2 0 012 2.3l-1.4 8A2 2 0 0118.6 20H8V10z"/></svg>';
-  const ICON_TAG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>';
+  const ICON_COIN = '<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="pkc" x1="4" y1="2" x2="20" y2="22" gradientUnits="userSpaceOnUse"><stop stop-color="#FFE27A"/><stop offset="1" stop-color="#F29A1B"/></linearGradient></defs><circle cx="12" cy="12" r="10.5" fill="url(#pkc)"/><circle cx="12" cy="12" r="7.6" fill="none" stroke="#B8650A" stroke-opacity=".55" stroke-width="1.4"/><path d="M12 7v10M14.400 9.400c-.4-.8-1.300-1.200-2.400-1.200-1.400 0-2.400.7-2.400 1.800 0 2.400 5 1 5 3.600 0 1.100-1.100 1.800-2.600 1.800-1.200 0-2.200-.5-2.600-1.400" fill="none" stroke="#7A3F00" stroke-width="1.500" stroke-linecap="round"/></svg>';
+  const ICON_THUMB = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.500 10.500c0-.6.4-1 1-1H7v11H3.500a1 1 0 01-1-1v-9zM8.500 9.800l3-6.400c.2-.5.700-.8 1.200-.8 1.300 0 2.300 1.200 2 2.500L14.100 8h4.900c1.300 0 2.300 1.200 2 2.500l-1.400 7.500c-.3 1.400-1.500 2.400-2.900 2.400H9.500c-.6 0-1-.4-1-1V9.800z"/></svg>';
+  const ICON_TAG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.100 2.600l1.600 4.500 4.500 1.600c.9.300.9 1.600 0 1.900l-4.500 1.600-1.600 4.500c-.3.900-1.600.9-1.900 0l-1.600-4.500-4.500-1.600c-.9-.3-.9-1.600 0-1.900l4.500-1.600 1.600-4.500c.3-.9 1.600-.9 1.900 0zM19 15l.8 2.200 2.200.8-2.200.8L19 21l-.8-2.200-2.200-.8 2.200-.8L19 15z"/></svg>';
 
   /* "1" -> "+1 Coin"; anything else is shown as typed (e.g. "+5 Bonus") */
   function bonusText(b) {

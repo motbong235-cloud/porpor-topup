@@ -1,7 +1,7 @@
 /* Generic game top-up page (game.html). Plain CSS, no framework. */
 :root { --bg:#474342; --surface:#242121; --card:#2d2a29; --ink:#e8f1ff; --muted:#b8d4f5; --primary:#1d6adf; --primary-2:#5eb0ff; --line:rgba(29, 106, 223,.22); color-scheme: dark; }
 * { box-sizing: border-box; }
-html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Kantumruy Pro", system-ui, sans-serif; -webkit-text-size-adjust: 100%; overflow-x: hidden; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Fredoka", "Kantumruy Pro", system-ui, sans-serif; -webkit-text-size-adjust: 100%; overflow-x: hidden; }
 img { max-width: 100%; height: auto; }
 .hidden { display: none !important; }
 .gp-header { position: sticky; top: 0; z-index: 5; background: rgba(36,33,33,.94); border-bottom: 1px solid var(--line); padding: 10px max(16px, env(safe-area-inset-left)); }
@@ -338,3 +338,10 @@ img { max-width: 100%; height: auto; }
 .pk-price, .card-price-text { font-size: 17px; white-space: nowrap; overflow-wrap: normal; word-break: normal; }
 .pk-name, .card-title-text { font-size: 14px; overflow-wrap: break-word; word-break: normal; hyphens: none; }
 @media (min-width: 640px) { .pk-icon, .crystal-float-v2 { width: 60px; height: 60px; } .pk-price, .card-price-text { font-size: 19px; } }
+
+/* Rounded display font (Latin) with Kantumruy Pro as the Khmer fallback */
+.gp-header, .pk-item, .pk-head, .pk-bar, button, input, .checkout-summary__total { font-family: "Fredoka", "Kantumruy Pro", system-ui, sans-serif; }
+.pk-price { font-weight: 700; letter-spacing: .01em; }
+.pk-name { font-weight: 500; }
+.pk-ribbon, .pk-coin { font-weight: 600; }
+.pk-ribbon svg, .pk-coin svg, .pk-head svg, .pk-bar__pay svg { flex: none; }
