@@ -98,24 +98,31 @@ export function isKaiRouteGame(game) {
   });
 }
 export function isKaiRouteOrder(o) {
-  const rules = kaiRouteRules();
-  if (!rules.length) return false;
-  const gid = String(o?.gameId || "").toLowerCase();
-  const gname = String(o?.gameName || "").toLowerCase();
-  const pack = String(o?.packName || "").toLowerCase();
-  const dt = String(o?.deliveryType || "").toLowerCase();
-  const blob = `${gid} ${gname} ${pack} ${dt}`;
-  // hard match common TikTok Khmer ids/names even if admin settings missing
-  if (
-    gid === "tiktok-khmer" ||
-    gid === "tiktok_khmer" ||
-    gname.includes("tiktok khmer") ||
+  // STRICT: only TikTok Khmer — never Robux / Fox / Free Fire / other local services
+  const gid = String(o?.gameId || o?.id || "")
+    .toLowerCase()
+    .replace(/^fox_/, "");
+  const gname = String(o?.gameName || o?.name || o?.nameKm || "").toLowerCase();
+  const slug = String(o?.slug || "").toLowerCase();
+
+  // Explicit allow-list of game ids
+  const TIKTOK_IDS = new Set(["tiktok-khmer", "tiktok_khmer", "tiktokkhmer"]);
+  if (TIKTOK_IDS.has(gid) || TIKTOK_IDS.has(slug)) return true;
+
+  // Name must contain both tiktok + khmer (not just "tiktok")
+  const nameOk =
+    (gname.includes("tiktok") && gname.includes("khmer")) ||
     gname.includes("tiktok-khmer") ||
-    /tiktok/.test(gid) && /khmer/.test(blob)
-  ) {
-    return true;
+    gname.includes("tiktok_khmer");
+  if (nameOk) return true;
+
+  // Optional admin allow-list — exact id/name only (no fuzzy includes)
+  const rules = kaiRouteRules();
+  for (const r of rules) {
+    if (!r || r.length < 3) continue;
+    if (gid === r || slug === r || gname === r) return true;
   }
-  return rules.some((r) => r && (gid === r || gid.includes(r) || gname.includes(r) || blob.includes(r)));
+  return false;
 }
 function kaiChannelId() {
   const env = (process.env.KAI_CHANNEL_ID || "").trim();
@@ -492,7 +499,11 @@ export async function notifyOrder(kind, o) {
     return results.find((r) => r && r.ok) || results[0] || { ok: false, error: "tiktok_notify_failed" };
   }
 
-  // ——— All other Porpor services → Porpor channel only
+  // ——— All other Porpor services → Porpor channel ONLY (never kaiChatId / Settings order bot)
+  if (isKaiRouteOrder(o)) {
+    // unreachable if called correctly
+  }
+  console.log("[telegram] non-TikTok order → Porpor channel only", o?.id, o?.gameId, o?.gameName);
   if (!isNotifyReady()) {
     console.warn("[telegram] Porpor channel not configured");
     return { ok: false, error: "not_configured" };

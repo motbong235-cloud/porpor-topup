@@ -333,7 +333,7 @@ export default function SettingsAdmin() {
       <section className="ad-card" id="set-kai">
         <h2>Kai- Bot (TikTok Khmer only)</h2>
         <p className="ad-hint">
-          Order <b>TikTok Khmer</b> នឹងផ្ញើសារទៅ <b>bot Kai-</b> តែមួយ។ Service ផ្សេងរបស់ Porpor នៅផ្ញើ Channel Porpor ដដែល។
+          Order <b>TikTok Khmer តែប៉ុណ្ណោះ</b> ទៅ bot/chat ក្នុង Settings នេះ។ <b>Robux · Fox · Free Fire · service ផ្សេង មិនចូល chat នេះ</b> — ផ្ញើទៅ Channel Porpor (Render TELEGRAM_CHANNEL_ID) តែប៉ុណ្ណោះ។
         </p>
         <div className="ad-grid-2">
           <Field label="Kai Bot Token" hint="Token bot Kai- (ឬ Order Bot token)">
