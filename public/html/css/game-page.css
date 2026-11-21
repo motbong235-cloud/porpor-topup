@@ -475,3 +475,48 @@ button.pk-like:not(.is-liked) svg { fill: none; stroke: currentColor; stroke-wid
 button.pk-like.is-liked { box-shadow: 0 8px 20px -8px rgba(29,106,223,.95); }
 button.pk-like.is-liked svg { animation: pm-like .45s var(--pm-ease); }
 @keyframes pm-like { 0% { transform: scale(.5) rotate(-20deg); } 60% { transform: scale(1.35) rotate(8deg); } 100% { transform: scale(1); } }
+
+/* =====================================================================
+   KHQR payment card (ABA PayWay style)
+   ===================================================================== */
+dialog.khqr-dialog { border: 0; padding: 0; background: transparent; width: min(94vw, 400px); max-width: none; max-height: 96dvh; overflow: visible; margin: auto; }
+dialog.khqr-dialog::backdrop { background: rgba(8,10,20,.72); backdrop-filter: blur(5px); }
+.khqr-card { position: relative; background: #fff; color: #0e1b3d; border-radius: 22px; overflow: hidden; box-shadow: 0 30px 80px -20px rgba(0,0,0,.7); max-height: 96dvh; overflow-y: auto; font-family: "Roboto", "Fredoka", "Kantumruy Pro", system-ui, sans-serif; animation: khqr-in .32s cubic-bezier(.2,.8,.2,1); }
+@keyframes khqr-in { from { transform: translateY(24px) scale(.97); opacity: 0; } }
+.khqr-head { position: relative; background: #e1232e; height: 74px; display: grid; place-items: center; }
+.khqr-bar { position: absolute; top: 14px; left: 50%; width: 58px; height: 3px; border-radius: 3px; background: rgba(255,255,255,.85); transform: translateX(-50%); }
+.khqr-logo { width: 118px; height: auto; margin-top: 8px; }
+.khqr-fold { position: absolute; right: 0; bottom: 0; width: 0; height: 0; border-style: solid; border-width: 0 0 34px 34px; border-color: transparent transparent #fff transparent; }
+.khqr-x { position: absolute; z-index: 2; top: 8px; left: 10px; width: 34px; height: 34px; border: 0; border-radius: 50%; background: rgba(255,255,255,.18); color: #fff; font-size: 24px; line-height: 1; cursor: pointer; }
+.khqr-body { padding: 18px 22px 20px; display: grid; justify-items: center; text-align: center; }
+.khqr-top { width: 100%; display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.khqr-title { font-size: 22px; font-weight: 500; color: #0e1b3d; }
+.khqr-timer { position: relative; display: inline-flex; align-items: center; gap: 10px; }
+.khqr-timer svg { width: 34px; height: 34px; transform: rotate(-90deg); order: -1; }
+.khqr-ring-bg { fill: none; stroke: #e5edf3; stroke-width: 4; }
+.khqr-ring { fill: none; stroke: #19b4d9; stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+.khqr-timer i { font-style: normal; font-weight: 700; font-size: 19px; font-variant-numeric: tabular-nums; }
+.khqr-merchant { margin: 6px 0 0; font-size: 15px; letter-spacing: .02em; text-transform: uppercase; color: #6b7589; overflow-wrap: anywhere; }
+.khqr-amount { margin: 4px 0 0; display: flex; align-items: baseline; gap: 8px; }
+.khqr-amount b { font-size: 40px; font-weight: 700; letter-spacing: -.01em; color: #0e1b3d; }
+.khqr-amount small { font-size: 17px; font-weight: 600; color: #6b7589; }
+.khqr-dash { width: 100%; border: 0; border-top: 1.5px dashed #cfd6e0; margin: 14px 0 16px; }
+.khqr-qr { display: grid; place-items: center; min-height: 220px; width: min(100%, 280px); }
+.khqr-qr img { width: 100%; height: auto; max-width: 280px; display: block; image-rendering: pixelated; }
+.khqr-qr pre { white-space: pre-wrap; word-break: break-all; font-size: 11px; background: #f3f5f8; padding: 8px; border-radius: 8px; text-align: left; max-width: 100%; }
+.khqr-scan { margin: 14px 0 0; font-weight: 700; font-size: 17px; color: #0e1b3d; }
+.khqr-aba { margin-top: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; width: 100%; padding: 13px 16px; border-radius: 14px; background: linear-gradient(90deg, #0a4a9e, #1d6adf); color: #fff; font: 700 16px "Fredoka", "Kantumruy Pro", sans-serif; text-decoration: none; box-shadow: 0 12px 24px -12px rgba(29,106,223,.9); }
+.khqr-aba svg { width: 20px; height: 20px; fill: currentColor; }
+.khqr-aba:active { transform: scale(.98); }
+.khqr-or { margin: 10px 0 2px; color: #7b8498; }
+.khqr-dl { display: inline-flex; align-items: center; gap: 8px; border: 0; background: transparent; color: #12b3c4; font: 600 18px "Roboto", "Fredoka", sans-serif; cursor: pointer; padding: 6px 10px; }
+.khqr-dl svg { width: 22px; height: 22px; fill: currentColor; }
+.khqr-note { margin: 6px 0 0; color: #7b8498; font-size: 14px; line-height: 1.45; max-width: 280px; }
+.khqr-status { margin: 12px 0 0; font-size: 13px; color: #6b7589; display: inline-flex; align-items: center; gap: 8px; }
+.khqr-status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #19b4d9; animation: pm-ping 1.6s infinite; box-shadow: 0 0 0 0 rgba(25,180,217,.6); }
+.khqr-expired { position: absolute; inset: 74px 0 0; background: rgba(255,255,255,.96); display: grid; align-content: center; justify-items: center; gap: 10px; padding: 24px; text-align: center; }
+.khqr-expired b { font-size: 22px; color: #e1232e; }
+.khqr-expired span { color: #6b7589; }
+.khqr-expired .gp-btn { width: auto; padding: 11px 26px; }
+.khqr-card .hidden { display: none !important; }
+@media (prefers-reduced-motion: reduce) { .khqr-card, .khqr-status::before { animation: none; } }

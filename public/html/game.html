@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="css/site-header-brand_925661.css">
   <link rel="stylesheet" href="css/game-checkout-layout_75680f.css">
   <link rel="stylesheet" href="css/checkout-payment-methods_c2c20a.css">
-  <link rel="stylesheet" href="css/game-page.css?v=20261121f">
+  <link rel="stylesheet" href="css/game-page.css?v=20261121g">
   <link rel="stylesheet" href="css/porpor-blue-all.css?v=2">
 </head>
 <body>
@@ -27,21 +27,51 @@
     <p class="gp-muted" id="gp-loading">កំពុងផ្ទុក…</p>
   </main>
 
-  <dialog id="qr-dialog" class="gp-dialog">
-    <div class="gp-dialog-card">
-      <h3>ស្កេនដើម្បីបង់ប្រាក់</h3>
-      <p class="gp-muted">Total <b id="qr-amount"></b></p>
-      <div id="qr-box" class="gp-qr"></div>
-      <p id="qr-status" class="gp-muted">Waiting for payment…</p>
-      <a id="qr-deeplink" class="gp-btn gp-btn-ghost hidden" target="_blank" rel="noopener">Open ABA app</a>
-      <button type="button" class="gp-btn gp-btn-ghost" id="qr-close">Close</button>
+  <dialog id="qr-dialog" class="gp-dialog khqr-dialog" aria-label="ABA KHQR">
+    <div class="khqr-card">
+      <button type="button" class="khqr-x" id="qr-close" aria-label="Close">×</button>
+      <div class="khqr-head">
+        <span class="khqr-bar"></span>
+        <svg class="khqr-logo" viewBox="0 0 120 34" aria-label="KHQR" role="img"><text x="60" y="27" text-anchor="middle" font-family="Fredoka, Arial, sans-serif" font-weight="700" font-size="32" letter-spacing="2" fill="#fff">KHQR</text></svg>
+        <span class="khqr-fold" aria-hidden="true"></span>
+      </div>
+      <div class="khqr-body">
+        <div class="khqr-top">
+          <b class="khqr-title">ABA KHQR</b>
+          <span class="khqr-timer" id="qr-timer" aria-live="off">
+            <svg viewBox="0 0 36 36" aria-hidden="true"><circle class="khqr-ring-bg" cx="18" cy="18" r="15"/><circle class="khqr-ring" id="qr-ring" cx="18" cy="18" r="15"/></svg>
+            <i id="qr-time">3:00</i>
+          </span>
+        </div>
+        <p class="khqr-merchant" id="qr-merchant">POR POR TOPUP</p>
+        <p class="khqr-amount"><b id="qr-amount"></b><small>USD</small></p>
+        <hr class="khqr-dash">
+        <div id="qr-box" class="khqr-qr"></div>
+        <p class="khqr-scan">Scan to pay</p>
+        <a id="qr-deeplink" class="khqr-aba hidden" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h10a2 2 0 012 2v16a2 2 0 01-2 2H7a2 2 0 01-2-2V4a2 2 0 012-2zm5 18.2a1.1 1.1 0 100-2.2 1.1 1.1 0 000 2.2zM7.5 5v11.5h9V5h-9z"/></svg>
+          Open ABA Mobile
+        </a>
+        <p class="khqr-or">or</p>
+        <button type="button" class="khqr-dl" id="qr-download">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.2l3.6-3.6 1.4 1.4-6 6-6-6 1.4-1.4 3.6 3.6V3h2zM5 19h14v2H5v-2z"/></svg>
+          Download QR
+        </button>
+        <p class="khqr-note">and upload to a Mobile Banking app supporting KHQR</p>
+        <p id="qr-status" class="khqr-status">Waiting for payment…</p>
+      </div>
+      <div class="khqr-expired hidden" id="qr-expired">
+        <b>QR expired</b>
+        <span>Please close and tap Pay again to get a new QR.</span>
+        <button type="button" class="gp-btn" id="qr-close2">Close</button>
+      </div>
     </div>
   </dialog>
 
   <div id="gp-toast" class="gp-toast hidden" role="status"></div>
 
   <script src="js/site-branding.js" defer></script>
-  <script src="js/game-page.js?v=20261121e"></script>
+  <script src="js/game-page.js?v=20261121f"></script>
   <script src="js/pp-livechat.js?v=3" defer></script>
   <script src="js/pp-auth-ui.js?v=2" defer></script>
 </body>

@@ -339,20 +339,72 @@
   /* ---------- KHQR + polling ---------- */
   function stopPoll() { if (S.timer) clearInterval(S.timer); S.timer = null; }
 
+  const IS_MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
+  function abaDeeplink(p) {
+    const dl = String(p.deeplink || "");
+    if (/^abamobilebank:\/\//i.test(dl)) return dl;
+    if (p.qrString) return "abamobilebank://ababank.com?type=payway&qrcode=" + encodeURIComponent(p.qrString);
+    return "";
+  }
+  function fmtTime(sec) { const m = Math.floor(sec / 60), s = sec % 60; return m + ":" + String(s).padStart(2, "0"); }
+  function startCountdown(expiresAt) {
+    clearInterval(S.cd);
+    let end = Date.parse(expiresAt);
+    if (!Number.isFinite(end) || end < Date.now() + 20000) end = Date.now() + 180000;
+    const total = Math.max(30, Math.round((end - Date.now()) / 1000));
+    const ring = $("#qr-ring"), txt = $("#qr-time"), C = 2 * Math.PI * 15;
+    ring.style.strokeDasharray = String(C);
+    const tick = () => {
+      const left = Math.max(0, Math.round((end - Date.now()) / 1000));
+      txt.textContent = fmtTime(left);
+      ring.style.strokeDashoffset = String(C * (1 - left / total));
+      if (left <= 0) { clearInterval(S.cd); stopPoll(); $("#qr-expired").classList.remove("hidden"); }
+    };
+    tick();
+    S.cd = setInterval(tick, 1000);
+  }
+
   function showQr(d) {
     const p = d.payment;
     S.checkoutId = (d.order && d.order.id) || null;
-    $("#qr-amount").textContent = money((d.order && d.order.total) || total());
+    S.qrImage = p.qrImage || "";
+    $("#qr-amount").textContent = Number((d.order && d.order.total) || total()).toFixed(2);
     $("#qr-box").innerHTML = p.qrImage
       ? `<img src="${esc(p.qrImage)}" alt="KHQR">`
       : `<pre>${esc(p.qrString)}</pre>`;
+    $("#qr-download").hidden = !p.qrImage;
+    $("#qr-expired").classList.add("hidden");
+
+    // ABA Mobile: custom-scheme deeplink (opens the app straight to the payment) or the https /open-aba helper
+    const native = abaDeeplink(p);
     const link = $("#qr-deeplink");
-    const dl = p.deeplink || p.openAbaUrl || p.payUrl;
-    if (dl) { link.href = dl; link.classList.remove("hidden"); } else link.classList.add("hidden");
+    const href = native || p.openAbaUrl || p.deeplink || p.payUrl || "";
+    if (href) { link.href = href; link.classList.remove("hidden"); } else link.classList.add("hidden");
     $("#qr-status").textContent = "Waiting for payment…";
     $("#qr-dialog").showModal();
+    startCountdown(p.expiresAt);
     stopPoll();
-    S.timer = setInterval(checkPaid, 5000);
+    S.timer = setInterval(checkPaid, 4000);
+
+    // Phones with ABA: jump into the app automatically (QR stays here if the app is missing / user comes back)
+    if (IS_MOBILE && native) {
+      setTimeout(() => {
+        try { const a = document.createElement("a"); a.href = native; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove(); } catch {}
+      }, 450);
+    }
+  }
+
+  async function downloadQr() {
+    if (!S.qrImage) return;
+    const name = "khqr-" + (S.checkoutId || "pay") + ".png";
+    try {
+      const blob = await (await fetch(S.qrImage)).blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    } catch {
+      window.open(S.qrImage, "_blank");
+    }
   }
 
   async function checkPaid() {
@@ -360,7 +412,7 @@
     const r = await api(`/api/checkout/${encodeURIComponent(S.checkoutId)}/status`);
     const order = r.data && r.data.order;
     if (order && order.status && order.status !== "pending") {
-      stopPoll();
+      stopPoll(); clearInterval(S.cd);
       $("#qr-dialog").close();
       location.href = "/success?code=" + encodeURIComponent(S.checkoutId);
     } else {
@@ -414,8 +466,13 @@
     });
   }
 
-  $("#qr-close").onclick = () => { stopPoll(); $("#qr-dialog").close(); };
-  $("#qr-dialog").addEventListener("click", (e) => { if (e.target === e.currentTarget) { stopPoll(); e.currentTarget.close(); } });
+  const closeQr = () => { stopPoll(); clearInterval(S.cd); $("#qr-dialog").close(); };
+  $("#qr-close").onclick = closeQr;
+  $("#qr-close2").onclick = closeQr;
+  $("#qr-download").onclick = downloadQr;
+  $("#qr-dialog").addEventListener("click", (e) => { if (e.target === e.currentTarget) closeQr(); });
+  // Came back from ABA app → check payment immediately
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && S.checkoutId && $("#qr-dialog").open) checkPaid(); });
 
   /* ---------- load ---------- */
   async function load() {
