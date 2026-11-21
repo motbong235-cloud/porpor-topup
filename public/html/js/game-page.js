@@ -51,7 +51,8 @@
   const hasServer = () => Array.isArray(S.game.servers) && S.game.servers.length > 0;
   const subtotal = () => (S.pack ? Number(S.pack.price) * S.qty : 0);
   const total = () => Math.max(0, subtotal() - S.discount);
-  const idLabel = () => (S.game.numericId ? "User ID" : "Player ID");
+  const isTT = () => /tiktok/i.test(String(S.game.id) + " " + String(S.game.name));
+  const idLabel = () => (isTT() ? "TikTok video link" : S.game.numericId ? "User ID" : "Player ID");
   const idHint = () => S.game.idHintEn || S.game.idHintKm || "";
   const zoneLabel = () => S.game.zoneLabelEn || S.game.zoneLabelKm || "Zone ID";
 
@@ -146,10 +147,10 @@
             <div class="checkout-field">
               <div class="checkout-row">
                 <input id="f-user" class="checkout-input" value="${esc(S.userId)}" autocomplete="off" ${g.numericId ? 'inputmode="numeric"' : ""} placeholder="${esc(hint || idLabel())}">
-                <button type="button" class="checkout-btn checkout-btn--ghost" id="btn-check">Check ID</button>
+                <button type="button" class="checkout-btn checkout-btn--ghost" id="btn-check">${isTT() ? "Check link" : "Check ID"}</button>
               </div>
               ${hint ? `<p class="checkout-help">${esc(hint)}</p>` : ""}
-              <p class="checkout-help ${S.check ? "is-ok" : "is-err"}" id="check-msg">${S.check ? "✓ " + esc(S.check.nickname) : esc(S.checkMsg)}</p>
+              <p class="checkout-help ${S.check ? "is-ok" : S.checkSoft ? "is-soft" : "is-err"}" id="check-msg">${S.check ? "✓ " + esc(S.check.nickname) : esc(S.checkMsg)}</p>
             </div>
             ${hasZone() ? `<div class="checkout-field">
               <label class="checkout-label" for="f-zone">${esc(zoneLabel())}</label>
@@ -235,12 +236,15 @@
       body: JSON.stringify({ slug: S.game.id, playerId, serverId: S.zoneId.trim() || S.server || undefined }),
     });
     const d = r.data || {};
+    S.checkSoft = false;
     if (d.valid === true || d.result === "valid") {
-      S.check = { nickname: d.nickname || playerId };
+      const tt = d.tiktok || null;
+      S.check = { nickname: tt && tt.username ? "@" + tt.username + (d.nickname && d.nickname !== tt.username ? " · " + d.nickname : "") : (d.nickname || playerId) };
       S.checkMsg = "";
     } else {
       S.check = null;
-      S.checkMsg = d.message || (d.result === "invalid" ? "Invalid ID" : "Could not verify — you can still pay");
+      S.checkSoft = !!d.soft || (d.result !== "invalid" && !d.message);
+      S.checkMsg = d.message || (d.result === "invalid" ? "Invalid ID" : r.status === 429 ? "Too many checks — wait a minute" : "Could not verify — you can still pay");
     }
     render();
   }

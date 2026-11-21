@@ -893,19 +893,33 @@ app.post("/api/verify", limit("verify", { limit: 15, windowMs: 60_000 }), async 
     if (isTikTok) {
       try {
         const tt = await tiktokLookup.lookupTikTokLink(playerId);
+        const looksTikTokUrl = /tiktok\.com\//i.test(String(playerId));
         if (!tt || !tt.valid) {
+          // A well-formed TikTok link whose @username we could not read (TikTok often blocks
+          // server look-ups of short vt./vm. links) must not block the customer: soft result.
+          if (looksTikTokUrl) {
+            console.warn("[tiktok] verify unresolved:", String(playerId).slice(0, 120), tt && tt.message);
+            return res.json({
+              result: "unverified",
+              valid: false,
+              soft: true,
+              message: "Link accepted ✓ — we could not read the username, you can still pay",
+              provider: "tiktok",
+            });
+          }
           return res.json({
             result: "invalid",
             valid: false,
-            message: "Invalid TikTok link — use full video URL",
+            message: "Invalid TikTok link — paste the full video URL (tiktok.com/…)",
             provider: "tiktok",
           });
         }
         if (!tt.username && !tt.displayName) {
           return res.json({
-            result: "invalid",
+            result: "unverified",
             valid: false,
-            message: "Could not read TikTok username from link",
+            soft: true,
+            message: "Link accepted ✓ — we could not read the username, you can still pay",
             provider: "tiktok",
             tiktok: tt,
           });

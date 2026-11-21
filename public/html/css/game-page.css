@@ -461,3 +461,7 @@ html body .pk-item.is-selected {
 html body .pk-item[data-selected="true"] .pk-price { color: #ffd76a !important; }
 html body .pk-item[data-selected="true"] .pk-name { color: #fff !important; }
 .pk-chips { background: rgba(42,39,38,.9); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 16px; padding: 8px; margin: 0 0 12px; }
+
+/* Soft (non-blocking) check result, e.g. TikTok link accepted but username unreadable */
+.checkout-help.is-soft { color: #ffd76a !important; }
+.checkout-help.is-ok { color: #6ee7a8 !important; font-weight: 600; }
