@@ -97,8 +97,12 @@
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push(p);
     });
-    return [...groups.entries()].map(([cat, list]) => `
-      <div class="pk-group">
+    const cats = [...groups.keys()];
+    const chips = cats.length > 1
+      ? `<div class="pk-chips" role="tablist">${cats.map((c, i) => `<button type="button" class="pk-chip" data-jump="pkg-${i}">${esc(c)}<b>${groups.get(c).length}</b></button>`).join("")}</div>`
+      : "";
+    return chips + [...groups.entries()].map(([cat, list], gi) => `
+      <div class="pk-group" id="pkg-${gi}">
         <div class="pk-head">
           <span class="pk-head__title">${ICON_STAR}${esc(cat)}</span>
           <span class="pk-head__count">${ICON_THUMB}${list.length}</span>
@@ -108,6 +112,19 @@
   }
 
   function render() {
+    const y = window.scrollY;
+    const ae = document.activeElement;
+    const keepId = ae && ae.id && root.contains(ae) ? ae.id : null;
+    const caret = keepId && typeof ae.selectionStart === "number" ? ae.selectionStart : null;
+    paint();
+    window.scrollTo(0, y);
+    if (keepId) {
+      const el = document.getElementById(keepId);
+      if (el && el.tagName !== "BUTTON") { try { el.focus({ preventScroll: true }); if (caret != null) el.setSelectionRange(caret, caret); } catch {} }
+    }
+  }
+
+  function paint() {
     const g = S.game;
     if (!g) {
       root.innerHTML = `<section class="checkout-card"><p>${esc(S.error || "Game not found.")}</p><a class="checkout-btn" href="/">Back to home</a></section>`;
@@ -195,7 +212,10 @@
           </section>
         </div>
         <div class="pk-bar">
-          <div class="pk-bar__total"><span>Total:</span><strong>${money(total())}</strong></div>
+          <div class="pk-bar__info">
+            <span class="pk-bar__sel">${S.pack ? esc(S.pack.name) + (S.qty > 1 ? " × " + S.qty : "") : "Select a package"}</span>
+            <div class="pk-bar__total"><span>Total:</span><strong class="${S.bump ? "is-bump" : ""}">${money(total())}</strong></div>
+          </div>
           <button type="button" class="pk-bar__pay" id="btn-pay-bar" ${S.paying || !S.pack ? "disabled" : ""}>${ICON_BAG}${S.paying ? "Please wait…" : "Pay Now"}</button>
         </div>
       </div>` : `<section class="checkout-card"><p>This game is not available right now.</p></section>`}`;
@@ -352,7 +372,16 @@
       b.onclick = () => {
         S.pack = S.game.packs.find((p) => String(p.id) === b.dataset.pack) || null;
         S.discount = 0; S.couponMsg = ""; S.payErr = "";
+        S.bump = true;
+        try { navigator.vibrate && navigator.vibrate(12); } catch {}
         render();
+        S.bump = false;
+      };
+    });
+    root.querySelectorAll("[data-jump]").forEach((b) => {
+      b.onclick = () => {
+        const t = document.getElementById(b.dataset.jump);
+        if (t) t.scrollIntoView({ behavior: "smooth", block: "start" });
       };
     });
     root.querySelectorAll("[data-qty]").forEach((b) => {
@@ -370,6 +399,7 @@
   /* ---------- load ---------- */
   async function load() {
     if (!gameId) { S.error = "Missing game id."; return render(); }
+    root.innerHTML = '<div class="sk-hero"></div><div class="sk-card"><div class="sk-line w40"></div><div class="sk-grid">' + '<div class="sk-tile"></div>'.repeat(6) + '</div></div>';
     const r = await api("/api/catalog");
     const games = (r.data && r.data.games) || [];
     S.game = games.find((g) => String(g.id) === gameId) || null;
