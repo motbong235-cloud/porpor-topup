@@ -11,7 +11,7 @@
     ".pp-game-card:hover{border-color:#5eb0ff}" +
     ".pp-game-art{position:relative;aspect-ratio:1/1;background:#242121;display:flex;align-items:center;justify-content:center;overflow:hidden}" +
     ".pp-game-art img{width:100%;height:100%;object-fit:cover;display:block}" +
-    ".pp-game-mark{font-size:28px;font-weight:800;color:#1d6adf}" +
+    ".pp-game-mark{font-size:44px;font-weight:800;color:#5eb0ff;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 30% 20%,rgba(94,176,255,.28),transparent 60%),#242121}" +
     ".pp-game-body{padding:8px 10px 10px;min-width:0}" +
     ".pp-game-name{font-weight:700;font-size:13px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +
     ".pp-game-from{font-size:11px;color:#b8d4f5;opacity:.85;margin-top:2px}" +
@@ -27,9 +27,11 @@
 
   function card(g, hot) {
     const from = minPrice(g);
+    const mark = esc(String(g.name || "?").trim().charAt(0).toUpperCase());
+    // no-referrer: some image hosts block hot-linking by Referer; onerror → letter mark instead of an empty box
     const art = g.image
-      ? `<img src="${esc(g.image)}" alt="" loading="lazy">`
-      : `<span class="pp-game-mark">${esc(String(g.name || "?").trim().charAt(0).toUpperCase())}</span>`;
+      ? `<img src="${esc(g.image)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-mark="${mark}" onerror="this.onerror=null;var m=document.createElement('span');m.className='pp-game-mark';m.textContent=this.dataset.mark;this.replaceWith(m)">`
+      : `<span class="pp-game-mark">${mark}</span>`;
     return `<a class="pp-game-card" href="/game/${encodeURIComponent(g.id)}">
       <div class="pp-game-art">${hot ? '<span class="pp-game-badge">TOP</span>' : ""}${art}</div>
       <div class="pp-game-body">

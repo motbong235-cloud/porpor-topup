@@ -75,7 +75,7 @@
     const sel = S.pack && String(S.pack.id) === String(p.id);
     const oos = p.inStock === false;
     const icon = p.image
-      ? `<img src="${esc(p.image)}" alt="" loading="lazy" decoding="async">`
+      ? `<img src="${esc(p.image)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;this.style.visibility='hidden'">`
       : `<span class="pk-icon-letter">${esc(String(p.name || "?").charAt(0).toUpperCase())}</span>`;
     const bonus = bonusText(p.bonus);
     const tag = String(p.tag || (p.hot ? "HOT" : "")).trim();
@@ -117,7 +117,7 @@
     const hint = idHint();
     root.innerHTML = `
       <section class="checkout-hero">
-        <div class="checkout-hero__img">${g.image ? `<img src="${esc(g.image)}" alt="">` : `<span>${esc(String(g.name || "?").charAt(0))}</span>`}</div>
+        <div class="checkout-hero__img">${g.image ? `<img src="${esc(g.image)}" alt="" referrerpolicy="no-referrer" onerror="this.onerror=null;this.style.visibility='hidden'">` : `<span>${esc(String(g.name || "?").charAt(0))}</span>`}</div>
         <div><h1 class="checkout-hero__title">${esc(g.name)}</h1>
           <p class="checkout-hero__sub">${open ? "Instant delivery" : "Currently unavailable"}</p></div>
       </section>
