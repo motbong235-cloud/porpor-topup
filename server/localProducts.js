@@ -49,12 +49,12 @@ export const DEFAULT_LOCAL_PRODUCTS = [
     customerNoteEn: "Hello!\nThank you for your order. Here is your tutorial video on how to use our TikTok Khmer service.\nIf you have any questions, contact support.\n\nTikTok Khmer Team",
     supportContact: "https://t.me/kairozen_support",
     packs: [
-      { id: "ttk-01", name: "500-1K Likes | 1.8K Views", nameKm: "500-1K Likes | 1.8K Views", price: 0.99, cost: 0.5, category: "TikTok Like", bonus: "" },
-      { id: "ttk-02", name: "1K-2K Likes | 3.5K Views", nameKm: "1K-2K Likes | 3.5K Views", price: 1.99, cost: 1.0, category: "TikTok Like", bonus: "" },
-      { id: "ttk-03", name: "2K-3K Likes | 10K Views", nameKm: "2K-3K Likes | 10K Views", price: 3.25, cost: 1.6, category: "TikTok Like", bonus: "" },
-      { id: "ttk-04", name: "3K-5K Likes | 20K Views", nameKm: "3K-5K Likes | 20K Views", price: 5.49, cost: 2.7, category: "TikTok Like", bonus: "" },
-      { id: "ttk-05", name: "2K-5K Views", nameKm: "2K-5K Views", price: 0.99, cost: 0.5, category: "TikTok Views", bonus: "" },
-      { id: "ttk-06", name: "100-200 Followers", nameKm: "100-200 Followers", price: 0.99, cost: 0.5, category: "TikTok Followers", bonus: "" },
+      { id: "ttk-01", name: "500-1K Likes | 1.8K Views", nameKm: "500-1K Likes | 1.8K Views", price: 0.99, cost: 0.5, category: "TikTok Like", bonus: "", image: "/icons/ttk-like.svg" },
+      { id: "ttk-02", name: "1K-2K Likes | 3.5K Views", nameKm: "1K-2K Likes | 3.5K Views", price: 1.99, cost: 1.0, category: "TikTok Like", bonus: "", image: "/icons/ttk-like.svg" },
+      { id: "ttk-03", name: "2K-3K Likes | 10K Views", nameKm: "2K-3K Likes | 10K Views", price: 3.25, cost: 1.6, category: "TikTok Like", bonus: "", image: "/icons/ttk-like.svg" },
+      { id: "ttk-04", name: "3K-5K Likes | 20K Views", nameKm: "3K-5K Likes | 20K Views", price: 5.49, cost: 2.7, category: "TikTok Like", bonus: "", image: "/icons/ttk-like.svg" },
+      { id: "ttk-05", name: "2K-5K Views", nameKm: "2K-5K Views", price: 0.99, cost: 0.5, category: "TikTok Views", bonus: "", image: "/icons/ttk-view.svg" },
+      { id: "ttk-06", name: "100-200 Followers", nameKm: "100-200 Followers", price: 0.99, cost: 0.5, category: "TikTok Followers", bonus: "", image: "/icons/ttk-follow.svg" },
     ],
   },
   {
@@ -245,6 +245,16 @@ function forcedUsernameIds() {
 
 /** Hand-coded (non-API) services hidden from the storefront, admin list and checkout. Code and saved data are kept. */
 export const HIDDEN_LOCAL_IDS = new Set([]); // show all local services in Admin + Home
+
+
+/** Default pack icon by TikTok category */
+function ttkPackImage(p) {
+  const c = String(p?.category || p?.name || "").toLowerCase();
+  if (/follow/.test(c)) return "/icons/ttk-follow.svg";
+  if (/view/.test(c)) return "/icons/ttk-view.svg";
+  if (/like/.test(c)) return "/icons/ttk-like.svg";
+  return p?.image || "";
+}
 
 export function isHiddenLocal(id) {
   return HIDDEN_LOCAL_IDS.has(String(id));

@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <!-- Teal body gradient: bright highlight top-left to deep teal bottom-right -->
+    <radialGradient id="userBody" cx="38%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#7ff5e6"/>
+      <stop offset="35%" stop-color="#1fd1bd"/>
+      <stop offset="75%" stop-color="#00998a"/>
+      <stop offset="100%" stop-color="#005c54"/>
+    </radialGradient>
+
+    <!-- Plus badge gradient -->
+    <radialGradient id="badgeBody" cx="38%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#8fb8ff"/>
+      <stop offset="45%" stop-color="#2f7bff"/>
+      <stop offset="100%" stop-color="#0a3fb3"/>
+    </radialGradient>
+
+    <!-- Soft blue neon glow -->
+    <filter id="blueGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="28" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Badge glow -->
+    <filter id="badgeGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Glossy specular highlight -->
+    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Head: circle. Body: rounded shoulders arch -->
+    <path id="headShape" d="M512,170 a130,130 0 1,0 0.01,0 Z"/>
+    <path id="bodyShape" d="M270,820 C270,610 370,520 512,520 C654,520 754,610 754,820 Z"/>
+
+    <clipPath id="figureClip">
+      <use href="#headShape"/>
+      <use href="#bodyShape"/>
+    </clipPath>
+  </defs>
+
+  <!-- Blue neon glow behind figure -->
+  <g fill="#2f7bff" opacity="0.5" filter="url(#blueGlow)">
+    <use href="#headShape"/>
+    <use href="#bodyShape"/>
+  </g>
+
+  <!-- Figure body -->
+  <g fill="url(#userBody)">
+    <use href="#headShape"/>
+    <use href="#bodyShape"/>
+  </g>
+
+  <!-- Inner rim for 3D depth -->
+  <g fill="none" stroke="#003d37" stroke-opacity="0.45" stroke-width="10">
+    <use href="#headShape"/>
+    <use href="#bodyShape"/>
+  </g>
+
+  <!-- Glossy highlights clipped to figure -->
+  <g clip-path="url(#figureClip)">
+    <ellipse cx="440" cy="215" rx="70" ry="42" fill="url(#gloss)" transform="rotate(-25 440 215)"/>
+    <ellipse cx="400" cy="590" rx="90" ry="40" fill="url(#gloss)" transform="rotate(-15 400 590)"/>
+  </g>
+
+  <!-- Plus badge (bottom-right) -->
+  <g filter="url(#badgeGlow)">
+    <circle cx="745" cy="745" r="105" fill="url(#badgeBody)" stroke="#ffffff" stroke-opacity="0.9" stroke-width="12"/>
+    <rect x="700" y="725" width="90" height="40" rx="12" fill="#ffffff"/>
+    <rect x="725" y="700" width="40" height="90" rx="12" fill="#ffffff"/>
+  </g>
+</svg>

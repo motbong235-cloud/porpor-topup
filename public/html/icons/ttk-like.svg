@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <!-- Heart body gradient: bright highlight top-left to deep red bottom-right -->
+    <radialGradient id="heartBody" cx="38%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#ff6b7a"/>
+      <stop offset="35%" stop-color="#ff1f3d"/>
+      <stop offset="75%" stop-color="#c4001f"/>
+      <stop offset="100%" stop-color="#7a0014"/>
+    </radialGradient>
+
+    <!-- Soft red neon glow -->
+    <filter id="redGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="28" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Cyan spark glow -->
+    <filter id="cyanGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Glossy specular highlight -->
+    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Cyan spark gradient -->
+    <radialGradient id="sparkCore" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="40%" stop-color="#7ef9ff"/>
+      <stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/>
+    </radialGradient>
+
+    <path id="heartShape" d="M512,820 C180,600 150,420 230,300 C300,190 440,200 512,320 C584,200 724,190 794,300 C874,420 844,600 512,820 Z"/>
+  </defs>
+
+  <!-- Neon glow behind the heart -->
+  <use href="#heartShape" fill="#ff1f3d" opacity="0.55" filter="url(#redGlow)"/>
+
+  <!-- Main heart body -->
+  <use href="#heartShape" fill="url(#heartBody)"/>
+
+  <!-- Inner rim for 3D depth -->
+  <use href="#heartShape" fill="none" stroke="#5c000f" stroke-opacity="0.45" stroke-width="10"/>
+
+  <!-- Glossy top highlight clipped to heart -->
+  <clipPath id="heartClip">
+    <use href="#heartShape"/>
+  </clipPath>
+  <g clip-path="url(#heartClip)">
+    <ellipse cx="370" cy="330" rx="150" ry="85" fill="url(#gloss)" transform="rotate(-25 370 330)"/>
+    <ellipse cx="320" cy="390" rx="22" ry="12" fill="#ffffff" opacity="0.9" transform="rotate(-25 320 390)"/>
+  </g>
+
+  <!-- Cyan accent spark (top-right) -->
+  <g filter="url(#cyanGlow)">
+    <circle cx="820" cy="210" r="46" fill="url(#sparkCore)"/>
+    <path d="M820,150 Q828,202 880,210 Q828,218 820,270 Q812,218 760,210 Q812,202 820,150 Z" fill="#7ef9ff"/>
+  </g>
+</svg>

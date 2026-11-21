@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <!-- Eye almond shape gradient: bright highlight top-left to deep blue bottom-right -->
+    <radialGradient id="eyeBody" cx="40%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#8ff3ff"/>
+      <stop offset="35%" stop-color="#22c8f5"/>
+      <stop offset="75%" stop-color="#0a7fc4"/>
+      <stop offset="100%" stop-color="#03365e"/>
+    </radialGradient>
+
+    <!-- Iris gradient -->
+    <radialGradient id="iris" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#0b1a3a"/>
+      <stop offset="60%" stop-color="#06306a"/>
+      <stop offset="100%" stop-color="#001a3d"/>
+    </radialGradient>
+
+    <!-- Neon ring glow -->
+    <filter id="neonGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="22" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Soft accent glow for play triangle -->
+    <filter id="triGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Glossy specular highlight -->
+    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Almond eye outline: two arcs meeting at left and right points -->
+    <path id="eyeShape" d="M130,512 C300,260 724,260 894,512 C724,764 300,764 130,512 Z"/>
+
+    <clipPath id="eyeClip">
+      <use href="#eyeShape"/>
+    </clipPath>
+  </defs>
+
+  <!-- Neon ring glow behind the eye -->
+  <use href="#eyeShape" fill="none" stroke="#22c8f5" stroke-width="22" opacity="0.7" filter="url(#neonGlow)"/>
+
+  <!-- Eye body -->
+  <use href="#eyeShape" fill="url(#eyeBody)"/>
+
+  <!-- Inner rim for 3D depth -->
+  <use href="#eyeShape" fill="none" stroke="#02264a" stroke-opacity="0.45" stroke-width="10"/>
+
+  <!-- Iris and pupil, clipped to eye -->
+  <g clip-path="url(#eyeClip)">
+    <circle cx="512" cy="512" r="150" fill="url(#iris)"/>
+    <circle cx="512" cy="512" r="150" fill="none" stroke="#7ef9ff" stroke-opacity="0.6" stroke-width="8"/>
+    <circle cx="512" cy="512" r="62" fill="#000814"/>
+    <!-- Glossy highlights on iris -->
+    <ellipse cx="455" cy="455" rx="34" ry="20" fill="#ffffff" opacity="0.95" transform="rotate(-30 455 455)"/>
+    <circle cx="555" cy="565" r="9" fill="#ffffff" opacity="0.6"/>
+    <!-- Glossy highlight across top of eye -->
+    <ellipse cx="512" cy="330" rx="260" ry="70" fill="url(#gloss)" opacity="0.7"/>
+  </g>
+
+  <!-- Subtle play triangle accent, centered in the iris -->
+  <g filter="url(#triGlow)" opacity="0.9">
+    <path d="M498,482 L498,542 L552,512 Z" fill="#7ef9ff"/>
+  </g>
+</svg>
