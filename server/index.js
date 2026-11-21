@@ -6,6 +6,8 @@ import cookieParser from "cookie-parser";
 import crypto from "crypto";
 import {
   UPLOAD_DIR,
+  getLikes,
+  setLike,
   createOrder,
   createSession,
   deleteOrder,
@@ -829,6 +831,26 @@ app.get("/api/version", (_req, res) => {
 });
 
 /** Games + packages the admin selected from Khmer TopUp (prices include markup). */
+/* 👍 likes: GET all counts, POST {gameId,on} toggles this visitor's vote */
+app.get("/api/likes", (req, res) => {
+  res.setHeader("Cache-Control", "no-store");
+  res.json({ likes: getLikes() });
+});
+app.post("/api/like", limit("like", { limit: 30, windowMs: 60_000 }), (req, res) => {
+  const gameId = String(req.body?.gameId || "").trim();
+  if (!/^[A-Za-z0-9_-]{1,80}$/.test(gameId)) return res.status(400).json({ error: "bad_game" });
+  const voter = crypto
+    .createHash("sha256")
+    .update(String(req.ip || "") + "|" + String(req.headers["user-agent"] || "").slice(0, 120))
+    .digest("hex")
+    .slice(0, 24);
+  try {
+    res.json({ ok: true, ...setLike(gameId, voter, !!req.body?.on) });
+  } catch (e) {
+    res.status(500).json({ error: "like_failed" });
+  }
+});
+
 app.get("/api/catalog", async (req, res) => {
   try {
     const settings = getSettings();

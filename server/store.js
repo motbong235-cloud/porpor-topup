@@ -142,6 +142,28 @@ export function updateSettings(patch) {
   return db.settings;
 }
 
+/* ---- Customer 👍 likes per game (one vote per visitor hash) ---- */
+export function getLikes() {
+  const db = read();
+  const out = {};
+  for (const [id, arr] of Object.entries(db.likes || {})) out[id] = Array.isArray(arr) ? arr.length : 0;
+  return out;
+}
+
+export function setLike(gameId, voter, on) {
+  const db = read();
+  db.likes = db.likes || {};
+  const keys = Object.keys(db.likes);
+  if (!db.likes[gameId] && keys.length >= 500) return getLikes();
+  const arr = Array.isArray(db.likes[gameId]) ? db.likes[gameId] : [];
+  const i = arr.indexOf(voter);
+  if (on && i < 0) arr.push(voter);
+  if (!on && i >= 0) arr.splice(i, 1);
+  db.likes[gameId] = arr.slice(-20000);
+  write(db);
+  return { count: arr.length, liked: arr.includes(voter) };
+}
+
 export function listOrders() {
   return (read().orders || []).slice();
 }

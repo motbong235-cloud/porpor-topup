@@ -91,6 +91,22 @@
     </button>`;
   }
 
+  /* 👍 likes: one vote per visitor (remembered here + de-duplicated on the server) */
+  function likedSet() { try { return new Set(JSON.parse(localStorage.getItem("pp_liked") || "[]")); } catch { return new Set(); } }
+  function liked() { return !!(S.game && likedSet().has(String(S.game.id))); }
+  function likeCount() { return Math.max(0, Number(S.likes && S.likes[S.game.id]) || 0) + 0; }
+  async function toggleLike() {
+    const id = String(S.game.id), set = likedSet(), on = !set.has(id);
+    if (on) set.add(id); else set.delete(id);
+    try { localStorage.setItem("pp_liked", JSON.stringify([...set])); } catch {}
+    S.likes = S.likes || {};
+    S.likes[id] = Math.max(0, (Number(S.likes[id]) || 0) + (on ? 1 : -1));
+    try { navigator.vibrate && navigator.vibrate(on ? 15 : 6); } catch {}
+    render();
+    const r = await api("/api/like", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ gameId: id, on }) });
+    if (r.data && typeof r.data.count === "number") { S.likes[id] = r.data.count; render(); }
+  }
+
   function packGroups() {
     const groups = new Map();
     (S.game.packs || []).forEach((p) => {
@@ -106,7 +122,7 @@
       <div class="pk-group" id="pkg-${gi}">
         <div class="pk-head">
           <span class="pk-head__title">${ICON_STAR}${esc(cat)}</span>
-          <span class="pk-head__count">${ICON_THUMB}${list.length}</span>
+          <button type="button" class="pk-head__count pk-like${liked() ? " is-liked" : ""}" data-like aria-pressed="${liked()}" aria-label="Like">${ICON_THUMB}<span class="pk-like__n">${likeCount()}</span></button>
         </div>
         <div class="pk-grid" role="radiogroup">${list.map(packOption).join("")}</div>
       </div>`).join("");
@@ -382,6 +398,7 @@
         S.bump = false;
       };
     });
+    root.querySelectorAll("[data-like]").forEach((b) => { b.onclick = toggleLike; });
     root.querySelectorAll("[data-jump]").forEach((b) => {
       b.onclick = () => {
         const t = document.getElementById(b.dataset.jump);
@@ -404,7 +421,8 @@
   async function load() {
     if (!gameId) { S.error = "Missing game id."; return render(); }
     root.innerHTML = '<div class="sk-hero"></div><div class="sk-card"><div class="sk-line w40"></div><div class="sk-grid">' + '<div class="sk-tile"></div>'.repeat(6) + '</div></div>';
-    const r = await api("/api/catalog");
+    const [r, lk] = await Promise.all([api("/api/catalog"), api("/api/likes")]);
+    S.likes = (lk.data && lk.data.likes) || {};
     const games = (r.data && r.data.games) || [];
     S.game = games.find((g) => String(g.id) === gameId) || null;
     if (!S.game) S.error = "Game not found.";

@@ -465,3 +465,13 @@ html body .pk-item[data-selected="true"] .pk-name { color: #fff !important; }
 /* Soft (non-blocking) check result, e.g. TikTok link accepted but username unreadable */
 .checkout-help.is-soft { color: #ffd76a !important; }
 .checkout-help.is-ok { color: #6ee7a8 !important; font-weight: 600; }
+
+/* 👍 Like button (category header) */
+button.pk-like { font: 700 14px "Fredoka", sans-serif; cursor: pointer; gap: 7px; transition: transform .15s var(--pm-ease), box-shadow .2s; -webkit-tap-highlight-color: transparent; min-height: 40px; min-width: 64px; justify-content: center; }
+button.pk-like:active { transform: scale(.92); }
+button.pk-like svg { width: 18px; height: 18px; fill: currentColor; transition: transform .25s var(--pm-ease); }
+button.pk-like:not(.is-liked) { background: transparent !important; border: 1.5px solid rgba(94,176,255,.55) !important; color: #8ec9ff !important; }
+button.pk-like:not(.is-liked) svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+button.pk-like.is-liked { box-shadow: 0 8px 20px -8px rgba(29,106,223,.95); }
+button.pk-like.is-liked svg { animation: pm-like .45s var(--pm-ease); }
+@keyframes pm-like { 0% { transform: scale(.5) rotate(-20deg); } 60% { transform: scale(1.35) rotate(8deg); } 100% { transform: scale(1); } }
