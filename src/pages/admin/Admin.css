@@ -215,15 +215,18 @@ html.dark .ad-link.active {
   right: 0;
   z-index: 40;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   background: var(--ad-card);
   border-top: 1px solid var(--ad-line);
-  padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  padding: 4px 2px calc(4px + env(safe-area-inset-bottom, 0px));
+  gap: 0;
 }
-.ad-tabs a {
+.ad-tabs a,
+.ad-tabs-more-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 2px;
   padding: 6px 2px;
   font-size: 10px;
@@ -231,10 +234,124 @@ html.dark .ad-link.active {
   color: var(--ad-ink-3);
   text-decoration: none;
   border-radius: 10px;
+  border: none;
+  background: transparent;
+  min-width: 0;
+  min-height: 48px;
+  -webkit-tap-highlight-color: transparent;
 }
-.ad-tabs a.active {
+.ad-tabs a span,
+.ad-tabs-more-btn span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.1;
+}
+.ad-tabs a.active,
+.ad-tabs-more-btn.active {
   color: var(--ad-blue);
   background: var(--ad-blue-soft);
+}
+
+/* More sheet (mobile secondary nav) */
+.ad-more-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.ad-more-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(11, 27, 51, 0.45);
+}
+.ad-more-panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-height: 55dvh;
+  overflow: auto;
+  background: var(--ad-card);
+  border-radius: 18px 18px 0 0;
+  padding: 12px 12px calc(72px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -12px 40px rgba(11, 27, 51, 0.18);
+}
+.ad-more-title {
+  font-weight: 700;
+  font-size: 14px;
+  margin: 4px 8px 12px;
+  color: var(--ad-ink-2);
+}
+.ad-more-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--ad-ink);
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+.ad-more-link small {
+  display: block;
+  font-weight: 500;
+  margin-top: 2px;
+}
+.ad-more-link.active {
+  background: var(--ad-blue-soft);
+  color: var(--ad-blue);
+}
+
+/* Mobile content: room for bottom tabs, no horizontal bleed */
+.ad-main {
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  min-width: 0;
+  overflow-x: hidden;
+}
+.ad-content {
+  padding: 14px 12px 24px;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+.ad-content table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.ad-card {
+  padding: 14px;
+  border-radius: 14px;
+}
+.ad-page-head h1 {
+  font-size: 20px;
+}
+.ad-savebar {
+  margin-left: -12px;
+  margin-right: -12px;
+  bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  z-index: 35;
+}
+/* touch-friendly controls */
+.ad input,
+.ad select,
+.ad textarea,
+.ad button.ad-btn,
+.ad .ad-btn {
+  min-height: 44px;
+  font-size: 16px; /* prevent iOS zoom */
+}
+@media (min-width: 960px) {
+  .ad-main { padding-bottom: 0; overflow-x: visible; }
+  .ad-content { padding: 24px 30px 48px; overflow-x: visible; }
+  .ad-savebar { bottom: 0; margin-left: 0; margin-right: 0; }
+  .ad-more-sheet { display: none !important; }
 }
 
 @media (min-width: 960px) {
