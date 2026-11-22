@@ -306,9 +306,8 @@ function localCatalogAll() {
         blurbEn: String(g.blurbEn || ""),
         famous: !!g.famous,
         hot: !!g.hot,
-        open: ["tiktok-khmer","robux-login","robux-send","roblox-plus","roblox-gift-card"].includes(String(g.id))
-          ? true
-          : g.open !== false,
+        // Honor Admin open/close — no forced-open override
+        open: g.open !== false,
         showWhenOff: !!g.showWhenOff,
         hue: Number(g.hue) || 210,
         mark: String(g.mark || "GC"),
