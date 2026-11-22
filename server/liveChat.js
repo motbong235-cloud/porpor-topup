@@ -195,7 +195,7 @@ export function deleteThread(threadId) {
   return true;
 }
 
-/** Wipe all live-chat user data (threads + messages) */
+/** Wipe conversation history only. Live Chat feature stays enabled for new visitors. */
 export function clearAllThreads() {
   write({ threads: {} });
   return { ok: true, cleared: true };

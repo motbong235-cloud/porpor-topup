@@ -257,7 +257,7 @@ export default function ChatAdmin() {
                 className="ad-btn soft sm"
                 style={{ color: "#c62828", borderColor: "rgba(198,40,40,.35)" }}
                 onClick={async () => {
-                  if (!window.confirm("លុបសារឆាតទាំងអស់? សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។")) return;
+                  if (!window.confirm("លុបប្រវត្តិសន្ទនាអ្នកធ្លាប់ឆាតទាំងអស់?\nLive Chat នៅដដែល — តែសារចាស់នឹងបាត់។")) return;
                   try {
                     await api("/api/admin/chat/clear-all", { method: "POST", body: "{}" });
                     setActive(null);
