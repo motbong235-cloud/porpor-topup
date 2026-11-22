@@ -821,6 +821,19 @@ app.post("/api/admin/chat/:id", adminAuth, (req, res) => {
   res.json({ ok: true, message: msg });
 });
 
+app.post("/api/admin/chat/clear-all", adminAuth, (_req, res) => {
+  liveChat.clearAllThreads();
+  auditLog("chat_clear_all", {});
+  res.json({ ok: true, cleared: true });
+});
+
+app.delete("/api/admin/chat/:id", adminAuth, (req, res) => {
+  const ok = liveChat.deleteThread(req.params.id);
+  if (!ok) return res.status(404).json({ error: "not_found" });
+  auditLog("chat_delete", { id: req.params.id });
+  res.json({ ok: true });
+});
+
 
 app.get("/api/version", (_req, res) => {
   res.set("Cache-Control", "no-store");

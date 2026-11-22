@@ -15,7 +15,7 @@ const DEFAULT_SETTINGS = {
   siteName: "POR POR TOPUP",
   taglineKm: "ហាងហ្គេមព្រីមៀម",
   taglineEn: "PREMIUM GAME STORE",
-  telegram: "https://t.me/porportopup",
+  telegram: "https://t.me/kairozen_support",
   /** Messenger support link shown in the storefront support widget (Admin → Settings) */
   messenger: "https://m.me/966156173243491",
   /** Telegram Login Widget — can set in Admin (env TELEGRAM_* still overrides if set) */

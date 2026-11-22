@@ -183,3 +183,20 @@ export function markRead(threadId, who) {
   db.threads[t.id] = t;
   write(db);
 }
+
+/** Delete one conversation thread */
+export function deleteThread(threadId) {
+  const db = read();
+  const tid = ipKey(threadId);
+  const key = db.threads[tid] ? tid : db.threads[threadId] ? threadId : null;
+  if (!key) return false;
+  delete db.threads[key];
+  write(db);
+  return true;
+}
+
+/** Wipe all live-chat user data (threads + messages) */
+export function clearAllThreads() {
+  write({ threads: {} });
+  return { ok: true, cleared: true };
+}

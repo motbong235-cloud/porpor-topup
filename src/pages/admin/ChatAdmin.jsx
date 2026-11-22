@@ -182,6 +182,19 @@ export default function ChatAdmin() {
     return <p className="ad-chat-text">{m.text}</p>;
   }
 
+  async function deleteActiveThread() {
+    if (!active) return;
+    if (!window.confirm("លុបសន្ទនានេះ?")) return;
+    try {
+      await api("/api/admin/chat/" + encodeURIComponent(active), { method: "DELETE" });
+      setActive(null);
+      setMessages([]);
+      await loadThreads();
+    } catch {
+      alert("Delete failed");
+    }
+  }
+
   function closeThread() {
     if (window.history.state?.adChat) window.history.back();
     else setActive(null);
@@ -235,9 +248,29 @@ export default function ChatAdmin() {
               </h2>
               <p className="ad-chat-sub">{threads.length} conversations</p>
             </div>
-            <button type="button" className="ad-btn soft sm" onClick={loadThreads}>
-              <AIcon name="refresh" size={15} /> Refresh
-            </button>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button type="button" className="ad-btn soft sm" onClick={loadThreads}>
+                <AIcon name="refresh" size={15} /> Refresh
+              </button>
+              <button
+                type="button"
+                className="ad-btn soft sm"
+                style={{ color: "#c62828", borderColor: "rgba(198,40,40,.35)" }}
+                onClick={async () => {
+                  if (!window.confirm("លុបសារឆាតទាំងអស់? សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។")) return;
+                  try {
+                    await api("/api/admin/chat/clear-all", { method: "POST", body: "{}" });
+                    setActive(null);
+                    setMessages([]);
+                    await loadThreads();
+                  } catch (e) {
+                    alert("Clear failed");
+                  }
+                }}
+              >
+                លុបទាំងអស់
+              </button>
+            </div>
           </div>
 
           <div className="ad-chat-search">
@@ -303,6 +336,7 @@ export default function ChatAdmin() {
                 <button type="button" className="ad-chat-back" onClick={closeThread} aria-label="Back">
                   <AIcon name="chevL" size={20} />
                 </button>
+                <button type="button" className="ad-btn soft sm" style={{marginLeft:"auto",color:"#c62828"}} onClick={deleteActiveThread}>លុប</button>
                 <div className="ad-chat-main-title">
                   <div className="ad-chat-avatar lg">
                     {(activeThread?.name || "G")[0].toUpperCase()}
