@@ -1,20 +1,20 @@
 /* =========================================================
    Exact structure from Natsu source (catalog-categories +
    featured-card patterns from user-provided HTML/CSS)
-   Colors from temporary_colors in their index HTML.
+   Colors re-themed to Kira Store red/gold palette.
    ========================================================= */
 
 :root {
-  --site-color-gradient-start: #1d6adf;
-  --site-color-gradient-end: #5eb0ff;
-  --site-color-link: #5eb0ff;
+  --site-color-gradient-start: #e5342a;
+  --site-color-gradient-end: #ff9d3d;
+  --site-color-link: #ff9d3d;
   --site-color-text-light: #e8f1ff;
   --site-color-text-dark: #b0b0b0;
   --site-color-primary-dark: #100A08;
-  --site-color-accent: #1d6adf;
+  --site-color-accent: #e5342a;
   --daddy-purple: #474342;
   --daddy-dark-purple: #242121;
-  --daddy-orange: #5eb0ff;
+  --daddy-orange: #ff9d3d;
 }
 
 .natsu-home {
@@ -45,7 +45,7 @@
 }
 
 .catalog-categories__item {
-  --category-accent: var(--site-color-gradient-start, #1d6adf);
+  --category-accent: var(--site-color-gradient-start, #e5342a);
   flex: 0 0 auto;
   width: 56px;
   min-height: 60px;
@@ -65,7 +65,7 @@
 }
 
 .catalog-categories__item[data-catalog-category="giftcard"] {
-  --category-accent: var(--site-color-gradient-end, #5eb0ff);
+  --category-accent: var(--site-color-gradient-end, #ff9d3d);
 }
 
 .catalog-categories__badge {
@@ -173,7 +173,7 @@
   width: 28px;
   height: 28px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #1d6adf, #5eb0ff);
+  background: linear-gradient(135deg, #e5342a, #ff9d3d);
   color: #100A08;
   flex-shrink: 0;
 }
@@ -190,7 +190,7 @@
   padding: 4px 12px;
   border-radius: 999px;
   background: rgba(36, 33, 33, 0.8);
-  border: 1px solid rgba(29, 106, 223, 0.3);
+  border: 1px solid rgba(229, 52, 42, 0.3);
   font-size: 12px;
   font-weight: 700;
   color: var(--daddy-orange);
@@ -210,7 +210,7 @@
   margin-bottom: 8px;
 }
 .natsu-star {
-  color: #5eb0ff;
+  color: #ff9d3d;
   margin-right: 4px;
 }
 
@@ -249,7 +249,7 @@
   transition: box-shadow 0.2s ease;
 }
 .natsu-home .game-card.card-hover:hover {
-  box-shadow: 0 8px 22px rgba(29, 106, 223, 0.2) !important;
+  box-shadow: 0 8px 22px rgba(229, 52, 42, 0.2) !important;
 }
 
 .natsu-home .game-card-visual {
@@ -320,7 +320,7 @@
   display: inline-flex !important;
   align-items: center !important;
   gap: 3px;
-  background: linear-gradient(90deg, #1d6adf, #5eb0ff) !important;
+  background: linear-gradient(90deg, #e5342a, #ff9d3d) !important;
   color: #100A08 !important;
   font-size: 9px !important;
   font-weight: 900 !important;
@@ -363,12 +363,12 @@
   margin-top: auto !important;
   padding: 8px 6px !important;
   border-radius: 10px !important;
-  background: linear-gradient(90deg, #1d6adf, #5eb0ff) !important;
+  background: linear-gradient(90deg, #e5342a, #ff9d3d) !important;
   color: #100A08 !important;
   font-size: 11px !important;
   font-weight: 900 !important;
   border: none !important;
-  box-shadow: 0 3px 10px rgba(29, 106, 223, 0.35) !important;
+  box-shadow: 0 3px 10px rgba(229, 52, 42, 0.35) !important;
   letter-spacing: 0.03em;
 }
 .natsu-home .game-cta.on::before {

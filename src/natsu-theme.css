@@ -1,5 +1,5 @@
 /* =========================================================
-   Porpor storefront — Natsu-aligned dark gold theme
+   Porpor storefront — Kira-inspired red/gold theme
    ========================================================= */
 
 :root,
@@ -9,9 +9,9 @@ html:not(.dark) {
   --surface: #1c1917;
   --ink: #e8f1ff;
   --muted: #c4b8a8;
-  --line: rgba(29, 106, 223, 0.18);
-  --primary: #1d6adf;
-  --primary-2: #5eb0ff;
+  --line: rgba(229, 52, 42, 0.18);
+  --primary: #e5342a;
+  --primary-2: #ff9d3d;
   --navy: #0e0c0b;
   --ice: #2a2624;
   --on-primary: #100a08;
@@ -20,8 +20,8 @@ html:not(.dark) {
   --ok: #34d399;
   --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
   --radius: 1rem;
-  --gold: #5eb0ff;
-  --gold-2: #1d6adf;
+  --gold: #ff9d3d;
+  --gold-2: #e5342a;
   --card: #1c1917;
   --purple: #474342;
 }
@@ -34,25 +34,25 @@ body {
   font-family: "Space Grotesk", "Sora", "Inter", "Kantumruy Pro", system-ui, sans-serif;
 }
 
-/* Header — dark bar like Natsu */
+/* Header — dark bar like Kira */
 .header,
 .site-header {
   background: rgba(20, 18, 16, 0.98) !important;
-  border-bottom: 1px solid rgba(29, 106, 223, 0.15) !important;
+  border-bottom: 1px solid rgba(229, 52, 42, 0.15) !important;
   backdrop-filter: blur(12px);
 }
 .logo-mark {
-  background: linear-gradient(135deg, #1d6adf, #5eb0ff) !important;
+  background: linear-gradient(135deg, #e5342a, #ff9d3d) !important;
   color: #100a08 !important;
-  box-shadow: 0 4px 14px rgba(29, 106, 223, 0.4) !important;
-  border: 1px solid rgba(94, 176, 255, 0.5) !important;
+  box-shadow: 0 4px 14px rgba(229, 52, 42, 0.4) !important;
+  border: 1px solid rgba(255, 157, 61, 0.5) !important;
 }
 .logo-name {
   color: #e8f1ff !important;
   font-weight: 800 !important;
 }
 .logo-tag {
-  color: #5eb0ff !important;
+  color: #ff9d3d !important;
 }
 
 .icon-btn,
@@ -63,20 +63,20 @@ body {
   border-radius: 999px !important;
 }
 .icon-btn:hover {
-  color: #5eb0ff !important;
-  background: rgba(29, 106, 223, 0.1) !important;
+  color: #ff9d3d !important;
+  background: rgba(229, 52, 42, 0.1) !important;
 }
 
 .lang-btn,
 .header-lang {
-  border: 1.5px solid rgba(29, 106, 223, 0.5) !important;
-  color: #5eb0ff !important;
+  border: 1.5px solid rgba(229, 52, 42, 0.5) !important;
+  color: #ff9d3d !important;
   background: transparent !important;
   border-radius: 999px !important;
   font-weight: 800 !important;
 }
 
-/* Login pill — dark fill + gold ring (Natsu style) */
+/* Login pill — dark fill + red/gold ring (Kira style) */
 .header-user-btn,
 .natsu-login-btn {
   position: relative !important;
@@ -93,8 +93,8 @@ body {
   font-weight: 800 !important;
   cursor: pointer !important;
   box-shadow:
-    0 0 0 2px #1d6adf,
-    0 0 16px rgba(94, 176, 255, 0.35) !important;
+    0 0 0 2px #e5342a,
+    0 0 16px rgba(255, 157, 61, 0.35) !important;
 }
 .header-user-btn > span,
 .natsu-login-btn > span,
@@ -104,19 +104,19 @@ body {
   z-index: 1;
 }
 .header-user-btn.is-on {
-  box-shadow: 0 0 0 2px #5eb0ff, 0 0 12px rgba(94, 176, 255, 0.3) !important;
+  box-shadow: 0 0 0 2px #ff9d3d, 0 0 12px rgba(255, 157, 61, 0.3) !important;
 }
 .header-user-photo {
   width: 26px !important;
   height: 26px !important;
   border-radius: 999px !important;
-  border: 2px solid #5eb0ff !important;
+  border: 2px solid #ff9d3d !important;
 }
 .header-user-initial {
   width: 26px;
   height: 26px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #1d6adf, #5eb0ff);
+  background: linear-gradient(135deg, #e5342a, #ff9d3d);
   color: #100a08;
   display: grid;
   place-items: center;
@@ -130,11 +130,11 @@ button.bg-brand,
 a.bg-brand,
 .pay-btn,
 .order-btn {
-  background: linear-gradient(90deg, #1d6adf, #5eb0ff) !important;
+  background: linear-gradient(90deg, #e5342a, #ff9d3d) !important;
   color: #100a08 !important;
   border: none !important;
   font-weight: 800 !important;
-  box-shadow: 0 4px 16px rgba(29, 106, 223, 0.35) !important;
+  box-shadow: 0 4px 16px rgba(229, 52, 42, 0.35) !important;
 }
 .btn-ghost {
   background: rgba(255, 247, 229, 0.06) !important;
@@ -149,8 +149,8 @@ a.bg-brand,
 .star,
 .sec-title svg,
 .natsu-star {
-  color: #5eb0ff !important;
-  fill: #5eb0ff !important;
+  color: #ff9d3d !important;
+  fill: #ff9d3d !important;
 }
 .section-sub,
 .count {
@@ -160,7 +160,7 @@ a.bg-brand,
 .drawer-link svg,
 .footer-links-col a svg,
 .section-more svg {
-  color: #5eb0ff !important;
+  color: #ff9d3d !important;
 }
 
 /* Default cards (non-home pages) */
@@ -174,8 +174,8 @@ a.bg-brand,
 }
 .game-card:hover,
 .sf-card:hover {
-  border-color: rgba(94, 176, 255, 0.45) !important;
-  box-shadow: 0 12px 28px rgba(29, 106, 223, 0.18) !important;
+  border-color: rgba(255, 157, 61, 0.45) !important;
+  box-shadow: 0 12px 28px rgba(229, 52, 42, 0.18) !important;
 }
 .game-card-art,
 .game-tile {
@@ -197,7 +197,7 @@ a.bg-brand,
   top: 0 !important;
   left: 0 !important;
   z-index: 2;
-  background: linear-gradient(90deg, #1d6adf, #5eb0ff) !important;
+  background: linear-gradient(90deg, #e5342a, #ff9d3d) !important;
   color: #100a08 !important;
   font-size: 10px !important;
   font-weight: 900 !important;
@@ -220,12 +220,12 @@ a.bg-brand,
   margin-top: 8px !important;
   padding: 8px 10px !important;
   border-radius: 10px !important;
-  background: linear-gradient(90deg, #1d6adf, #5eb0ff) !important;
+  background: linear-gradient(90deg, #e5342a, #ff9d3d) !important;
   color: #100a08 !important;
   font-size: 12px !important;
   font-weight: 900 !important;
   border: none !important;
-  box-shadow: 0 4px 12px rgba(29, 106, 223, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(229, 52, 42, 0.3) !important;
 }
 .game-cta.on::before {
   content: none !important;
@@ -240,7 +240,7 @@ a.bg-brand,
 }
 
 .hot-price {
-  color: #5eb0ff !important;
+  color: #ff9d3d !important;
   font-weight: 800 !important;
 }
 
@@ -250,35 +250,35 @@ a.bg-brand,
 }
 .search-panel {
   background: #1c1917 !important;
-  border: 1px solid rgba(29, 106, 223, 0.25) !important;
+  border: 1px solid rgba(229, 52, 42, 0.25) !important;
 }
 .search-input,
 .search-bar input {
   background: #1c1917 !important;
-  border: 1px solid rgba(29, 106, 223, 0.2) !important;
+  border: 1px solid rgba(229, 52, 42, 0.2) !important;
   color: #e8f1ff !important;
 }
 .search-input:focus {
-  border-color: #5eb0ff !important;
-  box-shadow: 0 0 0 3px rgba(94, 176, 255, 0.2) !important;
+  border-color: #ff9d3d !important;
+  box-shadow: 0 0 0 3px rgba(255, 157, 61, 0.2) !important;
 }
 
 /* Drawer */
 .drawer {
   background: #141210 !important;
-  border-left: 1px solid rgba(29, 106, 223, 0.2) !important;
+  border-left: 1px solid rgba(229, 52, 42, 0.2) !important;
   color: #e8f1ff !important;
 }
 .drawer-link:hover {
-  background: rgba(29, 106, 223, 0.12) !important;
-  color: #5eb0ff !important;
+  background: rgba(229, 52, 42, 0.12) !important;
+  color: #ff9d3d !important;
 }
 .drawer-section {
-  color: #5eb0ff !important;
+  color: #ff9d3d !important;
   font-weight: 800 !important;
 }
 .drawer-login-btn {
-  background: linear-gradient(90deg, #1d6adf, #5eb0ff) !important;
+  background: linear-gradient(90deg, #e5342a, #ff9d3d) !important;
   color: #100a08 !important;
   border: none !important;
   font-weight: 800 !important;
@@ -290,25 +290,25 @@ a.bg-brand,
 /* Footer */
 .footer {
   background: rgba(20, 18, 16, 0.98) !important;
-  border-top: 1px solid rgba(29, 106, 223, 0.12) !important;
+  border-top: 1px solid rgba(229, 52, 42, 0.12) !important;
   color: #a89f94 !important;
 }
 .footer-name {
   color: #e8f1ff !important;
 }
 .footer-label {
-  color: #5eb0ff !important;
+  color: #ff9d3d !important;
   font-weight: 800 !important;
 }
 .footer-links-col a {
   color: #a89f94 !important;
 }
 .footer-links-col a:hover {
-  color: #5eb0ff !important;
+  color: #ff9d3d !important;
 }
 .pay-pill {
   background: rgba(71, 67, 66, 0.5) !important;
-  border: 1px solid rgba(29, 106, 223, 0.2) !important;
+  border: 1px solid rgba(229, 52, 42, 0.2) !important;
 }
 
 /* Game packs */
@@ -316,19 +316,19 @@ a.bg-brand,
 .pack-item,
 .pkg-card {
   background: #1c1917 !important;
-  border: 1.5px solid rgba(29, 106, 223, 0.15) !important;
+  border: 1.5px solid rgba(229, 52, 42, 0.15) !important;
   border-radius: 14px !important;
   color: #e8f1ff !important;
 }
 .pack.selected,
 .pack.active,
 .pkg-card.active {
-  border-color: #5eb0ff !important;
-  background: rgba(29, 106, 223, 0.12) !important;
+  border-color: #ff9d3d !important;
+  background: rgba(229, 52, 42, 0.12) !important;
 }
 .pack-price,
 .price {
-  color: #5eb0ff !important;
+  color: #ff9d3d !important;
   font-weight: 800 !important;
 }
 
@@ -337,32 +337,32 @@ select,
 textarea {
   background: #1c1917 !important;
   color: #e8f1ff !important;
-  border-color: rgba(29, 106, 223, 0.2) !important;
+  border-color: rgba(229, 52, 42, 0.2) !important;
 }
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: #5eb0ff !important;
-  box-shadow: 0 0 0 3px rgba(94, 176, 255, 0.2) !important;
+  border-color: #ff9d3d !important;
+  box-shadow: 0 0 0 3px rgba(255, 157, 61, 0.2) !important;
 }
 
 .live-chat-fab,
 .lc-fab,
 [class*="chat-fab"] {
-  background: linear-gradient(145deg, #1d6adf, #5eb0ff) !important;
+  background: linear-gradient(145deg, #e5342a, #ff9d3d) !important;
   color: #100a08 !important;
-  box-shadow: 0 8px 24px rgba(29, 106, 223, 0.45) !important;
+  box-shadow: 0 8px 24px rgba(229, 52, 42, 0.45) !important;
 }
 
 .tg-login-modal {
   background: #1c1917 !important;
-  border: 1px solid rgba(29, 106, 223, 0.3) !important;
+  border: 1px solid rgba(229, 52, 42, 0.3) !important;
   color: #e8f1ff !important;
   border-radius: 1.25rem !important;
 }
 
 .text-brand {
-  background: linear-gradient(90deg, #1d6adf, #5eb0ff) !important;
+  background: linear-gradient(90deg, #e5342a, #ff9d3d) !important;
   -webkit-background-clip: text !important;
   background-clip: text !important;
   color: transparent !important;

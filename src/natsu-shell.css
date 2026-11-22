@@ -1,4 +1,4 @@
-/* Header + drawer icons — premium polish */
+/* Header + drawer icons — premium polish, Kira-style layout */
 .header-inner {
   gap: 8px !important;
 }
@@ -16,7 +16,7 @@
   border-radius: 999px !important;
 }
 
-/* Icon buttons — circular, gold hover */
+/* Icon buttons — circular, red/gold hover */
 .icon-btn .icon-svg,
 .drawer-link .icon-svg,
 .footer-links-col a .icon-svg {
@@ -25,13 +25,13 @@
 
 .icon-btn:hover .icon-svg,
 .drawer-link:hover .icon-svg {
-  color: #5eb0ff;
+  color: #ff9d3d;
 }
 
 /* Login pill icon */
 .natsu-login-btn .icon-svg,
 .header-user-btn .icon-svg {
-  color: #5eb0ff;
+  color: #ff9d3d;
 }
 
 /* Drawer icons slightly larger + gold tint on hover already in theme */
@@ -44,4 +44,74 @@
 .drawer-login-btn .icon-svg {
   width: 16px;
   height: 16px;
+}
+
+/* ---------- Kira-style inline desktop nav + search pill ---------- */
+.header-nav-desktop {
+  display: none;
+  align-items: center;
+  gap: 18px;
+  margin-left: 10px;
+}
+.header-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #c9c2b8;
+  font-weight: 700;
+  font-size: 13px;
+  text-decoration: none;
+  padding: 6px 2px;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+.header-nav-link:hover,
+.header-nav-link.active {
+  color: #ff9d3d !important;
+  border-bottom-color: #ff9d3d;
+}
+.header-nav-link .icon-svg {
+  color: inherit;
+}
+
+.header-search-pill {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .header-menu-btn {
+    display: none !important;
+  }
+  .header-inner {
+    flex-wrap: nowrap !important;
+  }
+  .header-nav-desktop {
+    display: flex;
+    flex: 1 1 auto;
+  }
+  .header-search-icon {
+    display: none !important;
+  }
+  .header-search-pill {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 16px;
+    margin-left: auto;
+    border-radius: 999px !important;
+    background: #1a1614 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: #9a9188 !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+  }
+  .header-search-pill:hover {
+    border-color: rgba(255, 157, 61, 0.45) !important;
+    color: #e8f1ff !important;
+  }
+  .header-search-pill .icon-svg {
+    color: #ff9d3d !important;
+  }
 }

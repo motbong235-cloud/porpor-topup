@@ -1,13 +1,21 @@
 /* POR POR TOPUP — service worker (makes the site installable + offline fallback).
  * Safety rules: NEVER touches /api, admin pages, uploads or non-GET requests,
  * so payments, orders and admin data are always live from the network. */
-const VERSION = "pp-2026-11-21-icons-cache-fix";
+const VERSION = "pp-2026-11-21-icon-fix";
 const STATIC_CACHE = `${VERSION}-static`;
 const OFFLINE_URL = "/offline.html";
 const PRECACHE = [OFFLINE_URL, "/favicon.svg", "/icons/icon-192.png"];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(STATIC_CACHE).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
+  event.waitUntil(
+    caches
+      .open(STATIC_CACHE)
+      // cache: "reload" forces a real network fetch for the precache list so a
+      // changed favicon/icon is picked up even if an intermediate HTTP cache
+      // would otherwise have served the old bytes.
+      .then((c) => Promise.all(PRECACHE.map((url) => fetch(url, { cache: "reload" }).then((res) => res.ok && c.put(url, res)))))
+      .then(() => self.skipWaiting()),
+  );
 });
 
 self.addEventListener("activate", (event) => {
@@ -32,8 +40,8 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Hashed build assets + icons: cache first (filenames change on every build).
-  if (url.pathname.startsWith("/assets/") || url.pathname.startsWith("/icons/") || url.pathname.endsWith(".svg")) {
+  // Hashed build assets (filenames change on every build): cache first is safe.
+  if (url.pathname.startsWith("/assets/")) {
     event.respondWith(
       caches.match(req).then(
         (hit) =>
@@ -46,6 +54,26 @@ self.addEventListener("fetch", (event) => {
             return res;
           }),
       ),
+    );
+    return;
+  }
+
+  // Icons / favicon / other static svgs keep the SAME filename across deploys,
+  // so cache-first would serve a stale icon forever once it's cached once.
+  // Stale-while-revalidate: show the cached one instantly, but always refetch
+  // in the background and update the cache, so the NEXT load gets the new icon.
+  if (url.pathname.startsWith("/icons/") || url.pathname.endsWith(".svg") || url.pathname.endsWith(".png")) {
+    event.respondWith(
+      caches.open(STATIC_CACHE).then(async (cache) => {
+        const hit = await cache.match(req);
+        const network = fetch(req)
+          .then((res) => {
+            if (res && res.ok) cache.put(req, res.clone());
+            return res;
+          })
+          .catch(() => null);
+        return hit || (await network) || fetch(req);
+      }),
     );
   }
 });

@@ -227,10 +227,28 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
               <div className="logo-tag">{t(lang, "tagline")}</div>
             </div>
           </Link>
+          <nav className="header-nav-desktop" aria-label="Primary">
+            <Link to="/" className={`header-nav-link${location.pathname === "/" ? " active" : ""}`}>
+              <Icon name="home" size={15} />
+              {t(lang, "home")}
+            </Link>
+            <Link to="/track" className={`header-nav-link${location.pathname === "/track" ? " active" : ""}`}>
+              <Icon name="search" size={15} />
+              {t(lang, "track")}
+            </Link>
+            <Link to="/orders" className={`header-nav-link${location.pathname === "/orders" ? " active" : ""}`}>
+              <Icon name="orders" size={15} />
+              {t(lang, "orders")}
+            </Link>
+            <Link to="/support" className={`header-nav-link${location.pathname === "/support" ? " active" : ""}`}>
+              <Icon name="headset" size={15} />
+              {t(lang, "help")}
+            </Link>
+          </nav>
           <div className="header-actions">
             <button type="button" className="lang-btn header-lang" onClick={() => setLang(lang === "km" ? "en" : "km")}>
               <Icon name="globe" size={15} />
-              {lang === "km" ? "EN" : "\u1781\u17d2\u1798\u17c2\u179a"}
+              {lang === "km" ? "EN" : "ខ្មែរ"}
             </button>
             {tgUser ? (
               <button
@@ -255,8 +273,12 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
                 <span>Login</span>
               </button>
             )}
-            <button type="button" className="icon-btn ghost" aria-label={t(lang, "search")} onClick={() => setSearch(true)}>
+            <button type="button" className="icon-btn ghost header-search-icon" aria-label={t(lang, "search")} onClick={() => setSearch(true)}>
               <Icon name="search" />
+            </button>
+            <button type="button" className="header-search-pill" onClick={() => setSearch(true)}>
+              <Icon name="search" size={15} />
+              <span>{t(lang, "searchPh")}</span>
             </button>
           </div>
         </div>
@@ -276,10 +298,10 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
                 <div className="footer-tag">{t(lang, "tagline")}</div>
               </div>
             </div>
-            <p className="footer-desc">{lang === "km" ? "\u179b\u17be\u1793 \u00b7 \u179f\u17bb\u179c\u178f\u17d2\u1790\u17b7\u1797\u17b6\u1796 \u00b7 \u1791\u17bb\u1780\u1785\u17b7\u178f\u17d2\u178f\u1794\u17b6\u1793" : "Fast \u00b7 Safe \u00b7 Trusted"}</p>
+            <p className="footer-desc">{lang === "km" ? "លឿន · សុវត្ថិភាព · ទុកចិត្តបាន" : "Fast · Safe · Trusted"}</p>
           </div>
           <div className="footer-col">
-            <div className="footer-label">{lang === "km" ? "\u178f\u17c6\u178e\u17b6\u1797\u17d2\u1787\u17b6\u1794\u17cb" : "Quick Links"}</div>
+            <div className="footer-label">{lang === "km" ? "តំណាភ្ជាប់" : "Quick Links"}</div>
             <div className="footer-links-col">
               <Link to="/">
                 <Icon name="home" size={15} />
@@ -300,7 +322,7 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
             </div>
           </div>
           <div className="footer-col">
-            <div className="footer-label">{lang === "km" ? "\u1795\u17d2\u179b\u17bc\u179c\u1780\u17b6\u179a" : "Legal"}</div>
+            <div className="footer-label">{lang === "km" ? "ផ្លូវការ" : "Legal"}</div>
             <div className="footer-links-col">
               <Link to="/legal/privacy">
                 <Icon name="shield" size={15} />
@@ -341,7 +363,7 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
           </div>
         </div>
         <div className="footer-copy">
-          \u00a9 {new Date().getFullYear()} POR POR TOPUP \u00b7 {t(lang, "rights")}
+          © {new Date().getFullYear()} POR POR TOPUP · {t(lang, "rights")}
         </div>
       </footer>
 
@@ -349,11 +371,11 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
         <div className="tg-login-overlay" onClick={() => setTgOpen(false)} role="presentation">
           <div className="tg-login-modal card" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Telegram login">
             <button type="button" className="tg-login-close" onClick={() => setTgOpen(false)} aria-label="Close">
-              \u00d7
+              ×
             </button>
-            <h3>{lang === "km" ? "\u1785\u17bc\u179b\u178f\u17b6\u1798 Telegram" : "Login with Telegram"}</h3>
+            <h3>{lang === "km" ? "ចូលតាម Telegram" : "Login with Telegram"}</h3>
             <div id="tg-login-widget" className="tg-login-widget" />
-            {!tgBot ? <p className="tg-login-err">{lang === "km" ? "\u1798\u17b7\u1793\u1791\u17b6\u1793\u17cb\u1780\u17c6\u178e\u178f\u17cb Bot" : "Bot not configured"}</p> : null}
+            {!tgBot ? <p className="tg-login-err">{lang === "km" ? "មិនទាន់កំណត់ Bot" : "Bot not configured"}</p> : null}
             {tgErr ? (
               <p className="tg-login-err" style={{ marginTop: 12 }}>
                 {tgErr}
@@ -399,9 +421,9 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
           ) : null}
           <button type="button" className="drawer-link" onClick={() => setLang(lang === "km" ? "en" : "km")}>
             <Icon name="globe" size={18} />
-            {lang === "km" ? "English" : "\u1797\u17b6\u179f\u17b6\u1781\u17d2\u1798\u17c2\u179a"}
+            {lang === "km" ? "English" : "ភាសាខ្មែរ"}
           </button>
-          <div className="drawer-section">{lang === "km" ? "\u1795\u17d2\u179b\u17bc\u179c\u1780\u17b6\u179a" : "LEGAL"}</div>
+          <div className="drawer-section">{lang === "km" ? "ផ្លូវការ" : "LEGAL"}</div>
           <Link to="/legal/privacy" className="drawer-link soft" onClick={() => setMenu(false)}>
             <Icon name="shield" size={18} /> <span>{t(lang, "privacy")}</span>
           </Link>
@@ -425,8 +447,8 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
               }
             >
               <Icon name="user" size={16} />
-              {lang === "km" ? "\u1785\u17b6\u1780\u1785\u17c1\u1789" : "Log out"}
-              {tgUser.username ? ` \u00b7 @${tgUser.username}` : ""}
+              {lang === "km" ? "ចាកចេញ" : "Log out"}
+              {tgUser.username ? ` · @${tgUser.username}` : ""}
             </button>
           ) : (
             <button
@@ -499,13 +521,13 @@ export function Shell({ lang, theme, setLang, setTheme, children, settings }) {
         <div className="tg-login-overlay" onClick={() => setIosHelp(false)} role="presentation">
           <div className="tg-login-modal card" onClick={(e) => e.stopPropagation()}>
             <button type="button" className="tg-login-close" onClick={() => setIosHelp(false)}>
-              \u00d7
+              ×
             </button>
             <h3>Install</h3>
             <p style={{ fontSize: 14, color: "#a3a3a3" }}>
               {lang === "km"
-                ? "Safari: Share \u2192 Add to Home Screen"
-                : "Browser: Share \u2192 Add to Home Screen"}
+                ? "Safari: Share → Add to Home Screen"
+                : "Browser: Share → Add to Home Screen"}
             </p>
           </div>
         </div>
