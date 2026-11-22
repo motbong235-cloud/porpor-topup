@@ -1112,9 +1112,19 @@ app.get("/api/auth/telegram/start", limit("tglogin", { limit: 30, windowMs: 60_0
   if (!botId || !/^\d{6,20}$/.test(botId)) {
     return res.status(503).json({ error: "bot_id_unavailable", hint: "Check TELEGRAM_BOT_TOKEN" });
   }
-  const proto = (req.headers["x-forwarded-proto"] || req.protocol || "https").toString().split(",")[0].trim();
-  const host = (req.headers["x-forwarded-host"] || req.get("host") || "").toString().split(",")[0].trim();
-  const origin = `${proto}://${host}`;
+  const proto = (req.headers["x-forwarded-proto"] || req.protocol || "https").toString().split(",")[0].trim() || "https";
+  let host = (req.headers["x-forwarded-host"] || req.get("host") || "").toString().split(",")[0].trim();
+  // Canonical site for OAuth (www) — BotFather domain must match this host
+  const publicUrl = String(process.env.PUBLIC_SITE_URL || process.env.SITE_URL || "").trim().replace(/\/$/, "");
+  if (publicUrl) {
+    try {
+      const pu = new URL(publicUrl);
+      host = pu.host;
+    } catch {}
+  } else if (host === "porportopup.com") {
+    host = "www.porportopup.com";
+  }
+  const origin = `${proto === "http" && !host.includes("localhost") ? "https" : proto}://${host}`;
   const callback = `${origin}/api/auth/telegram/callback`;
   let returnTo = String(req.query.return_to || "").trim() || `${origin}/`;
   try {
@@ -1176,7 +1186,10 @@ app.get("/api/auth/telegram/callback", limit("tglogin", { limit: 30, windowMs: 6
   const v = tg.verifyTelegramLogin(req.query || {});
   if (!v.ok) {
     console.warn("[tg-login-callback]", v.error, req.query?.id);
-    return res.redirect("/?tg_login=fail&reason=" + encodeURIComponent(v.error || "fail"));
+    return res.redirect(
+      "/login.html?tg_login=fail&reason=" + encodeURIComponent(v.error || "fail") +
+      "&domain=" + encodeURIComponent((req.headers["x-forwarded-host"] || req.get("host") || "").toString().split(",")[0].trim())
+    );
   }
   setTgCookie(res, v.user);
   auditLog("tg_login", { tgId: v.user.id, username: v.user.username, ip: clientIp(req), via: "callback" });

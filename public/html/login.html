@@ -1276,7 +1276,14 @@
   function showOk() {
     var q = new URLSearchParams(location.search);
     if (q.get('tg_login') === 'fail') {
-      fail('Login failed (' + (q.get('reason') || 'error') + '). BotFather → /setdomain must be: ' + location.hostname);
+      var reason = q.get('reason') || 'error';
+      var dom = q.get('domain') || location.hostname;
+      var tip = {
+        bad_hash: 'Bot Token មិនត្រូវ ឬ domain មិន match BotFather',
+        expired: 'Login ផុតកំណត់ — សាកម្ដងទៀត',
+        not_configured: 'ខ្វះ TELEGRAM_BOT_TOKEN លើ Render',
+      }[reason] || reason;
+      fail('Login បរាជ័យ: ' + tip + '. BotFather → /setdomain → ' + dom + ' (គ្មាន https://)');
     }
   }
   showOk();
