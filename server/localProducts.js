@@ -306,8 +306,8 @@ function localCatalogAll() {
         blurbEn: String(g.blurbEn || ""),
         famous: !!g.famous,
         hot: !!g.hot,
-        // Honor Admin open/close — no forced-open override
-        open: g.open !== false,
+        // Honor Admin open/close — except Robux Send forced OFF
+        open: String(g.id) === "robux-send" ? false : g.open !== false,
         showWhenOff: !!g.showWhenOff,
         hue: Number(g.hue) || 210,
         mark: String(g.mark || "GC"),
