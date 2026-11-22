@@ -71,23 +71,35 @@
     return /^\+?\d+(\.\d+)?$/.test(t) ? "+" + t.replace(/^\+/, "") + " Coin" : t;
   }
 
-  /* Package cards — icon + gold price + name, coin chip (top-right), tag ribbon (bottom-left) */
-  function packOption(p) {
+  /* Package cards — Kira Store style: art + price + name + HOT/FEATURED ribbon */
+  function packHero(p) {
+    const name = String(p.name || "");
+    // e.g. "50 Stars", "Weekly x3" → big number/token
+    const m = name.match(/(\d[\d.,]*)\s*(stars?|diamond|gem|uc|robux|coin)?/i);
+    if (p.image) {
+      return `<img class="kira-art-img" src="${esc(p.image)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.style.display='none';this.nextElementSibling&&(this.nextElementSibling.hidden=false)"><span class="kira-art-num" hidden>${esc(m ? m[1] : name.slice(0, 3))}</span>`;
+    }
+    if (m) return `<span class="kira-art-num">${esc(m[1])}</span>`;
+    return `<span class="kira-art-num kira-art-letter">${esc(name.charAt(0) || "?")}</span>`;
+  }
+  function packOption(p, idx) {
     const sel = S.pack && String(S.pack.id) === String(p.id);
     const oos = p.inStock === false;
-    const icon = p.image
-      ? `<img src="${esc(p.image)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;this.style.visibility='hidden'">`
-      : `<span class="pk-icon-letter">${esc(String(p.name || "?").charAt(0).toUpperCase())}</span>`;
     const bonus = bonusText(p.bonus);
-    const tag = String(p.tag || (p.hot || p.famous ? "HOT" : (p.featured ? "FEATURED" : ""))).trim().toUpperCase() || "";
-    return `<button type="button" class="pk-item premium-card-v2 package-item${sel ? " is-selected" : ""}${oos ? " is-oos" : ""}${tag ? " has-tag" : ""}" role="radio" aria-checked="${!!sel}" data-selected="${!!sel}" data-pack="${esc(p.id)}" ${oos ? "disabled" : ""}>
-      ${bonus ? `<span class="pk-coin">${ICON_COIN}${esc(bonus)}</span>` : ""}
-      <span class="pk-icon crystal-float-v2">${icon}</span>
-      <span class="pk-copy" data-card-details>
-        <span class="pk-price card-price-text">${oos ? "Out of stock" : money(p.price)}</span>
-        <span class="pk-name card-title-text">${esc(p.name)}</span>
+    let tag = String(p.tag || "").trim().toUpperCase();
+    if (!tag && (p.hot || p.famous)) tag = "HOT";
+    if (!tag && p.featured) tag = "FEATURED";
+    // Visual rhythm like Kira when supplier has no tags
+    if (!tag && typeof idx === "number" && idx % 3 === 0) tag = "FEATURED";
+    if (!tag && typeof idx === "number" && idx % 5 === 0) tag = "HOT";
+    return `<button type="button" class="pk-item kira-pack${sel ? " is-selected" : ""}${oos ? " is-oos" : ""}${tag ? " has-tag" : ""}" role="radio" aria-checked="${!!sel}" data-selected="${!!sel}" data-pack="${esc(p.id)}" ${oos ? "disabled" : ""}>
+      ${bonus ? `<span class="pk-coin">${esc(bonus)}</span>` : ""}
+      <span class="kira-art">${packHero(p)}</span>
+      <span class="kira-meta">
+        <span class="kira-price">${oos ? "Out of stock" : money(p.price)}</span>
+        <span class="kira-name">${esc(p.name)}</span>
       </span>
-      ${tag ? `<span class="pk-ribbon">${ICON_TAG}${esc(tag)}</span>` : ""}
+      ${tag ? `<span class="kira-badge ${tag === "HOT" ? "is-hot" : "is-feat"}">${esc(tag)}</span>` : ""}
     </button>`;
   }
 
@@ -124,7 +136,7 @@
           <span class="pk-head__title">${ICON_STAR}${esc(cat)}</span>
           <button type="button" class="pk-head__count pk-like${liked() ? " is-liked" : ""}" data-like aria-pressed="${liked()}" aria-label="Like">${ICON_THUMB}<span class="pk-like__n">${likeCount()}</span></button>
         </div>
-        <div class="pk-grid" role="radiogroup">${list.map(packOption).join("")}</div>
+        <div class="pk-grid" role="radiogroup">${list.map((p, i) => packOption(p, i)).join("")}</div>
       </div>`).join("");
   }
 
