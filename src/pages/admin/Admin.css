@@ -10,12 +10,12 @@
   --ad-ink-2: #44546d;
   --ad-ink-3: #8392aa;
   --ad-line: #e2e8f1;
-  --ad-rail: #0b1b33;
+  --ad-rail: #082044;
   --ad-rail-ink: #b9c6dc;
-  --ad-blue: #2f6bff;
-  --ad-blue-soft: #e6eeff;
+  --ad-blue: #1d6adf;
+  --ad-blue-soft: #e8f1ff;
   --ad-amber: #1d6adf;
-  --ad-amber-soft: #fff2d6;
+  --ad-amber-soft: #e8f1ff;
   --ad-jade: #0fa77b;
   --ad-jade-soft: #dcf5ec;
   --ad-rose: #e5484d;
@@ -28,7 +28,7 @@
 
   --ad-ok-bg: var(--ad-jade-soft);
   --ad-warn-bg: var(--ad-amber-soft);
-  --ad-warn: #8a5a00;
+  --ad-warn: #0c4a9e;
   --ad-bad-bg: var(--ad-rose-soft);
   --ad-info-bg: var(--ad-blue-soft);
 
@@ -519,7 +519,7 @@ html.dark .ad-link.active {
   background: var(--ad-amber-soft);
 }
 .ad-stage.hot .n {
-  color: #8a5a00;
+  color: #0c4a9e;
   font-weight: 600;
 }
 
@@ -596,7 +596,7 @@ html.dark .ad-link.active {
   background: currentColor;
 }
 .ad-status.pending,
-.ad-status.wait { background: var(--ad-amber-soft); color: #8a5a00; }
+.ad-status.wait { background: var(--ad-amber-soft); color: #0c4a9e; }
 .ad-status.paid,
 .ad-status.processing { background: var(--ad-blue-soft); color: #1f4fd1; }
 .ad-status.success,
@@ -1245,7 +1245,7 @@ html.dark .ad-table tr:hover td {
 
 /* StatusBadge from ui.jsx */
 .ad-badge.ok, .ad-status.delivered { background: var(--ad-jade-soft); color: #08785a; }
-.ad-badge.warn { background: var(--ad-amber-soft); color: #8a5a00; }
+.ad-badge.warn { background: var(--ad-amber-soft); color: #0c4a9e; }
 .ad-badge.info { background: var(--ad-blue-soft); color: #1f4fd1; }
 .ad-badge.bad { background: var(--ad-rose-soft); color: #b42328; }
 
