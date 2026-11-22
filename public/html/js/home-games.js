@@ -17,7 +17,10 @@
     ".pp-game-from{font-size:11px;color:#b8d4f5;opacity:.85;margin-top:2px}" +
     ".pp-game-cta{display:block;text-align:center;margin-top:8px;padding:7px 0;border-radius:999px;font-weight:800;font-size:12px;color:#1a1412;background:linear-gradient(90deg,#1d6adf,#5eb0ff)}" +
     ".pp-game-badge{position:absolute;top:0;left:0;background:#1d6adf;color:#1a1412;font-size:10px;font-weight:800;font-style:italic;padding:2px 8px;border-bottom-right-radius:8px}" +
-    ".pp-game-empty{grid-column:1/-1;color:#b8d4f5;text-align:center;padding:16px 0;opacity:.8}";
+    ".pp-game-empty{grid-column:1/-1;color:#b8d4f5;text-align:center;padding:16px 0;opacity:.8}"+
+    ".pp-games-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}"+
+    "@media(min-width:560px){.pp-games-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}}"+
+    "@media(min-width:900px){.pp-games-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}}";
   document.head.appendChild(style);
 
   function minPrice(g) {

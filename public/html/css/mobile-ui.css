@@ -1,0 +1,199 @@
+/* Porpor Mobile UI — touch-first, Kira-like density */
+:root {
+  --m-pad: max(12px, env(safe-area-inset-left));
+  --m-pad-r: max(12px, env(safe-area-inset-right));
+  --m-bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+/* Prevent iOS zoom on inputs */
+@media (max-width: 819px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  /* Home game grid */
+  .pp-games-grid,
+  [data-home-games],
+  #pp-trending-grid,
+  #pp-all-games-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    padding: 0 2px;
+  }
+
+  .pp-game-card {
+    border-radius: 14px !important;
+  }
+  .pp-game-cta {
+    min-height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 12px !important;
+    padding: 8px 0 !important;
+  }
+  .pp-game-name {
+    font-size: 12.5px !important;
+  }
+
+  /* Game page shell */
+  .gp-main,
+  .game-checkout-layout,
+  .natsu-preview-wrap {
+    padding-left: var(--m-pad) !important;
+    padding-right: var(--m-pad-r) !important;
+    padding-bottom: calc(88px + var(--m-bottom)) !important;
+    max-width: 100% !important;
+  }
+
+  /* Packages: 2 columns, compact Kira tiles */
+  .pk-grid,
+  .gp-packs,
+  .checkout-products,
+  .natsu-preview-catalog {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  html body .pk-item.premium-card-v2,
+  html body .pk-item {
+    min-height: 118px !important;
+    padding: 10px 10px 26px !important;
+    border-radius: 14px !important;
+  }
+  html body .pk-item .pk-icon {
+    height: 44px !important;
+  }
+  html body .pk-item .pk-icon img {
+    width: 42px !important;
+    height: 42px !important;
+  }
+  html body .pk-item .pk-price {
+    font-size: 15px !important;
+  }
+  html body .pk-item .pk-name {
+    font-size: 11px !important;
+  }
+  html body .pk-item .pk-ribbon {
+    font-size: 8px !important;
+    padding: 3px 8px 4px !important;
+  }
+
+  /* Sticky pay bar */
+  .pk-bar,
+  .natsu-preview-total,
+  .checkout-sticky-pay {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 80 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 10px var(--m-pad) calc(10px + var(--m-bottom)) !important;
+    background: rgba(20, 18, 17, 0.96) !important;
+    backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(94, 176, 255, 0.2) !important;
+    box-shadow: 0 -8px 28px rgba(0,0,0,.45);
+  }
+  .pk-bar__pay,
+  .checkout-btn--pay {
+    flex: 1 !important;
+    min-height: 48px !important;
+    border-radius: 14px !important;
+    font-size: 15px !important;
+    font-weight: 800 !important;
+  }
+  .pk-bar__total {
+    flex: none;
+    min-width: 72px;
+    text-align: left;
+  }
+  .pk-bar__total strong {
+    display: block;
+    font-size: 16px;
+    color: #5eb0ff;
+  }
+
+  /* Player / payment cards */
+  .gp-card,
+  .checkout-panel,
+  .natsu-preview-player-block,
+  .natsu-preview-payment-block {
+    border-radius: 16px !important;
+    padding: 14px !important;
+  }
+  .gp-input,
+  .gp-select,
+  input[type="text"],
+  input[type="search"] {
+    min-height: 48px !important;
+    border-radius: 12px !important;
+    padding: 12px 14px !important;
+  }
+
+  /* Header compact */
+  header.site-header,
+  .gp-header,
+  .natsu-header {
+    padding-left: var(--m-pad) !important;
+    padding-right: var(--m-pad-r) !important;
+  }
+
+  /* Category chips scroll */
+  .category-tabs,
+  .pp-tabs,
+  [data-category-tabs] {
+    display: flex !important;
+    overflow-x: auto !important;
+    gap: 8px !important;
+    padding: 4px 2px 10px !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .category-tabs::-webkit-scrollbar,
+  .pp-tabs::-webkit-scrollbar { display: none; }
+  .category-tabs a,
+  .category-tabs button,
+  .pp-tabs button {
+    flex: none !important;
+    white-space: nowrap !important;
+    min-height: 36px !important;
+    padding: 8px 14px !important;
+    border-radius: 999px !important;
+  }
+
+  /* Support FAB clearance */
+  .floating-support-widget {
+    bottom: calc(72px + var(--m-bottom)) !important;
+  }
+
+  /* Banner mobile */
+  .hero-banner,
+  .home-banner,
+  [data-home-banner] img {
+    border-radius: 14px !important;
+    max-height: 140px !important;
+    object-fit: cover !important;
+    width: 100% !important;
+  }
+}
+
+/* Small phones */
+@media (max-width: 380px) {
+  html body .pk-item .pk-price { font-size: 14px !important; }
+  .pp-game-name { font-size: 11.5px !important; }
+}
+
+/* Large phones / small tablets still single column layout for checkout side */
+@media (max-width: 899px) {
+  .game-checkout-layout,
+  .natsu-preview-wrap {
+    grid-template-columns: 1fr !important;
+  }
+  .natsu-preview-sidebar {
+    position: static !important;
+  }
+}
