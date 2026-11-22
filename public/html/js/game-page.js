@@ -79,7 +79,7 @@
       ? `<img src="${esc(p.image)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;this.style.visibility='hidden'">`
       : `<span class="pk-icon-letter">${esc(String(p.name || "?").charAt(0).toUpperCase())}</span>`;
     const bonus = bonusText(p.bonus);
-    const tag = String(p.tag || (p.hot ? "HOT" : "")).trim();
+    const tag = String(p.tag || (p.hot || p.famous ? "HOT" : (p.featured ? "FEATURED" : ""))).trim().toUpperCase() || "";
     return `<button type="button" class="pk-item premium-card-v2 package-item${sel ? " is-selected" : ""}${oos ? " is-oos" : ""}${tag ? " has-tag" : ""}" role="radio" aria-checked="${!!sel}" data-selected="${!!sel}" data-pack="${esc(p.id)}" ${oos ? "disabled" : ""}>
       ${bonus ? `<span class="pk-coin">${ICON_COIN}${esc(bonus)}</span>` : ""}
       <span class="pk-icon crystal-float-v2">${icon}</span>
