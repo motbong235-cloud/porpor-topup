@@ -92,7 +92,7 @@ export const DEFAULT_LOCAL_PRODUCTS = [
     blurbEn: "Send Robux to username — admin sends manually after pay (Live Chat · not auto)",
     famous: true,
     hot: true,
-    open: true,
+    open: false,
     hue: 200,
     mark: "SEND",
     image: "/icons/robux.svg",
