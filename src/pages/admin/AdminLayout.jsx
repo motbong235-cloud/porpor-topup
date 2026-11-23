@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-do
 import { AIcon, api } from "./ui";
 import "./Admin.css";
 import "./AdminTheme.css";
+import "./AdminPro.css";
 
 export { api };
 
