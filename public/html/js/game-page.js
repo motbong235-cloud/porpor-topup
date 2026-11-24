@@ -306,7 +306,47 @@
     csrf: "Session expired — please try again",
   };
 
-  async function pay() {
+  /* ---------- "read before ordering" guide (admin-set per service) ---------- */
+  const guideKey = () => "pp_guide_ok:" + (S.game && S.game.id);
+  function guideOf(g) {
+    const sg = g && g.safetyGuide;
+    if (!sg || !sg.enabled) return null;
+    const steps = (sg.stepsKm && sg.stepsKm.length ? sg.stepsKm : sg.stepsEn) || [];
+    return steps.length ? { sg, steps } : null;
+  }
+  const hl = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+  function showGuide(onOk) {
+    const x = guideOf(S.game);
+    if (!x) return onOk();
+    try { if (sessionStorage.getItem(guideKey())) return onOk(); } catch {}
+    const { sg, steps } = x;
+    let dlg = document.getElementById("gp-guide");
+    if (dlg) dlg.remove();
+    dlg = document.createElement("dialog");
+    dlg.id = "gp-guide";
+    dlg.className = "gp-guide";
+    dlg.setAttribute("aria-labelledby", "gp-guide-t");
+    const sub = sg.subtitleKm || sg.subtitleEn || "";
+    dlg.innerHTML = `<div class="gg-card">
+      <span class="gg-glow" aria-hidden="true"></span>
+      <div class="gg-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.2 2.6 19.5a1 1 0 0 0 .9 1.5h17a1 1 0 0 0 .9-1.5L12 3.2z"/><path d="M12 9.5v4.6"/><circle cx="12" cy="17.2" r=".6"/></svg></div>
+      <h2 id="gp-guide-t" class="gg-title">${esc(sg.titleKm || sg.titleEn)}</h2>
+      ${sub ? `<p class="gg-sub">${esc(sub)}</p>` : ""}
+      ${(sg.chips || []).length ? `<div class="gg-chips">${sg.chips.map((c) => { const m = /^~(.+)~$/.exec(c); return `<span${m ? ' class="x"' : ""}>${esc(m ? m[1] : c)}</span>`; }).join("")}</div>` : ""}
+      <ol class="gg-steps">${steps.map((t, i) => `<li><i>${i + 1}</i><span>${hl(t)}</span></li>`).join("")}</ol>
+      <button type="button" class="gg-ok" id="gp-guide-ok">${esc(sg.buttonKm || sg.buttonEn || "យល់ព្រម")}</button>
+    </div>`;
+    document.body.appendChild(dlg);
+    const done = (ok) => { dlg.close(); dlg.remove(); document.documentElement.classList.remove("gg-lock"); if (ok) { try { sessionStorage.setItem(guideKey(), "1"); } catch {} onOk(); } };
+    dlg.querySelector("#gp-guide-ok").onclick = () => done(true);
+    dlg.addEventListener("click", (e) => { if (e.target === dlg) done(false); });
+    dlg.addEventListener("cancel", (e) => { e.preventDefault(); done(false); });
+    document.documentElement.classList.add("gg-lock");
+    dlg.showModal();
+    dlg.querySelector("#gp-guide-ok").focus();
+  }
+
+  async function pay(skipGuide) {
     const g = S.game;
     if (!S.pack) { S.payErr = "Please choose a package"; return render(); }
     const playerId = S.userId.trim();
@@ -314,6 +354,7 @@
     if (hasZone() && !S.zoneId.trim()) { S.payErr = "Please enter " + zoneLabel(); return render(); }
     if (hasServer() && !S.server) { S.payErr = "Please select server"; return render(); }
     if (!S.agreed) { S.payErr = "Please agree to the terms before paying"; return render(); }
+    if (skipGuide !== true && guideOf(g)) { let ok = false; try { ok = !!sessionStorage.getItem(guideKey()); } catch {} if (!ok) return showGuide(() => pay(true)); }
 
     S.payErr = ""; S.paying = true; render();
     const token = await csrfToken();
@@ -449,9 +490,9 @@
     const cpb = $("#btn-coupon");
     if (cpb) cpb.onclick = applyCoupon;
     const pb = $("#btn-pay");
-    if (pb) pb.onclick = pay;
+    if (pb) pb.onclick = () => pay();
     const pbar = $("#btn-pay-bar");
-    if (pbar) pbar.onclick = pay;
+    if (pbar) pbar.onclick = () => pay();
     root.querySelectorAll("[data-pack]").forEach((b) => {
       b.onclick = () => {
         S.pack = S.game.packs.find((p) => String(p.id) === b.dataset.pack) || null;

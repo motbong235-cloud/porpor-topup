@@ -8,6 +8,7 @@
  * to force the username field for those product ids regardless of saved settings.
  */
 import { getSettings, stockCount } from "./store.js";
+import { cleanGuide } from "./guide.js";
 
 /** Default product art when admin has not uploaded an image (keeps storefront looking finished). */
 export function defaultProductImage(id, name = "") {
@@ -103,17 +104,20 @@ export const DEFAULT_LOCAL_PRODUCTS = [
     idHintEn: "After pay get Order ID → Live Chat → Admin sends Robux (not auto)",
     safetyGuide: {
       enabled: true,
-      titleKm: "សូមអានមុនអនុវត្ត",
-      titleEn: "Please read before continuing",
+      titleKm: "សូមអានមុនកុម្ម៉ង់",
+      titleEn: "Please read before ordering",
+      subtitleKm: "ដើម្បីកុំឲ្យខាតប្រាក់ សូមពិនិត្យចំណុចខាងក្រោម។",
+      subtitleEn: "To avoid losing money, please check the points below.",
+      chips: ["~Select~", "~Uncheck~", "~Kid~"],
       stepsKm: [
-        "គណនី Roblox ត្រូវតែ Select, Uncheck ពី Kid មិនអាចទទួល Robux បានទេ។",
-        "កុំឲ្យនរណាម្នាក់សុំពាក្យសម្ងាត់ ឬលេខកូដ 2FA។",
-        "បន្ទាប់ពីបាន Robux រួច មិនអាចស្នើសុំសងប្រាក់ (Refund) បានទេ។",
+        "គណនី Roblox ដែលជាប់ **Select, Uncheck** ឬ **Kid** មិនអាចបញ្ចូល Robux បានទេ។",
+        "សូមពិនិត្យគណនីរបស់អ្នកឲ្យបានច្បាស់ មុនពេលកុម្ម៉ង់។",
+        "បន្ទាប់ពីបញ្ចូល Robux រួច **មិនអាចសងប្រាក់វិញ (Refund)** បានទេ។",
       ],
       stepsEn: [
-        "Roblox account must use Select and Uncheck Kid, or Robux cannot be received.",
-        "Never share your password or 2FA codes with anyone.",
-        "After Robux is delivered, refunds are not available.",
+        "Roblox accounts marked **Select, Uncheck** or **Kid** cannot receive Robux.",
+        "Please double-check your account before ordering.",
+        "After Robux is delivered, **refunds are not available**.",
       ],
     },
     requireUsername: true,
@@ -332,36 +336,7 @@ function localCatalogAll() {
           g.idHintEn ||
             (requireUsername ? "Enter your username" : "No username required"),
         ),
-        safetyGuide: (() => {
-          const sg = g.safetyGuide && typeof g.safetyGuide === "object" ? g.safetyGuide : {};
-          const enabled =
-            sg.enabled === true ||
-            sg.enabled === "true" ||
-            (sg.enabled !== false &&
-              sg.enabled !== "false" &&
-              (dt === "robux_send" || String(g.id || "").includes("robux")));
-          const stepsKm = Array.isArray(sg.stepsKm)
-            ? sg.stepsKm.map((x) => String(x).slice(0, 200)).filter(Boolean).slice(0, 6)
-            : String(sg.bodyKm || "")
-                .split(/\n+/)
-                .map((x) => x.trim())
-                .filter(Boolean)
-                .slice(0, 6);
-          const stepsEn = Array.isArray(sg.stepsEn)
-            ? sg.stepsEn.map((x) => String(x).slice(0, 200)).filter(Boolean).slice(0, 6)
-            : String(sg.bodyEn || "")
-                .split(/\n+/)
-                .map((x) => x.trim())
-                .filter(Boolean)
-                .slice(0, 6);
-          return {
-            enabled,
-            titleKm: String(sg.titleKm || "សូមអានមុនបន្ត").slice(0, 80),
-            titleEn: String(sg.titleEn || "Please read before continuing").slice(0, 80),
-            stepsKm,
-            stepsEn,
-          };
-        })(),
+        safetyGuide: cleanGuide(g.safetyGuide, { defaultEnabled: dt === "robux_send" || String(g.id || "").includes("robux") }),
         packs: (Array.isArray(g.packs) ? g.packs : [])
           .map((p) => {
             const id = String(p.id);

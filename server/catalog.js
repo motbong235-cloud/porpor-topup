@@ -3,6 +3,7 @@
  * Admin chooses which games / packages to sell + markup (Admin → Services).
  */
 import { getSettings } from "./store.js";
+import { cleanGuide, publicGuide } from "./guide.js";
 import * as khmerTopup from "./khmerTopup.js";
 import * as foxTopup from "./foxTopup.js";
 import { localCatalog, findLocalPack, cleanBanners, DEFAULT_LOCAL_PRODUCTS } from "./localProducts.js";
@@ -197,6 +198,7 @@ export async function storefront() {
       hot: !!(s && s.featured),
       open: isOpen,
       showWhenOff: !!s?.showWhenOff,
+      safetyGuide: publicGuide(s?.safetyGuide),
       hasZone: g.hasZone,
       zoneLabelKm: "Zone ID",
       zoneLabelEn: "Zone ID",
@@ -361,6 +363,7 @@ export function sanitizeSelection(input) {
       packImages,
       packTags,
       packBonus,
+      safetyGuide: cleanGuide(v?.safetyGuide),
     };
   }
   return out;
@@ -462,6 +465,7 @@ export async function foxStorefront() {
       hot: !!(s?.famous || s?.featured),
       featured: !!(s?.famous || s?.featured),
       provider: "fox",
+      safetyGuide: publicGuide(s?.safetyGuide),
       packs,
     });
   }

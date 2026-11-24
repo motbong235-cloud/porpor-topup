@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AIcon, BannerManager, ImageSlot, PageHead, Switch, WideImageSlot, api, toast, usd } from "./ui";
+import { AIcon, BannerManager, GuideEditor, ImageSlot, PageHead, Switch, WideImageSlot, api, toast, usd } from "./ui";
 
 const blank = { enabled: false, showWhenOff: false, featured: false, famous: false, markup: null, packages: null, packPrices: {}, image: "", banner: "", banners: [], packIcon: "", packImages: {} };
 
@@ -126,6 +126,10 @@ function GameCard({ g, s, defaultMarkup, isOpen, onToggleOpen, patch }) {
             <AIcon name="chevron" size={14} />
           </span>
         </button>
+      </div>
+
+      <div className="ad-game-guide">
+        <GuideEditor value={s.safetyGuide} onChange={(v) => patch(g.slug, { safetyGuide: v })} />
       </div>
 
       {isOpen ? (
@@ -677,79 +681,7 @@ function LocalServicesPanel() {
                             </label>
                           ) : null}
 
-                          {(p.deliveryType === "live_chat") ? (
-                            <div className="ad-safety-box span-2">
-                              <label className="ad-check-row">
-                                <input
-                                  type="checkbox"
-                                  checked={!!(p.safetyGuide && p.safetyGuide.enabled)}
-                                  onChange={(e) =>
-                                    updateAt(i, {
-                                      safetyGuide: {
-                                        ...(p.safetyGuide || {}),
-                                        enabled: e.target.checked,
-                                        titleKm: (p.safetyGuide && p.safetyGuide.titleKm) || "សូមអានមុនបន្ត",
-                                        titleEn: (p.safetyGuide && p.safetyGuide.titleEn) || "Please read before continuing",
-                                        stepsKm:
-                                          (p.safetyGuide && p.safetyGuide.stepsKm) || [
-                                            "បើក Settings ក្នុង Roblox → បិទ Select / Unselect និង Kid",
-                                            "កុំផ្តល់ Password — Admin មិនសុំ Password",
-                                            "បង់រួចផ្ញើ Order ID តាម Live Chat",
-                                          ],
-                                        stepsEn:
-                                          (p.safetyGuide && p.safetyGuide.stepsEn) || [
-                                            "Open Roblox Settings → turn off Select / Unselect and Kid",
-                                            "Never share your password — Admin never asks for it",
-                                            "After payment, send Order ID via Live Chat",
-                                          ],
-                                      },
-                                    })
-                                  }
-                                />
-                                <span>បង្ហាញ Popup ការណែនាំពេលចូល service (ដោយដៃ)</span>
-                              </label>
-                              {p.safetyGuide?.enabled ? (
-                                <>
-                                  <label>
-                                    ចំណងជើង Popup
-                                    <input
-                                      value={p.safetyGuide?.titleKm || ""}
-                                      onChange={(e) =>
-                                        updateAt(i, {
-                                          safetyGuide: {
-                                            ...p.safetyGuide,
-                                            titleKm: e.target.value,
-                                            titleEn: e.target.value,
-                                          },
-                                        })
-                                      }
-                                    />
-                                  </label>
-                                  <label>
-                                    ជំហាន (១ បន្ទាត់ = ១ ជំហាន)
-                                    <textarea
-                                      rows={4}
-                                      value={(p.safetyGuide?.stepsKm || []).join("\n")}
-                                      onChange={(e) => {
-                                        const steps = e.target.value
-                                          .split("\n")
-                                          .map((x) => x.trim())
-                                          .filter(Boolean)
-                                          .slice(0, 6);
-                                        updateAt(i, {
-                                          safetyGuide: {
-                                            ...p.safetyGuide,
-                                            stepsKm: steps,
-                                            stepsEn: steps,
-                                          },
-                                        });
-                                      }}
-                                    />
-                                  </label>
-                                </>
-                              ) : null}
-                            </div>
-                          ) : null}
+                          <GuideEditor value={p.safetyGuide} onChange={(v) => updateAt(i, { safetyGuide: v })} />
                         </div>
                       </div>
 

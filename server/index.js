@@ -1,4 +1,5 @@
 import express from "express";
+import { cleanGuide } from "./guide.js";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -2311,22 +2312,7 @@ app.put("/api/admin/local-products", adminAuth, (req, res) => {
         customerNoteKm: String(g.customerNoteKm || "").trim().slice(0, 1000),
         customerNoteEn: String(g.customerNoteEn || "").trim().slice(0, 1000),
         supportContact: String(g.supportContact || "https://t.me/kairozen_support").trim().slice(0, 120),
-        safetyGuide: (() => {
-          const sg = g.safetyGuide && typeof g.safetyGuide === "object" ? g.safetyGuide : {};
-          const stepsKm = Array.isArray(sg.stepsKm)
-            ? sg.stepsKm.map((x) => String(x).slice(0, 200)).filter(Boolean).slice(0, 6)
-            : [];
-          const stepsEn = Array.isArray(sg.stepsEn)
-            ? sg.stepsEn.map((x) => String(x).slice(0, 200)).filter(Boolean).slice(0, 6)
-            : stepsKm;
-          return {
-            enabled: !!sg.enabled,
-            titleKm: String(sg.titleKm || "សូមអានមុនបន្ត").slice(0, 80),
-            titleEn: String(sg.titleEn || "Please read before continuing").slice(0, 80),
-            stepsKm,
-            stepsEn,
-          };
-        })(),
+        safetyGuide: cleanGuide(g.safetyGuide),
         packs,
       };
     })

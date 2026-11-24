@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./AdminExtras.css";
 
 /* ---------- API helper ---------- */
@@ -496,6 +496,180 @@ export function BannerManager({ banners, legacy, onChange }) {
           </div>
         ) : null}
       </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* "Read before ordering" popup editor (shared by every service type)   */
+/* value = safetyGuide { enabled,titleKm,subtitleKm,chips[],stepsKm[],buttonKm } */
+/* ------------------------------------------------------------------ */
+const GUIDE_PRESETS = [
+  {
+    label: "Roblox / Robux",
+    g: {
+      titleKm: "សូមអានមុនកុម្ម៉ង់",
+      subtitleKm: "ដើម្បីកុំឲ្យខាតប្រាក់ សូមពិនិត្យចំណុចខាងក្រោម។",
+      chips: ["~Select~", "~Uncheck~", "~Kid~"],
+      stepsKm: [
+        "គណនី Roblox ដែលជាប់ **Select, Uncheck** ឬ **Kid** មិនអាចបញ្ចូល Robux បានទេ។",
+        "សូមពិនិត្យគណនីរបស់អ្នកឲ្យបានច្បាស់ មុនពេលកុម្ម៉ង់។",
+        "បន្ទាប់ពីបញ្ចូល Robux រួច **មិនអាចសងប្រាក់វិញ (Refund)** បានទេ។",
+      ],
+    },
+  },
+  {
+    label: "ហ្គេម (ID/Zone)",
+    g: {
+      titleKm: "សូមពិនិត្យ ID មុនបង់ប្រាក់",
+      subtitleKm: "ការបញ្ចូលខុស ID យើងមិនអាចសងវិញបានទេ។",
+      chips: [],
+      stepsKm: [
+        "ពិនិត្យ **Player ID** និង **Server/Zone** ឲ្យត្រឹមត្រូវ។",
+        "ប្រើប៊ូតុង **Check ID** ដើម្បីបញ្ជាក់ឈ្មោះគណនី។",
+        "បន្ទាប់ពីបញ្ចូលរួច **មិនអាចសងប្រាក់វិញ** បានទេ។",
+      ],
+    },
+  },
+  {
+    label: "គណនី / Gift Card",
+    g: {
+      titleKm: "សូមអានមុនទិញ",
+      subtitleKm: "",
+      chips: [],
+      stepsKm: [
+        "កុំចែករំលែក **Password** ឬលេខកូដ 2FA ជាមួយនរណាឡើយ។",
+        "បង់ប្រាក់រួច ផ្ញើ **Order ID** មក Support តាម Live Chat។",
+      ],
+    },
+  },
+];
+
+function guideView(g) {
+  const sg = g || {};
+  return {
+    enabled: !!sg.enabled,
+    titleKm: sg.titleKm ?? "",
+    subtitleKm: sg.subtitleKm ?? "",
+    chips: Array.isArray(sg.chips) ? sg.chips : [],
+    stepsKm: Array.isArray(sg.stepsKm) ? sg.stepsKm : [],
+    buttonKm: sg.buttonKm ?? "",
+  };
+}
+
+const boldify = (t) =>
+  String(t)
+    .split(/(\*\*.+?\*\*)/g)
+    .map((p, i) => (/^\*\*.+\*\*$/.test(p) ? <b key={i}>{p.slice(2, -2)}</b> : p));
+
+export function GuideEditor({ value, onChange }) {
+  const g = guideView(value);
+  const [stepsText, setStepsText] = useState(g.stepsKm.join("\n"));
+  const [chipsText, setChipsText] = useState(g.chips.join(", "));
+  const lastSteps = useRef(g.stepsKm.join("\n"));
+  // re-sync text boxes only when the value changed from outside (preset / other service)
+  useEffect(() => {
+    const j = g.stepsKm.join("\n");
+    if (j !== lastSteps.current.split("\n").map((x) => x.trim()).filter(Boolean).join("\n")) {
+      setStepsText(j);
+      setChipsText(g.chips.join(", "));
+    }
+  }, [value]); // eslint-disable-line
+
+  const emit = (patch) => {
+    const n = { ...g, ...patch };
+    onChange({
+      enabled: n.enabled,
+      titleKm: n.titleKm,
+      titleEn: n.titleKm,
+      subtitleKm: n.subtitleKm,
+      subtitleEn: n.subtitleKm,
+      chips: n.chips,
+      stepsKm: n.stepsKm,
+      stepsEn: n.stepsKm,
+      buttonKm: n.buttonKm,
+      buttonEn: n.buttonKm,
+    });
+  };
+  const setSteps = (txt) => {
+    setStepsText(txt);
+    lastSteps.current = txt;
+    emit({ stepsKm: txt.split("\n").map((x) => x.trim()).filter(Boolean).slice(0, 8) });
+  };
+  const setChips = (txt) => {
+    setChipsText(txt);
+    emit({ chips: txt.split(/[,\n]/).map((x) => x.trim()).filter(Boolean).slice(0, 5) });
+  };
+  const preset = (p) => {
+    const steps = p.g.stepsKm.join("\n");
+    setStepsText(steps);
+    lastSteps.current = steps;
+    setChipsText(p.g.chips.join(", "));
+    emit({ ...p.g, enabled: true });
+  };
+
+  return (
+    <div className="ad-guide span-2">
+      <div className="ad-guide-head">
+        <div>
+          <b>ការណែនាំមុនកុម្ម៉ង់ (Popup)</b>
+          <small>បង្ហាញមុនអតិថិជនបង់ប្រាក់ — ត្រូវចុច "យល់ព្រម" ទើបបន្ត</small>
+        </div>
+        <Switch checked={g.enabled} onChange={(v) => emit({ enabled: v })} label="បើក Popup ការណែនាំ" />
+      </div>
+      {g.enabled ? (
+        <div className="ad-guide-body">
+          <div className="ad-guide-form">
+            <div className="ad-guide-presets">
+              <span>គំរូរួច:</span>
+              {GUIDE_PRESETS.map((p) => (
+                <button type="button" key={p.label} className="ad-chip small" onClick={() => preset(p)}>
+                  {p.label}
+                </button>
+              ))}
+            </div>
+            <label>
+              ចំណងជើង
+              <input value={g.titleKm} maxLength={80} placeholder="សូមអានមុនកុម្ម៉ង់" onChange={(e) => emit({ titleKm: e.target.value })} />
+            </label>
+            <label>
+              ពាក្យពន្យល់ខ្លី (មិនចាំបាច់)
+              <input value={g.subtitleKm} maxLength={140} onChange={(e) => emit({ subtitleKm: e.target.value })} />
+            </label>
+            <label>
+              ស្លាកសញ្ញា (ខណ្ឌដោយ , — ដាក់ ~ពាក្យ~ ដើម្បីគូសឆូតកណ្តាល)
+              <input value={chipsText} onChange={(e) => setChips(e.target.value)} />
+            </label>
+            <label>
+              ជំហាន/ចំណុច (១ បន្ទាត់ = ១ ចំណុច, អតិបរមា ៨)
+              <textarea rows={5} value={stepsText} onChange={(e) => setSteps(e.target.value)} />
+              <small className="ad-hint">ដាក់ពាក្យក្នុង **ផ្កាយពីរ** ដើម្បីបន្លិចពណ៌លឿង</small>
+            </label>
+            <label>
+              ឈ្មោះប៊ូតុង
+              <input value={g.buttonKm} maxLength={30} placeholder="យល់ព្រម" onChange={(e) => emit({ buttonKm: e.target.value })} />
+            </label>
+          </div>
+          <div className="ad-guide-prev" aria-label="មើលជាមុន">
+            <div className="gg-card">
+              <div className="gg-ico">
+                <svg viewBox="0 0 24 24"><path d="M12 3.2 2.6 19.5a1 1 0 0 0 .9 1.5h17a1 1 0 0 0 .9-1.5L12 3.2z" /><path d="M12 9.5v4.6" /><circle cx="12" cy="17.2" r=".6" /></svg>
+              </div>
+              <h4 className="gg-title">{g.titleKm || "សូមអានមុនកុម្ម៉ង់"}</h4>
+              {g.subtitleKm ? <p className="gg-sub">{g.subtitleKm}</p> : null}
+              {g.chips.length ? (
+                <div className="gg-chips">{g.chips.map((c, i) => { const m = /^~(.+)~$/.exec(c); return <span key={i} className={m ? "x" : ""}>{m ? m[1] : c}</span>; })}</div>
+              ) : null}
+              <ol className="gg-steps">
+                {g.stepsKm.map((t, i) => (
+                  <li key={i}><i>{i + 1}</i><span>{boldify(t)}</span></li>
+                ))}
+              </ol>
+              <span className="gg-ok">{g.buttonKm || "យល់ព្រម"}</span>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
