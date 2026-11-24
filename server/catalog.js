@@ -150,15 +150,12 @@ export async function storefront() {
     const isOpen = !!s?.enabled;
     const hasOwn = s && s.markup !== undefined && s.markup !== null && s.markup !== "" && Number.isFinite(Number(s.markup));
     const markup = hasOwn ? Number(s.markup) : globalMarkup;
-    // Empty package list = all packages (admin enabled game without narrowing packs)
-    const allowed =
-      Array.isArray(s?.packages) && s.packages.length > 0
-        ? new Set(s.packages.map(String))
-        : null;
+    // packages: null/undefined = all packs; [] = none; [ids] = only those
+    const allowed = Array.isArray(s?.packages) ? new Set(s.packages.map(String)) : null;
 
     const packPrices = (s && s.packPrices) || {};
     const packs = (g.packs || [])
-      .filter((p) => p.inStock !== false && (!allowed || allowed.has(String(p.id))))
+      .filter((p) => p.inStock !== false && (allowed === null || allowed.has(String(p.id))))
       .map((p) => {
         const pid = String(p.id);
         const cost = Number(p.cost) || 0;
@@ -432,7 +429,11 @@ export async function foxStorefront() {
     const hasOwn = s && s.markup !== undefined && s.markup !== null && s.markup !== "" && Number.isFinite(Number(s.markup));
     const markup = hasOwn ? Number(s.markup) : globalMarkup;
     const packPrices = (s && s.packPrices) || {};
-    const packs = (g.packs || []).map((p) => {
+    // packages: null = all; [] = none; [ids] = subset
+    const allowedFox = Array.isArray(s?.packages) ? new Set(s.packages.map(String)) : null;
+    const packs = (g.packs || [])
+      .filter((p) => allowedFox === null || allowedFox.has(String(p.id)))
+      .map((p) => {
       const pid = String(p.id);
       const cost = Number(p.cost) || Number(p.price) || 0;
       const fixed = packPrices[pid];
