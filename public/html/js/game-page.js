@@ -71,6 +71,11 @@
     return /^\+?\d+(\.\d+)?$/.test(t) ? "+" + t.replace(/^\+/, "") + " Coin" : t;
   }
 
+  const ICON_CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 4 6v6c0 4.6 3.2 8 8 9.500 4.800-1.500 8-4.900 8-9.500V6l-8-3.500zm-1.200 13.200-3.100-3.100 1.300-1.300 1.800 1.800 4.200-4.200 1.300 1.300-5.500 5.500z"/></svg>';
+  const ICON_BOLT = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h6.500L9.500 22 20 9.500h-6.700z"/></svg>';
+  const ICON_HEAD = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a8 8 0 0 0-8 8v5a3 3 0 0 0 3 3h1v-7H6v-1a6 6 0 0 1 12 0v1h-2v7h1.500a2.500 2.500 0 0 1-2.500 2h-2.500v2H14a4.500 4.500 0 0 0 4.500-4.500V19A3 3 0 0 0 20 16v-5a8 8 0 0 0-8-8z"/></svg>';
+  const ICON_USER = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0z"/></svg>';
+
   /* Package cards — Kira Store style: art + price + name + HOT/FEATURED ribbon */
   function packHero(p) {
     const name = String(p.name || "");
@@ -161,39 +166,12 @@
     }
     const open = g.open !== false;
     const hint = idHint();
+    const bn = (g.banners && g.banners[0]) || g.banner || "";
     root.innerHTML = `
-      <section class="checkout-hero">
-        <div class="checkout-hero__img">${g.image ? `<img src="${esc(g.image)}" alt="" referrerpolicy="no-referrer" onerror="this.onerror=null;this.style.visibility='hidden'">` : `<span>${esc(String(g.name || "?").charAt(0))}</span>`}</div>
-        <div><h1 class="checkout-hero__title">${esc(g.name)}</h1>
-          <p class="checkout-hero__sub">${open ? "Instant delivery" : "Currently unavailable"}</p></div>
-      </section>
       ${open ? `
-      <div class="game-checkout-layout">
-        <div class="game-checkout-sidebar">
-          <section class="checkout-card" data-checkout-player-section>
-            <h2 class="checkout-card__title">${esc(idLabel())}</h2>
-            <div class="checkout-field">
-              <div class="checkout-row">
-                <input id="f-user" class="checkout-input" value="${esc(S.userId)}" autocomplete="off" ${g.numericId ? 'inputmode="numeric"' : ""} placeholder="${esc(hint || idLabel())}">
-                <button type="button" class="checkout-btn checkout-btn--ghost" id="btn-check">${isTT() ? "Check link" : "Check ID"}</button>
-              </div>
-              ${hint ? `<p class="checkout-help">${esc(hint)}</p>` : ""}
-              <p class="checkout-help ${S.check ? "is-ok" : S.checkSoft ? "is-soft" : "is-err"}" id="check-msg">${S.check ? "✓ " + esc(S.check.nickname) : esc(S.checkMsg)}</p>
-            </div>
-            ${hasZone() ? `<div class="checkout-field">
-              <label class="checkout-label" for="f-zone">${esc(zoneLabel())}</label>
-              <input id="f-zone" class="checkout-input" value="${esc(S.zoneId)}" autocomplete="off" inputmode="numeric">
-            </div>` : ""}
-            ${hasServer() ? `<div class="checkout-field">
-              <label class="checkout-label" for="f-server">Server</label>
-              <select id="f-server" class="checkout-input">
-                <option value="">Select server</option>
-                ${g.servers.map((s) => `<option value="${esc(s.value)}" ${String(S.server) === String(s.value) ? "selected" : ""}>${esc(s.label || s.value)}</option>`).join("")}
-              </select>
-            </div>` : ""}
-          </section>
-
-          <section class="checkout-card" data-checkout-products-section>
+      <div class="game-checkout-layout kg-layout">
+        <div class="game-checkout-sidebar kg-grid">
+          <section class="checkout-card kg-packs" data-checkout-products-section>
             <h2 class="checkout-card__title">Choose package</h2>
             ${packGroups() || `<p class="checkout-help">No packages available.</p>`}
             <div class="checkout-quantity">
@@ -210,7 +188,35 @@
             </div>
             <p class="checkout-help ${S.couponMsg.startsWith("✓") ? "is-ok" : "is-err"}" data-coupon-status>${esc(S.couponMsg)}</p>
           </section>
-
+          <aside class="kg-side">
+            <div class="kg-banner">${bn ? `<img src="${esc(bn)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('is-empty');this.remove()">` : ""}<div class="kg-banner__fb"><b>${esc(g.name)}</b><span>Top up instantly · Secure KHQR</span></div></div>
+          <section class="checkout-card kg-game" data-checkout-player-section>
+            <div class="kg-ghead">
+              <div class="kg-gicon">${g.image ? `<img src="${esc(g.image)}" alt="" referrerpolicy="no-referrer" onerror="this.onerror=null;this.style.visibility='hidden'">` : `<span>${esc(String(g.name || "?").charAt(0))}</span>`}</div>
+              <div class="kg-gmeta"><h1 class="kg-gtitle">${esc(g.name)}</h1>
+                <div class="kg-chips">${open ? `<span class="kg-chip is-ver">${ICON_CHECK}Verified</span><span class="kg-chip is-inst">${ICON_BOLT}Instant</span><span class="kg-chip is-247">${ICON_HEAD}24/7</span>` : `<span class="kg-chip">Currently unavailable</span>`}</div>
+              </div>
+            </div>
+            <div class="kg-pd"><span class="kg-pd__ico">${ICON_USER}</span><div><b>Player details</b><small>${esc(hint || "Enter account ID & server")}</small></div></div>
+            <div class="checkout-field">
+              <div class="checkout-row">
+                <input id="f-user" class="checkout-input" value="${esc(S.userId)}" autocomplete="off" ${g.numericId ? 'inputmode="numeric"' : ""} placeholder="${esc(hint || idLabel())}">
+                <button type="button" class="checkout-btn checkout-btn--ghost" id="btn-check">${isTT() ? "Check link" : "Check ID"}</button>
+              </div>
+                            <p class="checkout-help ${S.check ? "is-ok" : S.checkSoft ? "is-soft" : "is-err"}" id="check-msg">${S.check ? "✓ " + esc(S.check.nickname) : esc(S.checkMsg)}</p>
+            </div>
+            ${hasZone() ? `<div class="checkout-field">
+              <label class="checkout-label" for="f-zone">${esc(zoneLabel())}</label>
+              <input id="f-zone" class="checkout-input" value="${esc(S.zoneId)}" autocomplete="off" inputmode="numeric">
+            </div>` : ""}
+            ${hasServer() ? `<div class="checkout-field">
+              <label class="checkout-label" for="f-server">Server</label>
+              <select id="f-server" class="checkout-input">
+                <option value="">Select server</option>
+                ${g.servers.map((s) => `<option value="${esc(s.value)}" ${String(S.server) === String(s.value) ? "selected" : ""}>${esc(s.label || s.value)}</option>`).join("")}
+              </select>
+            </div>` : ""}
+          </section>
           <section class="checkout-card checkout-payment" data-checkout-payment-section>
             <div class="checkout-payment__heading">
               <div><h3>Payment method</h3><p>Pay with ABA KHQR</p></div>
@@ -239,6 +245,7 @@
               ${S.paying ? "Please wait…" : S.pack ? "Pay " + money(total()) : "Select a package"}
             </button>
           </section>
+          </aside>
         </div>
         <div class="pk-bar">
           <div class="pk-bar__info">
@@ -247,7 +254,7 @@
           </div>
           <button type="button" class="pk-bar__pay" id="btn-pay-bar" ${S.paying || !S.pack ? "disabled" : ""}>${ICON_BAG}${S.paying ? "Please wait…" : "Pay Now"}</button>
         </div>
-      </div>` : `<section class="checkout-card"><p>This game is not available right now.</p></section>`}`;
+      </div>` : `<section class="checkout-card"><h1 class="kg-gtitle">${esc(g.name)}</h1><p>This game is not available right now.</p></section>`}`;
     bind();
   }
 
@@ -527,6 +534,24 @@
   // Came back from ABA app → check payment immediately
   document.addEventListener("visibilitychange", () => { if (!document.hidden && S.checkoutId && $("#qr-dialog").open) checkPaid(); });
 
+  /* ---------- header search ---------- */
+  (function () {
+    const q = $("#kg-q"), box = $("#kg-results");
+    if (!q || !box) return;
+    const show = () => {
+      const t = q.value.trim().toLowerCase();
+      const list = t ? (S.all || []).filter((g) => (g.name + " " + (g.nameKm || "") + " " + g.id).toLowerCase().includes(t)).slice(0, 7) : [];
+      box.classList.toggle("hidden", !list.length && !t);
+      box.innerHTML = list.length
+        ? list.map((g) => `<a href="/game/${encodeURIComponent(g.id)}">${g.image ? `<img src="${esc(g.image)}" alt="" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : `<i>${esc(String(g.name || "?").charAt(0))}</i>`}<span>${esc(g.name)}</span></a>`).join("")
+        : `<p>No games found</p>`;
+    };
+    q.addEventListener("input", show);
+    q.addEventListener("focus", show);
+    document.addEventListener("click", (e) => { if (!e.target.closest(".kg-search")) box.classList.add("hidden"); });
+    q.addEventListener("keydown", (e) => { if (e.key === "Escape") { box.classList.add("hidden"); q.blur(); } });
+  })();
+
   /* ---------- load ---------- */
   async function load() {
     if (!gameId) { S.error = "Missing game id."; return render(); }
@@ -534,6 +559,7 @@
     const [r, lk] = await Promise.all([api("/api/catalog"), api("/api/likes")]);
     S.likes = (lk.data && lk.data.likes) || {};
     const games = (r.data && r.data.games) || [];
+    S.all = games;
     S.game = games.find((g) => String(g.id) === gameId) || null;
     if (!S.game) S.error = "Game not found.";
     document.title = S.game ? `${S.game.name} · POR POR TOPUP` : "POR POR TOPUP";
