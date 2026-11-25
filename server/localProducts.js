@@ -93,7 +93,7 @@ export const DEFAULT_LOCAL_PRODUCTS = [
     blurbEn: "Send Robux to username — admin sends manually after pay (Live Chat · not auto)",
     famous: true,
     hot: true,
-    open: false,
+    open: true,
     hue: 200,
     mark: "SEND",
     image: "/icons/robux.svg",
@@ -310,8 +310,8 @@ function localCatalogAll() {
         blurbEn: String(g.blurbEn || ""),
         famous: !!g.famous,
         hot: !!g.hot,
-        // Honor Admin open/close — except Robux Send forced OFF
-        open: String(g.id) === "robux-send" ? false : g.open !== false,
+        // Honor Admin open/close
+        open: g.open !== false,
         showWhenOff: !!g.showWhenOff,
         hue: Number(g.hue) || 210,
         mark: String(g.mark || "GC"),
