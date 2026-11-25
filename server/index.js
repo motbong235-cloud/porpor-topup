@@ -1478,27 +1478,35 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
       });
     }
   } else {
-    // Porpor main services → ONLY env RIELPAY_API_KEY (never TikTok settings key)
-    if (rielPay.isReady("env")) {
-      qr = await rielPay.createPayment(order.total, order.id, payDesc, { keySource: "env" });
-      usedGateway = "rielpay";
-      if (!qr.success) console.error("[checkout] env RielPay failed:", qr.error);
-    }
-    if ((!qr || !qr.success) && khmerSystemPay.isPaymentReady()) {
-      console.warn("[checkout] Porpor RielPay env missing/failed — ABA fallback");
-      const uname = String(order.userId || order.id).replace(/^@/, "").slice(0, 24);
-      qr = await khmerSystemPay.createQr(order.total, order.id, uname);
-      usedGateway = "aba";
-    }
-    if (!qr || !qr.success) {
-      const err = (qr && qr.error) || "no_payment_gateway";
-      console.error("[checkout] Porpor QR failed — set RIELPAY_API_KEY on Render", err);
-      updateOrder(order.id, { status: "failed", note: `QR error (env): ${err}` });
+    // Porpor main services → ONLY Render RIELPAY_API_KEY (never TikTok settings key).
+    // BUGFIX: do NOT silently fall back to Khmer System when env key exists but API fails —
+    // that hid RielPay errors and always showed PHAT SREYMEY ABA QR.
+    if (!rielPay.isReady("env")) {
+      console.error("[checkout] missing RIELPAY_API_KEY on Render");
+      updateOrder(order.id, { status: "failed", note: "QR error: RIELPAY_API_KEY not set on Render" });
       return res.status(502).json({
         error: "qr_failed",
-        detail: "Service នេះប្រើ API Porpor ផ្សេង។ ដាក់ RIELPAY_API_KEY លើ Render Environment (មិនមែន key TikTok ក្នុង Admin)។",
-        code: (qr && qr.code) || "",
-        gateway: usedGateway || "",
+        detail: "ដាក់ RIELPAY_API_KEY លើ Render → Environment រួច Redeploy។ (TikTok ប្រើ key ក្នុង Admin តែប៉ុណ្ណោះ)",
+        gateway: "rielpay",
+        keySource: "env",
+      });
+    }
+    qr = await rielPay.createPayment(order.total, order.id, payDesc, { keySource: "env" });
+    usedGateway = "rielpay";
+    if (!qr.success) {
+      const err = qr.error || "rielpay_failed";
+      console.error("[checkout] env RielPay failed (no ABA fallback):", err, JSON.stringify(qr.raw || {}).slice(0, 400));
+      updateOrder(order.id, {
+        status: "failed",
+        note: `QR error (RIELPAY_API_KEY): ${err}`,
+        paymentKeySource: "env",
+        paymentGateway: "rielpay",
+      });
+      return res.status(502).json({
+        error: "qr_failed",
+        detail: `RielPay env failed: ${err}`,
+        code: qr.code || "",
+        gateway: "rielpay",
         keySource: "env",
       });
     }

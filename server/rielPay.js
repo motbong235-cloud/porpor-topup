@@ -311,18 +311,19 @@ export async function diagnose() {
     hasWebhookSecret: webhookSecrets().length > 0,
     note: "settings key = TikTok Khmer only; env key = other services",
   };
-  // Admin "Test" button should verify TikTok settings key first
+  const out = { ...info };
   if (isReady("settings")) {
-    const test = await createPayment(0.05, `diag-ttk-${Date.now()}`, "TikTok Khmer payment test", {
+    out.testSettings = await createPayment(0.05, `diag-ttk-${Date.now()}`, "TikTok Khmer payment test", {
       keySource: "settings",
     });
-    return { ...info, testScope: "tiktok_settings", test };
   }
   if (isReady("env")) {
-    const test = await createPayment(0.05, `diag-env-${Date.now()}`, "Env payment test", {
+    out.testEnv = await createPayment(0.05, `diag-env-${Date.now()}`, "Env / other services test", {
       keySource: "env",
     });
-    return { ...info, testScope: "env", test };
   }
-  return { ...info, test: null, error: "missing_key" };
+  out.test = out.testEnv || out.testSettings || null;
+  out.testScope = out.testEnv ? "env" : out.testSettings ? "tiktok_settings" : null;
+  if (!out.test) out.error = "missing_key";
+  return out;
 }
