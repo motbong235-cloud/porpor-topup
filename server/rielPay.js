@@ -36,17 +36,16 @@ function settingsBag() {
 
 /**
  * @param {"settings"|"env"|"auto"} source
- * - settings: Admin Settings only (TikTok Khmer ONLY)
- * - env: Render RIELPAY_API_KEY only (all other services)
- * - auto: env only (never borrow TikTok settings key)
+ * - settings: Admin Settings rielpayApiKey
+ * - env: Render RIELPAY_API_KEY
+ * - auto: env, then settings
  */
 export function apiKey(source = "auto") {
   const fromAdmin = clean(settingsBag().rielpayApiKey || "");
   const fromEnv = clean(process.env.RIELPAY_API_KEY || "");
   if (source === "settings") return fromAdmin;
   if (source === "env") return fromEnv;
-  // auto: other services — env only
-  return fromEnv;
+  return fromEnv || fromAdmin;
 }
 
 export function webhookSecret(source = "auto") {
