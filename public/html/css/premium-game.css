@@ -1,0 +1,56 @@
+/* PORPOR premium game page v1 — additive, loaded last (matches premium-home) */
+:root{--pp-bg:#070b16;--pp-line:rgba(120,170,255,.15);--pp-blue:#3b82f6;--pp-cyan:#38bdf8;--card:rgba(15,24,48,.78);--line:rgba(120,170,255,.15)}
+html,body{background:var(--pp-bg)!important}
+body{background:radial-gradient(70% 40% at 90% -6%,rgba(59,130,246,.24),transparent 62%),radial-gradient(50% 36% at -5% 10%,rgba(56,189,248,.12),transparent 60%),linear-gradient(180deg,#070b16,#0a1124 60%,#070b16)!important;background-attachment:fixed!important}
+/* header */
+.kg-header,.gp-header{background:rgba(8,13,28,.74)!important;backdrop-filter:blur(18px) saturate(1.5)!important;-webkit-backdrop-filter:blur(18px) saturate(1.5)!important;border-bottom:1px solid var(--pp-line)!important;box-shadow:0 10px 30px -22px #000!important}
+.kg-nav a{border-radius:12px;transition:background .2s}.kg-nav a:hover{background:rgba(59,130,246,.15)!important}
+.kg-search input{background:rgba(255,255,255,.06)!important;border:1px solid var(--pp-line)!important}
+.kg-search input:focus{border-color:var(--pp-blue)!important;box-shadow:0 0 0 4px rgba(59,130,246,.2)!important}
+/* panels */
+.gp-card,.kg-game,.kg-packs,.kg-pd,.checkout-card,.checkout-payment{background:linear-gradient(180deg,rgba(17,28,58,.88),rgba(10,17,36,.94))!important;border:1px solid var(--pp-line)!important;border-radius:24px!important;box-shadow:0 24px 50px -30px #000,0 1px 0 rgba(255,255,255,.06) inset!important;backdrop-filter:blur(10px)}
+/* banner */
+.kg-banner{border-radius:26px!important;border:1px solid var(--pp-line);box-shadow:0 30px 60px -32px rgba(59,130,246,.8)!important}
+.kg-banner__fb{background:linear-gradient(135deg,#1d4ed8,#6d28d9 55%,#db2777)!important}
+.kg-banner::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(60% 80% at 100% 0,rgba(255,255,255,.22),transparent 60%)}
+/* game head + chips */
+.kg-gicon{border-radius:20px!important;box-shadow:0 14px 28px -12px var(--pp-blue),0 0 0 1px var(--pp-line)}
+.kg-chip{border-radius:999px!important;backdrop-filter:blur(6px)}
+/* inputs */
+.kg-layout input[type=text],.kg-layout input[type=number],.kg-layout input:not([type]),.kg-layout select,.checkout-card input,.gp-main input:not([type=checkbox]):not([type=radio]){background:rgba(5,9,20,.65)!important;border:1px solid var(--pp-line)!important;border-radius:14px!important;color:#eaf2ff!important;transition:border-color .2s,box-shadow .2s}
+.kg-layout input:focus,.checkout-card input:focus,.gp-main input:focus{border-color:var(--pp-blue)!important;box-shadow:0 0 0 4px rgba(59,130,246,.22)!important;outline:none}
+/* pack tiles */
+.pk-chip{border-radius:999px!important;border:1px solid var(--pp-line)!important;background:rgba(59,130,246,.08)!important;transition:.2s}
+.pk-chip:hover{background:rgba(59,130,246,.2)!important}
+.pk-head__title{letter-spacing:-.01em}
+.pk-item{position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(24,38,76,.85),rgba(12,20,42,.92))!important;border:1px solid var(--pp-line)!important;border-radius:18px!important;box-shadow:0 14px 26px -20px #000!important;transition:transform .22s cubic-bezier(.2,.7,.2,1),border-color .2s,box-shadow .22s!important}
+.pk-item:hover{transform:translateY(-3px)!important;border-color:rgba(96,165,250,.55)!important;box-shadow:0 20px 34px -22px var(--pp-blue)!important}
+.pk-item.is-selected,.pk-item[data-selected="true"]{background:linear-gradient(135deg,rgba(37,99,235,.42),rgba(56,189,248,.22))!important;border-color:#60a5fa!important;box-shadow:0 0 0 2px rgba(96,165,250,.45),0 22px 40px -22px var(--pp-blue)!important}
+.pk-price{text-shadow:0 0 18px rgba(250,204,21,.25)}
+.pk-ribbon{border-radius:0 10px 0 10px!important}
+.pk-like{border:1px solid var(--pp-line)!important;background:rgba(59,130,246,.08)!important;border-radius:999px!important}
+/* payment */
+.checkout-payment-method,.checkout-payment .is-selected,.checkout-payment [aria-checked=true]{border-radius:16px!important;background:linear-gradient(135deg,rgba(37,99,235,.16),rgba(56,189,248,.08))!important;border:1px solid rgba(96,165,250,.5)!important;box-shadow:0 0 0 1px rgba(96,165,250,.12) inset}
+/* CTA */
+button.checkout-btn--pay,.checkout-btn--pay,.pk-bar__pay,#btn-pay{border-radius:16px!important;font-weight:800!important;letter-spacing:.02em;background:linear-gradient(135deg,#2563eb,#38bdf8)!important;border:0!important;box-shadow:0 18px 34px -16px var(--pp-blue),0 1px 0 rgba(255,255,255,.35) inset!important;transition:filter .2s,transform .15s!important}
+.checkout-btn--pay:hover,#btn-pay:hover,.pk-bar__pay:hover{filter:brightness(1.1)}.checkout-btn--pay:active,#btn-pay:active{transform:scale(.98)}
+/* sticky mobile bar */
+.pk-bar{background:rgba(7,11,22,.86)!important;backdrop-filter:blur(18px) saturate(1.4)!important;border-top:1px solid var(--pp-line)!important}
+/* apply / secondary buttons */
+.checkout-btn:not(.checkout-btn--pay),.gp-btn{border-radius:13px!important}
+/* total */
+.checkout-total,[class*=total]{letter-spacing:-.01em}
+@media(max-width:640px){.kg-banner{border-radius:20px!important}.gp-card,.kg-game,.kg-packs,.kg-pd,.checkout-card,.checkout-payment{border-radius:20px!important}}
+@media(prefers-reduced-motion:reduce){.pk-item{transition:none!important}}
+/* pack tiles — beat kira-packs specificity */
+.kg-packs .pk-grid .pk-item,.pk-grid .pk-item,button.pk-item,.pk-item{background:linear-gradient(180deg,#18264c,#0d1630)!important;background-color:#111b38!important}
+.kg-packs .pk-grid .pk-item.is-selected,.pk-grid .pk-item.is-selected,.pk-item.is-selected,.pk-item[data-selected="true"],.pk-item[aria-pressed="true"]{background:linear-gradient(135deg,#1e4fc4,#1c7fb8)!important}
+.pk-item .pk-coin{background:rgba(59,130,246,.18)!important;border:1px solid var(--pp-line)!important;color:#8cc4ff!important}
+html body button.pk-item.kira-pack{background:linear-gradient(180deg,#18264c,#0d1630)!important;border:1px solid var(--pp-line)!important;border-radius:18px!important;box-shadow:0 14px 26px -20px #000!important;transition:transform .22s cubic-bezier(.2,.7,.2,1),border-color .2s,box-shadow .22s!important}
+html body button.pk-item.kira-pack:hover:not(:disabled){transform:translateY(-3px)!important;border-color:rgba(96,165,250,.55)!important;box-shadow:0 20px 34px -22px #3b82f6!important}
+html body button.pk-item.kira-pack.is-selected,html body button.pk-item.kira-pack[data-selected="true"]{background:linear-gradient(135deg,#1e4fc4,#1c7fb8)!important;border-color:#7dc0ff!important;box-shadow:0 0 0 2px rgba(96,165,250,.45),0 22px 40px -22px #3b82f6!important}
+/* theme tokens used by kira-layout */
+:root{--kg-bg:#070b16;--kg-head:#0a1124;--kg-panel:#0f1830;--kg-tile:#14204a;--kg-tile-hi:#1b2c62;--kg-line:rgba(120,170,255,.15)}
+html body .kg-packs button.pk-item.kira-pack{background:linear-gradient(180deg,#18264c,#0d1630)!important}
+html body .kg-packs button.pk-item.kira-pack:hover:not(:disabled){background:linear-gradient(180deg,#1d2f64,#101c3c)!important}
+html body .kg-packs button.pk-item.kira-pack.is-selected,html body .kg-packs button.pk-item.kira-pack[data-selected="true"]{background:linear-gradient(135deg,#1e4fc4,#1c7fb8)!important}
