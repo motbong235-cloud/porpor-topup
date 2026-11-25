@@ -384,7 +384,15 @@
     const d = r.data || {};
     if (!r.ok) {
       const code = d.error || d.detail || "";
-      S.payErr = ERRORS[code] || (d.message ? String(d.message) : "Checkout failed. Please try again.");
+      S.payErr = ERRORS[code] || (d.message ? String(d.message) : "");
+      if (!S.payErr) {
+        // Show the real gateway reason (RielPay/ABA) so the owner can fix the key/config instead of a blind "failed".
+        const why = String(d.detail || "").replace(/\s+/g, " ").slice(0, 160);
+        S.payErr = code === "qr_failed"
+          ? "Could not create the payment QR." + (why ? " Reason: " + why : "") + " Please try again or contact support."
+          : "Checkout failed. Please try again.";
+      }
+      try { console.warn("[checkout]", r.status, d); } catch (_) {}
       return render();
     }
     const p = d.payment || {};

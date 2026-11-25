@@ -158,6 +158,7 @@ export async function createPayment(amount, orderId, description = "", opts = {}
           (typeof errObj === "string" ? errObj : "") ||
           data?.message ||
           "";
+        if (r.status === 401 || r.status === 403) { lastErr = `HTTP ${r.status} key rejected — check RIELPAY_API_KEY is a LIVE key (sk_live…), correct merchant, and not IP/domain-restricted. ${errMsg || errCode || ""}`.trim(); return { success: false, error: lastErr, code: String(errCode || r.status), raw: data }; }
         lastErr = errCode && errMsg
           ? `${errCode}: ${errMsg}`
           : errMsg || errCode || `HTTP ${r.status}`;
@@ -173,11 +174,19 @@ export async function createPayment(amount, orderId, description = "", opts = {}
         };
       }
 
-      const id = data.id || data.payment_id || data.transaction_id || "";
-      const qrString =
-        data.qr_string || data.qrString || data.qr_code || data.qr || data.khqr || "";
-      let qrImage =
-        data.qr_image || data.qrImage || data.image || data.card_image || "";
+      const pick = (...vals) => vals.find((v) => typeof v === "string" && v.trim()) || "";
+      const q = data.qr && typeof data.qr === "object" ? data.qr : {};
+      const id = data.id || data.payment_id || data.transaction_id || data.payment?.id || "";
+      const qrString = pick(
+        data.qr_string, data.qrString, data.khqr_string, data.khqr, data.qr_data, data.payload,
+        typeof data.qr_code === "string" ? data.qr_code : "", typeof data.qr === "string" ? data.qr : "",
+        q.string, q.qr_string, q.data, q.payload, q.value,
+      );
+      let qrImage = pick(
+        data.qr_image, data.qrImage, data.qr_image_url, data.qr_code_url, data.qr_url, data.image, data.card_image,
+        q.image, q.url, q.base64, q.png,
+      );
+      if (qrImage && !/^(data:|https?:)/i.test(qrImage) && /^[A-Za-z0-9+/=\s]{200,}$/.test(qrImage)) qrImage = `data:image/png;base64,${qrImage.replace(/\s+/g, "")}`;
       if (!qrImage && qrString) {
         qrImage = await qrImageFromString(qrString);
       }
@@ -185,7 +194,11 @@ export async function createPayment(amount, orderId, description = "", opts = {}
       const deeplink = data.deeplink || data.aba_deeplink || data.open_aba || "";
 
       if (!id && !qrString && !payUrl) {
-        return { success: false, error: "unexpected response", raw: data };
+        return { success: false, error: "unexpected response: " + Object.keys(data || {}).slice(0, 12).join(","), raw: data };
+      }
+      if (!qrImage && !qrString && !payUrl) {
+        console.error("[rielpay] payment created but no QR in response; keys:", Object.keys(data || {}).join(","));
+        return { success: false, error: "RielPay returned no QR (keys: " + Object.keys(data || {}).slice(0, 12).join(",") + ")", raw: data };
       }
 
       return {
