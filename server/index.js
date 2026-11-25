@@ -1428,10 +1428,10 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
     }
   }
 
-  // Payment keys (prefer RielPay always):
-  // 1) TikTok Khmer → Admin Settings rielpayApiKey
-  // 2) Other services → env RIELPAY_API_KEY, then Admin settings key
-  // 3) ABA / Khmer System only if both RielPay keys missing or QR fails
+  // Two separate RielPay merchants (never mix keys):
+  // 1) TikTok Khmer ONLY → Admin Settings rielpayApiKey
+  // 2) All other Porpor services → Render env RIELPAY_API_KEY only
+  // ABA/Khmer System is last-resort fallback only when env key missing/fails
   let qr;
   let usedGateway;
   const gidLower = String(order.gameId || "").toLowerCase();
@@ -1445,6 +1445,7 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
     gameId: order.gameId,
     gameName: order.gameName,
     isTikTokPay,
+    keySource: isTikTokPay ? "settings" : "env",
     envReady: rielPay.isReady("env"),
     settingsReady: rielPay.isReady("settings"),
     abaReady: khmerSystemPay.isPaymentReady(),
@@ -1477,33 +1478,28 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
       });
     }
   } else {
-    // Prefer RielPay: env → admin settings → (last) ABA Khmer System
+    // Porpor main services → ONLY env RIELPAY_API_KEY (never TikTok settings key)
     if (rielPay.isReady("env")) {
       qr = await rielPay.createPayment(order.total, order.id, payDesc, { keySource: "env" });
       usedGateway = "rielpay";
       if (!qr.success) console.error("[checkout] env RielPay failed:", qr.error);
     }
-    if ((!qr || !qr.success) && rielPay.isReady("settings")) {
-      qr = await rielPay.createPayment(order.total, order.id, payDesc, { keySource: "settings" });
-      usedGateway = "rielpay";
-      if (!qr.success) console.error("[checkout] settings RielPay failed:", qr.error);
-    }
     if ((!qr || !qr.success) && khmerSystemPay.isPaymentReady()) {
-      console.warn("[checkout] RielPay unavailable — falling back to Khmer System/ABA");
+      console.warn("[checkout] Porpor RielPay env missing/failed — ABA fallback");
       const uname = String(order.userId || order.id).replace(/^@/, "").slice(0, 24);
       qr = await khmerSystemPay.createQr(order.total, order.id, uname);
       usedGateway = "aba";
     }
     if (!qr || !qr.success) {
       const err = (qr && qr.error) || "no_payment_gateway";
-      console.error("[checkout] QR failed — set Admin RielPay key or RIELPAY_API_KEY", err);
-      updateOrder(order.id, { status: "failed", note: `QR error: ${err}` });
+      console.error("[checkout] Porpor QR failed — set RIELPAY_API_KEY on Render", err);
+      updateOrder(order.id, { status: "failed", note: `QR error (env): ${err}` });
       return res.status(502).json({
         error: "qr_failed",
-        detail: "មិនអាចបង្កើត QR RielPay។ ពិនិត្យ API key ក្នុង Admin → Settings (ឬ RIELPAY_API_KEY លើ Render)។",
+        detail: "Service នេះប្រើ API Porpor ផ្សេង។ ដាក់ RIELPAY_API_KEY លើ Render Environment (មិនមែន key TikTok ក្នុង Admin)។",
         code: (qr && qr.code) || "",
         gateway: usedGateway || "",
-        keySource: rielPay.isReady("env") ? "env" : (rielPay.isReady("settings") ? "settings" : ""),
+        keySource: "env",
       });
     }
   }
