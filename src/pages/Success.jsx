@@ -4,6 +4,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { t } from "../lib/i18n";
 import { money } from "../lib/store";
 import RobuxRain from "../components/RobuxRain";
+import "../invoice.css";
 
 /**
  * Payment Successful page (storefront):
@@ -217,94 +218,72 @@ export default function Success({ lang, settings }) {
 
   return (
     <div className="container success-page">
-      <div className="success-card card">
-        <div className="success-icon" aria-hidden>
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 12l5 5L20 7" />
-          </svg>
+      <div className="success-card card inv">
+        <div className={`inv-hero ${failed ? "bad" : paid ? "ok" : "wait"}`}>
+          <div className="inv-ring" aria-hidden>
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+              {failed ? <path d="M6 6l12 12M18 6L6 18" /> : paid ? <path d="M5 12.5l4.5 4.5L19 7.5" /> : <><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></>}
+            </svg>
+          </div>
+          <h1 className="success-title">
+            {failed
+              ? lang === "km" ? "ប្រតិបត្តិការបរាជ័យ" : "Order failed"
+              : paid
+                ? lang === "km" ? "បង់ប្រាក់ជោគជ័យ" : "Payment Successful"
+                : lang === "km" ? "រង់ចាំការបង់ប្រាក់" : "Awaiting payment"}
+          </h1>
+          <p className="success-sub">
+            {paid
+              ? lang === "km" ? "អរគុណ! នេះជាវិក័យប័ត្ររបស់អ្នក។" : "Thank you! Here is your invoice."
+              : lang === "km" ? "សូមបញ្ចប់ការបង់ប្រាក់ បន្ទាប់មកត្រឡប់មកទំព័រនេះវិញ។" : "Please complete payment, then return to this page."}
+          </p>
         </div>
-        <h1 className="success-title">
-          {paid
-            ? lang === "km"
-              ? "បង់ប្រាក់ជោគជ័យ"
-              : "Payment Successful"
-            : lang === "km"
-              ? "រង់ចាំការបង់ប្រាក់"
-              : "Awaiting payment"}
-        </h1>
-        <p className="success-sub">
-          {paid
-            ? lang === "km"
-              ? "ប្រតិបត្តិការរបស់អ្នកបានបញ្ចប់ដោយជោគជ័យ។"
-              : "Your transaction has been successfully completed."
-            : lang === "km"
-              ? "សូមបញ្ចប់ការបង់ប្រាក់ បន្ទាប់មកត្រឡប់មកទំព័រនេះវិញ។"
-              : "Please complete payment, then return to this page."}
-        </p>
 
-        <div className="success-table">
-          <div className="row">
-            <span>{lang === "km" ? "ផលិតផល" : "Product"}</span>
-            <strong>
-              {order.packName} ×{order.qty}
-            </strong>
-          </div>
-          <div className="row">
-            <span>{lang === "km" ? "សរុប" : "Total"}</span>
-            <strong>{money(order.total)}</strong>
-          </div>
-          <div className="row">
-            <span>{lang === "km" ? "ហ្គេម" : "Game"}</span>
-            <strong>{order.gameName}</strong>
-          </div>
-          {showUser && (!isGift || isManual || order.deliveryType === "stock") ? (
-            <div className="row">
-              <span>{idLabel}</span>
-              <strong>
-                {order.userId}
-                {order.zoneId ? ` (${order.zoneId})` : ""}
-              </strong>
+        <div className="inv-ticket" id="invoice">
+          <div className="inv-top">
+            <div className="inv-brand">
+              <b>{settings?.siteName || "PORPOR TOPUP"}</b>
+              <span>{lang === "km" ? "វិក័យប័ត្រ" : "INVOICE"}</span>
             </div>
-          ) : null}
-          {order.nickname ? (
-            <div className="row">
-              <span>{lang === "km" ? "ឈ្មោះគណនី" : "Account"}</span>
-              <strong>{order.nickname}</strong>
+            {paid ? <span className="inv-stamp">{lang === "km" ? "បានបង់" : "PAID"}</span> : null}
+          </div>
+          <div className="inv-amount">
+            <small>{lang === "km" ? "ចំនួនទឹកប្រាក់សរុប" : "Total amount"}</small>
+            <b>{money(order.total)}</b>
+          </div>
+          <div className="inv-cut" aria-hidden><i /><span /><i /></div>
+          <dl className="inv-rows">
+            <div><dt>{lang === "km" ? "ហ្គេម" : "Game"}</dt><dd>{order.gameName}</dd></div>
+            <div><dt>{lang === "km" ? "ផលិតផល" : "Product"}</dt><dd>{order.packName} ×{order.qty}</dd></div>
+            {showUser && (!isGift || isManual || order.deliveryType === "stock") ? (
+              <div><dt>{idLabel}</dt><dd>{order.userId}{order.zoneId ? ` (${order.zoneId})` : ""}</dd></div>
+            ) : null}
+            {order.nickname ? <div><dt>{lang === "km" ? "ឈ្មោះគណនី" : "Account"}</dt><dd>{order.nickname}</dd></div> : null}
+            <div>
+              <dt>{lang === "km" ? "វិធីទូទាត់" : "Payment"}</dt>
+              <dd className="pay-method-logos"><img src="/aba-logo.svg" alt="ABA" height={20} /><img src="/khqr-logo.svg" alt="KHQR" height={20} /></dd>
             </div>
-          ) : null}
-          <div className="row">
-            <span>{lang === "km" ? "វិធីទូទាត់" : "Payment Method"}</span>
-            <strong className="pay-method-logos">
-              <img src="/aba-logo.svg" alt="ABA" height={22} />
-              <img src="/khqr-logo.svg" alt="KHQR" height={22} />
-            </strong>
-          </div>
-          <div className="row">
-            <span>Order ID</span>
-            <strong className="mono">
-              {order.id}{" "}
-              <button type="button" className="btn-soft" style={{ marginLeft: 6, padding: "2px 8px" }} onClick={copyId}>
-                {t(lang, "copy")}
-              </button>
-            </strong>
-          </div>
-          <div className="row">
-            <span>{lang === "km" ? "កាលបរិច្ឆេទ" : "Date"}</span>
-            <strong>{new Date(order.paidAt || order.createdAt).toLocaleString(lang === "km" ? "km-KH" : "en-GB", { timeZone: "Asia/Phnom_Penh" })}</strong>
-          </div>
-          <div className="row">
-            <span>{lang === "km" ? "ស្ថានភាព" : "Status"}</span>
-            <strong className={`success-status ${statusTone}`}>
-              <i aria-hidden /> {paid ? stepLabel : lang === "km" ? "រង់ចាំការបង់ប្រាក់" : "Awaiting payment"}
-            </strong>
-          </div>
-          {order.giftCode ? (
-            <div className="row">
-              <span>{lang === "km" ? "កូដ" : "Code"}</span>
-              <strong className="mono">{order.giftCode}</strong>
+            <div>
+              <dt>{lang === "km" ? "កាលបរិច្ឆេទ" : "Date"}</dt>
+              <dd>{new Date(order.paidAt || order.createdAt).toLocaleString(lang === "km" ? "km-KH" : "en-GB", { timeZone: "Asia/Phnom_Penh" })}</dd>
             </div>
-          ) : null}
+            <div>
+              <dt>Order ID</dt>
+              <dd className="mono">
+                {order.id}
+                <button type="button" className="inv-copy" onClick={copyId} aria-label={t(lang, "copy")}>{t(lang, "copy")}</button>
+              </dd>
+            </div>
+            {order.giftCode ? <div className="inv-code"><dt>{lang === "km" ? "កូដ" : "Code"}</dt><dd className="mono">{order.giftCode}</dd></div> : null}
+          </dl>
+          <div className="inv-foot">
+            <span className={`success-status ${statusTone}`}><i aria-hidden /> {paid ? stepLabel : lang === "km" ? "រង់ចាំការបង់ប្រាក់" : "Awaiting payment"}</span>
+          </div>
         </div>
+
+        <button type="button" className="inv-print" onClick={() => window.print()}>
+          <Icon name="external" size={15} /> {lang === "km" ? "រក្សាទុក / បោះពុម្ពវិក័យប័ត្រ" : "Save / print invoice"}
+        </button>
 
         {order.giftCode ? (
           <div className="success-chat-box ok">

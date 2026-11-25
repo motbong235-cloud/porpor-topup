@@ -1,0 +1,52 @@
+/* Premium invoice (Payment Successful page). Scoped under .success-page .inv */
+.container.success-page,.success-page{max-width:480px!important;margin-left:auto!important;margin-right:auto!important}
+.success-page .inv.success-card{background:transparent!important;border:0!important;box-shadow:none!important;padding:8px 0 24px;text-align:center}
+.inv-hero{display:grid;justify-items:center;gap:6px;margin:6px 0 20px}
+.inv-hero .inv-ring{--c:#16a34a;width:76px;height:76px;border-radius:50%;display:grid;place-items:center;color:#fff;background:radial-gradient(circle at 30% 25%,color-mix(in srgb,var(--c) 70%,#fff),var(--c));box-shadow:0 0 0 8px color-mix(in srgb,var(--c) 18%,transparent),0 0 0 18px color-mix(in srgb,var(--c) 8%,transparent),0 18px 36px -12px var(--c);animation:invPop .6s cubic-bezier(.2,1.4,.3,1) both}
+.inv-hero.wait .inv-ring{--c:#f59e0b}.inv-hero.bad .inv-ring{--c:#ef4444}
+.inv-hero.ok .inv-ring path{stroke-dasharray:28;stroke-dashoffset:28;animation:invDraw .5s .35s ease forwards}
+.inv-hero .success-title{margin:14px 0 0;font-size:1.5rem;letter-spacing:-.01em}
+.inv-hero .success-sub{margin:0;font-size:.92rem}
+@keyframes invPop{from{transform:scale(.5);opacity:0}to{transform:none;opacity:1}}
+@keyframes invDraw{to{stroke-dashoffset:0}}
+
+.inv-ticket{position:relative;text-align:left;background:linear-gradient(180deg,#fff,#f8fafc);color:#0f172a;border-radius:22px;box-shadow:0 30px 60px -28px rgba(2,12,40,.55),0 2px 0 rgba(255,255,255,.6) inset;animation:invUp .6s .1s both;overflow:hidden}
+@keyframes invUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.inv-ticket::before{content:"";position:absolute;inset:0 0 auto;height:5px;background:linear-gradient(90deg,#2563eb,#06b6d4,#8b5cf6)}
+.inv-top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:24px 22px 4px}
+.inv-brand{display:grid;gap:2px}.inv-brand b{font-size:15px;letter-spacing:.02em}.inv-brand span{font-size:10.5px;font-weight:800;letter-spacing:.22em;color:#64748b}
+.inv-stamp{transform:rotate(-8deg);border:2px solid #16a34a;color:#16a34a;font-weight:900;font-size:12px;letter-spacing:.18em;padding:3px 10px;border-radius:8px;background:rgba(22,163,74,.07)}
+.inv-amount{padding:10px 22px 22px;display:grid;gap:2px}
+.inv-amount small{font-size:11.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.08em}
+.inv-amount b{font-size:44px;line-height:1.05;font-weight:800;letter-spacing:-.03em;background:linear-gradient(135deg,#1d4ed8,#0891b2);-webkit-background-clip:text;background-clip:text;color:transparent}
+.inv-cut{position:relative;height:22px;display:flex;align-items:center}
+.inv-cut span{flex:1;border-top:2px dashed #cbd5e1;margin:0 4px}
+.inv-cut i{width:22px;height:22px;border-radius:50%;background:var(--bg,#f3f7fd);flex:none}
+.inv-cut i:first-child{margin-left:-11px}.inv-cut i:last-child{margin-right:-11px}
+.inv-rows{margin:0;padding:8px 22px 6px;display:grid}
+.inv-rows>div{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid #eef2f7;font-size:14px}
+.inv-rows>div:last-child{border-bottom:0}
+.inv-rows dt{color:#64748b;font-weight:600;flex:none}
+.inv-rows dd{margin:0;font-weight:700;text-align:right;min-width:0;overflow-wrap:anywhere;display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.inv-rows .pay-method-logos img{height:20px;width:auto}
+.inv-rows .mono{font-family:ui-monospace,Menlo,monospace;font-size:13px}
+.inv-copy{border:1px solid #dbe3ee;background:#fff;color:#1d4ed8;border-radius:8px;padding:3px 9px;font-size:11.5px;font-weight:800;cursor:pointer}
+.inv-copy:active{transform:scale(.96)}
+.inv-code dd{background:#0f172a;color:#a7f3d0;padding:7px 12px;border-radius:10px;letter-spacing:.06em;user-select:all}
+.inv-foot{padding:14px 22px 22px;background:linear-gradient(180deg,transparent,#f1f5f9);display:flex;justify-content:center}
+.inv-foot .success-status{font-weight:800;font-size:13px;padding:7px 14px;border-radius:999px;background:#fff;border:1px solid #e2e8f0;box-shadow:0 6px 14px -8px rgba(15,23,42,.25)}
+.inv-foot .success-status.bad{color:#b91c1c}
+.inv-foot .success-status i{animation:invDot 1.6s infinite}.inv-foot .success-status.ok i{animation:none}
+@keyframes invDot{50%{opacity:.35}}
+.inv-print{margin:14px auto 18px;display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(148,163,184,.4);background:rgba(255,255,255,.08);color:inherit;border-radius:999px;padding:10px 18px;font-weight:700;font-size:13.5px;cursor:pointer;backdrop-filter:blur(6px)}
+.inv-print:hover{background:rgba(148,163,184,.18)}
+.success-page .success-chat-box,.success-page .success-note,.success-page .success-thanks,.success-page .success-actions,.success-page .tt-tutorial{text-align:left}
+.success-page .success-note,.success-page .success-thanks{text-align:center}
+@media (max-width:420px){.inv-amount b{font-size:38px}.inv-rows>div{font-size:13.5px}}
+@media (prefers-reduced-motion:reduce){.inv-ring,.inv-ticket,.inv-hero.ok .inv-ring path{animation:none!important;stroke-dashoffset:0!important}}
+@media print{
+  body *{visibility:hidden!important}
+  #invoice,#invoice *{visibility:visible!important}
+  #invoice{position:absolute;left:0;top:0;width:100%;box-shadow:none!important;border:1px solid #cbd5e1}
+  .inv-cut i{background:#fff}
+}
