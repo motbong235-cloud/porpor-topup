@@ -1538,6 +1538,8 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
   const openAba = qr.open_aba_url || "";
   const updated = updateOrder(order.id, {
     transactionId: qr.transaction_id,
+    payCurrency: qr.currency || "USD",
+    payAmount: qr.charged_amount != null ? qr.charged_amount : order.total,
     qrImage: qr.qr_image,
     qrString: qr.qr_string,
     paymentKeySource: isTikTokPay ? "settings" : (qr.keySource || usedGateway === "aba" ? "aba" : "env"),
@@ -1616,10 +1618,14 @@ async function tryConfirmPayment(order, meta = {}) {
       return order;
     }
     const paidAmt = Number(pay.amount ?? pay.total ?? pay.paid_amount);
-    if (Number.isFinite(paidAmt) && paidAmt > 0 && Math.abs(paidAmt - Number(order.total)) > 0.05) {
-      console.warn("[pay] amount mismatch BLOCKED", order.id, paidAmt, order.total);
+    const payCur = String(pay.currency || order.payCurrency || "USD").toUpperCase();
+    // KHR payments are compared in riel (±៛100 rounding), USD payments in dollars.
+    const expected = payCur === "KHR" ? Number(order.payAmount || rielPay.usdToKhr(order.total)) : Number(order.total);
+    const tol = payCur === "KHR" ? 100 : 0.05;
+    if (Number.isFinite(paidAmt) && paidAmt > 0 && Math.abs(paidAmt - expected) > tol) {
+      console.warn("[pay] amount mismatch BLOCKED", order.id, paidAmt, expected, payCur);
       return updateOrder(order.id, {
-        note: `Amount mismatch blocked provider=${paidAmt} order=${order.total}`,
+        note: `Amount mismatch blocked provider=${paidAmt} ${payCur} expected=${expected}`,
       });
     }
     const fresh = getOrder(order.id);

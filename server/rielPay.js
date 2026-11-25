@@ -10,6 +10,17 @@ import crypto from "crypto";
 
 const DEFAULT_BASE = "https://rielpays.com";
 
+/** Currency the merchant's ABA link charges in. Learned automatically on a currency_mismatch error. */
+let _learnedCurrency = "";
+export function khrRate() {
+  const r = Number(process.env.KHR_RATE || 4100);
+  return Number.isFinite(r) && r > 1000 ? r : 4100;
+}
+/** USD → KHR, rounded UP to the next ៛100 (KHQR minimum ៛100). */
+export function usdToKhr(usd) {
+  return Math.max(100, Math.ceil((Number(usd) * khrRate()) / 100) * 100);
+}
+
 function clean(v) {
   return String(v || "")
     .replace(/[\s\u200b\ufeff]+/g, "")
@@ -109,18 +120,20 @@ export async function createPayment(amount, orderId, description = "", opts = {}
   const amt = Math.round(Number(amount) * 100) / 100;
   if (!(amt > 0)) return { success: false, error: "invalid_amount" };
 
+  const cur = String(opts.currency || _learnedCurrency || process.env.RIELPAY_CURRENCY || "USD").toUpperCase() === "KHR" ? "KHR" : "USD";
+  const charged = cur === "KHR" ? usdToKhr(amt) : amt;
   const body = {
-    amount: amt,
-    currency: "USD",
+    amount: charged,
+    currency: cur,
     description: String(description || `Order ${orderId}`).slice(0, 120),
-    metadata: { order_id: String(orderId) },
+    metadata: { order_id: String(orderId), usd_amount: String(amt) },
   };
 
   const headers = {
     Authorization: `Bearer ${key}`,
     Accept: "application/json",
     "Content-Type": "application/json",
-    "Idempotency-Key": `porpor-${String(orderId)}`.slice(0, 64),
+    "Idempotency-Key": `porpor-${String(orderId)}${cur === "KHR" ? "-khr" : ""}`.slice(0, 64),
     "User-Agent": "PorporTopup-RielPay/1.0",
   };
 
@@ -158,6 +171,12 @@ export async function createPayment(amount, orderId, description = "", opts = {}
           (typeof errObj === "string" ? errObj : "") ||
           data?.message ||
           "";
+        if (String(errCode) === "currency_mismatch" && !opts._cmRetry) {
+          const want = /charges in KHR/i.test(errMsg) ? "KHR" : /charges in USD/i.test(errMsg) ? "USD" : (cur === "USD" ? "KHR" : "USD");
+          _learnedCurrency = want;
+          console.warn(`[rielpay] currency_mismatch → retrying in ${want}`);
+          return createPayment(amount, orderId, description, { ...opts, currency: want, _cmRetry: true });
+        }
         if (r.status === 401 || r.status === 403) { lastErr = `HTTP ${r.status} key rejected — check RIELPAY_API_KEY is a LIVE key (sk_live…), correct merchant, and not IP/domain-restricted. ${errMsg || errCode || ""}`.trim(); return { success: false, error: lastErr, code: String(errCode || r.status), raw: data }; }
         lastErr = errCode && errMsg
           ? `${errCode}: ${errMsg}`
@@ -212,6 +231,8 @@ export async function createPayment(amount, orderId, description = "", opts = {}
         expires_at: data.expires_at || data.expire_at || null,
         gateway: "rielpay",
         keySource,
+        currency: cur,
+        charged_amount: charged,
         raw: data,
       };
     } catch (e) {
@@ -279,6 +300,7 @@ export async function checkPayment(paymentId, opts = {}) {
         paid,
         status: status || (paid ? "paid" : "pending"),
         amount: data.amount != null ? Number(data.amount) : undefined,
+        currency: String(data.currency || "").toUpperCase() || undefined,
         raw: data,
       };
     } catch (e) {
