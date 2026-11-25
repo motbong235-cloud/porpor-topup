@@ -172,13 +172,19 @@ export async function checkPayment(paymentId) {
       signal: AbortSignal.timeout(15000),
     });
     const data = await r.json();
-    const status = String(data.status || data.payment_status || data.state || "").toUpperCase();
-    const paidFlag = data.ok === true || data.paid === true || data.success === true;
+    // SECURITY: never treat API "ok/success/HTTP 200" as proof of payment —
+    // those only mean the check request succeeded. Require explicit paid status.
+    const status = String(data.status || data.payment_status || data.state || data.tran_status || "").toUpperCase();
     const paidStatuses = new Set(["PAID", "SUCCESS", "COMPLETED", "COMPLETE", "DONE", "SETTLED"]);
-    const paid = paidFlag || paidStatuses.has(status);
-    const code = data.status_code ?? data.code;
-    const paidByCode = code === 1 || code === "1" || code === 200;
-    return { paid: !!(paid || paidByCode), status: status.toLowerCase() || (paid ? "paid" : "unknown"), amount: data.amount ?? data.total ?? data.paid_amount, raw: data };
+    const explicitPaid = data.paid === true || data.is_paid === true || data.payment_paid === true;
+    const paid = explicitPaid || paidStatuses.has(status);
+    const amount = data.amount ?? data.total ?? data.paid_amount ?? data.tran_amount;
+    return {
+      paid: !!paid,
+      status: status.toLowerCase() || (paid ? "paid" : "pending"),
+      amount: amount != null && amount !== "" ? Number(amount) : undefined,
+      raw: data,
+    };
   } catch (e) {
     return { paid: false, error: e.message || String(e) };
   }

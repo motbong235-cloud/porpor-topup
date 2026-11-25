@@ -1601,9 +1601,14 @@ async function tryConfirmPayment(order, meta = {}) {
                 : "env",
         });
     console.log("[pay-reconcile]", order.id, useAba ? "aba" : "rielpay", pay.status, pay.paid, pay.error || "", meta.source || "");
-    if (useAba) {
-      if (!(pay && pay.paid === true && !pay.simulation && !pay.error)) return order;
-    } else if (!(assertPaymentProviderPaid(pay) && pay.paid === true && !pay.simulation && !pay.error)) {
+    // Same bar for ABA and RielPay: must be provider-paid, not simulation, no error
+    if (!(assertPaymentProviderPaid(pay) && pay.paid === true && !pay.simulation && !pay.error)) {
+      return order;
+    }
+    // Require a recognized paid-ish status string when present (block empty/unknown)
+    const st = String(pay.status || "").toLowerCase();
+    if (st && !["paid", "succeeded", "success", "completed", "complete", "done", "settled"].includes(st)) {
+      console.warn("[pay] status not paid BLOCKED", order.id, st);
       return order;
     }
     const paidAmt = Number(pay.amount ?? pay.total ?? pay.paid_amount);
