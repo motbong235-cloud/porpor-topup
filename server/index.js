@@ -925,9 +925,32 @@ app.post("/api/verify", limit("verify", { limit: 15, windowMs: 60_000 }), async 
       nameL.includes("robux") ||
       nameL.includes("rbx");
 
-    // TikTok Khmer: resolve video URL → @username (oEmbed + redirect)
+    // TikTok Khmer: accept @username OR video URL
     if (isTikTok) {
       try {
+        const rawIn = String(playerId || "").trim();
+        // Plain TikTok username (with or without @) — allowed for every order
+        const userOnly = rawIn.replace(/^@/, "");
+        const looksUsername =
+          !!userOnly &&
+          !/\s/.test(userOnly) &&
+          !/^https?:\/\//i.test(rawIn) &&
+          !/tiktok\.com/i.test(rawIn) &&
+          /^[A-Za-z0-9._]{2,24}$/.test(userOnly);
+        if (looksUsername) {
+          return res.json({
+            result: "valid",
+            valid: true,
+            nickname: "@" + userOnly,
+            provider: "tiktok",
+            tiktok: {
+              username: userOnly,
+              displayName: userOnly,
+              authorUrl: "https://www.tiktok.com/@" + userOnly,
+              from: "username",
+            },
+          });
+        }
         const tt = await tiktokLookup.lookupTikTokLink(playerId);
         const looksTikTokUrl = /tiktok\.com\//i.test(String(playerId));
         if (!tt || !tt.valid) {
@@ -946,7 +969,7 @@ app.post("/api/verify", limit("verify", { limit: 15, windowMs: 60_000 }), async 
           return res.json({
             result: "invalid",
             valid: false,
-            message: "Invalid TikTok link — paste the full video URL (tiktok.com/…)",
+            message: "បញ្ចូល @username TikTok ឬ link វីដេអូ (tiktok.com/…)",
             provider: "tiktok",
           });
         }
@@ -1408,20 +1431,37 @@ app.post("/api/checkout/create", limit("checkout", { limit: 8, windowMs: 60_000 
     gameName: order.gameName,
     packName: order.packName,
   });
-  // TikTok: resolve @username from video link (oEmbed + URL) so admin never mis-targets
+  // TikTok / Kai: accept @username or resolve from video link
   if (kaiRoute && order.userId) {
     try {
-      const tt = await tiktokLookup.lookupTikTokLink(order.userId);
-      if (tt && (tt.username || tt.displayName)) {
+      const raw = String(order.userId || "").trim();
+      const bare = raw.replace(/^@/, "");
+      const isUser =
+        !!bare &&
+        !/\s/.test(bare) &&
+        !/^https?:\/\//i.test(raw) &&
+        !/tiktok\.com/i.test(raw) &&
+        /^[A-Za-z0-9._]{2,24}$/.test(bare);
+      if (isUser) {
         order = updateOrder(order.id, {
-          ttkUsername: tt.username || null,
-          ttkDisplayName: tt.displayName || null,
-          ttkAuthorUrl: tt.authorUrl || null,
-          ttkThumbnail: tt.thumbnail || null,
-          ttkAvatarUrl: tt.avatarUrl || null,
-          ttkResolvedUrl: tt.resolvedUrl || null,
-          ttkTitle: tt.title || null,
+          ttkUsername: bare,
+          ttkDisplayName: bare,
+          ttkAuthorUrl: "https://www.tiktok.com/@" + bare,
+          userId: "@" + bare,
         }) || order;
+      } else {
+        const tt = await tiktokLookup.lookupTikTokLink(order.userId);
+        if (tt && (tt.username || tt.displayName)) {
+          order = updateOrder(order.id, {
+            ttkUsername: tt.username || null,
+            ttkDisplayName: tt.displayName || null,
+            ttkAuthorUrl: tt.authorUrl || null,
+            ttkThumbnail: tt.thumbnail || null,
+            ttkAvatarUrl: tt.avatarUrl || null,
+            ttkResolvedUrl: tt.resolvedUrl || null,
+            ttkTitle: tt.title || null,
+          }) || order;
+        }
       }
     } catch (e) {
       console.warn("[tiktok] lookup on checkout", e.message);

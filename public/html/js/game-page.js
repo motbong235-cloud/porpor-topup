@@ -52,7 +52,7 @@
   const subtotal = () => (S.pack ? Number(S.pack.price) * S.qty : 0);
   const total = () => Math.max(0, subtotal() - S.discount);
   const isTT = () => /tiktok/i.test(String(S.game.id) + " " + String(S.game.name));
-  const idLabel = () => (isTT() ? "TikTok video link" : S.game.numericId ? "User ID" : "Player ID");
+  const idLabel = () => (isTT() ? "TikTok @username or video link" : S.game.numericId ? "User ID" : "Player ID");
   const idHint = () => S.game.idHintEn || S.game.idHintKm || "";
   const zoneLabel = () => S.game.zoneLabelEn || S.game.zoneLabelKm || "Zone ID";
 
@@ -201,7 +201,7 @@
             <div class="checkout-field">
               <div class="checkout-row">
                 <input id="f-user" class="checkout-input" value="${esc(S.userId)}" autocomplete="off" ${g.numericId ? 'inputmode="numeric"' : ""} placeholder="${esc(hint || idLabel())}">
-                <button type="button" class="checkout-btn checkout-btn--ghost" id="btn-check">${isTT() ? "Check link" : "Check ID"}</button>
+                <button type="button" class="checkout-btn checkout-btn--ghost" id="btn-check">${isTT() ? "Check" : "Check ID"}</button>
               </div>
                             <p class="checkout-help ${S.check ? "is-ok" : S.checkSoft ? "is-soft" : "is-err"}" id="check-msg">${S.check ? "✓ " + esc(S.check.nickname) : esc(S.checkMsg)}</p>
             </div>
