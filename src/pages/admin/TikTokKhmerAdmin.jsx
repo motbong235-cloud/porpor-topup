@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { AIcon, BannerManager, ImageSlot, PageHead, Switch, VideoSlot, api, toast } from "./ui";
+import { AIcon, BannerManager, DragHandle, ImageSlot, PageHead, Switch, VideoSlot, api, arrayMove, toast, useSortable } from "./ui";
 
 const TID = "tiktok-khmer";
 
@@ -87,6 +87,10 @@ export default function TikTokKhmerAdmin() {
   function addPack() {
     setProduct((p) => (p ? { ...p, packs: [...(p.packs || []), blankPack()] } : p));
   }
+
+  const packSort = useSortable((from, to) => {
+    setProduct((p) => (p ? { ...p, packs: arrayMove(p.packs || [], from, to) } : p));
+  });
 
   function removePack(i) {
     setProduct((p) => (p ? { ...p, packs: p.packs.filter((_, j) => j !== i) } : p));
@@ -269,6 +273,7 @@ export default function TikTokKhmerAdmin() {
           {(product.packs || []).map((pk, i) => (
             <div
               key={pk.id || i}
+              {...packSort.item(i)}
               style={{
                 border: "1px solid var(--ad-line, #e2e8f0)",
                 borderRadius: 12,
@@ -279,6 +284,7 @@ export default function TikTokKhmerAdmin() {
               }}
               className="ad-ttk-pack-row"
             >
+              <DragHandle props={packSort.handle(i)} />
               <label className="ad-field" style={{ margin: 0 }}>
                 <span>ឈ្មោះ</span>
                 <input value={pk.name || ""} onChange={(e) => patchPack(i, "name", e.target.value)} />

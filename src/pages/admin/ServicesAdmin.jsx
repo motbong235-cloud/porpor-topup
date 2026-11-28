@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AIcon, BannerManager, GuideEditor, ImageSlot, PageHead, Switch, WideImageSlot, api, toast, usd } from "./ui";
+import { AIcon, BannerManager, DragHandle, GuideEditor, ImageSlot, PageHead, Switch, WideImageSlot, api, arrayMove, toast, usd, useSortable } from "./ui";
 
 const blank = { enabled: false, showWhenOff: false, featured: false, famous: false, markup: null, packages: null, packPrices: {}, image: "", banner: "", banners: [], packIcon: "", packImages: {} };
 
@@ -404,6 +404,17 @@ function LocalServicesPanel() {
       }),
     );
   }
+  // drag-to-reorder: services (array order = order on the storefront) and packs inside a service
+  function moveProduct(from, to) {
+    setProducts((list) => arrayMove(list, from, to));
+    setEditIdx((cur) => (cur === from ? to : cur > from && cur <= to ? cur - 1 : cur < from && cur >= to ? cur + 1 : cur));
+    toast("រៀបលំដាប់រួច — ចុច «រក្សាទុក» ដើម្បីប្រើ");
+  }
+  function movePack(pi, from, to) {
+    setProducts((list) => list.map((p, idx) => (idx === pi ? { ...p, packs: arrayMove(p.packs || [], from, to) } : p)));
+  }
+  const svcSort = useSortable(moveProduct);
+  const packSort = useSortable((from, to) => movePack(editIdx, from, to));
   function removeProduct(i) {
     if (!confirm("លុប service នេះ?")) return;
     setProducts((list) => list.filter((_, idx) => idx !== i));
@@ -561,6 +572,7 @@ function LocalServicesPanel() {
           <div className="ad-section-title">
             <strong>បញ្ជី Service</strong>
           </div>
+          {products.length > 1 ? <p className="ad-sort-hint">⠿ ទាញចំណុច ⠿ ខាងឆ្វេង ដើម្បីរៀបលំដាប់ (លើទូរស័ព្ទក៏បាន) · លំដាប់នេះគឺជាលំដាប់លើ website</p> : null}
 
           {loading ? null : products.length === 0 ? (
             <p className="ad-empty">មិនទាន់មាន — ចុច + ស្តុក ឬ + Live Chat</p>
@@ -576,8 +588,9 @@ function LocalServicesPanel() {
                   : dt === "live_chat";
               const totalStock = (p.packs || []).reduce((s, pk) => s + (stockCounts[pk.id] || 0), 0);
               return (
-                <article key={p.id || i} className={`ad-svc-item${p.open !== false ? " on" : ""}`}>
+                <article key={p.id || i} className={`ad-svc-item${p.open !== false ? " on" : ""}`} {...svcSort.item(i)}>
                   <div className="ad-svc-row">
+                    <DragHandle props={svcSort.handle(i)} />
                     {p.image ? (
                       <img src={p.image} alt="" className="ad-svc-thumb" />
                     ) : (
@@ -731,7 +744,8 @@ function LocalServicesPanel() {
 
                       <div className="ad-mode-label">Packs</div>
                       {(p.packs || []).map((pk, j) => (
-                        <div key={pk.id || j} className="ad-pack-row">
+                        <div key={pk.id || j} className="ad-pack-row" {...packSort.item(j)}>
+                          <DragHandle props={packSort.handle(j)} />
                           <ImageSlot
                             src={pk.image || ""}
                             fallback={(pk.name || "?").slice(0, 1)}

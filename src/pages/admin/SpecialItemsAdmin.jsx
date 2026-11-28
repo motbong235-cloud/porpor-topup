@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { AIcon, PageHead, api, toast } from "./ui";
+import { AIcon, DragHandle, PageHead, api, arrayMove, toast, useSortable } from "./ui";
 import { useCatalog } from "../../lib/catalog";
 
 /**
@@ -11,6 +11,11 @@ export default function SpecialItemsAdmin() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+  // drag-to-reorder: renumber `sort` so the storefront (which sorts by it) follows this order
+  const siSort = useSortable((from, to) => {
+    setItems((list) => arrayMove(list, from, to).map((x, k) => ({ ...x, sort: k + 1 })));
+    setDirty(true);
+  });
   const [serviceId, setServiceId] = useState("");
   const [q, setQ] = useState("");
 
@@ -299,11 +304,13 @@ export default function SpecialItemsAdmin() {
       {items.length > 0 && !serviceId ? (
         <div className="ad-card" style={{ marginTop: 14 }}>
           <h3 className="ad-card-title">បញ្ជី Special ទាំងអស់</h3>
+          {items.length > 1 ? <p className="ad-sort-hint">ទាញចំណុច ⠿ ដើម្បីរៀបលំដាប់ រួចចុច រក្សាទុក</p> : null}
           <div className="si-summary">
             {items.map((it, i) => {
               const g = openGames.find((x) => String(x.id) === String(it.gameId));
               return (
-                <div key={it.id || i} className="si-summary-row">
+                <div key={it.id || i} className="si-summary-row" {...siSort.item(i)}>
+                  <DragHandle props={siSort.handle(i)} />
                   <span className={"si-dot" + (it.enabled === false ? " off" : "")} />
                   <span className="si-summary-svc">{g?.name || it.gameId || "—"}</span>
                   <span className="si-summary-title">{it.title || it.titleKm}</span>

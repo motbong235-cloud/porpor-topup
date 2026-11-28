@@ -82,6 +82,94 @@ const PATHS = {
   shield: "M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z",
 };
 
+/* ---------- Drag-to-reorder (mouse + touch + keyboard) ----------
+   Why custom: native HTML5 drag-and-drop does not fire on phones, which is why lists could not be dragged.
+   Pointer events work for finger, pen and mouse; touch-action:none on the handle stops the page from
+   scrolling while you drag; the page auto-scrolls near the screen edge so long lists are reachable. */
+export const arrayMove = (list, from, to) => {
+  const a = list.slice();
+  if (from < 0 || from >= a.length || to < 0 || to >= a.length || from === to) return a;
+  const [x] = a.splice(from, 1);
+  a.splice(to, 0, x);
+  return a;
+};
+export function useSortable(onMove) {
+  const refs = useRef([]);
+  const st = useRef(null);
+  const raf = useRef(0);
+  const [drag, setDrag] = useState(null);
+  const finish = (commit) => {
+    cancelAnimationFrame(raf.current);
+    const s = st.current;
+    st.current = null;
+    setDrag(null);
+    if (commit && s && s.from !== s.over) onMove(s.from, s.over);
+  };
+  const tick = () => {
+    const s = st.current;
+    if (!s) return;
+    const edge = 90;
+    if (s.y < edge) window.scrollBy(0, -Math.ceil((edge - s.y) / 5));
+    else if (s.y > window.innerHeight - edge) window.scrollBy(0, Math.ceil((s.y - (window.innerHeight - edge)) / 5));
+    raf.current = requestAnimationFrame(tick);
+  };
+  const hit = (y) => {
+    let best = -1;
+    let dist = Infinity;
+    refs.current.forEach((el, k) => {
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const d = y < r.top ? r.top - y : y > r.bottom ? y - r.bottom : 0;
+      if (d < dist) { dist = d; best = k; }
+    });
+    return best;
+  };
+  const handle = (i) => ({
+    className: "ad-handle",
+    role: "button",
+    tabIndex: 0,
+    "aria-label": "ទាញដើម្បីរៀបលំដាប់ (ឬប្រើព្រួញ ↑ ↓)",
+    title: "ទាញដើម្បីរៀបលំដាប់",
+    onPointerDown: (e) => {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      e.preventDefault();
+      try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
+      st.current = { from: i, over: i, y: e.clientY };
+      setDrag({ from: i, over: i });
+      raf.current = requestAnimationFrame(tick);
+    },
+    onPointerMove: (e) => {
+      const s = st.current;
+      if (!s) return;
+      s.y = e.clientY;
+      const over = hit(e.clientY);
+      if (over >= 0 && over !== s.over) { s.over = over; setDrag({ from: s.from, over }); }
+    },
+    onPointerUp: () => finish(true),
+    onPointerCancel: () => finish(false),
+    onKeyDown: (e) => {
+      if (e.key === "ArrowUp") { e.preventDefault(); onMove(i, Math.max(0, i - 1)); }
+      if (e.key === "ArrowDown") { e.preventDefault(); onMove(i, i + 1); }
+    },
+  });
+  const item = (i) => ({
+    ref: (el) => { refs.current[i] = el; },
+    "data-sort": drag ? (drag.from === i ? "drag" : drag.over === i ? (drag.from < i ? "after" : "before") : "idle") : undefined,
+  });
+  return { handle, item, dragging: !!drag };
+}
+export function DragHandle({ props }) {
+  return (
+    <span {...props}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <circle cx="9" cy="6" r="1.6" /><circle cx="15" cy="6" r="1.6" />
+        <circle cx="9" cy="12" r="1.6" /><circle cx="15" cy="12" r="1.6" />
+        <circle cx="9" cy="18" r="1.6" /><circle cx="15" cy="18" r="1.6" />
+      </svg>
+    </span>
+  );
+}
+
 export function AIcon({ name, size = 18 }) {
   return (
     <svg
